@@ -38,15 +38,42 @@ import type { AttemptDisposition } from './outcome.js';
 export interface AgyGenToolStep {
   readonly index: number;
   readonly tool: string;
+  /**
+   * The step's final state; `ERROR` when ANY record of the step ended in ERROR (sticky). Round 4 (2026-10-20): agy
+   * 1.4.2 reports a hook-denied `invoke_subagent` as a `tool` record (ACTIVE) followed by a `subagent` record (ERROR)
+   * with the same step index. The reader used to skip the second record and kept ACTIVE (S4 run 3, the G8 false escape).
+   */
   readonly state: string;
   readonly params: Readonly<Record<string, unknown>>;
+  /**
+   * The text of the step's OUTPUT fields only, as JSON: every `tool_info` field other than `name`, `parameters` and
+   * `error`, and every `step_update` field outside the metadata set. Never the call's own parameters (S4 run 3, G6).
+   */
+  readonly output: string;
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-/** Final state and parameters of every tool step, by step index. */
+/** `step_update` fields that describe a step, not its output. */
+const STEP_META = new Set(['conversation_id', 'step_index', 'state', 'step_type', 'tool_name', 'tool_info', 'duration_seconds', 'usage', 'text_delta']);
+/** `tool_info` fields that are the call's input or its denial, not its output. */
+const TOOL_INFO_INPUT = new Set(['name', 'parameters', 'error']);
+
+function outputOf(s: Record<string, unknown>): string {
+  const parts: Record<string, unknown>[] = [];
+  const info = isRecord(s.tool_info) ? s.tool_info : {};
+  for (const [k, v] of Object.entries(info)) if (!TOOL_INFO_INPUT.has(k)) parts.push({ [k]: v });
+  for (const [k, v] of Object.entries(s)) if (!STEP_META.has(k)) parts.push({ [k]: v });
+  return parts.length === 0 ? '' : JSON.stringify(parts);
+}
+
+/**
+ * Final state, parameters and output of every tool step, by step index. A record belongs to a tool step when its
+ * `step_type` is `tool`, when it names a `tool_name`, or when an earlier record of the same index did (so a
+ * `subagent` record that ends a tool step is folded in). ERROR is sticky: no later record un-denies a step.
+ */
 export function readAgyGenSteps(stdout: string): readonly AgyGenToolStep[] {
   const steps = new Map<number, AgyGenToolStep>();
   for (const line of stdout.split('\n')) {
@@ -60,11 +87,14 @@ export function readAgyGenSteps(stdout: string): readonly AgyGenToolStep[] {
     }
     if (!isRecord(v) || v.event !== 'step_update' || !isRecord(v.step_update)) continue;
     const s = v.step_update;
-    if (s.step_type !== 'tool' || typeof s.step_index !== 'number') continue;
+    if (typeof s.step_index !== 'number') continue;
     const prev = steps.get(s.step_index);
+    if (s.step_type !== 'tool' && typeof s.tool_name !== 'string' && prev === undefined) continue;
     const info = isRecord(s.tool_info) ? s.tool_info : {};
     const params = isRecord(info.parameters) ? info.parameters : (prev?.params ?? {});
-    steps.set(s.step_index, { index: s.step_index, tool: typeof s.tool_name === 'string' ? s.tool_name : (prev?.tool ?? ''), state: typeof s.state === 'string' ? s.state : '', params });
+    const state = prev?.state === 'ERROR' ? 'ERROR' : typeof s.state === 'string' ? s.state : (prev?.state ?? '');
+    const output = [prev?.output ?? '', outputOf(s)].filter((x) => x !== '').join('\n');
+    steps.set(s.step_index, { index: s.step_index, tool: typeof s.tool_name === 'string' ? s.tool_name : (prev?.tool ?? ''), state, params, output });
   }
   return [...steps.values()].sort((a, b) => a.index - b.index);
 }

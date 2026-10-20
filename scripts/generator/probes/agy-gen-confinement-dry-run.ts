@@ -112,7 +112,8 @@ export class ScriptedAgyS4Runner implements ProcessRunner {
     if (r.status !== 0) return 'error';
     try {
       const v = JSON.parse(r.stdout.trim()) as { decision?: unknown };
-      return v.decision === 'allow' ? 'allow' : 'deny';
+      // Round 4: the hook answers an allowed call `auto_approve` (agy's approval value); anything else blocks.
+      return v.decision === 'auto_approve' ? 'allow' : 'deny';
     } catch {
       return 'error';
     }

@@ -2524,3 +2524,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Stage A ran at 5bfe36e3: Layered x3, none@L2, Claude Sonnet, 15 turns, 3/3 complete. Mean D 1.33, Y1>=1 in 3/3, all FF-S03. The stop check does not trigger, so Layered continues (provisional until the freeze re-score). Two earlier attempts made 0 model calls: an absolute-binary-path error, then 'Not logged in' under the per-run HOME (the S3 keychain finding; that isolation is off for Stage A, declared)."
 **Context**: exploratory study Stage A; 15 Claude generator turns
 ---
+
+## v1.4 instrument track: U12 round 4, Gemini S4 run-3 scorer and config fixes (code, not run live)
+**Timestamp**: 2026-10-20T04:25:19Z
+**User Input**: "Coordinator brief: diagnose the third live S4 run (with the hook), fix the scorer false positives (G6, G8), make the allowed command and MCP calls pass both layers, diagnose G1 and G11 without silently changing a pass criterion; zero model calls; PR to main, do not merge."
+**AI Response**: "Re-scored run 3 from its saved streams and hook logs (zero calls). G6 and G8 were scorer false positives: the network regex matched a denied call's parameters, and a subagent ERROR record was skipped. No security escape remains. G5, G9, G10 and G11 share one cause: agy sent every hook-allowed call to a confirmation that print mode soft-denies (a hook 'allow' only delegates). The hook now answers 'auto_approve', the mcp arm gets schema-file read rules, the invalid unsandboxed(*) rule is dropped, and edit_file is path-checked. G1 none was Gemini's provider filter (not attempted, still a fail); a one-retry rule is proposed, not in force. The run-2 'prefix rule' finding is corrected (those steps were soft denials). No pass criterion changed. Run 4 is pending."
+**Context**: v1.4 instrument track; plan aidlc-docs/construction/v1.4/U12/plan.md "Round 4"; declared change Docs/v1.4/gemini-confinement-change-2026-10-20.md "Round 4"
+---

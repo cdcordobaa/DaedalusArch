@@ -145,9 +145,9 @@ describe('generator home and settings', () => {
     expect(checkAgyGenHome(homes.none, 'none', null, true, HOOK).problems).toContain('the none home must list no MCP server');
     const w = writeAgyTurnFiles(homes['daedalus-mcp'], { arm: 'daedalus-mcp', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK, daedalus: DAEDALUS });
     if (!w.success) throw new Error('write');
-    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', allow('daedalus-mcp'), true, HOOK).problems).toEqual([]);
+    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', w.data.allow, true, HOOK).problems).toEqual([]);
     fs.chmodSync(homes['daedalus-mcp'], 0o755);
-    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', allow('daedalus-mcp'), true, HOOK).problems).toContain('generator home is accessible to group or others');
+    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', w.data.allow, true, HOOK).problems).toContain('generator home is accessible to group or others');
   });
 
   it('the daedalus-mcp MCP config carries --project <cwd> and --call-log; the none arm writes none', () => {
@@ -325,8 +325,9 @@ describe('U12: the confinement hook in the turn files, the home check and the pe
         for (const r of [...expectedDeny(arm, ac), ...expectedAllow({ arm, runId: RUN, harnessRoot: H, cwd, allowCommand: ac })]) expect(r).toMatch(kinds);
       }
     }
-    expect([...expectedDeny('none', true)]).toEqual(['read_url(*)', 'execute_url(*)', 'unsandboxed(*)', 'mcp(*)']);
-    expect([...expectedDeny('daedalus-mcp', true)]).toEqual(['read_url(*)', 'execute_url(*)', 'unsandboxed(*)', 'mcp(daedalus-arch/evaluate_project)']);
+    // Round 4: unsandboxed(*) dropped (agy 1.4.2 on macOS logs it as invalid and ignores it).
+    expect([...expectedDeny('none', true)]).toEqual(['read_url(*)', 'execute_url(*)', 'mcp(*)']);
+    expect([...expectedDeny('daedalus-mcp', true)]).toEqual(['read_url(*)', 'execute_url(*)', 'mcp(daedalus-arch/evaluate_project)']);
     expect([...expectedDeny('none', false)]).toContain('command(*)');
     const rule = commandAllowRule('/h/bin/tsc --noEmit -p /h/runs/a.b/tsconfig.json');
     expect(rule).toBe('command(regex:^/h/bin/tsc --noEmit -p /h/runs/a\\.b/tsconfig\\.json$)');
@@ -334,6 +335,30 @@ describe('U12: the confinement hook in the turn files, the home check and the pe
     expect(re.test('/h/bin/tsc --noEmit -p /h/runs/a.b/tsconfig.json')).toBe(true);
     expect(re.test('/h/bin/tsc --noEmit -p /h/runs/a.b/tsconfig.json && touch ../x')).toBe(false);
     expect(re.test('/h/bin/tsc --noEmit -p /h/runs/aXb/tsconfig.json')).toBe(false);
+  });
+
+  it('round 4: the anchored rule matches the exact CommandLine agy passed in S4 run 3 (G5), and no chained form', () => {
+    // The run-3 G5 stream (placeholders): `<H>/bin/tsc --noEmit --incremental false -p <H>/runs/agy-s4/none/G5/tsconfig.json`.
+    const h = '/opt/shared/daedalus-gemini-s4/h';
+    const fromStream = '<H>/bin/tsc --noEmit --incremental false -p <H>/runs/agy-s4/none/G5/tsconfig.json'.split('<H>').join(h);
+    const cmd = typecheckCommand(h, 'agy-s4/none/G5');
+    expect(cmd).toBe(fromStream);
+    const re = new RegExp(commandAllowRule(cmd).slice('command(regex:'.length, -1));
+    expect(re.test(fromStream)).toBe(true);
+    for (const bad of [`${fromStream} && touch ../chain-and.txt`, `${fromStream}; touch ../m`, `${fromStream} --tsBuildInfoFile ../x`, ` ${fromStream}`]) expect(re.test(bad)).toBe(false);
+  });
+
+  it('round 4: a daedalus-mcp turn written for a home allows the nine schema-file reads; the none arm and other files get none', () => {
+    const home = homes['daedalus-mcp'];
+    const w = writeAgyTurnFiles(home, { arm: 'daedalus-mcp', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK, daedalus: DAEDALUS });
+    if (!w.success) throw new Error('write');
+    const reads = w.data.allow.filter((r) => r.startsWith('read_file(') && r.endsWith('.json)'));
+    expect(reads).toEqual(DAEDALUS_ARM_TOOLS.map((t) => `read_file(${path.join(path.resolve(home), AGY_GEN_MCP_SCHEMA_REL, 'daedalus-arch', `${t}.json`)})`));
+    expect(reads.some((r) => r.includes('evaluate_project'))).toBe(false);
+    expect(checkAgyGenHome(home, 'daedalus-mcp', w.data.allow, true, HOOK).problems).toEqual([]);
+    const n = writeAgyTurnFiles(homes.none, { arm: 'none', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK });
+    if (!n.success) throw new Error('write none');
+    expect(n.data.allow.filter((r) => r.endsWith('.json)'))).toEqual([]);
   });
 
   it('the stop rule path-checks completed file steps when the work directory is known (agy 1.4.2 read_file / write_file)', () => {

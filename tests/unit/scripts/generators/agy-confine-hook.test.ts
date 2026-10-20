@@ -215,7 +215,7 @@ describe('the hook process (as agy runs it)', () => {
   it('prints the decision JSON with exit 0 and appends tool, decision, reason, stepIdx to the hook log', () => {
     const a = run(payload('write_to_file', { TargetFile: 'src/b.ts' }, 4));
     expect(a.status).toBe(0);
-    expect(JSON.parse(a.stdout)).toMatchObject({ decision: 'allow' });
+    expect(JSON.parse(a.stdout)).toMatchObject({ decision: 'auto_approve' });
     const d = run(payload('invoke_subagent', { Role: 'x' }, 5));
     expect(d.status).toBe(0);
     expect(JSON.parse(d.stdout)).toMatchObject({ decision: 'deny' });
@@ -225,10 +225,21 @@ describe('the hook process (as agy runs it)', () => {
     ]);
   });
 
+  it('round 4: agy only ever sees auto_approve or deny (never the delegating allow); edit_file is path-checked', () => {
+    const outs = [
+      run(payload('write_file', { Path: path.join(work, 'notes.md') })),
+      run(payload('edit_file', { Path: path.join(work, 'src', 'a.ts') })),
+      run(payload('edit_file', { Path: path.join(work, '..', 'sibling.txt') })),
+      run(payload('run_command', { CommandLine: `${CMD} && touch ../x` })),
+    ].map((r) => (JSON.parse(r.stdout) as { decision: string }).decision);
+    expect(outs).toEqual(['auto_approve', 'auto_approve', 'deny', 'deny']);
+    expect(log().map((l) => (l as { decision: string }).decision)).toEqual(['allow', 'allow', 'deny', 'deny']);
+  });
+
   it('command_status is allowed after the allowed run_command was logged', () => {
     expect(JSON.parse(run(payload('command_status', { CommandId: '1' })).stdout)).toMatchObject({ decision: 'deny' });
-    expect(JSON.parse(run(payload('run_command', { CommandLine: CMD })).stdout)).toMatchObject({ decision: 'allow' });
-    expect(JSON.parse(run(payload('command_status', { CommandId: '1' })).stdout)).toMatchObject({ decision: 'allow' });
+    expect(JSON.parse(run(payload('run_command', { CommandLine: CMD })).stdout)).toMatchObject({ decision: 'auto_approve' });
+    expect(JSON.parse(run(payload('command_status', { CommandId: '1' })).stdout)).toMatchObject({ decision: 'auto_approve' });
   });
 
   it('fails closed (non-zero exit, no decision) on malformed stdin, a missing or invalid config, a missing work dir, a home with no turn', () => {
