@@ -2492,4 +2492,9 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Added CLAUDE_EXPLORATORY_VERSIONS = ['2.1.303'] in src/llm-critic/claude-cli-provider.ts (frozen.ts untouched). checkJudgeIsolation and ClaudeCliProvider take an optional exploratoryVersions; default behaviour is the strict pin. The ontology routes replace the agy-only --exploratory refusal with per-route allowances (claude-cli and gemini-agy; mock and gemini-api still refused, code ONTOLOGY_ROUTE_EXPLORATORY_UNSUPPORTED). Help text of scripts/v1.3/ontology-run.ts and scripts/v1.4/c4-run.ts updated. The loop's Claude generator pin is the plan's adapters[].cliVersion, not the judge pin, so no code change there. Unit tests added; zero model calls."
 **Context**: v1.4 instrument track; unblocks the Claude half of the capped C1d pilot under the exploratory label; frozen judge runs unaffected
 
+## v1.4 research ops: C1d pilot, Claude half
+**Timestamp**: 2026-10-20T01:29:42Z
+**User Input**: "We are back; give it the last mile."
+**AI Response**: "Ran the C1d 2-case pilot on Claude (CLI 2.1.304 under the D1 exploratory allowance). Defect found; 2 grounded false positives (1 of them on the clean twin, a formatting responsibility read as presentation logic); 0 hallucinations. Gemini had 0 false positives. Report updated."
+**Context**: v1.4 instrument track, TRUST-01 L3; ≤ 40 Claude calls
 ---

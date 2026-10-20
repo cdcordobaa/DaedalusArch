@@ -1,0 +1,28 @@
+{
+  "itemId": "b71e0ea9e1e0b768",
+  "itemName": "Shipment Notification ~ Shipment",
+  "key": "9207085630a6dbcd1427db8dc43faf5b3202de45678da9fa5317006034fd8c29",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "43bd4a1889789df80ca3e592588df27337835a01ad0603930a4888fa4a562fda",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Shipment Notification\nwhere: ShipmentNotificationService (defines), src/notifications/application/shipment-notification.service.ts, component notifications\ncode:\n=====SOURCE-BEGIN\nawait this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);\n=====SOURCE-END=====\ngraph:\n- class ShipmentNotificationService (node 21902eaf2ee28c4a): layer application, component notifications, fan-out 1, fan-in 0\n- -> CONSTRUCTOR_INJECTS Interface Mailer\n\n### B\nconcept: Shipment\nwhere: Shipment (defines), src/shipping/domain/shipment.ts, component shipping\ncode:\n=====SOURCE-BEGIN\nexport class Shipment {\n=====SOURCE-END=====\ngraph:\n- class Shipment (node e4b465cb4e5c3815): layer domain, component shipping, fan-out 0, fan-in 0",
+  "recordedAt": "2026-10-20T01:28:18.440Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.88,
+    "rationale": "A is a notification sent about a shipment: an application service (node 21902eaf2ee28c4a) that emails the recipient ('Your order has shipped'). B is the Shipment domain entity itself (node e4b465cb4e5c3815). A uses Shipment data (recipientEmail, carrier), but a notification is a separate concept from the shipment it reports on.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1817,
+    "outputTokens": 216
+  }
+}

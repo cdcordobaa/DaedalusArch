@@ -1,0 +1,1050 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A2",
+  "project": {
+    "id": "case-04b-control-clean-notification",
+    "contentHash": "08b4516143af98cb0b5ef5b1cbe261e1c6d556adf3a7a4083740c82d49f59b84",
+    "commit": null
+  },
+  "inputs": {
+    "a1": {
+      "apgHash": "a9ee26783308daebe05feec749b15ff453349e5ec808bf0a634069fd7c5d0e31"
+    },
+    "layerModel": {
+      "path": "tests/fixtures/v1.3-ontology/layers.json",
+      "hash": "029d18d14b37587251633e747ce135abdb7b767cf61108942f270c9f60445f15"
+    }
+  },
+  "producer": {
+    "part": "C1d",
+    "pipeline": "ontology-v0",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "runId": "ontology-v0-01e31abcdb2b",
+    "factPolicy": "agreed-only"
+  },
+  "facts": [
+    {
+      "id": "fact:04eb541592efd188",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Shipment Notification",
+        "relation": "defines",
+        "conceptId": "sem:SemBusinessConcept:3f3d65ebb67cc1e4"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": 0.55,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 9,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:53c18d9bb10c4ef7",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Shipment",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:93ea4b31a959efa2"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": 0.85,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "async sendShipped(shipment: Shipment): Promise<void> {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:5aa0a54604a17313",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Carrier",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:03f6398fd2e64cf9"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 9,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:6c79a6083e1886a8",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Recipient",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:81f0537396af82cb"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+      "date": "2026-10-20T01:27:20.727Z",
+      "confidence": 0.55,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly recipientEmail: string,",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 4,
+            "endLine": 4
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:9bbcbd1535bd381d",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Carrier",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:03f6398fd2e64cf9"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+      "date": "2026-10-20T01:27:20.727Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly carrier: string,",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 6,
+            "endLine": 6
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:fb2db4a52e2539cf",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Shipment",
+        "relation": "defines",
+        "conceptId": "sem:SemBusinessConcept:93ea4b31a959efa2"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+      "date": "2026-10-20T01:27:20.727Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:980a4664b23e4ae7",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Compose shipment notification content",
+        "description": "Builds the shipped-notification message text, including the shipping date (formatted as a day) and the carrier.",
+        "naturalLayer": "presentation"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "const day = shipment.shippedAt.toISOString().slice(0, 10);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 8,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:fafb38fbc4f35969",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Notify recipient that shipment has shipped",
+        "description": "Orchestrates sending a 'your order has shipped' email to the shipment's recipient through the Mailer port.",
+        "naturalLayer": "application"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": 0.85,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 9,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:2d06c5933541cded",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Hold recipient contact",
+        "description": "Stores the recipient's email address so a shipment can be linked to the person it is for, for example to notify them.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+      "date": "2026-10-20T01:27:20.727Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly recipientEmail: string,",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 4,
+            "endLine": 4
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:bba29d36f7698dce",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Model shipment record",
+        "description": "Represents a shipment as an immutable domain value: its identifier, the shipping date and the carrier that handled it.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+      "date": "2026-10-20T01:27:20.727Z",
+      "confidence": 0.85,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly shippedAt: Date,",
+          "startLine": 5,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 5,
+            "endLine": 6
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:36dfb51894702a96",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "inContext",
+      "value": {
+        "context": "notifications",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "notifications",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:dd5ec1359105dca5",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "inContext",
+      "value": {
+        "context": "shipping",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "shipping",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:c0dc258d192ca236",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "inLayer",
+      "value": "application",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "application",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:16fa8e3c97cbb443",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "inLayer",
+      "value": "domain",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "domain",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b01b2146d7ba5464",
+      "subject": "1e7c92c05d631e52",
+      "predicate": "logicDensity",
+      "value": 0,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 7,
+            "endLine": 10
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:aee6713d9f37c1cc",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Shipment dispatch notification",
+        "capabilityId": "sem:SemCapability:b03f26b649174e20"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "f71662f05b1b112e044e504795660b302028d8732d6605d0831c67317b99e3a3",
+      "date": "2026-10-20T01:27:59.187Z",
+      "confidence": 0.75,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d5716468a8f401ba",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Shipment dispatch notification to customers",
+        "capabilityId": "sem:SemCapability:b03f26b649174e20"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "767cd777a28978ed7733e1886c48364b011f2db1e57747a099b77bf8142e50c7",
+      "date": "2026-10-20T01:27:32.835Z",
+      "confidence": 0.8,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:5400e4b3a554293b",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Shipment record keeping",
+        "capabilityId": "sem:SemCapability:620cba338e264bac"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "f71662f05b1b112e044e504795660b302028d8732d6605d0831c67317b99e3a3",
+      "date": "2026-10-20T01:27:59.187Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b3b9d614eeeba50f",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Shipment dispatch notification",
+        "capabilityId": "sem:SemCapability:b03f26b649174e20"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "f71662f05b1b112e044e504795660b302028d8732d6605d0831c67317b99e3a3",
+      "date": "2026-10-20T01:27:59.187Z",
+      "confidence": 0.75,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d5ba19b03fbe7c2a",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Shipment tracking and delivery recipient management",
+        "capabilityId": "sem:SemCapability:e0fbe32fc89ccd27"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "79544d274af854cf4577d7ab7bd6b35444a3d6a15c46ecc3a5772b36bfbc361f",
+      "date": "2026-10-20T01:27:45.455Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:4c6f03b2312ae44d",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "e4b465cb4e5c3815",
+        "same": false
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "43bd4a1889789df80ca3e592588df27337835a01ad0603930a4888fa4a562fda",
+      "date": "2026-10-20T01:28:12.684Z",
+      "confidence": 0.86,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 9,
+            "endLine": 9
+          },
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:56f71ae7cfa4bcda",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "e4b465cb4e5c3815",
+        "same": true
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:27:05.514Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 11
+          },
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 8
+          }
+        ],
+        "graph": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,1466 @@
+{
+  "runId": "ontology-v0-065640ed019f",
+  "provider": {
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5"
+  },
+  "nodes": [
+    {
+      "id": "sem:SemBusinessConcept:08318655118c38d9",
+      "label": "SemBusinessConcept",
+      "name": "Email Notification",
+      "properties": {
+        "names": [
+          "Email Notification"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 6,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "send(to: string, subject: string, body: string): Promise<void> {",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessConcept:0f2e15d5eb2f5bc9",
+      "label": "SemBusinessConcept",
+      "name": "Subtotal",
+      "properties": {
+        "names": [
+          "Subtotal"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "endLine": 14,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "subtotal(): number {",
+          "startLine": 14,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessConcept:384903f65c1d573a",
+      "label": "SemBusinessConcept",
+      "name": "Order Line",
+      "properties": {
+        "names": [
+          "Order Line"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessConcept:4107e98f4d64596f",
+      "label": "SemBusinessConcept",
+      "name": "Customer",
+      "properties": {
+        "names": [
+          "Customer"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.525,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 10,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly customerEmail: string,",
+          "startLine": 10,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessConcept:824b338744229d63",
+      "label": "SemBusinessConcept",
+      "name": "Order",
+      "properties": {
+        "names": [
+          "Order"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessRule:052077d51d5c9c93",
+      "label": "SemBusinessRule",
+      "name": "An order with more than 3 order lines gets a 10% discount on its subtotal; orders with 3 or fewer lines get no discount.",
+      "properties": {
+        "subject": "order line count for volume discount",
+        "operator": ">",
+        "threshold": 3,
+        "unit": "order lines",
+        "statements": [
+          "An order with more than 3 order lines gets a 10% discount on its subtotal; orders with 3 or fewer lines get no discount."
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "b9072d5ff95878bae69b4f0b502a25997b313a93e466e8c22ff783b3b3e4db8f",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:3f3c2bf8169c54e0",
+      "label": "SemCapability",
+      "name": "Order pricing",
+      "properties": {
+        "description": "The business can work out an order's subtotal from its contents.",
+        "names": [
+          "Order pricing"
+        ],
+        "groups": [
+          "component:ordering"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:41b433b86a630b93",
+      "label": "SemCapability",
+      "name": "Customer order confirmation",
+      "properties": {
+        "description": "Lets the business tell customers that their order is confirmed by sending them a confirmation message.",
+        "names": [
+          "Customer order confirmation"
+        ],
+        "groups": [
+          "component:notifications"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:6833e445524b4e38",
+      "label": "SemCapability",
+      "name": "Email delivery",
+      "properties": {
+        "description": "Sends emails and keeps a record of the messages sent so they can be checked later. This is currently a console or in-memory stub, not a real mail service.",
+        "names": [
+          "Email delivery"
+        ],
+        "groups": [
+          "component:notifications"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:744335ec228fc526",
+      "label": "SemCapability",
+      "name": "Volume discount pricing",
+      "properties": {
+        "description": "Works out a volume discount and the final amount the customer pays for an order.",
+        "names": [
+          "Volume discount pricing"
+        ],
+        "groups": [
+          "component:notifications"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:ee5bdf732296fa34",
+      "label": "SemCapability",
+      "name": "Order placement",
+      "properties": {
+        "description": "Customers can place orders, and the business keeps a record of every order placed.",
+        "names": [
+          "Order placement"
+        ],
+        "groups": [
+          "component:ordering"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemResponsibility:2244f02a9493bb4c",
+      "label": "SemResponsibility",
+      "name": "Send order confirmation to customer",
+      "properties": {
+        "description": "Coordinates sending an 'Order confirmed' message to the customer's email through the injected Mailer port. The message includes the order id and the payable amount.",
+        "naturalLayer": "application",
+        "classId": "ee110f001f97012a"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": "sem:SemResponsibility:3baad1366a85839d",
+      "label": "SemResponsibility",
+      "name": "Record placed orders",
+      "properties": {
+        "description": "Keeps the orders that have been placed in an in-memory collection, which works like a simple repository.",
+        "naturalLayer": "infrastructure",
+        "classId": "6860bbf1a3b5131d"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 5,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "private readonly placed: Order[] = [];",
+          "startLine": 5,
+          "grounded": true
+        },
+        {
+          "endLine": 9,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "this.placed.push(order);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.6
+    },
+    {
+      "id": "sem:SemResponsibility:6bda72c5952de16a",
+      "label": "SemResponsibility",
+      "name": "Represent an order",
+      "properties": {
+        "description": "Models a customer order identified by an id, tied to the customer's email address and made up of a fixed set of order lines.",
+        "naturalLayer": "domain",
+        "classId": "99595122f2958507"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "sem:SemResponsibility:7836c3dd1045209b",
+      "label": "SemResponsibility",
+      "name": "Compute order subtotal",
+      "properties": {
+        "description": "Works out the order subtotal by adding up price multiplied by quantity for each order line.",
+        "naturalLayer": "domain",
+        "classId": "99595122f2958507"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 15,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 15,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": "sem:SemResponsibility:81d521fd14839895",
+      "label": "SemResponsibility",
+      "name": "Record sent messages for inspection",
+      "properties": {
+        "description": "Keeps a readable log of every message it has sent, so tests or developers can check which notifications went out.",
+        "naturalLayer": "infrastructure",
+        "classId": "9e5dca9006c883b8"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "readonly sent: string[] = [];",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "sem:SemResponsibility:944986e5ff377519",
+      "label": "SemResponsibility",
+      "name": "Email delivery adapter (in-memory/console stub)",
+      "properties": {
+        "description": "Implements the Mailer port by recording outgoing email messages (recipient, subject, body) in memory instead of really sending them. This makes it a stand-in delivery adapter for development and testing.",
+        "naturalLayer": "infrastructure",
+        "classId": "9e5dca9006c883b8"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "this.sent.push(`${to}|${subject}|${body}`);",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "sem:SemResponsibility:9f1dc2e01803e8a5",
+      "label": "SemResponsibility",
+      "name": "Place order",
+      "properties": {
+        "description": "Coordinates the place-order use case: builds a new Order for a customer from the given order lines and returns it.",
+        "naturalLayer": "application",
+        "classId": "6860bbf1a3b5131d"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "sem:SemResponsibility:f0e02203e4b1a6ce",
+      "label": "SemResponsibility",
+      "name": "Compute volume discount and payable amount",
+      "properties": {
+        "description": "Applies a business pricing rule: orders with more than 3 lines get a 10% discount on the subtotal, and the payable amount is the subtotal minus that discount. This domain rule sits in a notification service.",
+        "naturalLayer": "domain",
+        "classId": "ee110f001f97012a"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.9
+    }
+  ],
+  "edges": [
+    {
+      "id": "sem:SemEMBODIES:03d859bc6ef015b4",
+      "type": "SemEMBODIES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemBusinessConcept:0f2e15d5eb2f5bc9",
+      "properties": {
+        "relation": "defines"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "endLine": 14,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "subtotal(): number {",
+          "startLine": 14,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:15b84d8f59b754ab",
+      "type": "SemEMBODIES",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemBusinessConcept:824b338744229d63",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:5accb1cfb4baba48",
+      "type": "SemEMBODIES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemBusinessConcept:4107e98f4d64596f",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly customerEmail: string,",
+          "startLine": 10,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:65121e93516be3a6",
+      "type": "SemEMBODIES",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemBusinessConcept:824b338744229d63",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:92fef2c7a4dd4619",
+      "type": "SemEMBODIES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemBusinessConcept:824b338744229d63",
+      "properties": {
+        "relation": "defines"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:b70c42614b395cbe",
+      "type": "SemEMBODIES",
+      "sourceId": "9e5dca9006c883b8",
+      "targetId": "sem:SemBusinessConcept:08318655118c38d9",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 6,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "send(to: string, subject: string, body: string): Promise<void> {",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:c5d8ccdf4f023600",
+      "type": "SemEMBODIES",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemBusinessConcept:384903f65c1d573a",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:ea06897752de15c8",
+      "type": "SemEMBODIES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemBusinessConcept:384903f65c1d573a",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:eac4067ff70b2d28",
+      "type": "SemEMBODIES",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemBusinessConcept:4107e98f4d64596f",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemENFORCES:72ac93f5a5592465",
+      "type": "SemENFORCES",
+      "sourceId": "4309cdf457262c68",
+      "targetId": "sem:SemBusinessRule:052077d51d5c9c93",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "b9072d5ff95878bae69b4f0b502a25997b313a93e466e8c22ff783b3b3e4db8f",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemMISPLACED_IN:2354e29bb988db69",
+      "type": "SemMISPLACED_IN",
+      "sourceId": "sem:SemResponsibility:3baad1366a85839d",
+      "targetId": "layer:infrastructure",
+      "properties": {
+        "classLayer": "application",
+        "naturalLayer": "infrastructure"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 5,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "private readonly placed: Order[] = [];",
+          "startLine": 5,
+          "grounded": true
+        },
+        {
+          "endLine": 9,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "this.placed.push(order);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemMISPLACED_IN:b468a7b29814f030",
+      "type": "SemMISPLACED_IN",
+      "sourceId": "sem:SemResponsibility:f0e02203e4b1a6ce",
+      "targetId": "layer:domain",
+      "properties": {
+        "classLayer": "application",
+        "naturalLayer": "domain"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:27464b95253794a0",
+      "type": "SemREALIZES",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemCapability:744335ec228fc526",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:40fe68303cf99452",
+      "type": "SemREALIZES",
+      "sourceId": "9e5dca9006c883b8",
+      "targetId": "sem:SemCapability:6833e445524b4e38",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:47efc0765f071d7c",
+      "type": "SemREALIZES",
+      "sourceId": "9e5dca9006c883b8",
+      "targetId": "sem:SemCapability:41b433b86a630b93",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:552b1bd7185e4b4e",
+      "type": "SemREALIZES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemCapability:ee5bdf732296fa34",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:61d92e00b6e49582",
+      "type": "SemREALIZES",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemCapability:ee5bdf732296fa34",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:812ba4e8da6f90c9",
+      "type": "SemREALIZES",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemCapability:41b433b86a630b93",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:e3c449c2638767fc",
+      "type": "SemREALIZES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemCapability:3f3c2bf8169c54e0",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:303c18e415c6b4bc",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemResponsibility:f0e02203e4b1a6ce",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:ac4b1f042dcd384b",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemResponsibility:9f1dc2e01803e8a5",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:afce99376e75106c",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemResponsibility:7836c3dd1045209b",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 15,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 15,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:bd2ce161d3d3173a",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemResponsibility:3baad1366a85839d",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 5,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "private readonly placed: Order[] = [];",
+          "startLine": 5,
+          "grounded": true
+        },
+        {
+          "endLine": 9,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "this.placed.push(order);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:c5638913395ac1ef",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemResponsibility:2244f02a9493bb4c",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:e2e806c385e708cc",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "9e5dca9006c883b8",
+      "targetId": "sem:SemResponsibility:81d521fd14839895",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "readonly sent: string[] = [];",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:e51aa081f5e07e45",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "9e5dca9006c883b8",
+      "targetId": "sem:SemResponsibility:944986e5ff377519",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "this.sent.push(`${to}|${subject}|${body}`);",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:f1f2405942a0e3f7",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemResponsibility:6bda72c5952de16a",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-065640ed019f",
+        "temperature": null
+      },
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    }
+  ],
+  "findings": [
+    {
+      "kind": "misplaced-responsibility",
+      "responsibilityId": "sem:SemResponsibility:3baad1366a85839d",
+      "responsibility": "Record placed orders",
+      "site": {
+        "nodeId": "c12d39f40d4561ac",
+        "file": "src/ordering/application/place-order.use-case.ts",
+        "className": "PlaceOrderUseCase",
+        "methodName": "execute",
+        "component": "ordering"
+      },
+      "classLayer": "application",
+      "naturalLayer": "infrastructure",
+      "citedLogicDensity": 0,
+      "confidence": 0.6
+    },
+    {
+      "kind": "misplaced-responsibility",
+      "responsibilityId": "sem:SemResponsibility:f0e02203e4b1a6ce",
+      "responsibility": "Compute volume discount and payable amount",
+      "site": {
+        "nodeId": "4309cdf457262c68",
+        "file": "src/notifications/application/order-notification.service.ts",
+        "className": "OrderNotificationService",
+        "methodName": "sendConfirmation",
+        "component": "notifications"
+      },
+      "classLayer": "application",
+      "naturalLayer": "domain",
+      "citedLogicDensity": 4,
+      "confidence": 0.9
+    }
+  ],
+  "hallucinations": [],
+  "acceptedAssertions": {
+    "responsibility": 42,
+    "capability": 10,
+    "rules": 3,
+    "adjudicate": 4
+  },
+  "agreement": {
+    "responsibility": {
+      "items": 8,
+      "meanJaccard": 0.8888888888888888,
+      "agreedAssertions": 17,
+      "totalAssertions": 21
+    },
+    "capability": {
+      "items": 2,
+      "meanJaccard": 1,
+      "agreedAssertions": 5,
+      "totalAssertions": 5
+    },
+    "rules": {
+      "items": 2,
+      "meanJaccard": 0.75,
+      "agreedAssertions": 1,
+      "totalAssertions": 1
+    },
+    "adjudicate": {
+      "items": 2,
+      "meanJaccard": 1,
+      "agreedAssertions": 2,
+      "totalAssertions": 2
+    }
+  },
+  "calls": {
+    "providerCalls": 20,
+    "cacheHits": 0,
+    "invalid": 0,
+    "skippedForBudget": 0,
+    "cassetteMisses": 0,
+    "usage": {
+      "inputTokens": 47622,
+      "outputTokens": 12171
+    }
+  },
+  "budget": 20,
+  "stopped": null
+}

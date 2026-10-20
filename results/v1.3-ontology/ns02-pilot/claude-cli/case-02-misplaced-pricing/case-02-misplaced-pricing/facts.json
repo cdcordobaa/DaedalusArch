@@ -1,0 +1,2112 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A2",
+  "project": {
+    "id": "case-02-misplaced-pricing",
+    "contentHash": "26574d93a99e6328ad560ef032f86824c7b084c875f2bc08c0f607439483b717",
+    "commit": null
+  },
+  "inputs": {
+    "a1": {
+      "apgHash": "89310d41004b6d3bf14b4269a13d7bb8b04c36aad23e40c1fb9abc0e630ef2b7"
+    },
+    "layerModel": {
+      "path": "tests/fixtures/v1.3-ontology/layers.json",
+      "hash": "029d18d14b37587251633e747ce135abdb7b767cf61108942f270c9f60445f15"
+    }
+  },
+  "producer": {
+    "part": "C1d",
+    "pipeline": "ontology-v0",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "runId": "ontology-v0-065640ed019f",
+    "factPolicy": "agreed-only"
+  },
+  "facts": [
+    {
+      "id": "fact:48b867c4db36a45c",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order Line",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:384903f65c1d573a"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": 0.8,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:6428539e85493f54",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Customer",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:4107e98f4d64596f"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": 0.5,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:96d23dc8fb806c4a",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:824b338744229d63"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 8,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:2b589a5ae4c5bcf3",
+      "subject": "99595122f2958507",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order",
+        "relation": "defines",
+        "conceptId": "sem:SemBusinessConcept:824b338744229d63"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-20T01:24:53.084Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:a0f501dd21b2dd6f",
+      "subject": "99595122f2958507",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order Line",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:384903f65c1d573a"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-20T01:24:53.084Z",
+      "confidence": 0.8,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 11,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b9172e62fb1bc117",
+      "subject": "99595122f2958507",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Subtotal",
+        "relation": "defines",
+        "conceptId": "sem:SemBusinessConcept:0f2e15d5eb2f5bc9"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-20T01:24:53.084Z",
+      "confidence": 0.7,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 14,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "subtotal(): number {",
+          "startLine": 14,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 14,
+            "endLine": 14
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d267340588cf5f8a",
+      "subject": "99595122f2958507",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Customer",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:4107e98f4d64596f"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-20T01:24:53.084Z",
+      "confidence": 0.55,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly customerEmail: string,",
+          "startLine": 10,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 10,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:c8ce9791a895f378",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Email Notification",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:08318655118c38d9"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+      "date": "2026-10-20T01:25:07.739Z",
+      "confidence": 0.75,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 6,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "send(to: string, subject: string, body: string): Promise<void> {",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 6,
+            "endLine": 6
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:3e55e7aa0d39c3af",
+      "subject": "ee110f001f97012a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Customer",
+        "relation": "uses",
+        "conceptId": null
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-20T01:25:25.308Z",
+      "confidence": 0.6,
+      "agreement": "single-run",
+      "runIndex": 0,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 11,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:687c4a258a61772a",
+      "subject": "ee110f001f97012a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:824b338744229d63"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-20T01:25:25.308Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 7,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b73227850a551f02",
+      "subject": "ee110f001f97012a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order Confirmation",
+        "relation": "uses",
+        "conceptId": null
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-20T01:25:25.308Z",
+      "confidence": 0.8,
+      "agreement": "single-run",
+      "runIndex": 0,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "async sendConfirmation(order: Order): Promise<void> {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d7084bcb38e33dac",
+      "subject": "ee110f001f97012a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Payable Amount",
+        "relation": "uses",
+        "conceptId": null
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-20T01:25:25.308Z",
+      "confidence": 0.7,
+      "agreement": "single-run",
+      "runIndex": 0,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const payable = subtotal - discount;",
+          "startLine": 10,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 10,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:ed60a826c70d54cb",
+      "subject": "ee110f001f97012a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Volume Discount",
+        "relation": "uses",
+        "conceptId": null
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-20T01:25:25.308Z",
+      "confidence": 0.75,
+      "agreement": "single-run",
+      "runIndex": 0,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 9,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:f01502783a8059ad",
+      "subject": "4309cdf457262c68",
+      "predicate": "enforcesRule",
+      "value": {
+        "statement": "An order with more than 3 order lines gets a 10% discount on its subtotal; orders with 3 or fewer lines get no discount.",
+        "subject": "order line count for volume discount",
+        "operator": ">",
+        "threshold": 3,
+        "unit": "order lines",
+        "kind": "business",
+        "ruleId": "sem:SemBusinessRule:052077d51d5c9c93"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "b9072d5ff95878bae69b4f0b502a25997b313a93e466e8c22ff783b3b3e4db8f",
+      "date": "2026-10-20T01:26:21.049Z",
+      "confidence": 0.85,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 9,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "callers",
+            "value": 0,
+            "query": "MATCH (m:Method {id: $id})<-[:CALLS]-(x) RETURN count(DISTINCT x) AS callers"
+          },
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:5ecebde31e382f2c",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Record placed orders",
+        "description": "Keeps the orders that have been placed in an in-memory collection, which works like a simple repository.",
+        "naturalLayer": "infrastructure"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 5,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "private readonly placed: Order[] = [];",
+          "startLine": 5,
+          "grounded": true
+        },
+        {
+          "endLine": 9,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "this.placed.push(order);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 5,
+            "endLine": 5
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 9,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:f66ab52be2e982a0",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Place order",
+        "description": "Coordinates the place-order use case: builds a new Order for a customer from the given order lines and returns it.",
+        "naturalLayer": "application"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": 0.85,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 8,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:443a444cb72923df",
+      "subject": "99595122f2958507",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Represent an order",
+        "description": "Models a customer order identified by an id, tied to the customer's email address and made up of a fixed set of order lines.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-20T01:24:53.084Z",
+      "confidence": 0.85,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 9,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:89b6109707ba87d1",
+      "subject": "99595122f2958507",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Compute order subtotal",
+        "description": "Works out the order subtotal by adding up price multiplied by quantity for each order line.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-20T01:24:53.084Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 15,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 15,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 15,
+            "endLine": 15
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b95d65c7970de9e4",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Email delivery adapter (in-memory/console stub)",
+        "description": "Implements the Mailer port by recording outgoing email messages (recipient, subject, body) in memory instead of really sending them. This makes it a stand-in delivery adapter for development and testing.",
+        "naturalLayer": "infrastructure"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+      "date": "2026-10-20T01:25:07.739Z",
+      "confidence": 0.85,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "this.sent.push(`${to}|${subject}|${body}`);",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 3
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:c33398e084924a38",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Record sent messages for inspection",
+        "description": "Keeps a readable log of every message it has sent, so tests or developers can check which notifications went out.",
+        "naturalLayer": "infrastructure"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+      "date": "2026-10-20T01:25:07.739Z",
+      "confidence": 0.7,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "readonly sent: string[] = [];",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 4,
+            "endLine": 4
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:7257488660a93aaf",
+      "subject": "ee110f001f97012a",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Compute volume discount and payable amount",
+        "description": "Applies a business pricing rule: orders with more than 3 lines get a 10% discount on the subtotal, and the payable amount is the subtotal minus that discount. This domain rule sits in a notification service.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-20T01:25:25.308Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 9,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:c66481afd6841098",
+      "subject": "ee110f001f97012a",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Send order confirmation to customer",
+        "description": "Coordinates sending an 'Order confirmed' message to the customer's email through the injected Mailer port. The message includes the order id and the payable amount.",
+        "naturalLayer": "application"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-20T01:25:25.308Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 11,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b5c73b638eec056f",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "inContext",
+      "value": {
+        "context": "ordering",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 12
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "ordering",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:79fb5f9e8e58456b",
+      "subject": "99595122f2958507",
+      "predicate": "inContext",
+      "value": {
+        "context": "ordering",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 17
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "ordering",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:f012c95f13c0acd2",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "inContext",
+      "value": {
+        "context": "notifications",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "notifications",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:867c324740d2324f",
+      "subject": "ee110f001f97012a",
+      "predicate": "inContext",
+      "value": {
+        "context": "notifications",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 13
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "notifications",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:bc7bde8413edd03a",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "inLayer",
+      "value": "application",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 12
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "application",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:68ce4f1d0429a167",
+      "subject": "99595122f2958507",
+      "predicate": "inLayer",
+      "value": "domain",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 17
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "domain",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:5d7d79bb834d625e",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "inLayer",
+      "value": "infrastructure",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "infrastructure",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:9aa29b4a5b04632b",
+      "subject": "ee110f001f97012a",
+      "predicate": "inLayer",
+      "value": "application",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 13
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "application",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d5bc24a51ee0b95b",
+      "subject": "3d1d8ec86b5e61c8",
+      "predicate": "logicDensity",
+      "value": 2,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 14,
+            "endLine": 16
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:1a66e0e4eebe5594",
+      "subject": "4309cdf457262c68",
+      "predicate": "logicDensity",
+      "value": 4,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 7,
+            "endLine": 12
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:bd5e202222b3bd44",
+      "subject": "a1ab40e4bf0d3824",
+      "predicate": "logicDensity",
+      "value": 0,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 6,
+            "endLine": 9
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:103fe970ca43b392",
+      "subject": "c12d39f40d4561ac",
+      "predicate": "logicDensity",
+      "value": 0,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 7,
+            "endLine": 11
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:9b28f2a5ce004bd4",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Order placement",
+        "capabilityId": "sem:SemCapability:ee5bdf732296fa34"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+      "date": "2026-10-20T01:25:58.294Z",
+      "confidence": 0.75,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:4a518639bd5f6b8e",
+      "subject": "99595122f2958507",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Order pricing",
+        "capabilityId": "sem:SemCapability:3f3c2bf8169c54e0"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+      "date": "2026-10-20T01:25:58.294Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d7ba251461b49eaa",
+      "subject": "99595122f2958507",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Order placement",
+        "capabilityId": "sem:SemCapability:ee5bdf732296fa34"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+      "date": "2026-10-20T01:25:58.294Z",
+      "confidence": 0.75,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:5108513f848d48a1",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Email delivery",
+        "capabilityId": "sem:SemCapability:6833e445524b4e38"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+      "date": "2026-10-20T01:25:45.145Z",
+      "confidence": 0.6,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 3
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:a3902edb4081aa34",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Customer order confirmation",
+        "capabilityId": "sem:SemCapability:41b433b86a630b93"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+      "date": "2026-10-20T01:25:45.145Z",
+      "confidence": 0.75,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 3
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:6695d91f7298da67",
+      "subject": "ee110f001f97012a",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Volume discount pricing",
+        "capabilityId": "sem:SemCapability:744335ec228fc526"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+      "date": "2026-10-20T01:25:45.145Z",
+      "confidence": 0.55,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b5968ce628640176",
+      "subject": "ee110f001f97012a",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Customer order confirmation",
+        "capabilityId": "sem:SemCapability:41b433b86a630b93"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+      "date": "2026-10-20T01:25:45.145Z",
+      "confidence": 0.75,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 3
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:18033799a285c252",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "ee110f001f97012a",
+        "same": true
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 12
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 13
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:d08e0971ae4fc758",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "ee110f001f97012a",
+        "same": false
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "8447d3fe0376006368cc95ac0c413a35b3ce9a5b9da2398abe2191c30a9b3da3",
+      "date": "2026-10-20T01:26:35.221Z",
+      "confidence": 0.93,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 7,
+            "endLine": 7
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 7,
+            "endLine": 8
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:fcb73c5527a5824e",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "99595122f2958507",
+        "same": true
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-20T01:24:38.102Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 12
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 17
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:00329aad35fa2f94",
+      "subject": "99595122f2958507",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "ee110f001f97012a",
+        "same": false
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "claude-opus-5-5",
+      "promptHash": "99be21727e03ba2e95bceea7a2aaee502882b5854f3fece025113a8781f0cffb",
+      "date": "2026-10-20T01:26:44.136Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 11,
+          "grounded": true
+        },
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 11,
+            "endLine": 11
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 7,
+            "endLine": 8
+          }
+        ],
+        "graph": []
+      }
+    }
+  ]
+}
