@@ -68,12 +68,19 @@ describe('runFreezeChecks', () => {
   it('dry run without an answers file, after the answers are applied: names exactly the unmet preconditions', async () => {
     const r = await runFreezeChecks(opts(), { git: cleanTreeGit });
     const status = Object.fromEntries(r.checks.map((c) => [c.id, c.status]));
-    // F3 reads the [Answer]: lines against the switch file in force. F5: the Q15 B and Q21 B tier overrides stay "unsigned" until ADR-V13-03 is signed (U6 plan Step 11b).
-    expect(status).toEqual({
-      F1: 'unmet', F2: 'unmet', F3: 'ok', F4: 'unmet', F5: 'unmet', F6: 'ok', F7: 'ok', F8: 'unmet', F9: 'unmet',
-      F10: 'unmet', F11: 'unmet', F12: 'unmet', F13: 'ok', F14: 'skipped',
-    });
-    expect(renderChecks(r, true)).toMatch(/FREEZE PRECONDITIONS NOT MET: 9 of 14 unmet \(F1, F2, F4, F5, F8, F9, F10, F11, F12\)/);
+    // F3 reads the [Answer]: lines against the switch file in force. F4 and F5: ADR-V13-03 (and ADR-V13-02, Q1 A) were
+    // accepted under the author's delegation on 2026-10-20 (DELEG2). F8, F11 and F13 follow the repository's freeze state
+    // (the record run, the frozen prespec and the one hold-out run), so they are derived from it rather than pinned.
+    const frozenPrespec = !/<FREEZE_SHA>|Status: draft/i.test(fs.readFileSync(path.join(ROOT, 'Docs/v1.3/holdout-prespec.md'), 'utf8'));
+    const devRerun = fs.existsSync(path.join(ROOT, 'results/v1.3-reference/after-construct-answers/tool-commit.txt'));
+    const heldOut = fs.existsSync(path.join(ROOT, 'results/v1.3-holdout/run-1'));
+    const expected: Record<string, string> = {
+      F1: 'unmet', F2: 'unmet', F3: 'ok', F4: 'ok', F5: 'ok', F6: 'ok', F7: 'ok', F8: devRerun ? 'ok' : 'unmet', F9: 'unmet',
+      F10: 'unmet', F11: frozenPrespec ? 'ok' : 'unmet', F12: 'unmet', F13: heldOut ? 'unmet' : 'ok', F14: 'skipped',
+    };
+    expect(status).toEqual(expected);
+    const unmet = Object.entries(expected).filter(([, v]) => v === 'unmet').map(([k]) => k);
+    expect(renderChecks(r, true)).toContain(`FREEZE PRECONDITIONS NOT MET: ${String(unmet.length)} of 14 unmet (${unmet.join(', ')})`);
     expect(r.manifest.deferredRules).toEqual([]);
   }, 120_000);
 
@@ -81,7 +88,7 @@ describe('runFreezeChecks', () => {
     let r = await runFreezeChecks(opts({ answers: path.join(ROOT, 'Docs/v1.3/construct-answers.json') }), { git: cleanTreeGit });
     for (const id of ['F1', 'F2', 'F3']) expect([id, r.checks.find((c) => c.id === id)?.status]).toEqual([id, 'ok']);
     expect(r.manifest.deferredRules).toEqual([]);
-    expect(r.checks.find((c) => c.id === 'F4')?.detail.join(' ')).toMatch(/no "## ADR-V13-03" section/);
+    expect(r.checks.find((c) => c.id === 'F4')?.status).toBe('ok');
     const all = path.join(tmp, 'answers.json');
     fs.writeFileSync(all, JSON.stringify(Object.fromEntries(CONSTRUCT_QUESTION_IDS.map((q) => [q, 'A']))));
     r = await runFreezeChecks(opts({ answers: all }), { git: cleanTreeGit });
