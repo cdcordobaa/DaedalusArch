@@ -81,15 +81,21 @@ export function violationsFromOutput(stdout: string): DomainResult<EvaluatedViol
 }
 
 /** The CLI subprocess evaluator (explicit environment, no inherited secrets beyond the Neo4j triple). */
-export function cliEvaluate(runner: ProcessRunner, repoRoot: string, env: NodeJS.ProcessEnv): Evaluate {
+/**
+ * `engine` defaults to `neo4j`, so every existing caller runs the same command. Under `cypher-interp` (U6 plan Step 10)
+ * the child gets a blank `NEO4J_URI`, as `scripts/v1.3/ue-baseline-live.ts` does, so no database is touched.
+ */
+export function cliEvaluate(runner: ProcessRunner, repoRoot: string, env: NodeJS.ProcessEnv, engine: 'neo4j' | 'cypher-interp' = 'neo4j'): Evaluate {
   const childEnv: Record<string, string> = {};
   for (const k of ['PATH', 'HOME', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD']) {
     const v = env[k];
     if (v !== undefined) childEnv[k] = v;
   }
+  if (engine === 'cypher-interp') childEnv.NEO4J_URI = '';
+  const uri = engine === 'cypher-interp' ? '' : env.NEO4J_URI ?? '';
   const tsx = path.resolve(repoRoot, 'node_modules/.bin/tsx');
   return async (projectDir, specPath) => {
-    const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? '', '--engine', 'neo4j'];
+    const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', uri, '--engine', engine];
     const run = await runner.run(tsx, args, { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
     if (!run.success) return run;
     if (run.data.timedOut) return DomainResult.fail([{ code: 'GATE_TIMEOUT', message: `evaluation of ${path.basename(projectDir)} timed out` }]);
