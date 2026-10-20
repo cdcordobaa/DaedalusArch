@@ -80,4 +80,4 @@ unchanged until the author signs.
 - **Facts and interpretation, never verdicts** (decision N1, `ops/decisions.md:64`). No sentence says the model
   judges, passes or fails code.
 
-> AUTHOR: signed — F3 rewording adopted as proposed. Signed: the author, in chat (recorded by the coordinator) Date: 2026-10-19
+> AUTHOR: signed — F3 rewording adopted as proposed. Signed by the author (recorded by the coordinator) Date: 2026-10-19

@@ -2688,3 +2688,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Repository hygiene; documents only, zero model calls
 
 ---
+
+## Editorial: decision venue wording
+**Timestamp**: 2026-10-20T15:56:38Z
+**User Input**: "Requested that public records attribute decisions to the author without naming the chat as the venue."
+**AI Response**: "Editorial: removed references to the chat as a decision venue; no content change"
+**Context**: Repository hygiene; documents only, zero model calls
+
+---
