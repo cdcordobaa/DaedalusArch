@@ -1,0 +1,93 @@
+{
+  "description": "Exploratory study Stage A tasks (Layered only, amendment 1): ice-rink (rehearsal, unchanged) and youth-league, hive-health (floor probe 1, steps unchanged; style/source keys dropped). Not confirmatory tasks.",
+  "tasks": [
+    {
+      "id": "ice-rink",
+      "title": "Ice rink",
+      "steps": [
+        {
+          "id": "sessions-and-hire",
+          "request": "Build the backend for a public ice rink. The rink manager schedules skating sessions (date, start, end, capacity, price). Skaters buy tickets for a session online and can add skate hire in their shoe size; the rink has a fixed stock of hire skates per size, and a session never sells more tickets than its capacity or more hire skates of a size than are in stock. Skaters pay through PuckPay: the backend asks PuckPay's HTTP API for a checkout link, and PuckPay later calls a webhook of ours with the payment result. A ticket that is not paid within 15 minutes is released. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "club-ice-time",
+          "request": "The figure-skating club books ice time: whole or half rinks for a date and hours, which then reduce the capacity of any public session at the same time by half or to zero. A club booking never overlaps another club booking on the same half. The club is invoiced monthly for its hours at the club rate. Club members can use their membership number to skate in public sessions without paying, up to four times a month, with the same capacity and skate-hire rules as everyone else."
+        },
+        {
+          "id": "ice-sensors",
+          "request": "The rink has FrostSense sensors in the ice, which post a temperature reading to a webhook of ours every minute. When the ice is warmer than minus 3 °C for 10 minutes, the next session is put on hold: no more tickets are sold for it, and its ticket holders get a text message through DropText (an HTTP API that takes a phone number and a message). The manager either cancels the held session, which refunds every ticket through PuckPay, or releases it."
+        },
+        {
+          "id": "oversell-fix",
+          "request": "Urgent before Saturday's disco session: twice this week the last tickets were sold to two skaters at the same moment and the session went over capacity, and refunds made through PuckPay were not recorded on the tickets. Fix both quickly: a session can never go over capacity, even when two purchases arrive together, and a refund PuckPay confirms is recorded on its ticket. Keep the change small."
+        },
+        {
+          "id": "weekly-report",
+          "request": "The rink manager wants a weekly report, and the council's leisure department downloads the same figures as CSV every Monday: per session, tickets sold, members admitted, occupancy as a share of capacity, skate-hire income per size, refunds, and sessions held or cancelled because of the ice. It has to answer quickly for a whole season."
+        }
+      ]
+    },
+    {
+      "id": "youth-league",
+      "title": "Youth football league",
+      "steps": [
+        {
+          "id": "teams-fixtures",
+          "pressure": "core + first use cases",
+          "request": "Create a service for a children's football league. The league registers teams (name, age group such as U9 or U11, coach name and e-mail) and players (name, birth date, parent contact e-mail, team). A player's age on 1 September of the season must fit the team's age group. The league schedules fixtures (home team, away team, pitch, kick-off time): a team never plays two fixtures on the same day and a pitch hosts one fixture at a time. Coaches record the result of a fixture. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "weather",
+          "pressure": "first external adapter",
+          "request": "Before each match day, the service checks the forecast for every pitch with the WeatherNow HTTP API (by the pitch's postcode and the kick-off hour). When heavy rain is forecast, the fixture is marked at risk and both coaches get an e-mail; for now, send e-mails through a fake mail provider that records the messages. The league can postpone an at-risk fixture to a new kick-off, with the same scheduling rules as before."
+        },
+        {
+          "id": "referees",
+          "pressure": "cross-feature reuse",
+          "request": "Add referees. Referees register with their e-mail and the age groups they may officiate. Each fixture gets one referee. A referee never officiates a team in which they are a parent (a player's parent contact e-mail equal to the referee's e-mail), nor two fixtures that kick off less than two hours apart. When a fixture is postponed, it keeps its referee if they are still free at the new time; otherwise the referee is removed and the fixture shows as needing one."
+        },
+        {
+          "id": "tables",
+          "pressure": "reporting endpoint that tempts a shortcut to the store",
+          "request": "Publish the league tables: for each age group, each team's games played, won, drawn and lost, goals for and against, and points (3 for a win, 1 for a draw), ordered by points, then goal difference, then goals for. Parents check the tables from their phones on match days, so the endpoint must be quick."
+        },
+        {
+          "id": "hotfix-correct-result",
+          "pressure": "quick fix under time pressure",
+          "request": "Coaches are complaining right now: a result entered by mistake cannot be corrected, so the tables are wrong. Add a quick way for the league admin to correct a fixture's result, and make sure the tables show the corrected result. Just get it working today."
+        }
+      ]
+    },
+    {
+      "id": "hive-health",
+      "title": "Beekeepers' hive health",
+      "steps": [
+        {
+          "id": "inspections",
+          "pressure": "core + first use cases",
+          "request": "Create a service for a beekeepers' association. Members register apiaries (name, region) and the hives in them. Members record inspections of a hive (date, queen seen or not, brood frames, temperament from 1 to 5, varroa mites per 100 bees). A hive whose latest inspection counts more than 3 mites per 100 bees is flagged for treatment. Only the member who owns a hive can record its inspections (the member id comes in a request header). Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "smart-scales",
+          "pressure": "first external adapters (inbound webhook + outbound SMS)",
+          "request": "Some members have BuzzScale smart hive scales. BuzzScale posts each weight reading to a webhook of ours as JSON (scale serial number, kilograms, time), and members link a scale to one of their hives. A weight drop of more than 2 kg within one hour suggests a swarm: the owner then gets an SMS through the TextHive HTTP API (phone number and message)."
+        },
+        {
+          "id": "treatments-harvests",
+          "pressure": "cross-feature reuse",
+          "request": "Add treatments and honey harvests. A member records a treatment of a hive (product, start date, end date); the association keeps the list of products with their withdrawal period in days. A hive stays flagged until a treatment has been recorded and a later inspection counts 3 mites per 100 bees or fewer. A member records harvests (date, kilograms) of a hive; a harvest is refused during a treatment, and until the product's withdrawal period after the treatment's end date has passed."
+        },
+        {
+          "id": "health-report",
+          "pressure": "reporting endpoint that tempts a shortcut to the store",
+          "request": "The association reports to the national bee health office every quarter. Add one endpoint that returns, per region, for a given quarter: the number of hives, the share of hives flagged for varroa at the end of the quarter, the number of treatments per product, and the kilograms of honey harvested. The office's system calls it directly, so it returns JSON."
+        },
+        {
+          "id": "hotfix-false-swarms",
+          "pressure": "quick fix under time pressure",
+          "request": "Members are being spammed right now: opening a hive for an inspection makes the scale drop by more than 2 kg, so a swarm SMS goes out. Hotfix: do not send a swarm SMS for a hive that has an inspection recorded in the two hours before the drop, or recorded within the hour after it (cancel any SMS not yet sent). Keep it quick."
+        }
+      ]
+    }
+  ]
+}

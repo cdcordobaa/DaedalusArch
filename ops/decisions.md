@@ -38,6 +38,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 | **D8** | Signed: F3 rewording, X-1, SO3-a. The V4 ADR's bar option and margins go to the decision surface | — |
 | **SIGNUI** | The signing sheet is decided through an easier decision surface (plain-language cards, one choice each), not the raw sheet | Decision page |
 | **DDD-BETA** | DDD is a **beta instrument**. Before DDD enters any study, the capability itself is measured: can the instrument represent a real DDD project (contexts, aggregates, value objects, repositories, events, ACL, shared kernel), and can it enforce each DDD rule on it (reach, seeded recall, twin false fires)? DDD-only signing items stay defaulted until then | Capability study `Docs/DiagnosticRuns/v1.4-ddd-beta-capability-2026-10-19.md` (cloud, zero calls) |
+| **D12a** | The confirmatory step requests name their HTTP routes, so the hidden acceptance tests share an API contract with the agent (D12 option a). Start convention: the harness default (`npm start` with `{{port}}`) | Recorded in the seal record |
 
 ## Settled in chat, 2026-10-18 (late)
 - **D1:** confirm the decision sheet **as written**, with no changes.
