@@ -2812,3 +2812,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Study 2b readiness gate, before any 2b call
 
 ---
+
+## HEXDDD-01 — violation-elicitation design for Hexagonal and DDD (design note)
+**Timestamp**: 2026-10-20T20:10:51Z
+**User Input**: "(coordinator brief) Research and design an exploratory pilot that reliably elicits and measures coding-agent violations of Hexagonal and DDD with the instrument: web literature on agent architectural degradation, benchmark task design, practitioner violation families and elicitation pressures; ground it in the repo with zero calls (detectability per family, a cheap check of advisory/semantic findings that D ignored in the earlier pilots, brownfield seeds, reusable harness pieces); write ops/notes/hexddd-01-violation-elicitation-design.md with 2-3 scenarios, a recommended 2-case pilot with exact calls and pass bar, threats and the instrument changes for after the 2b scoring; merge normally once Build & Test is green."
+**AI Response**: "Wrote ops/notes/hexddd-01-violation-elicitation-design.md. Cheap check: the earlier runs did err without D counting it: one inbound -> outbound adapter edge (advisory FF-S03 under the sealed tiers, FF-S01 under signed Q5 C, present from step 1 so Y1 not D), FF-P02 concrete injection in 8 of 18 Hexagonal/Clean runs at the vendor and cross-cutting steps, DDD runs unscored (T1) whose re-score shows step-1 FF-DS01/FF-DS02 findings and application services doubling in size (advisory FF-DT06). Detectability table over 18 families (blocking, advisory, semantic-only, undetectable: vendor SDK in the domain, cross-aggregate transaction, shared kernel, DTO/entity confusion, infrastructure-shaped ports). Recommended pilot: two brownfield seeds with planted debt (hex reference v05, DDD reference v08), k = 5 pressure steps, Sonnet, arm none, 10 generator calls (cap 12), pass bar D_seed >= 1 in 1 of 2 runs or a hand-confirmed construct-bearing advisory finding in both, plus a hand-read miss log; run only after the 2b scoring. Zero model calls, no loop, no Neo4j, no jest; no 2b, sealed or mean-01 path opened."
+**Context**: v1.4 follow-up design (Hexagonal/DDD drift and conformance), exploratory; instrument frozen for 2b, so all changes are listed for after the 2b scoring
+
+---
