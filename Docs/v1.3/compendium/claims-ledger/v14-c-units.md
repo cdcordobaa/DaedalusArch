@@ -37,19 +37,19 @@ Part of [the claims ledger](../claims-ledger.md); the legend and the conflicts a
 
 | id | statement | numbers | source | type | set | status | replication | quantity | verified against | notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| C6339 | - `printTimeoutS` 60..1170; the hard kill is `printTimeoutS + 30` s, so the default gives exactly the 1,200,000 ms | `60..1170` ; `1,200,000 ms` | `Docs/v1.4/gemini-generator.md:53` | descriptive | none | exploratory | — | gemini adapter: print timeout range and wall budget | self (primary) | design parameter; adapter off by default |
-| C6340 | / usage limits / the classifier's `USAGE_LIMIT` patterns → pause 30 min and resume the same turn / patterns **UNVERIFIED** (no natural sample yet) / | `pause 30 min` | `Docs/v1.4/gemini-generator.md:82` | descriptive | none | exploratory | — | gemini adapter: usage-limit pause | self (primary) | patterns UNVERIFIED |
-| C6341 | `daedalus-mcp`} × 1 run × k = 3, Clean stub layout). Result: `results/v1.4-gemini-adapter-dry-run/` (12 turns, all | `k = 3` ; `(12 turns, all` | `Docs/v1.4/gemini-generator.md:108` | descriptive | synthetic | exploratory | — | gemini adapter dry run: turns | results:results/v1.4-gemini-adapter-dry-run/summary.json | scripted runner, no model call; 12 turns completed |
-| C6342 | 1. The S4 probe run and passed (`Docs/v1.4/gemini-s4-probe-spec.md`: 24 model calls, cap 30; the author's OK, Q6). | `24 model calls, cap 30` | `Docs/v1.4/gemini-generator.md:114` | descriptive | none | exploratory | — | gemini S4 probe: planned call count | Docs/v1.4/gemini-s4-probe-spec.md | NOT run |
+| C6339 | - `printTimeoutS` 60..1170; the hard kill is `printTimeoutS + 30` s, so the default gives exactly the 1,200,000 ms | `60..1170` ; `1,200,000 ms` | `Docs/v1.4/gemini-generator.md:60` | descriptive | none | exploratory | — | gemini adapter: print timeout range and wall budget | self (primary) | design parameter; adapter off by default |
+| C6340 | / usage limits / the classifier's `USAGE_LIMIT` patterns → pause 30 min and resume the same turn / patterns **UNVERIFIED** (no natural sample yet) / | `pause 30 min` | `Docs/v1.4/gemini-generator.md:139` | descriptive | none | exploratory | — | gemini adapter: usage-limit pause | self (primary) | patterns UNVERIFIED |
+| C6341 | `daedalus-mcp`} × 1 run × k = 3, Clean stub layout). Result: `results/v1.4-gemini-adapter-dry-run/` (12 turns, all | `k = 3` ; `(12 turns, all` | `Docs/v1.4/gemini-generator.md:165` | descriptive | synthetic | exploratory | — | gemini adapter dry run: turns | results:results/v1.4-gemini-adapter-dry-run/summary.json | scripted runner, no model call; 12 turns completed |
+| C6342 | 1. The S4 probe run and passed (`Docs/v1.4/gemini-s4-probe-spec.md`: 24 model calls, cap 30; the author's OK, Q6). | `24 model calls, cap 30` | `Docs/v1.4/gemini-generator.md:171` | descriptive | none | exploratory | — | gemini S4 probe: planned call count | Docs/v1.4/gemini-s4-probe-spec.md | NOT run |
 
 ### `Docs/v1.4/gemini-s4-probe-spec.md`
 
 | id | statement | numbers | source | type | set | status | replication | quantity | verified against | notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| C6343 | / `none` arm / G1–G8, G11 and G12 (2 calls) = 11 / | `= 11` | `Docs/v1.4/gemini-s4-probe-spec.md:62` | descriptive | none | exploratory | — | gemini S4 probe: none-arm calls | self (primary) | spec only, NOT run |
-| C6344 | / `daedalus-mcp` arm / G1–G12 (G12 is 2 calls) = 13 / | `= 13` | `Docs/v1.4/gemini-s4-probe-spec.md:63` | descriptive | none | exploratory | — | gemini S4 probe: mcp-arm calls | self (primary) | spec only, NOT run |
-| C6345 | / **Total** / **24** / | `**24**` | `Docs/v1.4/gemini-s4-probe-spec.md:64` | descriptive | none | exploratory | — | gemini S4 probe: total calls | self (primary) | spec only, NOT run |
-| C6346 | / Cap, with up to 2 infrastructure retries in all, plus 4 spare / **30** / | `**30**` | `Docs/v1.4/gemini-s4-probe-spec.md:65` | descriptive | none | exploratory | — | gemini S4 probe: call cap | self (primary) | needs author OK (Q6) |
+| C6343 | / `none` arm / G1–G8, G11 and G12 (2 calls) = 11 / | `= 11` | `Docs/v1.4/gemini-s4-probe-spec.md:71` | descriptive | none | exploratory | — | gemini S4 probe: none-arm calls | self (primary) | spec only, NOT run |
+| C6344 | / `daedalus-mcp` arm / G1–G12 (G12 is 2 calls) = 13 / | `= 13` | `Docs/v1.4/gemini-s4-probe-spec.md:72` | descriptive | none | exploratory | — | gemini S4 probe: mcp-arm calls | self (primary) | spec only, NOT run |
+| C6345 | / **Total** / **24** / | `**24**` | `Docs/v1.4/gemini-s4-probe-spec.md:73` | descriptive | none | exploratory | — | gemini S4 probe: total calls | self (primary) | spec only, NOT run |
+| C6346 | / Cap, with up to 2 infrastructure retries in all, plus 4 spare / **30** / | `**30**` | `Docs/v1.4/gemini-s4-probe-spec.md:74` | descriptive | none | exploratory | — | gemini S4 probe: call cap | self (primary) | needs author OK (Q6) |
 
 ### `aidlc-docs/construction/v1.4/U2/code/summary.md`
 
