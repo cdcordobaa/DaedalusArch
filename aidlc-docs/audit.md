@@ -2595,3 +2595,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION — exploratory study Stage C analysis addition (descriptive only)
 
 ---
+
+## v1.4 instrument track: generator argv option D and the Claude S4 MCP re-run
+**Timestamp**: 2026-10-20T06:45:16Z
+**User Input**: "Coordinator brief (DELEG3, option D, delegated; the author asked for no more decisions): replace --safe-mode in both arms with explicit flags that reproduce everything it disables except MCP. Check equivalence in at most 2 live calls. Change buildGeneratorArgs and the tests. Re-run S4 (9 MCP-arm plus 5 no-MCP probes) with the criteria unchanged and a cap of 16 calls in total. Fill plan-mcp-L2.json and dry-run it on a pass, without the live mcp@L2. Merge when Build & Test is green."
+**AI Response**: "Flags read from claude --help and the 2.1.304 binary: --setting-sources \"\", --settings {autoMemoryEnabled:false,disableAllHooks:true}, --disable-slash-commands, with MCP only through --strict-mcp-config. No flag drops the built-in statusline-setup agent (inert: no Agent tool), the managed CLAUDE.md or org memory (none on the machine). Equivalence (2 calls, loop environment, canaries planted): same tools, servers, built-in plugins and permission mode; no skill, slash command or CLAUDE.md; identical input tokens. Equivalent. buildGeneratorArgs, the tests and the config-dir tolerance justification were updated. S4 Run 2 (14 calls, 16 of 16 in total): all 9 MCP-arm probes pass and the 5 no-MCP probes pass. plan-mcp-L2.json was filled from the 7decd672 build; the zero-call dry run completed 6 of 6 runs. The live mcp@L2 was not run."
+**Context**: v1.4 instrument track / exploratory study Stage B prerequisite; DELEG3 in ops/decisions.md; run note Docs/DiagnosticRuns/v1.4-claude-s4-mcp-2026-10-20.md (Run 2); 16 live Claude calls
+
+---

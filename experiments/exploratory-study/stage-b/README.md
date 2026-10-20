@@ -60,6 +60,11 @@ The source grids are only read. A resume needs only the new run, and refuses a d
    **Blocked (2026-10-20):** the Claude S4 probe with MCP failed. `--safe-mode` keeps the server from loading, so
    this cell would run with no MCP tool (`Docs/DiagnosticRuns/v1.4-claude-s4-mcp-2026-10-20.md`). It needs an argv
    decision and an S4 re-run first.
+   **Unblocked (2026-10-20, Run 2):** both arms now use the explicit customizations-off flags instead of
+   `--safe-mode` (DELEG3 option D), and the S4 re-run passed. A local, uncommitted `plan-mcp-L2.json` beside the
+   template has the `daedalus` block filled from the `7decd672` build under `<exploratory-root>/daedalus-build/`,
+   everything else identical. `lint:citations` rejects its absolute paths, which is why it is not committed. Use it
+   for step 3 instead of the template. Its zero-call dry run passed.
 4. Approval of the 63 calls (cap per Amendment 1 item 6).
 
 ## Commands (repository root; fill the `<…>` paths, all absolute and outside the repository)

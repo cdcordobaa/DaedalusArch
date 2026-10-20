@@ -325,14 +325,24 @@ describe('P3: every isolated spawn runs with the per-run HOME, the dedicated con
     expect(r2.success).toBe(false);
   });
 
-  it('skills and plugins the CLI syncs into the config dir are tolerated (every turn runs with --safe-mode)', async () => {
+  it('skills and plugins the CLI syncs into the config dir are tolerated (every turn runs with the customizations-off flags)', async () => {
     for (const d of ['skills/synced/acct/docs', 'plugins/synced/acct']) fs.mkdirSync(path.join(iso.configDir, d), { recursive: true });
     fs.writeFileSync(path.join(iso.configDir, 'skills', 'synced', 'acct', 'docs', 'SKILL.md'), 'x');
     fs.writeFileSync(path.join(iso.configDir, 'plugins', 'synced', 'acct', '.marketplaces.json'), '{}');
     const runner = new FakeGeneratorRunner(h.binary, [{ stdout: `${PINNED} (Claude Code)` }]);
     const r = await new ClaudeStepAgent(h.config, { runner, parentEnv: PARENT, cliVersion: PINNED, isolation: iso }).probe();
     expect(r.success).toBe(true);
-    expect(buildGeneratorArgs(h.config, { runId: 'r' }, 'p')).toContain('--safe-mode');
+    const args = buildGeneratorArgs(h.config, { runId: 'r' }, 'p');
+    expect(args).not.toContain('--safe-mode');
+    const at = args.indexOf('--setting-sources');
+    expect(args.slice(at, at + 5)).toEqual([
+      '--setting-sources',
+      '',
+      '--settings',
+      '{"autoMemoryEnabled":false,"disableAllHooks":true}',
+      '--disable-slash-commands',
+    ]);
+    expect(args).toContain('--strict-mcp-config');
   });
 });
 
