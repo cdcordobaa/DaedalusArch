@@ -1,0 +1,102 @@
+{
+  "itemId": "community:0",
+  "itemName": "community:0",
+  "key": "5d3e937ac8fe98d39b6903d92e909817326974e3cd9ea7330989cd9f2d4a3ec9",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "3f69df48425f29fda1f15cd8611b2e39e98bae78e6abcf730fa38cfc533ab0cd",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"0\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- NotFoundError (node 1d689d7aed6f811c), file src/business/errors.ts, declaration line 2: \"export class NotFoundError extends Error {}\"\n  component business, layer domain; responsibilities: Signal missing business resource\n- TextHiveClient (node 8e8d371ee25514db), file src/persistence/textHiveClient.ts, declaration line 1: \"export class TextHiveClient {\"\n  component persistence, layer infrastructure; responsibilities: Send SMS via TextHive gateway; Gateway configuration and authentication\n- ConflictError (node 97d78fc7fa6c1e13), file src/business/errors.ts, declaration line 4: \"export class ConflictError extends Error {}\"\n  component business, layer domain; responsibilities: Signal business conflict\n- ValidationError (node a1528852461831a2), file src/business/errors.ts, declaration line 1: \"export class ValidationError extends Error {}\"\n  component business, layer domain; responsibilities: Signal business validation failures\n- UnauthorizedError (node e625ab1bb66d4580), file src/presentation/server.ts, declaration line 24: \"class UnauthorizedError extends Error {}\"\n  component presentation, layer presentation; responsibilities: Signal unauthorized requests\n- ForbiddenError (node eda714dca104af35), file src/business/errors.ts, declaration line 3: \"export class ForbiddenError extends Error {}\"\n  component business, layer domain; responsibilities: Signal authorization denial\n\n## APG relations of the group\nGraph statistics: 6 classes; 0 relations inside the group; 0 outgoing relations to code outside it.\n- (none)",
+  "recordedAt": "2026-10-20T14:20:14.764Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.75,
+        "description": "Sending text messages to customers through an external SMS gateway, including setting up the gateway connection and authentication.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "8e8d371ee25514db",
+            "quote": "export class TextHiveClient {",
+            "startLine": 1
+          }
+        ],
+        "name": "Customer SMS notification",
+        "realizedBy": [
+          "8e8d371ee25514db"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Flagging invalid input, missing business records, and conflicting operations so that requests that break business rules are rejected with a clear outcome.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "a1528852461831a2",
+            "quote": "export class ValidationError extends Error {}",
+            "startLine": 1
+          },
+          {
+            "endLine": 2,
+            "file": "src/business/errors.ts",
+            "nodeId": "1d689d7aed6f811c",
+            "quote": "export class NotFoundError extends Error {}",
+            "startLine": 2
+          },
+          {
+            "endLine": 4,
+            "file": "src/business/errors.ts",
+            "nodeId": "97d78fc7fa6c1e13",
+            "quote": "export class ConflictError extends Error {}",
+            "startLine": 4
+          }
+        ],
+        "name": "Business rule enforcement and error reporting",
+        "realizedBy": [
+          "a1528852461831a2",
+          "1d689d7aed6f811c",
+          "97d78fc7fa6c1e13"
+        ]
+      },
+      {
+        "confidence": 0.65,
+        "description": "Turning away requests from callers who are not authenticated, and blocking actions a caller is not permitted to perform.",
+        "evidence": [
+          {
+            "endLine": 24,
+            "file": "src/presentation/server.ts",
+            "nodeId": "e625ab1bb66d4580",
+            "quote": "class UnauthorizedError extends Error {}",
+            "startLine": 24
+          },
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "eda714dca104af35",
+            "quote": "export class ForbiddenError extends Error {}",
+            "startLine": 3
+          }
+        ],
+        "name": "Access control enforcement",
+        "realizedBy": [
+          "e625ab1bb66d4580",
+          "eda714dca104af35"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2302,
+    "outputTokens": 840
+  }
+}

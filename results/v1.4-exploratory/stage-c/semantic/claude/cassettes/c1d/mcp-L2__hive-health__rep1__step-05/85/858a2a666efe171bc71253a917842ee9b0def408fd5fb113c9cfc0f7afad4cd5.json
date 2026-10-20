@@ -1,0 +1,28 @@
+{
+  "itemId": "06ff137c5d2dba5d",
+  "itemName": "Business rule and access violation reporting ~ Business rule violation signalling",
+  "key": "858a2a666efe171bc71253a917842ee9b0def408fd5fb113c9cfc0f7afad4cd5",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "b18c00a5efb60b5af8e4755283fb17d98c64a5c7cffb1f74bc8b281fc864759b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Business rule and access violation reporting\nwhere: community:0\ncode:\n=====SOURCE-BEGIN\nexport class ValidationError extends Error {}\nexport class NotFoundError extends Error {}\nexport class ForbiddenError extends Error {}\nexport class ConflictError extends Error {}\nclass UnauthorizedError extends Error {}\n=====SOURCE-END=====\ngraph:\n- community community:0: 7 classes (NotFoundError, TextHiveClient, ConflictError, ValidationError, UnauthorizedError, ForbiddenError, ScaleService)\n- class ValidationError (node a1528852461831a2): layer domain, component business, fan-out 0, fan-in 0\n- class NotFoundError (node 1d689d7aed6f811c): layer domain, component business, fan-out 0, fan-in 0\n- class ConflictError (node 97d78fc7fa6c1e13): layer domain, component business, fan-out 0, fan-in 0\n- class ForbiddenError (node eda714dca104af35): layer domain, component business, fan-out 0, fan-in 0\n- class UnauthorizedError (node e625ab1bb66d4580): layer presentation, component presentation, fan-out 0, fan-in 0\n\n### B\ncapability: Business rule violation signalling\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class ValidationError extends Error {}\nexport class ForbiddenError extends Error {}\n=====SOURCE-END=====\ngraph:\n- component component:business: 9 classes (NotFoundError, TreatmentService, ConflictError, ValidationError, HiveService, ReportService, HarvestService, ForbiddenError, ScaleService)\n- class ValidationError (node a1528852461831a2): layer domain, component business, fan-out 0, fan-in 0\n- class NotFoundError (node 1d689d7aed6f811c): layer domain, component business, fan-out 0, fan-in 0\n- class ForbiddenError (node eda714dca104af35): layer domain, component business, fan-out 0, fan-in 0\n- class ConflictError (node 97d78fc7fa6c1e13): layer domain, component business, fan-out 0, fan-in 0",
+  "recordedAt": "2026-10-20T12:30:30.743Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.8,
+    "rationale": "A and B describe the same capability: domain error types that signal when a business rule is broken. Both point to the same domain error classes by the same node ids: ValidationError (a1528852461831a2), ForbiddenError (eda714dca104af35), NotFoundError (1d689d7aed6f811c) and ConflictError (97d78fc7fa6c1e13), each written as an empty Error subclass, e.g. 'export class ValidationError extends Error {}'. A's scope is slightly wider. It adds the presentation-layer UnauthorizedError and puts 'access' in its name. That access part is already covered by ForbiddenError, which B also includes. Their community and component groupings differ, but the error classes at the core of each are the same.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2167,
+    "outputTokens": 388
+  }
+}

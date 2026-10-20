@@ -1,0 +1,244 @@
+{
+  "itemId": "a663bd12cbc0090c",
+  "itemName": "ReportService",
+  "key": "de107c7ca3f032b55c6fb0d7d73ce3ecf408c52e92d39245de661cdf07de817a",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "e5c50076e7de8fca64bb146a4bce62e0290375e1bb1882e5a78553a52e6401d6",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, lines 58-144.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- weekly (node 88bb95ef057181a7, lines 66-143, logic density 41)\nFields: sessions, bookings, now\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 4 (CALLS 2, CONSTRUCTOR_INJECTS 2); fan-in 0.\n- -> CALLS Method BookingRepository.listBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method SessionRepository.list (src/persistence/sessionRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class BookingRepository (src/persistence/bookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class SessionRepository (src/persistence/sessionRepository.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ReportService: nameRole=\"service\"\n- ReportService: behaviourRole=\"business-logic\"\n- ReportService: ioCategories=[]\n- ReportService: lcom4=1\n- ReportService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- ReportService.weekly: logicDensity={\"branches\":14,\"comparisons\":9,\"arithmetic\":17,\"validationThrows\":1,\"density\":41}\n\n## Comments near the code\n- ReportService: Builds the manager's weekly report; one pass over the period's sessions and their bookings.\n- ReportService.weekly: `from` defaults to the Monday of the current week, `to` to six days after `from`.\n\n## Source\n=====SOURCE-BEGIN src/business/reportService.ts\n 58| export class ReportService {\n 59|   constructor(\n 60|     private readonly sessions: SessionRepository,\n 61|     private readonly bookings: BookingRepository,\n 62|     private readonly now: () => number = Date.now,\n 63|   ) {}\n 64| \n 65|   /** `from` defaults to the Monday of the current week, `to` to six days after `from`. */\n 66|   weekly(from?: string, to?: string): WeeklyReport {\n 67|     let start: number;\n 68|     if (from !== undefined) {\n 69|       start = parseDay(from, \"from\");\n 70|     } else {\n 71|       const today = Date.parse(`${day(this.now())}T00:00:00Z`);\n 72|       start = today - ((new Date(today).getUTCDay() + 6) % 7) * DAY_MS;\n 73|     }\n 74|     const end = to !== undefined ? parseDay(to, \"to\") : start + 6 * DAY_MS;\n 75|     if (end < start) throw new DomainError(\"validation\", \"to must not be before from\");\n 76|     const fromDay = day(start);\n 77|     const toDay = day(end);\n 78| \n 79|     const sizes = new Set<string>();\n 80|     const rows: SessionReportRow[] = [];\n 81|     for (const s of this.sessions.list()) {\n 82|       if (s.date < fromDay || s.date > toDay) continue;\n 83|       const row: SessionReportRow = {\n 84|         sessionId: s.id,\n 85|         date: s.date,\n 86|         start: s.start,\n 87|         end: s.end,\n 88|         status: s.status,\n 89|         capacity: s.capacity,\n 90|         ticketsSold: 0,\n 91|         membersAdmitted: 0,\n 92|         occupancy: 0,\n 93|         hireIncomeCents: {},\n 94|         refundedBookings: 0,\n 95|         refundedCents: 0,\n 96|         heldForIce: s.status === \"held\" || (s.iceHold === true && s.status !== \"cancelled\"),\n 97|         cancelledForIce: s.status === \"cancelled\",\n 98|       };\n 99|       for (const b of this.bookings.listBySession(s.id)) {\n100|         if (b.status === \"refunded\") {\n101|           row.refundedBookings++;\n102|           row.refundedCents += b.amountCents;\n103|         } else if (b.status === \"paid\") {\n104|           row.ticketsSold += b.tickets;\n105|           if (b.membershipNumber !== undefined) row.membersAdmitted += b.tickets;\n106|           for (const [size, qty] of Object.entries(b.hire)) {\n107|             sizes.add(size);\n108|             row.hireIncomeCents[size] = (row.hireIncomeCents[size] ?? 0) + qty * s.hirePriceCents;\n109|           }\n110|         }\n111|       }\n112|       row.occupancy = ratio(row.ticketsSold, s.capacity);\n113|       rows.push(row);\n114|     }\n115| \n116|     const sorted = [...sizes].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));\n117|     const totals: WeeklyReport[\"totals\"] = {\n118|       sessions: rows.length,\n119|       ticketsSold: 0,\n120|       membersAdmitted: 0,\n121|       occupancy: 0,\n122|       hireIncomeCents: {},\n123|       refundedBookings: 0,\n124|       refundedCents: 0,\n125|       sessionsHeldForIce: 0,\n126|       sessionsCancelledForIce: 0,\n127|     };\n128|     let capacity = 0;\n129|     for (const r of rows) {\n130|       capacity += r.capacity;\n131|       totals.ticketsSold += r.ticketsSold;\n132|       totals.membersAdmitted += r.membersAdmitted;\n133|       totals.refundedBookings += r.refundedBookings;\n134|       totals.refundedCents += r.refundedCents;\n135|       if (r.heldForIce) totals.sessionsHeldForIce++;\n136|       if (r.cancelledForIce) totals.sessionsCancelledForIce++;\n137|       for (const [size, cents] of Object.entries(r.hireIncomeCents)) {\n138|         totals.hireIncomeCents[size] = (totals.hireIncomeCents[size] ?? 0) + cents;\n139|       }\n140|     }\n141|     totals.occupancy = ratio(totals.ticketsSold, capacity);\n142|     return { from: fromDay, to: toDay, sizes: sorted, sessions: rows, totals };\n143|   }\n144| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:50:44.721Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 66,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "weekly(from?: string, to?: string): WeeklyReport {",
+            "startLine": 66
+          }
+        ],
+        "name": "Weekly Report",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 81,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "for (const s of this.sessions.list()) {",
+            "startLine": 81
+          }
+        ],
+        "name": "Session",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 103,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "} else if (b.status === \"paid\") {",
+            "startLine": 103
+          }
+        ],
+        "name": "Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 102,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "row.refundedCents += b.amountCents;",
+            "startLine": 102
+          }
+        ],
+        "name": "Refund",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.65,
+        "evidence": [
+          {
+            "endLine": 106,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "for (const [size, qty] of Object.entries(b.hire)) {",
+            "startLine": 106
+          }
+        ],
+        "name": "Skate Hire",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 105,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "if (b.membershipNumber !== undefined) row.membersAdmitted += b.tickets;",
+            "startLine": 105
+          }
+        ],
+        "name": "Membership",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 112,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "row.occupancy = ratio(row.ticketsSold, s.capacity);",
+            "startLine": 112
+          }
+        ],
+        "name": "Occupancy",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 97,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "cancelledForIce: s.status === \"cancelled\",",
+            "startLine": 97
+          }
+        ],
+        "name": "Ice Hold",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Works out the reporting window. By default it runs from the Monday of the current week to six days later. It also checks that the end date is not before the start date.",
+        "evidence": [
+          {
+            "endLine": 72,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "start = today - ((new Date(today).getUTCDay() + 6) % 7) * DAY_MS;",
+            "startLine": 72
+          },
+          {
+            "endLine": 75,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "if (end < start) throw new DomainError(\"validation\", \"to must not be before from\");",
+            "startLine": 75
+          }
+        ],
+        "name": "Determine weekly reporting period",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "For each session in the period, counts paid tickets, members admitted, occupancy against capacity, skate-hire income by size, and refunded bookings and amounts.",
+        "evidence": [
+          {
+            "endLine": 104,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "row.ticketsSold += b.tickets;",
+            "startLine": 104
+          },
+          {
+            "endLine": 108,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "row.hireIncomeCents[size] = (row.hireIncomeCents[size] ?? 0) + qty * s.hirePriceCents;",
+            "startLine": 108
+          },
+          {
+            "endLine": 112,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "row.occupancy = ratio(row.ticketsSold, s.capacity);",
+            "startLine": 112
+          }
+        ],
+        "name": "Compute per-session sales, attendance and refund figures",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Applies the rules that mark a session as held for ice or cancelled for ice.",
+        "evidence": [
+          {
+            "endLine": 96,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "heldForIce: s.status === \"held\" || (s.iceHold === true && s.status !== \"cancelled\"),",
+            "startLine": 96
+          }
+        ],
+        "name": "Flag sessions held or cancelled for ice",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Adds up the session rows into weekly totals: overall occupancy, hire income by size, refunds, and counts of sessions affected by ice.",
+        "evidence": [
+          {
+            "endLine": 141,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "totals.occupancy = ratio(totals.ticketsSold, capacity);",
+            "startLine": 141
+          },
+          {
+            "endLine": 142,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "return { from: fromDay, to: toDay, sizes: sorted, sessions: rows, totals };",
+            "startLine": 142
+          }
+        ],
+        "name": "Aggregate weekly totals for the manager's report",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.6,
+        "description": "Pulls the sessions and each session's bookings from the repositories in order to build the report.",
+        "evidence": [
+          {
+            "endLine": 99,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "for (const b of this.bookings.listBySession(s.id)) {",
+            "startLine": 99
+          }
+        ],
+        "name": "Gather report data from repositories",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4432,
+    "outputTokens": 2130
+  }
+}

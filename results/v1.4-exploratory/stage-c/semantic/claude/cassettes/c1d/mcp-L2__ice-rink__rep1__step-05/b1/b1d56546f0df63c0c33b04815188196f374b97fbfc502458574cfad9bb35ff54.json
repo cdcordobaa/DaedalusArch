@@ -1,0 +1,28 @@
+{
+  "itemId": "f3dfe000e550f208",
+  "itemName": "Skate Hire ~ Hire Skate Stock",
+  "key": "b1d56546f0df63c0c33b04815188196f374b97fbfc502458574cfad9bb35ff54",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "775b034aee62ba6f4f4e679eb920114918f637e3e350158747863a6437afbbb6",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Skate Hire\nwhere: ReportService (uses), src/business/reportService.ts, component business\ncode:\n=====SOURCE-BEGIN\nfor (const [size, qty] of Object.entries(b.hire)) {\n=====SOURCE-END=====\ngraph:\n- class ReportService (node a663bd12cbc0090c): layer domain, component business, fan-out 4, fan-in 0\n- -> CALLS Method BookingRepository.listBySession\n- -> CALLS Method SessionRepository.list\n- -> CONSTRUCTOR_INJECTS Class BookingRepository\n- -> CONSTRUCTOR_INJECTS Class SessionRepository\n\n### B\nconcept: Hire Skate Stock\nwhere: HireStockRepository (defines), src/persistence/hireStockRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly stock = new Map<string, number>();\n=====SOURCE-END=====\ngraph:\n- class HireStockRepository (node ada57feca2e90c67): layer infrastructure, component persistence, fan-out 0, fan-in 5\n- <- CALLS Method RinkService.getAvailability\n- <- CALLS Method RinkService.getHireStock\n- <- CALLS Method RinkService.purchase\n- <- CALLS Method RinkService.setHireStock\n- <- CONSTRUCTOR_INJECTS Class RinkService",
+  "recordedAt": "2026-10-20T12:58:07.075Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.72,
+    "rationale": "A ('Skate Hire') is the per-booking hire request: ReportService iterates `Object.entries(b.hire)` (src/business/reportService.ts) to read size→quantity hired on a booking. B ('Hire Skate Stock') is the rink's inventory of hire skates: HireStockRepository holds `private readonly stock = new Map<string, number>()` (src/persistence/hireStockRepository.ts), managed by RinkService via getHireStock/setHireStock/getAvailability/purchase. Both are keyed by size, but one is demand recorded on a booking line and the other is available supply. They are related (availability = stock minus hires), not the same concept.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1952,
+    "outputTokens": 742
+  }
+}

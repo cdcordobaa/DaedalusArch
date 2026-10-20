@@ -1,0 +1,193 @@
+{
+  "itemId": "a539722e0cf13224",
+  "itemName": "HiveService",
+  "key": "1694bee6410b32cb33a711ead1f243a14c60f984605dcd3c96c58d8af0b7739c",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "rules",
+    "promptHash": "f9b351ff8bfacdcd9d0488a28fd0b2fe490cd51a5c676cf284ae30e4d4605079",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "f0fc4d535ca2368dc75f2c1669e4a1b8563970f49941a37b2cf4202334cf7327",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nExtract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind \"business\": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind \"input-validation\": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.\n\n## Class\nClass HiveService (node a539722e0cf13224), file src/business/hiveService.ts, lines 32-197.\nComponent: business. Declared layer: business (kind domain).\nCandidate methods (proposed by the cheap proxies):\n- registerHive (node 57bf086fa84a0c98, lines 58-69, logic density 5)\n- listHives (node 2b4dea66878aec60, lines 71-74, logic density 1)\n- getHive (node 8bf477d105640b02, lines 76-80, logic density 2)\n- recordInspection (node 3e1c71a03fc8d9c7, lines 82-126, logic density 19)\n- listInspections (node a4db9db8aad40868, lines 128-131, logic density 2)\n- latest (node fe2aaf11f2ca1a22, lines 133-146, logic density 5)\n- isFlagged (node e0b124066085aff7, lines 151-188, logic density 16)\n\n## APG neighbourhood\nGraph statistics: 11 methods; fan-out 14 (CALLS 10, CONSTRUCTOR_INJECTS 4); fan-in 2 (CALLS 1, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method ReportService.quarterlyReport (src/business/reportService.ts)\n- -> CALLS Method ApiaryRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method ApiaryRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method ApiaryRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findByApiary (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method InspectionRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method InspectionRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.findByHive (src/persistence/repositories.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- -> CONSTRUCTOR_INJECTS Class ApiaryRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class InspectionRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentRepository (src/persistence/repositories.ts)\n\n## Comments near the code\n- HiveService.isFlagged: Flagged by an inspection above the threshold; stays flagged until a treatment / has been recorded and a later inspection is at or below the threshold. / With `before`, only events dated strictly before that instant (ms) are considered.\n\n## Source\n=====SOURCE-BEGIN src/business/hiveService.ts\n 32| export class HiveService {\n 33|   private inspectionListener: ((hiveId: string, inspectedAt: number) => void) | null = null;\n 34| \n 35|   onInspectionRecorded(listener: (hiveId: string, inspectedAt: number) => void): void {\n 36|     this.inspectionListener = listener;\n 37|   }\n 38| \n 39|   constructor(\n 40|     private readonly apiaries: ApiaryRepository,\n 41|     private readonly hives: HiveRepository,\n 42|     private readonly inspections: InspectionRepository,\n 43|     private readonly treatments: TreatmentRepository,\n 44|   ) {}\n 45| \n 46|   registerApiary(memberId: string, name: unknown, region: unknown): ApiaryRecord {\n 47|     return this.apiaries.create({\n 48|       ownerId: memberId,\n 49|       name: requireText(name, \"name\"),\n 50|       region: requireText(region, \"region\"),\n 51|     });\n 52|   }\n 53| \n 54|   listApiaries(): ApiaryRecord[] {\n 55|     return this.apiaries.findAll();\n 56|   }\n 57| \n 58|   registerHive(memberId: string, apiaryId: string, name: unknown): HiveRecord {\n 59|     const apiary = this.apiaries.findById(apiaryId);\n 60|     if (!apiary) throw new NotFoundError(\"apiary not found\");\n 61|     if (apiary.ownerId !== memberId) {\n 62|       throw new ForbiddenError(\"only the apiary owner can add hives\");\n 63|     }\n 64|     return this.hives.create({\n 65|       apiaryId,\n 66|       ownerId: memberId,\n 67|       name: requireText(name, \"name\"),\n 68|     });\n 69|   }\n 70| \n 71|   listHives(apiaryId?: string): HiveView[] {\n 72|     const list = apiaryId ? this.hives.findByApiary(apiaryId) : this.hives.findAll();\n 73|     return list.map((h) => this.toView(h));\n 74|   }\n 75| \n 76|   getHive(hiveId: string): HiveView {\n 77|     const hive = this.hives.findById(hiveId);\n 78|     if (!hive) throw new NotFoundError(\"hive not found\");\n 79|     return this.toView(hive);\n 80|   }\n 81| \n 82|   recordInspection(memberId: string, hiveId: string, input: InspectionInput): InspectionRecord {\n 83|     const hive = this.hives.findById(hiveId);\n 84|     if (!hive) throw new NotFoundError(\"hive not found\");\n 85|     if (hive.ownerId !== memberId) {\n 86|       throw new ForbiddenError(\"only the hive owner can record inspections\");\n 87|     }\n 88| \n 89|     const date = requireText(input.date, \"date\");\n 90|     if (Number.isNaN(Date.parse(date))) {\n 91|       throw new ValidationError(\"date must be a valid date\");\n 92|     }\n 93|     if (typeof input.queenSeen !== \"boolean\") {\n 94|       throw new ValidationError(\"queenSeen must be a boolean\");\n 95|     }\n 96|     const { broodFrames, temperament, varroaPer100Bees } = input;\n 97|     if (typeof broodFrames !== \"number\" || !Number.isInteger(broodFrames) || broodFrames < 0) {\n 98|       throw new ValidationError(\"broodFrames must be a non-negative integer\");\n 99|     }\n100|     if (\n101|       typeof temperament !== \"number\" ||\n102|       !Number.isInteger(temperament) ||\n103|       temperament < 1 ||\n104|       temperament > 5\n105|     ) {\n106|       throw new ValidationError(\"temperament must be an integer from 1 to 5\");\n107|     }\n108|     if (\n109|       typeof varroaPer100Bees !== \"number\" ||\n110|       !Number.isFinite(varroaPer100Bees) ||\n111|       varroaPer100Bees < 0\n112|     ) {\n113|       throw new ValidationError(\"varroaPer100Bees must be a non-negative number\");\n114|     }\n115| \n116|     const record = this.inspections.create({\n117|       hiveId,\n118|       date,\n119|       queenSeen: input.queenSeen,\n120|       broodFrames,\n121|       temperament,\n122|       varroaPer100Bees,\n123|     });\n124|     this.inspectionListener?.(hiveId, Date.parse(date));\n125|     return record;\n126|   }\n127| \n128|   listInspections(hiveId: string): InspectionRecord[] {\n129|     if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n130|     return this.inspections.findByHive(hiveId);\n131|   }\n132| \n133|   private latest(hiveId: string): InspectionRecord | null {\n134|     const all = this.inspections.findByHive(hiveId);\n135|     let best: InspectionRecord | null = null;\n136|     for (const i of all) {\n137|       if (\n138|         !best ||\n139|         Date.parse(i.date) > Date.parse(best.date) ||\n140|         (Date.parse(i.date) === Date.parse(best.date) && i.recordedAt > best.recordedAt)\n141|       ) {\n142|         best = i;\n143|       }\n144|     }\n145|     return best;\n146|   }\n147| \n148|   // Flagged by an inspection above the threshold; stays flagged until a treatment\n149|   // has been recorded and a later inspection is at or below the threshold.\n150|   // With `before`, only events dated strictly before that instant (ms) are considered.\n151|   isFlagged(hiveId: string, before = Infinity): boolean {\n152|     type Event =\n153|       | { at: number; seq: number; kind: \"inspection\"; low: boolean }\n154|       | { at: number; seq: number; kind: \"treatment\" };\n155|     const events: Event[] = [\n156|       ...this.inspections.findByHive(hiveId).map(\n157|         (i): Event => ({\n158|           at: Date.parse(i.date),\n159|           seq: i.recordedAt,\n160|           kind: \"inspection\",\n161|           low: i.varroaPer100Bees <= TREATMENT_THRESHOLD,\n162|         }),\n163|       ),\n164|       ...this.treatments.findByHive(hiveId).map(\n165|         (t, n): Event => ({ at: Date.parse(t.startDate), seq: n, kind: \"treatment\" }),\n166|       ),\n167|     ]\n168|       .filter((e) => e.at < before)\n169|       .sort((a, b) => {\n170|       if (a.at !== b.at) return a.at - b.at;\n171|       if (a.kind !== b.kind) return a.kind === \"treatment\" ? -1 : 1;\n172|       return a.seq - b.seq;\n173|     });\n174| \n175|     let flagged = false;\n176|     let treated = false;\n177|     for (const e of events) {\n178|       if (e.kind === \"treatment\") {\n179|         if (flagged) treated = true;\n180|       } else if (!e.low) {\n181|         flagged = true;\n182|         treated = false;\n183|       } else if (flagged && treated) {\n184|         flagged = false;\n185|       }\n186|     }\n187|     return flagged;\n188|   }\n189| \n190|   private toView(hive: HiveRecord): HiveView {\n191|     return {\n192|       ...hive,\n193|       latestInspection: this.latest(hive.id),\n194|       needsTreatment: this.isFlagged(hive.id),\n195|     };\n196|   }\n197| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T14:53:32.868Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "rules": [
+      {
+        "confidence": 0.85,
+        "enforcedBy": "57bf086fa84a0c98",
+        "evidence": [
+          {
+            "endLine": 63,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "57bf086fa84a0c98",
+            "quote": "if (apiary.ownerId !== memberId) {",
+            "startLine": 61
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "Only the owner of an apiary may add hives to it.",
+        "subject": "hive registration requester",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "3e1c71a03fc8d9c7",
+        "evidence": [
+          {
+            "endLine": 87,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "3e1c71a03fc8d9c7",
+            "quote": "if (hive.ownerId !== memberId) {",
+            "startLine": 85
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "Only the owner of a hive may record inspections for it.",
+        "subject": "inspection recorder",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "3e1c71a03fc8d9c7",
+        "evidence": [
+          {
+            "endLine": 97,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "3e1c71a03fc8d9c7",
+            "quote": "if (typeof broodFrames !== \"number\" || !Number.isInteger(broodFrames) || broodFrames < 0) {",
+            "startLine": 97
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "The number of brood frames recorded in an inspection must be a whole number of 0 or more.",
+        "subject": "inspection brood frames",
+        "threshold": 0,
+        "unit": "frames"
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "3e1c71a03fc8d9c7",
+        "evidence": [
+          {
+            "endLine": 103,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "3e1c71a03fc8d9c7",
+            "quote": "temperament < 1 ||",
+            "startLine": 103
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "An inspection's temperament score must be at least 1.",
+        "subject": "inspection temperament score",
+        "threshold": 1,
+        "unit": "score"
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "3e1c71a03fc8d9c7",
+        "evidence": [
+          {
+            "endLine": 104,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "3e1c71a03fc8d9c7",
+            "quote": "temperament > 5",
+            "startLine": 104
+          }
+        ],
+        "kind": "input-validation",
+        "operator": "<=",
+        "statement": "An inspection's temperament score must be at most 5.",
+        "subject": "inspection temperament score",
+        "threshold": 5,
+        "unit": "score"
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "3e1c71a03fc8d9c7",
+        "evidence": [
+          {
+            "endLine": 111,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "3e1c71a03fc8d9c7",
+            "quote": "varroaPer100Bees < 0",
+            "startLine": 111
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "The mite count per 100 bees recorded in an inspection must be a finite number of 0 or more.",
+        "subject": "inspection varroa mites per 100 bees",
+        "threshold": 0,
+        "unit": "mites per 100 bees"
+      },
+      {
+        "confidence": 0.8,
+        "enforcedBy": "e0b124066085aff7",
+        "evidence": [
+          {
+            "endLine": 161,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "e0b124066085aff7",
+            "quote": "low: i.varroaPer100Bees <= TREATMENT_THRESHOLD,",
+            "startLine": 161
+          },
+          {
+            "endLine": 182,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "e0b124066085aff7",
+            "quote": "} else if (!e.low) {",
+            "startLine": 180
+          }
+        ],
+        "kind": "business",
+        "operator": ">",
+        "statement": "A hive is flagged as needing treatment when an inspection finds more mites per 100 bees than the treatment threshold.",
+        "subject": "hive varroa mites per 100 bees",
+        "threshold": null,
+        "unit": "mites per 100 bees"
+      },
+      {
+        "confidence": 0.75,
+        "enforcedBy": "e0b124066085aff7",
+        "evidence": [
+          {
+            "endLine": 185,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "e0b124066085aff7",
+            "quote": "} else if (flagged && treated) {",
+            "startLine": 183
+          },
+          {
+            "endLine": 179,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "e0b124066085aff7",
+            "quote": "if (flagged) treated = true;",
+            "startLine": 179
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "A flagged hive stays flagged until a treatment has been recorded and a later inspection finds mites at or below the treatment threshold.",
+        "subject": "hive treatment flag clearance",
+        "threshold": null,
+        "unit": null
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 5769,
+    "outputTokens": 2398
+  }
+}

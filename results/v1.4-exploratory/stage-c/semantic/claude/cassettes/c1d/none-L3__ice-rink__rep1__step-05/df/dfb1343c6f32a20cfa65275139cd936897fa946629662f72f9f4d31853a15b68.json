@@ -1,0 +1,130 @@
+{
+  "itemId": "component:business",
+  "itemName": "component:business",
+  "key": "dfb1343c6f32a20cfa65275139cd936897fa946629662f72f9f4d31853a15b68",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "158de593603fc3f3ee5789f61c1865a7e4fd6cf3de9ce8735dde11a18b763441",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"business\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DomainError (node 07801d262a4a214c), file src/business/errors.ts, declaration line 1: \"export class DomainError extends Error {\"\n  component business, layer domain; responsibilities: Classify business failures; Carry a human-readable failure explanation\n- RinkService (node 21c65604dec116b1), file src/business/rinkService.ts, declaration line 78: \"export class RinkService {\"\n  component business, layer domain; responsibilities: Ice temperature monitoring and session hold; Club ice booking and monthly invoicing; Session capacity and availability calculation; Ticket purchasing with pricing and membership allowance; Session reporting\n\n## APG relations of the group\nGraph statistics: 2 classes; 0 relations inside the group; 6 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- RinkService.recordTemperature: ---- ice temperature ---- / Handles a FrostSense reading; puts the next session on hold after 10 warm minutes.\n- RinkService.nextSession: The earliest open session that has not yet finished.\n- RinkService.cancelSession: Cancels a held session and refunds every paid ticket.\n- RinkService.retryRefunds: Retries refunds for paid tickets of an already cancelled session.\n- RinkService.releaseSession: Puts a held session back on sale.\n- RinkService.setClubRate: ---- club operations ----\n- RinkService.effectiveCapacity: Capacity after club bookings: halved when one half is taken, zero when both are.\n- RinkService.createSession: ---- manager operations ----\n- RinkService.getReport: ---- reporting ---- / Figures per session for a week (weekStart) or an inclusive range (from, to).\n- RinkService.listSessions: ---- public queries ----\n- RinkService.purchase: ---- purchasing ----\n- RinkService.handlePaymentResult: Handles PuckPay's webhook. Idempotent for already-settled bookings.\n- RinkService.expireOverdue: Releases unpaid bookings whose 15-minute window has elapsed.\n- RinkService.usage: Tickets and hire skates held by pending or paid bookings.",
+  "recordedAt": "2026-10-20T12:04:07.080Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Monitors ice temperature readings and puts upcoming public sessions on hold when the ice stays too warm; held sessions can be cancelled with every paid ticket refunded (including retrying failed refunds), or released back on sale.",
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 78
+          }
+        ],
+        "name": "Ice condition monitoring and session safety holds",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Lets clubs book half or full ice at a club rate and invoices them monthly for the ice time they used.",
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 78
+          }
+        ],
+        "name": "Club ice rental and monthly invoicing",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Managers create skating sessions. The public can list sessions and see how many places are left, based on capacity reduced by club bookings and on tickets and hire skates already held.",
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 78
+          }
+        ],
+        "name": "Session scheduling and availability",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Sells session tickets with pricing and membership allowances. Payment-provider results are settled idempotently, and unpaid bookings are released once their 15-minute payment window runs out.",
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 78
+          }
+        ],
+        "name": "Ticket sales and payment settlement",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Produces figures for each session over a week or a chosen date range.",
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 78
+          }
+        ],
+        "name": "Session performance reporting",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Sorts business failures into categories and explains each one in plain language to callers when a rink rule is broken.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 1
+          }
+        ],
+        "name": "Business rule violation reporting",
+        "realizedBy": [
+          "07801d262a4a214c",
+          "21c65604dec116b1"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2468,
+    "outputTokens": 1158
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "itemId": "community:1",
+  "itemName": "community:1",
+  "key": "7d2ec29ee94cd46a0b2959c0dbb59b7e5fe32038e3b29b2de2b909bd2de92054",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "cda4694ec8c6e7560cfa31e41dee8fd6db1effba307cf656de2126c84e5a719b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"1\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, declaration line 4: \"export class ClubBookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store club bookings; Retrieve club bookings by id or in full\n- ClubBookingService (node 44fb2545d0048ec3), file src/business/clubBookingService.ts, declaration line 29: \"export class ClubBookingService {\"\n  component business, layer domain; responsibilities: Validate club booking requests; Prevent overlapping rink bookings; Record and list club bookings; Produce monthly club invoice\n\n## APG relations of the group\nGraph statistics: 2 classes; 2 relations inside the group; 0 outgoing relations to code outside it.\n- ClubBookingService -> CALLS ClubBookingRepository\n- ClubBookingService -> CONSTRUCTOR_INJECTS ClubBookingRepository",
+  "recordedAt": "2026-10-20T15:33:41.338Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Lets clubs reserve rink time: booking requests are validated, overlapping rink bookings are rejected, and accepted bookings are recorded so they can be listed or looked up later.",
+        "evidence": [
+          {
+            "endLine": 29,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "44fb2545d0048ec3",
+            "quote": "export class ClubBookingService {",
+            "startLine": 29
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "export class ClubBookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Club rink reservation",
+        "realizedBy": [
+          "44fb2545d0048ec3",
+          "440da90bcde7901a"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Creates a monthly invoice for a club from its recorded rink bookings.",
+        "evidence": [
+          {
+            "endLine": 29,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "44fb2545d0048ec3",
+            "quote": "export class ClubBookingService {",
+            "startLine": 29
+          }
+        ],
+        "name": "Monthly club billing",
+        "realizedBy": [
+          "44fb2545d0048ec3",
+          "440da90bcde7901a"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2070,
+    "outputTokens": 521
+  }
+}

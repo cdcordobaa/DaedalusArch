@@ -1,0 +1,266 @@
+{
+  "itemId": "a663bd12cbc0090c",
+  "itemName": "ReportService",
+  "key": "8320a6d4b0e387b8826e4060b2e97e3e105d4fd365ef58a0f29ef74e43ecd2f2",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "b06f02a19c4bbcdac2f6fe276e2237ee37440d85074f33ae92024d5a7e2d7ff7",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, lines 44-103.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- quarterlyReport (node 6618714a08253929, lines 54-102, logic density 14)\nFields: apiaries, hives, treatments, products, harvests, beekeeping\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 12 (CALLS 6, CONSTRUCTOR_INJECTS 6); fan-in 0.\n- -> CALLS Method ApiaryRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method BeekeepingService.isFlagged (src/business/services.ts)\n- -> CALLS Method HarvestRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentProductRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.findAll (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class ApiaryRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class BeekeepingService (src/business/services.ts)\n- -> CONSTRUCTOR_INJECTS Class HarvestRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentProductRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentRepository (src/persistence/repositories.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ReportService: nameRole=\"service\"\n- ReportService: behaviourRole=\"business-logic\"\n- ReportService: ioCategories=[]\n- ReportService: lcom4=1\n- ReportService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- ReportService.quarterlyReport: logicDensity={\"branches\":5,\"comparisons\":6,\"arithmetic\":3,\"validationThrows\":0,\"density\":14}\n\n## Source\n=====SOURCE-BEGIN src/business/reportService.ts\n 44| export class ReportService {\n 45|   constructor(\n 46|     private readonly apiaries: ApiaryRepository,\n 47|     private readonly hives: HiveRepository,\n 48|     private readonly treatments: TreatmentRepository,\n 49|     private readonly products: TreatmentProductRepository,\n 50|     private readonly harvests: HarvestRepository,\n 51|     private readonly beekeeping: BeekeepingService,\n 52|   ) {}\n 53| \n 54|   quarterlyReport(quarterInput: unknown): QuarterlyReport {\n 55|     const { label, start, end } = parseQuarter(quarterInput);\n 56|     const apiaries = this.apiaries.findAll();\n 57|     const regionOfApiary = new Map(apiaries.map((a) => [a.id, a.region]));\n 58|     const regions = [...new Set(apiaries.map((a) => a.region))].sort();\n 59| \n 60|     const regionOfHive = new Map<string, string>();\n 61|     for (const h of this.hives.findAll()) {\n 62|       const region = regionOfApiary.get(h.apiaryId);\n 63|       if (region !== undefined) regionOfHive.set(h.id, region);\n 64|     }\n 65|     const inQuarter = (date: string): boolean => {\n 66|       const t = Date.parse(date);\n 67|       return t >= start && t < end;\n 68|     };\n 69| \n 70|     return {\n 71|       quarter: label,\n 72|       regions: regions.map((region) => {\n 73|         const hiveIds = [...regionOfHive].filter(([, r]) => r === region).map(([id]) => id);\n 74|         const flagged = hiveIds.filter((id) => this.beekeeping.isFlagged(id, end)).length;\n 75| \n 76|         const counts = new Map<string, number>();\n 77|         for (const t of this.treatments.findAll()) {\n 78|           if (regionOfHive.get(t.hiveId) === region && inQuarter(t.startDate)) {\n 79|             counts.set(t.productId, (counts.get(t.productId) ?? 0) + 1);\n 80|           }\n 81|         }\n 82|         const treatmentsPerProduct = [...counts].map(([productId, treatments]) => ({\n 83|           productId,\n 84|           product: this.products.findById(productId)?.name ?? productId,\n 85|           treatments,\n 86|         }));\n 87| \n 88|         const honeyKilograms = this.harvests\n 89|           .findAll()\n 90|           .filter((h) => regionOfHive.get(h.hiveId) === region && inQuarter(h.date))\n 91|           .reduce((sum, h) => sum + h.kilograms, 0);\n 92| \n 93|         return {\n 94|           region,\n 95|           hives: hiveIds.length,\n 96|           varroaFlaggedShare: hiveIds.length === 0 ? 0 : flagged / hiveIds.length,\n 97|           treatmentsPerProduct,\n 98|           honeyKilograms,\n 99|         };\n100|       }),\n101|     };\n102|   }\n103| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:34:33.113Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 54,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "quarterlyReport(quarterInput: unknown): QuarterlyReport {",
+            "startLine": 54
+          }
+        ],
+        "name": "Quarterly Report",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "const regions = [...new Set(apiaries.map((a) => a.region))].sort();",
+            "startLine": 58
+          }
+        ],
+        "name": "Region",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 57,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "const regionOfApiary = new Map(apiaries.map((a) => [a.id, a.region]));",
+            "startLine": 57
+          }
+        ],
+        "name": "Apiary",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 61,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "for (const h of this.hives.findAll()) {",
+            "startLine": 61
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 77,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "for (const t of this.treatments.findAll()) {",
+            "startLine": 77
+          }
+        ],
+        "name": "Treatment",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 84,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "product: this.products.findById(productId)?.name ?? productId,",
+            "startLine": 84
+          }
+        ],
+        "name": "Treatment Product",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 89,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "const honeyKilograms = this.harvests",
+            "startLine": 88
+          }
+        ],
+        "name": "Harvest",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 96,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "varroaFlaggedShare: hiveIds.length === 0 ? 0 : flagged / hiveIds.length,",
+            "startLine": 96
+          }
+        ],
+        "name": "Varroa Flag",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 55,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "const { label, start, end } = parseQuarter(quarterInput);",
+            "startLine": 55
+          }
+        ],
+        "name": "Quarter",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Builds the quarterly beekeeping report by fetching apiaries, hives, treatments, products and harvests from repositories and putting together one summary per region for the requested quarter.",
+        "evidence": [
+          {
+            "endLine": 56,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "const apiaries = this.apiaries.findAll();",
+            "startLine": 54
+          },
+          {
+            "endLine": 72,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "regions: regions.map((region) => {",
+            "startLine": 70
+          }
+        ],
+        "name": "Quarterly regional report orchestration",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.75,
+        "description": "Assigns each hive to a region through the apiary it belongs to, so hives, treatments and harvests can be grouped by region.",
+        "evidence": [
+          {
+            "endLine": 63,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "if (region !== undefined) regionOfHive.set(h.id, region);",
+            "startLine": 62
+          }
+        ],
+        "name": "Attribute hives to regions",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Works out what share of a region's hives are flagged for varroa at the end of the quarter, and returns zero when the region has no hives.",
+        "evidence": [
+          {
+            "endLine": 74,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "const flagged = hiveIds.filter((id) => this.beekeeping.isFlagged(id, end)).length;",
+            "startLine": 74
+          },
+          {
+            "endLine": 96,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "varroaFlaggedShare: hiveIds.length === 0 ? 0 : flagged / hiveIds.length,",
+            "startLine": 96
+          }
+        ],
+        "name": "Compute share of varroa-flagged hives",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Counts the treatments in each region that started during the quarter, grouped by treatment product, and labels each count with the product's name.",
+        "evidence": [
+          {
+            "endLine": 79,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "counts.set(t.productId, (counts.get(t.productId) ?? 0) + 1);",
+            "startLine": 78
+          }
+        ],
+        "name": "Count treatments per product in the quarter",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Adds up the kilograms of honey harvested in each region during the quarter.",
+        "evidence": [
+          {
+            "endLine": 91,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": ".reduce((sum, h) => sum + h.kilograms, 0);",
+            "startLine": 91
+          }
+        ],
+        "name": "Total honey harvested in the quarter",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.7,
+        "description": "Reads the quarter from the input and keeps only events whose date falls in the half-open range from the quarter's start up to, but not including, its end.",
+        "evidence": [
+          {
+            "endLine": 55,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "const { label, start, end } = parseQuarter(quarterInput);",
+            "startLine": 55
+          },
+          {
+            "endLine": 67,
+            "file": "src/business/reportService.ts",
+            "nodeId": "6618714a08253929",
+            "quote": "return t >= start && t < end;",
+            "startLine": 67
+          }
+        ],
+        "name": "Quarter period filtering",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4156,
+    "outputTokens": 2248
+  }
+}

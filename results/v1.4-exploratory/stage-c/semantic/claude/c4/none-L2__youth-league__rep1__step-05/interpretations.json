@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "none-L2__youth-league__rep1__step-05"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": true
+  },
+  "entries": [
+    {
+      "findingId": "c4f:039a7ef2ab82edb6",
+      "finding": {
+        "id": "c4f:039a7ef2ab82edb6",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/gateways.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/app.ts",
+          "src/persistence/gateways.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/app.ts",
+          "line": 10,
+          "target": "src/persistence/gateways.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/app.ts:10",
+                "src/presentation/app.ts:11",
+                "src/presentation/app.ts:16",
+                "src/presentation/app.ts:20",
+                "src/presentation/app.ts:28"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 10, src/presentation/app.ts imports the `Gateways` type and the `createGateways` factory from src/persistence/gateways.ts. It uses them in three places. `createApp` takes `gateways: Gateways = createGateways()` as a default parameter (line 16). `buildApp` declares `gateways: Gateways` in its public signature (line 20). That value is then passed straight into `new WeatherService(repos, gateways)` (line 28). This makes the presentation module the composition root for persistence-level external gateways: it builds and types persistence objects itself instead of getting everything through the business layer. FF-S03 flags this because a presentation-layer file depends directly on the persistence layer and skips the business layer between them. Presentation code is then tied to how persistence is built and what its types look like, so a change to the gateway API reaches the HTTP layer. Line 11 has the same pattern with `createRepositories` from ../persistence/repositories, which suggests the whole wiring of services, repositories and gateways sits in app.ts. None of the supplied docs, ADRs or comments say this wiring is intended or allowed.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "e584c3c985d1b76709268eca84cea866233055016b185211e4951d39cb6a7c20",
+          "date": "2026-10-20T12:13:28.992Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/app.ts:10",
+                "src/presentation/app.ts:11",
+                "src/presentation/app.ts:16",
+                "src/presentation/app.ts:20",
+                "src/presentation/app.ts:28"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 10, src/presentation/app.ts imports both the `Gateways` type and the `createGateways` factory directly from src/persistence/gateways.ts. It uses them in two places. First, `createApp` defaults its parameter to `createGateways()` (line 16). Second, `buildApp` takes a `Gateways` instance and passes it to `new WeatherService(repos, gateways)` (lines 20 and 28). So the presentation module also acts as the composition root: it builds persistence-layer gateways itself and threads them into the business layer. FF-S03 flags this because presentation should only depend on the layer directly below it (business). Reaching past business into persistence ties the HTTP layer to persistence's types and construction details. Line 11 does the same thing with `createRepositories` from ../persistence/repositories, so this edge is part of a wider wiring pattern, not a one-off. The materials I was given contain no docs, ADRs or comments, so I can't tell whether this placement of the wiring was intended.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "e584c3c985d1b76709268eca84cea866233055016b185211e4951d39cb6a7c20",
+          "date": "2026-10-20T12:13:38.365Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "medium",
+          "stability": "agreed"
+        },
+        "explanation": "At line 10, src/presentation/app.ts imports the `Gateways` type and the `createGateways` factory from src/persistence/gateways.ts. It uses them in three places. `createApp` takes `gateways: Gateways = createGateways()` as a default parameter (line 16). `buildApp` declares `gateways: Gateways` in its public signature (line 20). That value is then passed straight into `new WeatherService(repos, gateways)` (line 28). This makes the presentation module the composition root for persistence-level external gateways: it builds and types persistence objects itself instead of getting everything through the business layer. FF-S03 flags this because a presentation-layer file depends directly on the persistence layer and skips the business layer between them. Presentation code is then tied to how persistence is built and what its types look like, so a change to the gateway API reaches the HTTP layer. Line 11 has the same pattern with `createRepositories` from ../persistence/repositories, which suggests the whole wiring of services, repositories and gateways sits in app.ts. None of the supplied docs, ADRs or comments say this wiring is intended or allowed.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:5f46635a0cc828bd",
+      "finding": {
+        "id": "c4f:5f46635a0cc828bd",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/app.ts",
+          "src/persistence/repositories.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/app.ts",
+          "line": 11,
+          "target": "src/persistence/repositories.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/app.ts:10",
+                "src/presentation/app.ts:11",
+                "src/presentation/app.ts:21",
+                "src/presentation/app.ts:22",
+                "src/presentation/app.ts:28",
+                "src/presentation/app.ts:33"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 11, src/presentation/app.ts imports createRepositories from src/persistence/repositories.ts. It calls that function once, at line 21, inside buildApp. The resulting repos object is passed to the constructors of the business services (TeamService, PlayerService, RefereeService, FixtureService, PitchService, TableService and WeatherService, lines 22-28). In the code shown, the route handlers only call services and never touch repos directly. So app.ts is acting as the composition root: it wires persistence into business, and there is no visible data access that bypasses the business layer. Even so, the presentation module depends on the persistence module at compile time without going through business. That is the layer skip FF-S03 flags. Line 10 follows the same pattern, importing Gateways and createGateways from ../persistence/gateways, which makes presentation's coupling to persistence wider than this one edge. No documentation, ADR or comment was provided that declares an intent or an exception for this wiring, and the code contains no comment that grants it.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "11a026734d49d27363df33ecc79e1c5ed5802c579b9eb49a6608b023f936450b",
+          "date": "2026-10-20T12:13:47.899Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/app.ts:11",
+                "src/presentation/app.ts:21",
+                "src/presentation/app.ts:22",
+                "src/presentation/app.ts:28",
+                "src/presentation/app.ts:33",
+                "src/presentation/app.ts:10"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 11, src/presentation/app.ts imports `createRepositories` from src/persistence/repositories.ts. The only place it uses it is line 21, inside `buildApp`, where it builds the repository set and passes it into the business services (TeamService, PlayerService, RefereeService, FixtureService, PitchService, TableService and WeatherService, lines 22-28). None of the route handlers in the visible code (lines 33-60) call a repository directly; they all go through the services. So this is wiring code that happens to live in the Express app module, not data access from the presentation layer. FF-S03 still flags it because the presentation layer's dependency on persistence skips the business layer between them, and the strict layering is meant to block exactly that kind of compile-time dependency. Line 10 creates the same kind of dependency on src/persistence/gateways, but this finding covers only the edge at line 11. No docs, ADRs or comments were provided that call app.ts a composition root or allow it to reach into persistence.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "11a026734d49d27363df33ecc79e1c5ed5802c579b9eb49a6608b023f936450b",
+          "date": "2026-10-20T12:13:56.739Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "At line 11, src/presentation/app.ts imports createRepositories from src/persistence/repositories.ts. It calls that function once, at line 21, inside buildApp. The resulting repos object is passed to the constructors of the business services (TeamService, PlayerService, RefereeService, FixtureService, PitchService, TableService and WeatherService, lines 22-28). In the code shown, the route handlers only call services and never touch repos directly. So app.ts is acting as the composition root: it wires persistence into business, and there is no visible data access that bypasses the business layer. Even so, the presentation module depends on the persistence module at compile time without going through business. That is the layer skip FF-S03 flags. Line 10 follows the same pattern, importing Gateways and createGateways from ../persistence/gateways, which makes presentation's coupling to persistence wider than this one edge. No documentation, ADR or comment was provided that declares an intent or an exception for this wiring, and the code contains no comment that grants it.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:6bd175af789d2e0f",
+      "finding": {
+        "id": "c4f:6bd175af789d2e0f",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/gateways.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/gateways.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 1,
+          "target": "src/persistence/gateways.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:1",
+                "src/presentation/server.ts:5",
+                "src/presentation/server.ts:7"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "src/presentation/server.ts is the process entry point. On line 1 it imports createGateways from the persistence layer, and on line 5 it passes the result straight into buildApp(createGateways()). It does not query data itself. It acts as a composition root: it builds the persistence gateways, hands them to the app, and then starts the daily weather check (lines 9-11) and the HTTP listener (line 13). FF-S03 flags this because a presentation-layer file imports a persistence-layer module directly and skips the layers in between. That breaks the strict layering the rule enforces, whatever the reason for the import. No docs, ADRs or comments were provided that call this file a sanctioned composition root or exempt it from layering. The only nearby comment (line 7) is about the forecast schedule. The usual fix is to move the wiring into a dedicated bootstrap or composition module outside the presentation layer, or to have an intermediate layer expose the gateway factory. Either way, presentation would no longer reference persistence directly.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "149f44164fb31625632360e2cf548fc96c0b29149d78dc2df8ded72b53114127",
+          "date": "2026-10-20T12:14:05.387Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:1",
+                "src/presentation/server.ts:5",
+                "src/presentation/server.ts:7"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "The file src/presentation/server.ts is the process entry point. On line 1 it imports createGateways from src/persistence/gateways.ts, and on line 5 it passes the result into buildApp, which returns the Express app and a weather service. So the dependency is composition-root wiring: the presentation-layer file builds the persistence adapters itself and injects them, so app.ts only receives them as arguments. FF-S03 flags this because a presentation module depends directly on the persistence layer and skips the layer between them (application/domain). This is true no matter how small the import is, and the rule can't tell a wiring entry point apart from a controller reaching into storage. The code suggests wiring was the reason, since only createGateways is used and only to build the app. But nothing provided says so: there is no ADR, doc or comment calling server.ts the composition root or allowing it to import persistence. The only nearby comment (line 7) is about the daily forecast timer.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "149f44164fb31625632360e2cf548fc96c0b29149d78dc2df8ded72b53114127",
+          "date": "2026-10-20T12:14:13.725Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "src/presentation/server.ts is the process entry point. On line 1 it imports createGateways from the persistence layer, and on line 5 it passes the result straight into buildApp(createGateways()). It does not query data itself. It acts as a composition root: it builds the persistence gateways, hands them to the app, and then starts the daily weather check (lines 9-11) and the HTTP listener (line 13). FF-S03 flags this because a presentation-layer file imports a persistence-layer module directly and skips the layers in between. That breaks the strict layering the rule enforces, whatever the reason for the import. No docs, ADRs or comments were provided that call this file a sanctioned composition root or exempt it from layering. The only nearby comment (line 7) is about the forecast schedule. The usual fix is to move the wiring into a dedicated bootstrap or composition module outside the presentation layer, or to have an intermediate layer expose the gateway factory. Either way, presentation would no longer reference persistence directly.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

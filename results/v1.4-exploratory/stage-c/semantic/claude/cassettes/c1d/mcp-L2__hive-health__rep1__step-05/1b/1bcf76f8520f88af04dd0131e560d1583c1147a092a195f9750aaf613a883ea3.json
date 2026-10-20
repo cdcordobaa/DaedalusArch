@@ -1,0 +1,58 @@
+{
+  "itemId": "eda714dca104af35",
+  "itemName": "ForbiddenError",
+  "key": "1bcf76f8520f88af04dd0131e560d1583c1147a092a195f9750aaf613a883ea3",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "6a83ef2cf5f42b4479ac3dc0ea0af92dc6e5faa94bce906771d525a038475e21",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ForbiddenError (node eda714dca104af35), file src/business/errors.ts, lines 3-3.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- (none)\nFields: (none)\n\n## APG neighbourhood\nGraph statistics: 0 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ForbiddenError: nameRole=\"unknown\"\n- ForbiddenError: behaviourRole=\"coordination\"\n- ForbiddenError: ioCategories=[]\n- ForbiddenError: lcom4=0\n- ForbiddenError: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n\n## Source\n=====SOURCE-BEGIN src/business/errors.ts\n3| export class ForbiddenError extends Error {}\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:20:47.628Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.5,
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "eda714dca104af35",
+            "quote": "export class ForbiddenError extends Error {}",
+            "startLine": 3
+          }
+        ],
+        "name": "Access Permission",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.7,
+        "description": "Represents the business-level failure raised when an actor attempts an operation they are not permitted to perform, letting callers distinguish access denials from other errors.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "eda714dca104af35",
+            "quote": "export class ForbiddenError extends Error {}",
+            "startLine": 3
+          }
+        ],
+        "name": "Signal authorization denial",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2520,
+    "outputTokens": 336
+  }
+}

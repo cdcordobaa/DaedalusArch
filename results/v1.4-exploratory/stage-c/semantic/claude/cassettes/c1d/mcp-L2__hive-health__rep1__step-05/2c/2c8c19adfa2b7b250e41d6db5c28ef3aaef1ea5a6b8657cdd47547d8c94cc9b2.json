@@ -1,0 +1,144 @@
+{
+  "itemId": "component:persistence",
+  "itemName": "component:persistence",
+  "key": "2c8c19adfa2b7b250e41d6db5c28ef3aaef1ea5a6b8657cdd47547d8c94cc9b2",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "4e7d213389b38009d6a126b09fbf295a0169c5873bca4ebf803c0508d73d7115",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"persistence\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ScaleRepository (node 18ab235f6c31a91a), file src/persistence/repositories.ts, declaration line 123: \"export class ScaleRepository {\"\n  component persistence, layer infrastructure; responsibilities: Persist scale records; Look up scale by serial number\n- HiveRepository (node 22ea3eb4c082b330), file src/persistence/repositories.ts, declaration line 82: \"export class HiveRepository {\"\n  component persistence, layer infrastructure; responsibilities: Hive record persistence; Hive lookup by identity; Hive querying by apiary and listing\n- TreatmentProductRepository (node 4799b1081a692790), file src/persistence/repositories.ts, declaration line 13: \"export class TreatmentProductRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store treatment product records; Retrieve treatment products by id or catalogue\n- WeightReadingRepository (node 47ce227c703f72aa), file src/persistence/repositories.ts, declaration line 136: \"export class WeightReadingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store weight readings; Query weight readings by scale and time window\n- InspectionRepository (node 55c79c4bdccf51e6), file src/persistence/repositories.ts, declaration line 104: \"export class InspectionRepository {\"\n  component persistence, layer infrastructure; responsibilities: Persist hive inspection records; Retrieve inspections for a hive\n- TextHiveClient (node 8e8d371ee25514db), file src/persistence/textHiveClient.ts, declaration line 1: \"export class TextHiveClient {\"\n  component persistence, layer infrastructure; responsibilities: Send SMS via TextHive gateway; Gateway configuration and failure reporting\n- ApiaryRepository (node a8066b48e1c14319), file src/persistence/repositories.ts, declaration line 64: \"export class ApiaryRepository {\"\n  component persistence, layer infrastructure; responsibilities: Persist new apiary records; Retrieve apiaries\n- TreatmentRepository (node b2566037ba6b6900), file src/persistence/repositories.ts, declaration line 36: \"export class TreatmentRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store treatment records; Look up a hive's treatment history\n- HarvestRepository (node cfa247680820ee47), file src/persistence/repositories.ts, declaration line 50: \"export class HarvestRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store harvest records; Look up harvests for a hive\n\n## APG relations of the group\nGraph statistics: 9 classes; 0 relations inside the group; 0 outgoing relations to code outside it.\n- (none)",
+  "recordedAt": "2026-10-20T12:22:13.476Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Keeping a register of the beekeeper's apiaries and the hives they contain, including looking up hives and listing hives per apiary.",
+        "evidence": [
+          {
+            "endLine": 64,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "a8066b48e1c14319",
+            "quote": "export class ApiaryRepository {",
+            "startLine": 64
+          },
+          {
+            "endLine": 82,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "22ea3eb4c082b330",
+            "quote": "export class HiveRepository {",
+            "startLine": 82
+          }
+        ],
+        "name": "Apiary and hive registry",
+        "realizedBy": [
+          "a8066b48e1c14319",
+          "22ea3eb4c082b330"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Recording hive inspections and treatments applied to hives, backed by a catalogue of treatment products, so each hive's health and treatment history can be reviewed.",
+        "evidence": [
+          {
+            "endLine": 104,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "55c79c4bdccf51e6",
+            "quote": "export class InspectionRepository {",
+            "startLine": 104
+          },
+          {
+            "endLine": 36,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "b2566037ba6b6900",
+            "quote": "export class TreatmentRepository {",
+            "startLine": 36
+          },
+          {
+            "endLine": 13,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "4799b1081a692790",
+            "quote": "export class TreatmentProductRepository {",
+            "startLine": 13
+          }
+        ],
+        "name": "Hive health care record keeping",
+        "realizedBy": [
+          "55c79c4bdccf51e6",
+          "b2566037ba6b6900",
+          "4799b1081a692790"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Recording harvests taken from hives and retrieving the harvest history of a hive.",
+        "evidence": [
+          {
+            "endLine": 50,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "cfa247680820ee47",
+            "quote": "export class HarvestRepository {",
+            "startLine": 50
+          }
+        ],
+        "name": "Honey harvest tracking",
+        "realizedBy": [
+          "cfa247680820ee47"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Registering hive scales by serial number and storing their weight readings, queryable per scale and time window, to monitor hive weight over time.",
+        "evidence": [
+          {
+            "endLine": 123,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "18ab235f6c31a91a",
+            "quote": "export class ScaleRepository {",
+            "startLine": 123
+          },
+          {
+            "endLine": 136,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "47ce227c703f72aa",
+            "quote": "export class WeightReadingRepository {",
+            "startLine": 136
+          }
+        ],
+        "name": "Hive weight monitoring",
+        "realizedBy": [
+          "18ab235f6c31a91a",
+          "47ce227c703f72aa"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Sending text-message notifications through the TextHive SMS gateway, with gateway configuration and failure reporting.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "8e8d371ee25514db",
+            "quote": "export class TextHiveClient {",
+            "startLine": 1
+          }
+        ],
+        "name": "SMS notification",
+        "realizedBy": [
+          "8e8d371ee25514db"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2692,
+    "outputTokens": 1742
+  }
+}

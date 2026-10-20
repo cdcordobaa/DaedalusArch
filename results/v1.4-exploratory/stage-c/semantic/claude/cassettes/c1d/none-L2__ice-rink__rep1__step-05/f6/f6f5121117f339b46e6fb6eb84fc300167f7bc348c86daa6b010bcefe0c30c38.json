@@ -1,0 +1,28 @@
+{
+  "itemId": "93ab07a8bdef9394",
+  "itemName": "Ticket sales, online payment and refunds ~ Online payment and refunds",
+  "key": "f6f5121117f339b46e6fb6eb84fc300167f7bc348c86daa6b010bcefe0c30c38",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "15336ae810c0e795d5d44d8a281e834fc5bf28e663e1a6c701a7fd6c56a59bb8",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Ticket sales, online payment and refunds\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class BookingRepository {\nexport class PuckPayClient {\n=====SOURCE-END=====\ngraph:\n- community community:1: 8 classes (MemberRepository, RinkService, BookingRepository, ClubBookingRepository, TemperatureRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 25, fan-in 0\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 10\n- class PuckPayClient (node 8ce0b3f14177346a): layer infrastructure, component persistence, fan-out 0, fan-in 4\n\n### B\ncapability: Online payment and refunds\nwhere: component:persistence\ncode:\n=====SOURCE-BEGIN\nexport class PuckPayClient {\n=====SOURCE-END=====\ngraph:\n- component component:persistence: 8 classes (DropTextClient, MemberRepository, BookingRepository, ClubBookingRepository, TemperatureRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class PuckPayClient (node 8ce0b3f14177346a): layer infrastructure, component persistence, fan-out 0, fan-in 4",
+  "recordedAt": "2026-10-20T15:25:43.712Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.6,
+    "rationale": "A and B overlap, but they don't describe the same capability. A (\"Ticket sales, online payment and refunds\", community:1) covers bookings through BookingRepository (node 2e3c5728fffb0180, fan-in 10) as well as payments through PuckPayClient (node 8ce0b3f14177346a). B (\"Online payment and refunds\", component:persistence) is supported only by PuckPayClient. So B looks like the payment part of A, not the whole thing: A also includes ticket sales and booking. Because B is a strict subset of A rather than an equal, I judge them different, with moderate confidence.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1916,
+    "outputTokens": 399
+  }
+}

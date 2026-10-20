@@ -1,0 +1,130 @@
+{
+  "itemId": "component:business",
+  "itemName": "component:business",
+  "key": "86b016870b6d1c4ac006ac3a1d46a6bd86c4b79cbc8501d3fbee991c05640f09",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "227f6b7458d53504346603ffb854bb08c6d087bf9394451aab4ab5bd6ae08fe0",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"business\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DomainError (node 07801d262a4a214c), file src/business/errors.ts, declaration line 3: \"export class DomainError extends Error {\"\n  component business, layer domain; responsibilities: Represent classified business rule violations\n- TreatmentService (node 2912145e8ad12343), file src/business/treatmentService.ts, declaration line 13: \"export class TreatmentService {\"\n  component business, layer domain; responsibilities: Recording hive treatments; Recording honey harvests; Harvest safety rule: treatment and withdrawal period; Querying a hive's treatment and harvest history\n- BeekeepingService (node 67cb7dff33e3b097), file src/business/services.ts, declaration line 53: \"export class BeekeepingService {\"\n  component business, layer domain; responsibilities: Apiary registration and lookup; Hive registration with ownership rule; Inspection recording and validation; Varroa treatment-need determination; Hive status reporting\n- ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, declaration line 44: \"export class ReportService {\"\n  component business, layer domain; responsibilities: Quarterly regional report orchestration; Attribute hives to regions; Compute share of varroa-flagged hives; Count treatments per product in the quarter; Total honey harvested in the quarter\n- ScaleService (node f7e458262ae72ac4), file src/business/scaleService.ts, declaration line 35: \"export class ScaleService {\"\n  component business, layer domain; responsibilities: Link a hive scale to a hive; Record and validate weight readings; Detect suspected swarms from weight drops; Suppress swarm alerts explained by inspections\n\n## APG relations of the group\nGraph statistics: 5 classes; 2 relations inside the group; 47 outgoing relations to code outside it.\n- ReportService -> CALLS BeekeepingService\n- ReportService -> CONSTRUCTOR_INJECTS BeekeepingService\n\n## Comments near the code\n- BeekeepingService.isFlagged: A hive is flagged by an inspection above the threshold and stays flagged / until a treatment is recorded and a later inspection is within the threshold. / Only events before `before` (epoch ms) are considered.\n- ScaleService.cancelAlertsForInspection: Called when an inspection is recorded: cancels held SMS alerts it explains.",
+  "recordedAt": "2026-10-20T12:36:34.372Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Registering apiaries and hives, enforcing hive ownership rules, and looking up registered apiaries.",
+        "evidence": [
+          {
+            "endLine": 53,
+            "file": "src/business/services.ts",
+            "nodeId": "67cb7dff33e3b097",
+            "quote": "export class BeekeepingService {",
+            "startLine": 53
+          }
+        ],
+        "name": "Apiary and hive registry",
+        "realizedBy": [
+          "67cb7dff33e3b097"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Recording and validating hive inspections, deciding when a hive needs varroa treatment, and reporting hive status.",
+        "evidence": [
+          {
+            "endLine": 53,
+            "file": "src/business/services.ts",
+            "nodeId": "67cb7dff33e3b097",
+            "quote": "export class BeekeepingService {",
+            "startLine": 53
+          }
+        ],
+        "name": "Hive health inspection and varroa monitoring",
+        "realizedBy": [
+          "67cb7dff33e3b097"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Recording hive treatments and honey harvests, and blocking harvests that fall inside a treatment's withdrawal period. Also keeps each hive's treatment and harvest history available for queries.",
+        "evidence": [
+          {
+            "endLine": 13,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "2912145e8ad12343",
+            "quote": "export class TreatmentService {",
+            "startLine": 13
+          }
+        ],
+        "name": "Treatment and honey harvest tracking with food safety",
+        "realizedBy": [
+          "2912145e8ad12343"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Producing quarterly reports per region: the share of hives flagged for varroa, the number of treatments per product, and the total honey harvested.",
+        "evidence": [
+          {
+            "endLine": 44,
+            "file": "src/business/reportService.ts",
+            "nodeId": "a663bd12cbc0090c",
+            "quote": "export class ReportService {",
+            "startLine": 44
+          }
+        ],
+        "name": "Quarterly regional reporting",
+        "realizedBy": [
+          "a663bd12cbc0090c",
+          "67cb7dff33e3b097"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Linking scales to hives, recording and validating weight readings, detecting suspected swarms from drops in weight, and cancelling alerts that a recorded inspection explains.",
+        "evidence": [
+          {
+            "endLine": 35,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "f7e458262ae72ac4",
+            "quote": "export class ScaleService {",
+            "startLine": 35
+          }
+        ],
+        "name": "Hive weight monitoring and swarm alerting",
+        "realizedBy": [
+          "f7e458262ae72ac4"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Reporting business rule violations as categorized errors.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 3
+          }
+        ],
+        "name": "Business rule violation reporting",
+        "realizedBy": [
+          "07801d262a4a214c"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2538,
+    "outputTokens": 1056
+  }
+}

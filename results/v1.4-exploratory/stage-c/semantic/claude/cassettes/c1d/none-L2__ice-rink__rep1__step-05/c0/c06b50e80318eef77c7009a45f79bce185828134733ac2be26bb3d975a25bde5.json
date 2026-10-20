@@ -1,0 +1,163 @@
+{
+  "itemId": "component:persistence",
+  "itemName": "component:persistence",
+  "key": "c06b50e80318eef77c7009a45f79bce185828134733ac2be26bb3d975a25bde5",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "a5a290f0fa3c6dfce6919249969431342900a1e0b61dbe8128336081e6521704",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"persistence\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DropTextClient (node 0e0ffaf33c6872c8), file src/persistence/dropTextClient.ts, declaration line 2: \"export class DropTextClient {\"\n  component persistence, layer infrastructure; responsibilities: Send SMS message via DropText; Report SMS provider failures\n- MemberRepository (node 1cdbf101edd01700), file src/persistence/memberRepository.ts, declaration line 3: \"export class MemberRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store members by membership number; Look up a member by membership number; List all registered members\n- BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, declaration line 4: \"export class BookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve bookings; Query bookings by session; Query bookings by membership\n- ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, declaration line 4: \"export class ClubBookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Club booking storage; Chronological and per-date club booking listing; Club hourly rate storage\n- TemperatureRepository (node 50b830f77ad06c02), file src/persistence/temperatureRepository.ts, declaration line 3: \"export class TemperatureRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store temperature reading history; Provide latest temperature reading; Persist warm spell state\n- PuckPayClient (node 8ce0b3f14177346a), file src/persistence/puckPayClient.ts, declaration line 22: \"export class PuckPayClient {\"\n  component persistence, layer infrastructure; responsibilities: Create payment checkout with PuckPay; Validate PuckPay checkout response; Request payment refund from PuckPay\n- HireStockRepository (node ada57feca2e90c67), file src/persistence/hireStockRepository.ts, declaration line 2: \"export class HireStockRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store hire skate stock per shoe size; Look up hire skate stock\n- SessionRepository (node e3915d8f30e495a9), file src/persistence/sessionRepository.ts, declaration line 4: \"export class SessionRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve rink sessions; List sessions in schedule order\n\n## APG relations of the group\nGraph statistics: 8 classes; 0 relations inside the group; 0 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- DropTextClient: HTTP client for DropText's SMS API (external system access).\n- BookingRepository.groupBySession: One pass over all bookings, grouped by session.\n- PuckPayClient: HTTP client for PuckPay's API (external system access).\n- HireStockRepository: Fixed stock of hire skates per shoe size.\n- SessionRepository.listBetween: Sessions with from <= date <= to (YYYY-MM-DD), in time order.",
+  "recordedAt": "2026-10-20T15:20:01.159Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Keep the rink's skating sessions and list them in schedule order, including for a date range.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/sessionRepository.ts",
+            "nodeId": "e3915d8f30e495a9",
+            "quote": "export class SessionRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Rink session scheduling",
+        "realizedBy": [
+          "e3915d8f30e495a9"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Record customers' bookings for skating sessions and look them up by session or by membership.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "export class BookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Session booking management",
+        "realizedBy": [
+          "2e3c5728fffb0180"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Record bookings of rink time made by clubs, list them by date or in time order, and keep the clubs' hourly rates.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "export class ClubBookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Club ice-time hire",
+        "realizedBy": [
+          "440da90bcde7901a"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Register members, find a member by membership number and list all registered members.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/persistence/memberRepository.ts",
+            "nodeId": "1cdbf101edd01700",
+            "quote": "export class MemberRepository {",
+            "startLine": 3
+          }
+        ],
+        "name": "Membership registry",
+        "realizedBy": [
+          "1cdbf101edd01700"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Take customer payments through the external PuckPay payment service and issue refunds.",
+        "evidence": [
+          {
+            "endLine": 22,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "8ce0b3f14177346a",
+            "quote": "export class PuckPayClient {",
+            "startLine": 22
+          }
+        ],
+        "name": "Online payment and refunds",
+        "realizedBy": [
+          "8ce0b3f14177346a"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Send text messages to customers through the external DropText SMS service and report when it fails.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "0e0ffaf33c6872c8",
+            "quote": "export class DropTextClient {",
+            "startLine": 2
+          }
+        ],
+        "name": "Customer SMS notification",
+        "realizedBy": [
+          "0e0ffaf33c6872c8"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Keep track of how many hire skates are available in each shoe size.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "ada57feca2e90c67",
+            "quote": "export class HireStockRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Skate hire inventory",
+        "realizedBy": [
+          "ada57feca2e90c67"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Keep a history of temperature readings, provide the latest reading and track whether a warm spell is ongoing.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "50b830f77ad06c02",
+            "quote": "export class TemperatureRepository {",
+            "startLine": 3
+          }
+        ],
+        "name": "Rink temperature monitoring",
+        "realizedBy": [
+          "50b830f77ad06c02"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2814,
+    "outputTokens": 1447
+  }
+}

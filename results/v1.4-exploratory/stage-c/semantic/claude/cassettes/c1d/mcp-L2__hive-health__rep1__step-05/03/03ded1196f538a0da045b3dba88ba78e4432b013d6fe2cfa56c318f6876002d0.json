@@ -1,0 +1,28 @@
+{
+  "itemId": "2aa940375109daa2",
+  "itemName": "Honey harvest recording with treatment withdrawal safety ~ Honey harvest recording with food-safety withdrawal checks",
+  "key": "03ded1196f538a0da045b3dba88ba78e4432b013d6fe2cfa56c318f6876002d0",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "7f18cae6c57b9d9958bc454f611c7bd835c0664836285989911d649d68d370e9",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Honey harvest recording with treatment withdrawal safety\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class HarvestService {\nexport class HarvestRepository {\n=====SOURCE-END=====\ngraph:\n- community community:1: 12 classes (ScaleRepository, HiveRepository, TreatmentService, TreatmentProductRepository, WeightReadingRepository, InspectionRepository, HiveService, ReportService, ApiaryRepository, TreatmentRepository, HarvestRepository, HarvestService)\n- class HarvestService (node e4a0a62f13370a5f): layer domain, component business, fan-out 9, fan-in 0\n- class HarvestRepository (node cfa247680820ee47): layer infrastructure, component persistence, fan-out 0, fan-in 5\n- class TreatmentRepository (node b2566037ba6b6900): layer infrastructure, component persistence, fan-out 0, fan-in 9\n- class TreatmentProductRepository (node 4799b1081a692790): layer infrastructure, component persistence, fan-out 0, fan-in 8\n- class HiveRepository (node 22ea3eb4c082b330): layer infrastructure, component persistence, fan-out 0, fan-in 17\n\n### B\ncapability: Honey harvest recording with food-safety withdrawal checks\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class HarvestService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 9 classes (NotFoundError, TreatmentService, ConflictError, ValidationError, HiveService, ReportService, HarvestService, ForbiddenError, ScaleService)\n- class HarvestService (node e4a0a62f13370a5f): layer domain, component business, fan-out 9, fan-in 0",
+  "recordedAt": "2026-10-20T12:30:06.488Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.88,
+    "rationale": "A and B are the same capability. Both are anchored on the same class, HarvestService (node e4a0a62f13370a5f). A adds HarvestRepository, which is the persistence class behind it. The two descriptions mean the same thing: recording a honey harvest while checking that treatment withdrawal periods are respected. \"Treatment withdrawal safety\" and \"food-safety withdrawal checks\" are two wordings of that one idea. They differ only in where they're scoped: A is a community grouping and B is the business component.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2045,
+    "outputTokens": 299
+  }
+}

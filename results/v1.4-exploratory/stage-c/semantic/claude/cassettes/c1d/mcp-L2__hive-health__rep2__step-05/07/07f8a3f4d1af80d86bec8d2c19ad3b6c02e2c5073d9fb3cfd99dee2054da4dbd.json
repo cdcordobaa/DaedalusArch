@@ -1,0 +1,109 @@
+{
+  "itemId": "b2566037ba6b6900",
+  "itemName": "TreatmentRepository",
+  "key": "07f8a3f4d1af80d86bec8d2c19ad3b6c02e2c5073d9fb3cfd99dee2054da4dbd",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "4aa344bc13e5cea90ebc039776efe2f2684395f9272c21644718a8bf874deae0",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TreatmentRepository (node b2566037ba6b6900), file src/persistence/repositories.ts, lines 31-47.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node dfd096e87b1fa5d4, lines 34-38, logic density 0)\n- findByHive (node c4925a0f4db723fc, lines 40-42, logic density 1)\n- findAll (node 4bfe4def3030df56, lines 44-46, logic density 0)\nFields: items\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 0; fan-in 8 (CALLS 5, CONSTRUCTOR_INJECTS 3).\n- <- CALLS Method BeekeepingService.isFlagged (src/business/services.ts)\n- <- CALLS Method ReportService.quarterlyReport (src/business/reportService.ts)\n- <- CALLS Method TreatmentService.assertHarvestAllowed (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.listTreatments (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.recordTreatment (src/business/treatmentService.ts)\n- <- CONSTRUCTOR_INJECTS Class BeekeepingService (src/business/services.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class TreatmentService (src/business/treatmentService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TreatmentRepository: nameRole=\"repository\"\n- TreatmentRepository: behaviourRole=\"coordination\"\n- TreatmentRepository: ioCategories=[]\n- TreatmentRepository: lcom4=1\n- TreatmentRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- TreatmentRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TreatmentRepository.findByHive: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- TreatmentRepository.findAll: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-near: body clone (near, similarity 0.84) of TreatmentProductRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HarvestRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of ApiaryRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of HiveRepository.create in component persistence\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n31| export class TreatmentRepository {\n32|   private readonly items: Treatment[] = [];\n33| \n34|   create(data: Omit<Treatment, \"id\">): Treatment {\n35|     const treatment: Treatment = { id: randomUUID(), ...data };\n36|     this.items.push(treatment);\n37|     return treatment;\n38|   }\n39| \n40|   findByHive(hiveId: string): Treatment[] {\n41|     return this.items.filter((t) => t.hiveId === hiveId);\n42|   }\n43| \n44|   findAll(): Treatment[] {\n45|     return [...this.items];\n46|   }\n47| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:35:11.055Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 32,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "b2566037ba6b6900",
+            "quote": "private readonly items: Treatment[] = [];",
+            "startLine": 32
+          }
+        ],
+        "name": "Treatment",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 40,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "c4925a0f4db723fc",
+            "quote": "findByHive(hiveId: string): Treatment[] {",
+            "startLine": 40
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Keeps treatment records in memory and gives each new treatment a generated identifier.",
+        "evidence": [
+          {
+            "endLine": 38,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "dfd096e87b1fa5d4",
+            "quote": "const treatment: Treatment = { id: randomUUID(), ...data };",
+            "startLine": 34
+          },
+          {
+            "endLine": 38,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "dfd096e87b1fa5d4",
+            "quote": "this.items.push(treatment);",
+            "startLine": 34
+          }
+        ],
+        "name": "Store treatment records",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Returns the treatments recorded for one hive.",
+        "evidence": [
+          {
+            "endLine": 42,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "c4925a0f4db723fc",
+            "quote": "return this.items.filter((t) => t.hiveId === hiveId);",
+            "startLine": 40
+          }
+        ],
+        "name": "Look up a hive's treatments",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Returns a copy of every stored treatment record, used for example in reports.",
+        "evidence": [
+          {
+            "endLine": 46,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "4bfe4def3030df56",
+            "quote": "return [...this.items];",
+            "startLine": 44
+          }
+        ],
+        "name": "List all treatments",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3500,
+    "outputTokens": 785
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "itemId": "b92c9f47095958c8",
+  "itemName": "Treatment ~ Treatment Product",
+  "key": "f8cde2a2579913c1ffe95ce5d2a868c6f604603c33d14049cdbdd23e80e55b6d",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "74e8a626877fa913f1ee8e1be3593db9bc95ebfb124873e18facba0d189982ff",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Treatment\nwhere: TreatmentService (uses), src/business/treatmentService.ts, component business\ncode:\n=====SOURCE-BEGIN\nreturn this.treatments.create({ hiveId, productId, startDate, endDate });\n=====SOURCE-END=====\ngraph:\n- class TreatmentService (node 2912145e8ad12343): layer domain, component business, fan-out 12, fan-in 0\n- -> CALLS Method HarvestRepository.create\n- -> CALLS Method HarvestRepository.findByHive\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method TreatmentProductRepository.create\n- -> CALLS Method TreatmentProductRepository.findAll\n- -> CALLS Method TreatmentProductRepository.findById\n- -> CALLS Method TreatmentRepository.create\n- -> CALLS Method TreatmentRepository.findByHive\n\n### B\nconcept: Treatment Product\nwhere: TreatmentProductRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly items = new Map<string, TreatmentProduct>();\n=====SOURCE-END=====\ngraph:\n- class TreatmentProductRepository (node 4799b1081a692790): layer infrastructure, component persistence, fan-out 0, fan-in 7\n- <- CALLS Method ReportService.quarterlyReport\n- <- CALLS Method TreatmentService.assertHarvestAllowed\n- <- CALLS Method TreatmentService.listProducts\n- <- CALLS Method TreatmentService.recordTreatment\n- <- CALLS Method TreatmentService.registerProduct\n- <- CONSTRUCTOR_INJECTS Class ReportService\n- <- CONSTRUCTOR_INJECTS Class TreatmentService",
+  "recordedAt": "2026-10-20T12:42:29.109Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.92,
+    "rationale": "A Treatment is one application to a hive. It is created as `this.treatments.create({ hiveId, productId, startDate, endDate })` in src/business/treatmentService.ts. A Treatment Product is the catalogue item applied, stored separately in TreatmentProductRepository (`private readonly items = new Map<string, TreatmentProduct>();` in src/persistence/repositories.ts). The treatment points to the product through productId, so this is a reference between two concepts, not one concept under two names. The graph agrees: TreatmentService calls TreatmentRepository.create and TreatmentProductRepository.create as separate methods.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2103,
+    "outputTokens": 651
+  }
+}

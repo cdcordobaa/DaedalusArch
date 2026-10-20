@@ -1,0 +1,101 @@
+{
+  "itemId": "8e8d371ee25514db",
+  "itemName": "TextHiveClient",
+  "key": "51c45d761f9aacaccce0b0afe9d0a73c3088116be6f77f5f27809d662b827f37",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "542e10f0ec2cdf5cd26f0c781b430c5066d78b59fd2058539218cb3455ed4065",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TextHiveClient (node 8e8d371ee25514db), file src/persistence/textHiveClient.ts, lines 1-18.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- sendSms (node 0b796fc4ce30a87c, lines 7-17, logic density 5)\nFields: baseUrl, apiKey\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TextHiveClient: nameRole=\"adapter\"\n- TextHiveClient: behaviourRole=\"adapter\"\n- TextHiveClient: ioCategories=[\"http-client\"]\n- TextHiveClient: lcom4=1\n- TextHiveClient: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[\"http-client\"],\"componentDependencies\":[]}\n- TextHiveClient.sendSms: logicDensity={\"branches\":3,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":2,\"density\":5}\nFlags:\n- logic-density/adapter-logic-density: adapter method TextHiveClient.sendSms: 3 branches, 0 comparisons, 0 arithmetic, 2 validation throws\n- communities/community-component-mismatch: src/persistence/textHiveClient.ts (component persistence) clusters with community 0 whose majority component is presentation\n\n## Source\n=====SOURCE-BEGIN src/persistence/textHiveClient.ts\n 1| export class TextHiveClient {\n 2|   constructor(\n 3|     private readonly baseUrl: string | undefined,\n 4|     private readonly apiKey: string | undefined,\n 5|   ) {}\n 6| \n 7|   async sendSms(phoneNumber: string, message: string): Promise<void> {\n 8|     if (!this.baseUrl) throw new Error(\"TEXTHIVE_URL is not configured\");\n 9|     const headers: Record<string, string> = { \"Content-Type\": \"application/json\" };\n10|     if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`;\n11|     const res = await fetch(this.baseUrl, {\n12|       method: \"POST\",\n13|       headers,\n14|       body: JSON.stringify({ phoneNumber, message }),\n15|     });\n16|     if (!res.ok) throw new Error(`TextHive responded with status ${res.status}`);\n17|   }\n18| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:21:36.702Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "async sendSms(phoneNumber: string, message: string): Promise<void> {",
+            "startLine": 7
+          }
+        ],
+        "name": "SMS Message",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 14,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "body: JSON.stringify({ phoneNumber, message }),",
+            "startLine": 14
+          }
+        ],
+        "name": "Phone Number",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.92,
+        "description": "Delivers an SMS text message to a phone number by POSTing a JSON payload to the external TextHive SMS provider, authenticating with an optional bearer API key.",
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "const res = await fetch(this.baseUrl, {",
+            "startLine": 11
+          },
+          {
+            "endLine": 10,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`;",
+            "startLine": 10
+          }
+        ],
+        "name": "Send SMS via TextHive HTTP gateway",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Refuses to send when the TextHive URL is not configured, and raises an error when the provider returns a non-success status.",
+        "evidence": [
+          {
+            "endLine": 8,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "if (!this.baseUrl) throw new Error(\"TEXTHIVE_URL is not configured\");",
+            "startLine": 8
+          },
+          {
+            "endLine": 16,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "if (!res.ok) throw new Error(`TextHive responded with status ${res.status}`);",
+            "startLine": 16
+          }
+        ],
+        "name": "Guard provider configuration and report delivery failures",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3074,
+    "outputTokens": 873
+  }
+}

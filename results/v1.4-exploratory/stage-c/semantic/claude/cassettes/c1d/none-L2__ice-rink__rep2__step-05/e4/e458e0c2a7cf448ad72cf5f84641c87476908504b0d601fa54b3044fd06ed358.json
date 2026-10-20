@@ -1,0 +1,198 @@
+{
+  "itemId": "42a26b41b626f9ec",
+  "itemName": "SessionService",
+  "key": "e458e0c2a7cf448ad72cf5f84641c87476908504b0d601fa54b3044fd06ed358",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "rules",
+    "promptHash": "207d0a7a9aed67b88296107cb2bc9a6db32da83adcff23d4bba1abd0fd79edc1",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "f0fc4d535ca2368dc75f2c1669e4a1b8563970f49941a37b2cf4202334cf7327",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nExtract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind \"business\": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind \"input-validation\": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.\n\n## Class\nClass SessionService (node 42a26b41b626f9ec), file src/business/sessionService.ts, lines 24-81.\nComponent: business. Declared layer: business (kind domain).\nCandidate methods (proposed by the cheap proxies):\n- effectiveCapacity (node 963eddd9c042a15e, lines 33-42, logic density 9)\n- create (node 02d7282b0ad909cf, lines 44-55, logic density 13)\n- get (node 93046e1fb75e64c6, lines 61-65, logic density 2)\n- availability (node ba0d757bbe0f3b99, lines 67-80, logic density 9)\n\n## APG neighbourhood\nGraph statistics: 5 methods; fan-out 10 (CALLS 6, CONSTRUCTOR_INJECTS 4); fan-in 2 (CALLS 1, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method BookingService.create (src/business/bookingService.ts)\n- -> CALLS Method BookingRepository.findBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.findByDate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method HireStockRepository.all (src/persistence/hireStockRepository.ts)\n- -> CALLS Method SessionRepository.create (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.findAll (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.findById (src/persistence/sessionRepository.ts)\n- <- CONSTRUCTOR_INJECTS Class BookingService (src/business/bookingService.ts)\n- -> CONSTRUCTOR_INJECTS Class BookingRepository (src/persistence/bookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class ClubBookingRepository (src/persistence/clubBookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class HireStockRepository (src/persistence/hireStockRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class SessionRepository (src/persistence/sessionRepository.ts)\n\n## Comments near the code\n- SessionService.effectiveCapacity: Capacity after club bookings: halved if one half is taken, zero if the whole rink is.\n\n## Source\n=====SOURCE-BEGIN src/business/sessionService.ts\n24| export class SessionService {\n25|   constructor(\n26|     private readonly sessions: SessionRepository,\n27|     private readonly bookings: BookingRepository,\n28|     private readonly stock: HireStockRepository,\n29|     private readonly clubBookings: ClubBookingRepository,\n30|   ) {}\n31| \n32|   /** Capacity after club bookings: halved if one half is taken, zero if the whole rink is. */\n33|   effectiveCapacity(session: Session): number {\n34|     const overlapping = this.clubBookings\n35|       .findByDate(session.date)\n36|       .filter((c) => c.start < session.end && session.start < c.end);\n37|     if (overlapping.some((c) => c.area === \"whole\")) return 0;\n38|     const halvesTaken = new Set(overlapping.map((c) => c.area)).size;\n39|     if (halvesTaken >= 2) return 0;\n40|     if (halvesTaken === 1) return Math.floor(session.capacity / 2);\n41|     return session.capacity;\n42|   }\n43| \n44|   create(input: NewSession): Session {\n45|     if (!DATE.test(input.date) || Number.isNaN(Date.parse(input.date)))\n46|       throw new DomainError(400, \"date must be YYYY-MM-DD\");\n47|     if (!TIME.test(input.start) || !TIME.test(input.end))\n48|       throw new DomainError(400, \"start and end must be HH:MM\");\n49|     if (input.end <= input.start) throw new DomainError(400, \"end must be after start\");\n50|     if (!Number.isInteger(input.capacity) || input.capacity < 1)\n51|       throw new DomainError(400, \"capacity must be a positive integer\");\n52|     if (!Number.isInteger(input.priceCents) || input.priceCents < 0)\n53|       throw new DomainError(400, \"priceCents must be a non-negative integer\");\n54|     return this.sessions.create({ ...input, status: \"open\" });\n55|   }\n56| \n57|   list(): Array<Session & { availability: Availability }> {\n58|     return this.sessions.findAll().map((s) => ({ ...s, availability: this.availability(s) }));\n59|   }\n60| \n61|   get(id: string): Session & { availability: Availability } {\n62|     const s = this.sessions.findById(id);\n63|     if (!s) throw new DomainError(404, \"session not found\");\n64|     return { ...s, availability: this.availability(s) };\n65|   }\n66| \n67|   availability(session: Session): Availability {\n68|     const active = this.bookings\n69|       .findBySession(session.id)\n70|       .filter((b) => b.status === \"pending\" || b.status === \"paid\");\n71|     const ticketsUsed = active.reduce((n, b) => n + b.tickets, 0);\n72|     const hireLeft: Record<string, number> = {};\n73|     for (const [size, total] of Object.entries(this.stock.all())) {\n74|       const used = active.reduce((n, b) => n + (b.hire[size] ?? 0), 0);\n75|       hireLeft[size] = total - used;\n76|     }\n77|     // Held or cancelled sessions sell no more tickets.\n78|     const capacity = session.status === \"open\" ? this.effectiveCapacity(session) : 0;\n79|     return { ticketsLeft: Math.max(0, capacity - ticketsUsed), hireLeft };\n80|   }\n81| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:36:16.031Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "rules": [
+      {
+        "confidence": 0.9,
+        "enforcedBy": "963eddd9c042a15e",
+        "evidence": [
+          {
+            "endLine": 37,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "963eddd9c042a15e",
+            "quote": "if (overlapping.some((c) => c.area === \"whole\")) return 0;",
+            "startLine": 37
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "A session has no capacity when a club booking for the whole rink overlaps it.",
+        "subject": "session effective capacity",
+        "threshold": 0,
+        "unit": "tickets"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "963eddd9c042a15e",
+        "evidence": [
+          {
+            "endLine": 39,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "963eddd9c042a15e",
+            "quote": "if (halvesTaken >= 2) return 0;",
+            "startLine": 39
+          }
+        ],
+        "kind": "business",
+        "operator": ">=",
+        "statement": "A session has no capacity when overlapping club bookings take both halves of the rink.",
+        "subject": "rink halves taken by overlapping club bookings",
+        "threshold": 2,
+        "unit": "halves"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "963eddd9c042a15e",
+        "evidence": [
+          {
+            "endLine": 40,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "963eddd9c042a15e",
+            "quote": "if (halvesTaken === 1) return Math.floor(session.capacity / 2);",
+            "startLine": 40
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "When one half of the rink is taken by an overlapping club booking, the session's capacity is halved and rounded down.",
+        "subject": "session effective capacity",
+        "threshold": 0.5,
+        "unit": "fraction of capacity"
+      },
+      {
+        "confidence": 0.8,
+        "enforcedBy": "02d7282b0ad909cf",
+        "evidence": [
+          {
+            "endLine": 49,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "02d7282b0ad909cf",
+            "quote": "if (input.end <= input.start) throw new DomainError(400, \"end must be after start\");",
+            "startLine": 49
+          }
+        ],
+        "kind": "business",
+        "operator": ">",
+        "statement": "A session's end time must be after its start time.",
+        "subject": "session end time",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "02d7282b0ad909cf",
+        "evidence": [
+          {
+            "endLine": 51,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "02d7282b0ad909cf",
+            "quote": "if (!Number.isInteger(input.capacity) || input.capacity < 1)",
+            "startLine": 50
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "Session capacity must be a whole number of at least 1.",
+        "subject": "session capacity",
+        "threshold": 1,
+        "unit": "tickets"
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "02d7282b0ad909cf",
+        "evidence": [
+          {
+            "endLine": 53,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "02d7282b0ad909cf",
+            "quote": "if (!Number.isInteger(input.priceCents) || input.priceCents < 0)",
+            "startLine": 52
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "Session price must be a whole number of cents and cannot be negative.",
+        "subject": "session price",
+        "threshold": 0,
+        "unit": "cents"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "ba0d757bbe0f3b99",
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": "const capacity = session.status === \"open\" ? this.effectiveCapacity(session) : 0;",
+            "startLine": 78
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "Only open sessions sell tickets. Held or cancelled sessions have zero capacity.",
+        "subject": "session status",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.75,
+        "enforcedBy": "ba0d757bbe0f3b99",
+        "evidence": [
+          {
+            "endLine": 70,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": ".filter((b) => b.status === \"pending\" || b.status === \"paid\");",
+            "startLine": 70
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "Only pending and paid bookings use up session tickets and hire stock.",
+        "subject": "booking status counted against availability",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.7,
+        "enforcedBy": "ba0d757bbe0f3b99",
+        "evidence": [
+          {
+            "endLine": 79,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": "return { ticketsLeft: Math.max(0, capacity - ticketsUsed), hireLeft };",
+            "startLine": 79
+          }
+        ],
+        "kind": "business",
+        "operator": ">=",
+        "statement": "Tickets left for a session is effective capacity minus tickets in active bookings, and is never below zero.",
+        "subject": "tickets left",
+        "threshold": 0,
+        "unit": "tickets"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4082,
+    "outputTokens": 2017
+  }
+}

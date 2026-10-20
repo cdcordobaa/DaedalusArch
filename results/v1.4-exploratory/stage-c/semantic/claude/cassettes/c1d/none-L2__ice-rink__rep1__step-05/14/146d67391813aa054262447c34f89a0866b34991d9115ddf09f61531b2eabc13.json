@@ -1,0 +1,61 @@
+{
+  "itemId": "community:0",
+  "itemName": "community:0",
+  "key": "146d67391813aa054262447c34f89a0866b34991d9115ddf09f61531b2eabc13",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "66da6fa4988d794f751fe1a81176eb296af4c0e85df86e266e5e88eb398a14fe",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"0\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DomainError (node 07801d262a4a214c), file src/business/errors.ts, declaration line 1: \"export class DomainError extends Error {\"\n  component business, layer domain; responsibilities: Classify business rule failures; Carry a failure message\n- DropTextClient (node 0e0ffaf33c6872c8), file src/persistence/dropTextClient.ts, declaration line 2: \"export class DropTextClient {\"\n  component persistence, layer infrastructure; responsibilities: Send SMS message via DropText; Report SMS provider failures\n\n## APG relations of the group\nGraph statistics: 2 classes; 0 relations inside the group; 0 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- DropTextClient: HTTP client for DropText's SMS API (external system access).",
+  "recordedAt": "2026-10-20T15:20:26.167Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.75,
+        "description": "The business can send text messages to customers through an external SMS provider (DropText), and finds out when the provider fails to deliver.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "0e0ffaf33c6872c8",
+            "quote": "export class DropTextClient {",
+            "startLine": 2
+          }
+        ],
+        "name": "Customer SMS notification",
+        "realizedBy": [
+          "0e0ffaf33c6872c8"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "The business can tell when one of its rules is broken and report that failure with a clear message.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 1
+          }
+        ],
+        "name": "Business rule violation reporting",
+        "realizedBy": [
+          "07801d262a4a214c"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2012,
+    "outputTokens": 407
+  }
+}

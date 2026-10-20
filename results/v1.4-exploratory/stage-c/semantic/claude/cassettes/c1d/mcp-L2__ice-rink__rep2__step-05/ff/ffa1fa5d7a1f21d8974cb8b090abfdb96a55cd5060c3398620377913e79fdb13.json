@@ -1,0 +1,28 @@
+{
+  "itemId": "3758663f705a6aff",
+  "itemName": "Booking ~ Club Booking",
+  "key": "ffa1fa5d7a1f21d8974cb8b090abfdb96a55cd5060c3398620377913e79fdb13",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "549505bbdabf8c72182ca6f01279b6e0dce72cf8e18b81bae6689538250305e6",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Booking\nwhere: BookingService (uses), src/business/bookingService.ts, component business\ncode:\n=====SOURCE-BEGIN\nasync create(input: NewBooking): Promise<Booking> {\n=====SOURCE-END=====\ngraph:\n- class BookingService (node 3aa201f0edaa9fd6): layer domain, component business, fan-out 13, fan-in 0\n- -> CALLS Method BookingRepository.create\n- -> CALLS Method BookingRepository.findActiveByMembership\n- -> CALLS Method BookingRepository.findById\n- -> CALLS Method BookingRepository.findPending\n- -> CALLS Method BookingRepository.save\n- -> CALLS Method HireStockRepository.get\n- -> CALLS Method SessionRepository.findById\n- -> CALLS Method SessionService.availability\n\n### B\nconcept: Club Booking\nwhere: ClubBookingRepository (uses), src/persistence/clubBookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly bookings = new Map<string, ClubBooking>();\n=====SOURCE-END=====\ngraph:\n- class ClubBookingRepository (node 440da90bcde7901a): layer infrastructure, component persistence, fan-out 0, fan-in 7\n- <- CALLS Method ClubBookingService.create\n- <- CALLS Method ClubBookingService.get\n- <- CALLS Method ClubBookingService.invoice\n- <- CALLS Method ClubBookingService.list\n- <- CALLS Method SessionService.effectiveCapacity\n- <- CONSTRUCTOR_INJECTS Class ClubBookingService\n- <- CONSTRUCTOR_INJECTS Class SessionService",
+  "recordedAt": "2026-10-20T13:16:50.124Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.72,
+    "rationale": "Booking is handled by BookingService and BookingRepository: it is linked to individual memberships (findActiveByMembership) and checks hire stock. ClubBooking has its own repository (Map<string, ClubBooking>) and service, with invoicing, and SessionService.effectiveCapacity reads it, so club bookings appear to hold back session capacity. Separate storage, services and behaviour point to two related but different concepts: individual bookings and club or group block bookings. This rests mainly on graph method and class names, since only one line of code from each class was visible.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2068,
+    "outputTokens": 746
+  }
+}

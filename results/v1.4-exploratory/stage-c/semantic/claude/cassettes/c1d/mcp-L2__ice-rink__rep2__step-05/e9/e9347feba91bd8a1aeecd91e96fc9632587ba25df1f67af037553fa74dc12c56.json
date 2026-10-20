@@ -1,0 +1,28 @@
+{
+  "itemId": "8fd670338e61c7f9",
+  "itemName": "Booking Status ~ Booking",
+  "key": "e9347feba91bd8a1aeecd91e96fc9632587ba25df1f67af037553fa74dc12c56",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "580f0d750b5853b8d5dd541af6361306409c27268fdd82260721b738c9ec9ff3",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Booking Status\nwhere: BookingRepository (uses), src/persistence/bookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\n(b.status === \"pending\" || b.status === \"paid\"),\n=====SOURCE-END=====\ngraph:\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 12\n- <- CALLS Method BookingService.create\n- <- CALLS Method BookingService.get\n- <- CALLS Method BookingService.handlePaymentResult\n- <- CALLS Method BookingService.releaseExpired\n- <- CALLS Method IceMonitorService.cancel\n- <- CALLS Method IceMonitorService.hold\n- <- CALLS Method ReportService.weekly\n- <- CALLS Method SessionService.availability\n\n### B\nconcept: Booking\nwhere: BookingService (uses), src/business/bookingService.ts, component business\ncode:\n=====SOURCE-BEGIN\nasync create(input: NewBooking): Promise<Booking> {\n=====SOURCE-END=====\ngraph:\n- class BookingService (node 3aa201f0edaa9fd6): layer domain, component business, fan-out 13, fan-in 0\n- -> CALLS Method BookingRepository.create\n- -> CALLS Method BookingRepository.findActiveByMembership\n- -> CALLS Method BookingRepository.findById\n- -> CALLS Method BookingRepository.findPending\n- -> CALLS Method BookingRepository.save\n- -> CALLS Method HireStockRepository.get\n- -> CALLS Method SessionRepository.findById\n- -> CALLS Method SessionService.availability",
+  "recordedAt": "2026-10-20T13:15:54.752Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "These are two different concepts. A is the lifecycle state of a booking, shown by the check `b.status === \"pending\" || b.status === \"paid\"` in src/persistence/bookingRepository.ts (BookingRepository, node 2e3c5728fffb0180). B is the booking itself, the thing BookingService creates in `async create(input: NewBooking): Promise<Booking>` in src/business/bookingService.ts (node 3aa201f0edaa9fd6). The status is a field of a booking, not another name for it. They are closely related, but one is a part of the other, so they don't model the same real-world thing.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2055,
+    "outputTokens": 330
+  }
+}

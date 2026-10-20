@@ -1,0 +1,462 @@
+{
+  "itemId": "21c65604dec116b1",
+  "itemName": "RinkService",
+  "key": "9d5e38ecbcdc82f0da6f50ec3b4d57bb3f8653351f47857be57eac82024fa6c1",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "339ddf4e8e1c4cce2ee363188dfae979891442ba78446aff667c37ae9247bc0c",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass RinkService (node 21c65604dec116b1), file src/business/rinkService.ts, lines 112-633.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- setClubRate (node 21dfac45cbd5376d, lines 128-133, logic density 3)\n- getClubRate (node 493502b6df30b83d, lines 135-137, logic density 0)\n- createClubBooking (node 8bf42882e62a7cc5, lines 139-171, logic density 25)\n- listClubBookings (node 29e669f54ec55c74, lines 173-175, logic density 0)\n- cancelClubBooking (node b4f573ffdfec0566, lines 177-179, logic density 2)\n- getClubInvoice (node 2db8d07426eb64cf, lines 182-199, logic density 7)\n- registerMember (node 9a751dfef076dfa7, lines 201-208, logic density 2)\n- listMembers (node c26274332b093e81, lines 210-212, logic density 0)\n- effectiveCapacity (node e6387ba51c5921dd, lines 215-223, logic density 7)\n- freeEntriesUsed (node c9667f76197f4959, lines 225-233, logic density 6)\n- createSession (node 5f7d772723a0b6e8, lines 237-260, logic density 15)\n- recordTemperature (node 65f703492f376694, lines 265-295, logic density 14)\n- nextSession (node 4d70125c02837163, lines 297-305, logic density 5)\n- holdSession (node dafff9761cdaaa0c, lines 307-322, logic density 6)\n- cancelSession (node 307a1709ba13f498, lines 325-357, logic density 13)\n- releaseSession (node c60b20185a60a596, lines 360-366, logic density 3)\n- setHireStock (node 2978858b2f3dce72, lines 368-374, logic density 5)\n- getHireStock (node d6d0d2c59029932e, lines 376-378, logic density 0)\n- listSessions (node 457a17b2e2da76bd, lines 382-384, logic density 0)\n- getSession (node 9ddde2a5a35b152a, lines 386-390, logic density 2)\n- getAvailability (node 943d615fb9ddd8a5, lines 392-403, logic density 5)\n- getWeeklyReport (node 389c5d716013c121, lines 409-477, logic density 38)\n- getBooking (node 06b93f243a13e785, lines 479-484, logic density 2)\n- purchase (node 9586ad77b3d0ca0e, lines 488-568, logic density 41)\n- handlePaymentResult (node f2665a70b81c9047, lines 571-606, logic density 14)\n- expireOverdue (node 99f0cd74c7c98f70, lines 609-620, logic density 4)\n- usage (node 570034c61444165f, lines 623-632, logic density 7)\nFields: sessions, bookings, stock, puckPay, callbackUrl, now, clubBookings, members, dropText, temperatures\n\n## APG neighbourhood\nGraph statistics: 27 methods; fan-out 25 (CALLS 25); fan-in 0.\n- -> CALLS Method BookingRepository.create (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.get (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.groupBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.list (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.listByMembership (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.listBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.update (src/persistence/bookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.create (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.delete (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.getRate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.list (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.listByDate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.setRate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method DropTextClient.send (src/persistence/dropTextClient.ts)\n- -> CALLS Method HireStockRepository.all (src/persistence/hireStockRepository.ts)\n- -> CALLS Method HireStockRepository.get (src/persistence/hireStockRepository.ts)\n- -> CALLS Method HireStockRepository.set (src/persistence/hireStockRepository.ts)\n- -> CALLS Method MemberRepository.get (src/persistence/memberRepository.ts)\n- -> CALLS Method MemberRepository.list (src/persistence/memberRepository.ts)\n- -> CALLS Method MemberRepository.save (src/persistence/memberRepository.ts)\n- -> CALLS Method PuckPayClient.createCheckout (src/persistence/puckPayClient.ts)\n- -> CALLS Method PuckPayClient.refund (src/persistence/puckPayClient.ts)\n- -> CALLS Method SessionRepository.create (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.get (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.list (src/persistence/sessionRepository.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- RinkService: nameRole=\"service\"\n- RinkService: behaviourRole=\"business-logic\"\n- RinkService: ioCategories=[]\n- RinkService: lcom4=1\n- RinkService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- RinkService.setClubRate: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":1,\"density\":3}\n- RinkService.getClubRate: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- RinkService.createClubBooking: logicDensity={\"branches\":11,\"comparisons\":7,\"arithmetic\":0,\"validationThrows\":7,\"density\":25}\n- RinkService.listClubBookings: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- RinkService.cancelClubBooking: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- RinkService.getClubInvoice: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":5,\"validationThrows\":1,\"density\":7}\n- RinkService.registerMember: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- RinkService.listMembers: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- RinkService.effectiveCapacity: logicDensity={\"branches\":4,\"comparisons\":2,\"arithmetic\":1,\"validationThrows\":0,\"density\":7}\n- RinkService.freeEntriesUsed: logicDensity={\"branches\":3,\"comparisons\":2,\"arithmetic\":1,\"validationThrows\":0,\"density\":6}\n- RinkService.createSession: logicDensity={\"branches\":6,\"comparisons\":3,\"arithmetic\":0,\"validationThrows\":6,\"density\":15}\n- RinkService.recordTemperature: logicDensity={\"branches\":9,\"comparisons\":2,\"arithmetic\":1,\"validationThrows\":2,\"density\":14}\n- RinkService.nextSession: logicDensity={\"branches\":0,\"comparisons\":4,\"arithmetic\":1,\"validationThrows\":0,\"density\":5}\n- RinkService.holdSession: logicDensity={\"branches\":3,\"comparisons\":3,\"arithmetic\":0,\"validationThrows\":0,\"density\":6}\n- RinkService.cancelSession: logicDensity={\"branches\":6,\"comparisons\":5,\"arithmetic\":0,\"validationThrows\":2,\"density\":13}\n- RinkService.releaseSession: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":1,\"density\":3}\n- RinkService.setHireStock: logicDensity={\"branches\":2,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":2,\"density\":5}\n- RinkService.getHireStock: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- RinkService.listSessions: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- RinkService.getSession: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- RinkService.getAvailability: logicDensity={\"branches\":2,\"comparisons\":1,\"arithmetic\":2,\"validationThrows\":0,\"density\":5}\n- RinkService.getWeeklyReport: logicDensity={\"branches\":12,\"comparisons\":7,\"arithmetic\":17,\"validationThrows\":2,\"density\":38}\n- RinkService.getBooking: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- RinkService.purchase: logicDensity={\"branches\":16,\"comparisons\":7,\"arithmetic\":8,\"validationThrows\":10,\"density\":41}\n- RinkService.handlePaymentResult: logicDensity={\"branches\":7,\"comparisons\":5,\"arithmetic\":0,\"validationThrows\":2,\"density\":14}\n- RinkService.expireOverdue: logicDensity={\"branches\":2,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":0,\"density\":4}\n- RinkService.usage: logicDensity={\"branches\":3,\"comparisons\":2,\"arithmetic\":2,\"validationThrows\":0,\"density\":7}\nFlags:\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.createSession in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.setClubRate in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.setHireStock in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.setClubRate in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of RinkService.createSession in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of RinkService.createClubBooking in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of RinkService.createSession in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of RinkService.createClubBooking in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.createSession in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.createClubBooking in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.setHireStock in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.createSession in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.releaseSession in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.cancelSession in component business\n- clones/same-component-near: body clone (near, similarity 0.80) of RinkService.getBooking in component business\n- clones/same-component-near: body clone (near, similarity 0.80) of RinkService.getSession in component business\n- shared-literals/shared-number-literal: literal \"10\" also used in component(s) presentation\n- shared-literals/shared-number-literal: literal \"2\" also used in component(s) presentation\n- shared-literals/shared-number-literal: literal \"2\" also used in component(s) presentation\n- shared-literals/shared-number-literal: literal \"2\" also used in component(s) presentation\n- shared-literals/shared-string-literal: literal \"https://api.droptext.example\" also used in component(s) presentation\n\n## Comments near the code\n- RinkService.setClubRate: ---- club operations ----\n- RinkService.getClubInvoice: Monthly invoice: booked hours (whole or half rink) at the club hourly rate.\n- RinkService.effectiveCapacity: Capacity after club bookings: halved with one half held, zero with both.\n- RinkService.createSession: ---- manager operations ----\n- RinkService.recordTemperature: ---- ice temperature ---- / Records a FrostSense reading; puts the next session on hold after 10 minutes of warm ice.\n- RinkService.cancelSession: Cancels a held session and refunds every ticket.\n- RinkService.releaseSession: Releases a held session so tickets can be sold again.\n- RinkService.listSessions: ---- public queries ----\n- RinkService.getWeeklyReport: Report for sessions dated from..to inclusive. Single pass over bookings (grouped by session), so cost is O(sessions + bookings).\n- RinkService.purchase: ---- purchasing ----\n- RinkService.handlePaymentResult: Handles PuckPay's webhook. Idempotent for already-settled bookings.\n- RinkService.expireOverdue: Releases unpaid bookings whose 15-minute window has elapsed.\n- RinkService.usage: Tickets and hire skates held by pending or paid bookings.\n\n## Source\n=====SOURCE-BEGIN src/business/rinkService.ts\n112| export class RinkService {\n113|   constructor(\n114|     private readonly sessions: SessionRepository,\n115|     private readonly bookings: BookingRepository,\n116|     private readonly stock: HireStockRepository,\n117|     private readonly puckPay: PuckPayClient,\n118|     private readonly callbackUrl: string,\n119|     private readonly now: () => number = Date.now,\n120|     private readonly clubBookings: ClubBookingRepository = new ClubBookingRepository(),\n121|     private readonly members: MemberRepository = new MemberRepository(),\n122|     private readonly dropText: DropTextClient = new DropTextClient(\"https://api.droptext.example\", \"\"),\n123|     private readonly temperatures: TemperatureRepository = new TemperatureRepository(),\n124|   ) {}\n125| \n126|   // ---- club operations ----\n127| \n128|   setClubRate(centsPerHour: number): void {\n129|     if (!Number.isInteger(centsPerHour) || centsPerHour < 0) {\n130|       throw new DomainError(\"validation\", \"rateCentsPerHour must be a non-negative integer\");\n131|     }\n132|     this.clubBookings.setRate(centsPerHour);\n133|   }\n134| \n135|   getClubRate(): number {\n136|     return this.clubBookings.getRate();\n137|   }\n138| \n139|   createClubBooking(input: NewClubBookingInput): ClubBooking {\n140|     if (!DATE_RE.test(input.date)) throw new DomainError(\"validation\", \"date must be YYYY-MM-DD\");\n141|     if (!TIME_RE.test(input.start) || !TIME_RE.test(input.end)) {\n142|       throw new DomainError(\"validation\", \"start and end must be HH:MM\");\n143|     }\n144|     if (input.end <= input.start) throw new DomainError(\"validation\", \"end must be after start\");\n145|     let halves: RinkHalf[];\n146|     if (input.rink === \"whole\") halves = [\"A\", \"B\"];\n147|     else if (input.rink === \"half\") {\n148|       if (input.half !== \"A\" && input.half !== \"B\") {\n149|         throw new DomainError(\"validation\", \"half must be A or B for a half-rink booking\");\n150|       }\n151|       halves = [input.half];\n152|     } else throw new DomainError(\"validation\", \"rink must be whole or half\");\n153| \n154|     for (const c of this.clubBookings.listByDate(input.date)) {\n155|       if (overlaps(c, input) && c.halves.some((h) => halves.includes(h))) {\n156|         throw new DomainError(\"conflict\", \"club booking overlaps an existing club booking\");\n157|       }\n158|     }\n159| \n160|     this.expireOverdue();\n161|     const created = this.clubBookings.create({ date: input.date, start: input.start, end: input.end, halves });\n162|     // Refuse if the reduced capacity can no longer hold tickets already sold.\n163|     for (const session of this.sessions.list()) {\n164|       if (session.date !== input.date || !overlaps(session, input)) continue;\n165|       if (this.usage(session.id).tickets > this.effectiveCapacity(session)) {\n166|         this.clubBookings.delete(created.id);\n167|         throw new DomainError(\"conflict\", \"tickets already sold exceed the reduced capacity of a session\");\n168|       }\n169|     }\n170|     return created;\n171|   }\n172| \n173|   listClubBookings(): ClubBooking[] {\n174|     return this.clubBookings.list();\n175|   }\n176| \n177|   cancelClubBooking(id: string): void {\n178|     if (!this.clubBookings.delete(id)) throw new DomainError(\"not_found\", \"club booking not found\");\n179|   }\n180| \n181|   /** Monthly invoice: booked hours (whole or half rink) at the club hourly rate. */\n182|   getClubInvoice(month: string): ClubInvoice {\n183|     if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new DomainError(\"validation\", \"month must be YYYY-MM\");\n184|     const rate = this.clubBookings.getRate();\n185|     const lines = this.clubBookings\n186|       .list()\n187|       .filter((c) => c.date.startsWith(month))\n188|       .map((c) => {\n189|         const hours = (toMinutes(c.end) - toMinutes(c.start)) / 60;\n190|         return { ...c, hours, amountCents: Math.round(hours * rate) };\n191|       });\n192|     return {\n193|       month,\n194|       hours: lines.reduce((n, l) => n + l.hours, 0),\n195|       rateCentsPerHour: rate,\n196|       totalCents: lines.reduce((n, l) => n + l.amountCents, 0),\n197|       bookings: lines,\n198|     };\n199|   }\n200| \n201|   registerMember(input: { membershipNumber: string; name: string }): Member {\n202|     if (!input.membershipNumber || typeof input.membershipNumber !== \"string\" || !input.name) {\n203|       throw new DomainError(\"validation\", \"membershipNumber and name are required\");\n204|     }\n205|     const member = { membershipNumber: input.membershipNumber, name: input.name };\n206|     this.members.save(member);\n207|     return member;\n208|   }\n209| \n210|   listMembers(): Member[] {\n211|     return this.members.list();\n212|   }\n213| \n214|   /** Capacity after club bookings: halved with one half held, zero with both. */\n215|   private effectiveCapacity(session: Session): number {\n216|     const held = new Set<RinkHalf>();\n217|     for (const c of this.clubBookings.listByDate(session.date)) {\n218|       if (overlaps(c, session)) c.halves.forEach((h) => held.add(h));\n219|     }\n220|     if (held.size >= 2) return 0;\n221|     if (held.size === 1) return Math.floor(session.capacity / 2);\n222|     return session.capacity;\n223|   }\n224| \n225|   private freeEntriesUsed(membershipNumber: string, month: string): number {\n226|     let n = 0;\n227|     for (const b of this.bookings.listByMembership(membershipNumber)) {\n228|       if (b.status !== \"pending\" && b.status !== \"paid\") continue;\n229|       const s = this.sessions.get(b.sessionId);\n230|       if (s && s.date.startsWith(month)) n += b.tickets;\n231|     }\n232|     return n;\n233|   }\n234| \n235|   // ---- manager operations ----\n236| \n237|   createSession(input: NewSessionInput): Session {\n238|     if (!DATE_RE.test(input.date)) throw new DomainError(\"validation\", \"date must be YYYY-MM-DD\");\n239|     if (!TIME_RE.test(input.start) || !TIME_RE.test(input.end)) {\n240|       throw new DomainError(\"validation\", \"start and end must be HH:MM\");\n241|     }\n242|     if (input.end <= input.start) throw new DomainError(\"validation\", \"end must be after start\");\n243|     if (!isPosInt(input.capacity)) throw new DomainError(\"validation\", \"capacity must be a positive integer\");\n244|     if (!Number.isInteger(input.priceCents) || input.priceCents < 0) {\n245|       throw new DomainError(\"validation\", \"priceCents must be a non-negative integer\");\n246|     }\n247|     const hirePriceCents = input.hirePriceCents ?? 0;\n248|     if (!Number.isInteger(hirePriceCents) || hirePriceCents < 0) {\n249|       throw new DomainError(\"validation\", \"hirePriceCents must be a non-negative integer\");\n250|     }\n251|     return this.sessions.create({\n252|       date: input.date,\n253|       start: input.start,\n254|       end: input.end,\n255|       capacity: input.capacity,\n256|       priceCents: input.priceCents,\n257|       hirePriceCents,\n258|       status: \"open\",\n259|     });\n260|   }\n261| \n262|   // ---- ice temperature ----\n263| \n264|   /** Records a FrostSense reading; puts the next session on hold after 10 minutes of warm ice. */\n265|   async recordTemperature(input: { temperatureC: unknown; at?: unknown }): Promise<Session | undefined> {\n266|     const temp = input.temperatureC;\n267|     if (typeof temp !== \"number\" || !Number.isFinite(temp)) {\n268|       throw new DomainError(\"validation\", \"temperatureC must be a number\");\n269|     }\n270|     let at = this.now();\n271|     if (input.at !== undefined) {\n272|       const parsed = typeof input.at === \"number\" ? input.at : Date.parse(String(input.at));\n273|       if (!Number.isFinite(parsed)) throw new DomainError(\"validation\", \"timestamp is invalid\");\n274|       at = parsed;\n275|     }\n276|     this.temperatures.add({ temperatureC: temp, at });\n277| \n278|     if (temp <= WARM_THRESHOLD_C) {\n279|       this.temperatures.setSpell({ triggered: false });\n280|       return undefined;\n281|     }\n282|     const spell = this.temperatures.getSpell();\n283|     if (spell.since === undefined) spell.since = at;\n284|     let held: Session | undefined;\n285|     if (!spell.triggered && at - spell.since >= WARM_HOLD_MS) {\n286|       const next = this.nextSession();\n287|       if (next) {\n288|         spell.triggered = true;\n289|         held = next;\n290|       }\n291|     }\n292|     this.temperatures.setSpell(spell);\n293|     if (held) await this.holdSession(held);\n294|     return held;\n295|   }\n296| \n297|   private nextSession(): Session | undefined {\n298|     const d = new Date(this.now());\n299|     const pad = (n: number): string => String(n).padStart(2, \"0\");\n300|     const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;\n301|     const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;\n302|     return this.sessions\n303|       .list()\n304|       .find((s) => s.status !== \"cancelled\" && (s.date > today || (s.date === today && s.start > time)));\n305|   }\n306| \n307|   private async holdSession(session: Session): Promise<void> {\n308|     if (session.status !== \"open\") return;\n309|     session.status = \"held\";\n310|     this.sessions.update(session);\n311|     this.expireOverdue();\n312|     const message = `Your skating session on ${session.date} ${session.start}-${session.end} is on hold because the ice is too warm. We will be in touch.`;\n313|     const phones = new Set<string>();\n314|     for (const b of this.bookings.listBySession(session.id)) {\n315|       if ((b.status === \"pending\" || b.status === \"paid\") && b.phone) phones.add(b.phone);\n316|     }\n317|     await Promise.all(\n318|       [...phones].map((phone) =>\n319|         this.dropText.send(phone, message).catch((err) => console.error(`DropText failed for ${phone}:`, err)),\n320|       ),\n321|     );\n322|   }\n323| \n324|   /** Cancels a held session and refunds every ticket. */\n325|   async cancelSession(id: string): Promise<Session> {\n326|     const session = this.getSession(id);\n327|     if (session.status !== \"held\") throw new DomainError(\"conflict\", \"only a session on hold can be cancelled\");\n328|     this.expireOverdue();\n329|     const failures: string[] = [];\n330|     for (const b of this.bookings.listBySession(id)) {\n331|       if (b.status === \"pending\") {\n332|         b.status = \"cancelled\";\n333|         this.bookings.update(b);\n334|       } else if (b.status === \"paid\") {\n335|         try {\n336|           if (b.amountCents > 0) {\n337|             await this.puckPay.refund({\n338|               reference: b.id,\n339|               paymentId: b.paymentId,\n340|               amountCents: b.amountCents,\n341|               currency: \"USD\",\n342|             });\n343|           }\n344|           b.status = \"refunded\";\n345|           this.bookings.update(b);\n346|         } catch (err) {\n347|           failures.push(`${b.id}: ${(err as Error).message}`);\n348|         }\n349|       }\n350|     }\n351|     if (failures.length > 0) {\n352|       throw new DomainError(\"upstream\", `could not refund all tickets, retry cancel: ${failures.join(\"; \")}`);\n353|     }\n354|     session.status = \"cancelled\";\n355|     this.sessions.update(session);\n356|     return session;\n357|   }\n358| \n359|   /** Releases a held session so tickets can be sold again. */\n360|   releaseSession(id: string): Session {\n361|     const session = this.getSession(id);\n362|     if (session.status !== \"held\") throw new DomainError(\"conflict\", \"only a session on hold can be released\");\n363|     session.status = \"open\";\n364|     this.sessions.update(session);\n365|     return session;\n366|   }\n367| \n368|   setHireStock(size: string, quantity: number): void {\n369|     if (!size) throw new DomainError(\"validation\", \"size is required\");\n370|     if (!Number.isInteger(quantity) || quantity < 0) {\n371|       throw new DomainError(\"validation\", \"quantity must be a non-negative integer\");\n372|     }\n373|     this.stock.set(size, quantity);\n374|   }\n375| \n376|   getHireStock(): Record<string, number> {\n377|     return this.stock.all();\n378|   }\n379| \n380|   // ---- public queries ----\n381| \n382|   listSessions(): Session[] {\n383|     return this.sessions.list();\n384|   }\n385| \n386|   getSession(id: string): Session {\n387|     const s = this.sessions.get(id);\n388|     if (!s) throw new DomainError(\"not_found\", \"session not found\");\n389|     return s;\n390|   }\n391| \n392|   getAvailability(sessionId: string): Availability {\n393|     const session = this.getSession(sessionId);\n394|     this.expireOverdue();\n395|     const { tickets, hire } = this.usage(sessionId);\n396|     const hireLeft: Record<string, number> = {};\n397|     for (const [size, qty] of Object.entries(this.stock.all())) {\n398|       hireLeft[size] = Math.max(0, qty - (hire[size] ?? 0));\n399|     }\n400|     const ticketsLeft =\n401|       session.status === \"open\" ? Math.max(0, this.effectiveCapacity(session) - tickets) : 0;\n402|     return { sessionId, ticketsLeft, hireLeft };\n403|   }\n404| \n405|   /**\n406|    * Report for sessions dated from..to inclusive. Single pass over bookings\n407|    * (grouped by session), so cost is O(sessions + bookings).\n408|    */\n409|   getWeeklyReport(from: string, to: string): WeeklyReport {\n410|     const validDate = (d: string): boolean =>\n411|       DATE_RE.test(d) && !Number.isNaN(Date.parse(`${d}T00:00:00Z`)) &&\n412|       new Date(`${d}T00:00:00Z`).toISOString().slice(0, 10) === d;\n413|     if (typeof from !== \"string\" || typeof to !== \"string\" || !validDate(from) || !validDate(to)) {\n414|       throw new DomainError(\"validation\", \"from and to must be valid YYYY-MM-DD dates\");\n415|     }\n416|     if (to < from) throw new DomainError(\"validation\", \"to must not be before from\");\n417| \n418|     const ratio = (n: number, d: number): number => (d > 0 ? Math.round((n / d) * 10000) / 10000 : 0);\n419|     const grouped = this.bookings.groupBySession();\n420|     const totalsBySize: Record<string, number> = {};\n421|     const totals: WeeklyReport[\"totals\"] = {\n422|       sessions: 0,\n423|       ticketsSold: 0,\n424|       membersAdmitted: 0,\n425|       occupancy: 0,\n426|       hireIncomeCentsBySize: totalsBySize,\n427|       hireIncomeCents: 0,\n428|       refundedCents: 0,\n429|       sessionsHeld: 0,\n430|       sessionsCancelled: 0,\n431|     };\n432|     let capacityTotal = 0;\n433|     const rows: SessionReportRow[] = [];\n434|     for (const s of this.sessions.listBetween(from, to)) {\n435|       let ticketsSold = 0;\n436|       let membersAdmitted = 0;\n437|       let refundedCents = 0;\n438|       const bySize: Record<string, number> = {};\n439|       for (const b of grouped.get(s.id) ?? []) {\n440|         if (b.status === \"refunded\") {\n441|           refundedCents += b.amountCents;\n442|         } else if (b.status === \"paid\") {\n443|           if (b.membershipNumber !== undefined) membersAdmitted += b.tickets;\n444|           else ticketsSold += b.tickets;\n445|           for (const [size, qty] of Object.entries(b.hire)) {\n446|             bySize[size] = (bySize[size] ?? 0) + qty * s.hirePriceCents;\n447|           }\n448|         }\n449|       }\n450|       const hireIncomeCents = Object.values(bySize).reduce((n, v) => n + v, 0);\n451|       rows.push({\n452|         sessionId: s.id,\n453|         date: s.date,\n454|         start: s.start,\n455|         end: s.end,\n456|         status: s.status,\n457|         capacity: s.capacity,\n458|         ticketsSold,\n459|         membersAdmitted,\n460|         occupancy: ratio(ticketsSold + membersAdmitted, s.capacity),\n461|         hireIncomeCentsBySize: bySize,\n462|         hireIncomeCents,\n463|         refundedCents,\n464|       });\n465|       totals.sessions++;\n466|       totals.ticketsSold += ticketsSold;\n467|       totals.membersAdmitted += membersAdmitted;\n468|       totals.hireIncomeCents += hireIncomeCents;\n469|       totals.refundedCents += refundedCents;\n470|       for (const [size, v] of Object.entries(bySize)) totalsBySize[size] = (totalsBySize[size] ?? 0) + v;\n471|       capacityTotal += s.capacity;\n472|       if (s.status === \"held\") totals.sessionsHeld++;\n473|       if (s.status === \"cancelled\") totals.sessionsCancelled++;\n474|     }\n475|     totals.occupancy = ratio(totals.ticketsSold + totals.membersAdmitted, capacityTotal);\n476|     return { from, to, sessions: rows, totals };\n477|   }\n478| \n479|   getBooking(id: string): Booking {\n480|     this.expireOverdue();\n481|     const b = this.bookings.get(id);\n482|     if (!b) throw new DomainError(\"not_found\", \"booking not found\");\n483|     return b;\n484|   }\n485| \n486|   // ---- purchasing ----\n487| \n488|   async purchase(sessionId: string, input: PurchaseInput): Promise<Booking> {\n489|     this.expireOverdue();\n490|     const session = this.getSession(sessionId);\n491|     if (session.status === \"held\") throw new DomainError(\"conflict\", \"ticket sales for this session are on hold\");\n492|     if (session.status === \"cancelled\") throw new DomainError(\"conflict\", \"this session is cancelled\");\n493| \n494|     if (!input.skaterName || !input.email) {\n495|       throw new DomainError(\"validation\", \"skaterName and email are required\");\n496|     }\n497|     if (!isPosInt(input.tickets)) throw new DomainError(\"validation\", \"tickets must be a positive integer\");\n498|     const hire = input.hire ?? {};\n499|     let hireTotal = 0;\n500|     for (const [size, qty] of Object.entries(hire)) {\n501|       if (!isPosInt(qty)) throw new DomainError(\"validation\", `hire quantity for size ${size} must be a positive integer`);\n502|       hireTotal += qty;\n503|     }\n504|     if (hireTotal > input.tickets) {\n505|       throw new DomainError(\"validation\", \"cannot hire more skates than tickets\");\n506|     }\n507| \n508|     const membershipNumber = input.membershipNumber;\n509|     if (membershipNumber !== undefined) {\n510|       if (!this.members.get(membershipNumber)) throw new DomainError(\"not_found\", \"membership not found\");\n511|       const month = session.date.slice(0, 7);\n512|       if (this.freeEntriesUsed(membershipNumber, month) + input.tickets > FREE_ENTRIES_PER_MONTH) {\n513|         throw new DomainError(\"conflict\", `members get ${FREE_ENTRIES_PER_MONTH} free entries a month`);\n514|       }\n515|     }\n516| \n517|     // Check and reserve synchronously so concurrent requests cannot oversell.\n518|     const used = this.usage(sessionId);\n519|     if (used.tickets + input.tickets > this.effectiveCapacity(session)) {\n520|       throw new DomainError(\"conflict\", \"not enough tickets left for this session\");\n521|     }\n522|     for (const [size, qty] of Object.entries(hire)) {\n523|       if ((used.hire[size] ?? 0) + qty > this.stock.get(size)) {\n524|         throw new DomainError(\"conflict\", `not enough hire skates left in size ${size}`);\n525|       }\n526|     }\n527| \n528|     const createdAt = this.now();\n529|     const booking = this.bookings.create({\n530|       sessionId,\n531|       skaterName: input.skaterName,\n532|       email: input.email,\n533|       phone: typeof input.phone === \"string\" && input.phone ? input.phone : undefined,\n534|       tickets: input.tickets,\n535|       hire: { ...hire },\n536|       amountCents:\n537|         (membershipNumber !== undefined ? 0 : input.tickets * session.priceCents) +\n538|         hireTotal * session.hirePriceCents,\n539|       membershipNumber,\n540|       status: \"pending\",\n541|       createdAt,\n542|       expiresAt: createdAt + PAYMENT_WINDOW_MS,\n543|     });\n544| \n545|     if (booking.amountCents === 0) {\n546|       booking.status = \"paid\"; // nothing to pay: no checkout needed\n547|       this.bookings.update(booking);\n548|       return booking;\n549|     }\n550| \n551|     try {\n552|       const checkout = await this.puckPay.createCheckout({\n553|         reference: booking.id,\n554|         amountCents: booking.amountCents,\n555|         currency: \"USD\",\n556|         description: `Skating ${session.date} ${session.start}-${session.end}`,\n557|         callbackUrl: this.callbackUrl,\n558|       });\n559|       booking.checkoutUrl = checkout.checkoutUrl;\n560|       booking.paymentId = checkout.paymentId;\n561|       this.bookings.update(booking);\n562|     } catch (err) {\n563|       booking.status = \"failed\";\n564|       this.bookings.update(booking);\n565|       throw new DomainError(\"upstream\", `could not create checkout: ${(err as Error).message}`);\n566|     }\n567|     return booking;\n568|   }\n569| \n570|   /** Handles PuckPay's webhook. Idempotent for already-settled bookings. */\n571|   async handlePaymentResult(result: PaymentResult): Promise<Booking> {\n572|     this.expireOverdue();\n573|     const booking = this.bookings.get(result.bookingId);\n574|     if (!booking) throw new DomainError(\"not_found\", \"booking not found\");\n575|     if (booking.status === \"cancelled\" && result.status === \"paid\") {\n576|       // Paid after its session was cancelled: give the money back.\n577|       booking.paymentId = result.paymentId ?? booking.paymentId;\n578|       try {\n579|         await this.puckPay.refund({\n580|           reference: booking.id,\n581|           paymentId: booking.paymentId,\n582|           amountCents: booking.amountCents,\n583|           currency: \"USD\",\n584|         });\n585|         booking.status = \"refunded\";\n586|         this.bookings.update(booking);\n587|       } catch (err) {\n588|         throw new DomainError(\"upstream\", `could not refund booking: ${(err as Error).message}`);\n589|       }\n590|       return booking;\n591|     }\n592|     if (result.status === \"refunded\") {\n593|       // PuckPay confirmed a refund: record it on the ticket (frees its capacity).\n594|       if (booking.status === \"paid\") {\n595|         booking.status = \"refunded\";\n596|         if (result.paymentId) booking.paymentId = result.paymentId;\n597|         this.bookings.update(booking);\n598|       }\n599|       return booking;\n600|     }\n601|     if (booking.status !== \"pending\") return booking; // expired/settled: ignore\n602|     booking.status = result.status;\n603|     if (result.paymentId) booking.paymentId = result.paymentId;\n604|     this.bookings.update(booking);\n605|     return booking;\n606|   }\n607| \n608|   /** Releases unpaid bookings whose 15-minute window has elapsed. */\n609|   expireOverdue(): number {\n610|     const now = this.now();\n611|     let count = 0;\n612|     for (const b of this.bookings.list()) {\n613|       if (b.status === \"pending\" && b.expiresAt <= now) {\n614|         b.status = \"expired\";\n615|         this.bookings.update(b);\n616|         count++;\n617|       }\n618|     }\n619|     return count;\n620|   }\n621| \n622|   /** Tickets and hire skates held by pending or paid bookings. */\n623|   private usage(sessionId: string): { tickets: number; hire: Record<string, number> } {\n624|     let tickets = 0;\n625|     const hire: Record<string, number> = {};\n626|     for (const b of this.bookings.listBySession(sessionId)) {\n627|       if (b.status !== \"pending\" && b.status !== \"paid\") continue;\n628|       tickets += b.tickets;\n629|       for (const [size, qty] of Object.entries(b.hire)) hire[size] = (hire[size] ?? 0) + qty;\n630|     }\n631|     return { tickets, hire };\n632|   }\n633| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:17:26.325Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 251,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "5f7d772723a0b6e8",
+            "quote": "return this.sessions.create({",
+            "startLine": 251
+          }
+        ],
+        "name": "Skating Session",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 529,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "const booking = this.bookings.create({",
+            "startLine": 529
+          }
+        ],
+        "name": "Ticket Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 161,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "8bf42882e62a7cc5",
+            "quote": "const created = this.clubBookings.create({ date: input.date, start: input.start, end: input.end, halves });",
+            "startLine": 161
+          }
+        ],
+        "name": "Club Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 146,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "8bf42882e62a7cc5",
+            "quote": "if (input.rink === \"whole\") halves = [\"A\", \"B\"];",
+            "startLine": 146
+          }
+        ],
+        "name": "Rink Half",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 196,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "2db8d07426eb64cf",
+            "quote": "totalCents: lines.reduce((n, l) => n + l.amountCents, 0),",
+            "startLine": 196
+          }
+        ],
+        "name": "Club Invoice",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 205,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9a751dfef076dfa7",
+            "quote": "const member = { membershipNumber: input.membershipNumber, name: input.name };",
+            "startLine": 205
+          }
+        ],
+        "name": "Member",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 373,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "2978858b2f3dce72",
+            "quote": "this.stock.set(size, quantity);",
+            "startLine": 373
+          }
+        ],
+        "name": "Hire Skate Stock",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 276,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "65f703492f376694",
+            "quote": "this.temperatures.add({ temperatureC: temp, at });",
+            "startLine": 276
+          }
+        ],
+        "name": "Ice Temperature Reading",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 559,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "booking.checkoutUrl = checkout.checkoutUrl;",
+            "startLine": 559
+          }
+        ],
+        "name": "Payment Checkout",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 344,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "307a1709ba13f498",
+            "quote": "b.status = \"refunded\";",
+            "startLine": 344
+          }
+        ],
+        "name": "Refund",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 402,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "943d615fb9ddd8a5",
+            "quote": "return { sessionId, ticketsLeft, hireLeft };",
+            "startLine": 402
+          }
+        ],
+        "name": "Availability",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 476,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "389c5d716013c121",
+            "quote": "return { from, to, sessions: rows, totals };",
+            "startLine": 476
+          }
+        ],
+        "name": "Weekly Report",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Validates club bookings of the whole rink or one half. Rejects bookings that overlap an existing club booking on the same half. Rolls a booking back if the reduced public capacity can no longer hold tickets already sold.",
+        "evidence": [
+          {
+            "endLine": 156,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "8bf42882e62a7cc5",
+            "quote": "throw new DomainError(\"conflict\", \"club booking overlaps an existing club booking\");",
+            "startLine": 155
+          },
+          {
+            "endLine": 167,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "8bf42882e62a7cc5",
+            "quote": "if (this.usage(session.id).tickets > this.effectiveCapacity(session)) {",
+            "startLine": 165
+          }
+        ],
+        "name": "Club rink booking with overlap and sold-ticket conflict checks",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Keeps the club's hourly rate and builds a monthly invoice from the hours booked, multiplied by that rate.",
+        "evidence": [
+          {
+            "endLine": 190,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "2db8d07426eb64cf",
+            "quote": "return { ...c, hours, amountCents: Math.round(hours * rate) };",
+            "startLine": 189
+          },
+          {
+            "endLine": 130,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21dfac45cbd5376d",
+            "quote": "throw new DomainError(\"validation\", \"rateCentsPerHour must be a non-negative integer\");",
+            "startLine": 129
+          }
+        ],
+        "name": "Club hourly rate and monthly invoicing",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Works out how many public tickets a session can hold. Capacity is halved when a club holds one half of the rink and is zero when both halves are held.",
+        "evidence": [
+          {
+            "endLine": 221,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "e6387ba51c5921dd",
+            "quote": "if (held.size === 1) return Math.floor(session.capacity / 2);",
+            "startLine": 221
+          }
+        ],
+        "name": "Effective session capacity under club bookings",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Registers members. When a member buys tickets, checks that their free entries for the month stay within the allowance.",
+        "evidence": [
+          {
+            "endLine": 206,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9a751dfef076dfa7",
+            "quote": "this.members.save(member);",
+            "startLine": 206
+          },
+          {
+            "endLine": 513,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "throw new DomainError(\"conflict\", `members get ${FREE_ENTRIES_PER_MONTH} free entries a month`);",
+            "startLine": 512
+          }
+        ],
+        "name": "Membership registration and monthly free-entry allowance",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Creates skating sessions after checking the date, the time window, the capacity, the ticket price and the skate-hire price.",
+        "evidence": [
+          {
+            "endLine": 243,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "5f7d772723a0b6e8",
+            "quote": "if (!isPosInt(input.capacity)) throw new DomainError(\"validation\", \"capacity must be a positive integer\");",
+            "startLine": 243
+          }
+        ],
+        "name": "Skating session scheduling",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Records ice temperature readings and tracks how long the ice has been warm. After the warm-ice threshold period, it puts the next upcoming session on hold.",
+        "evidence": [
+          {
+            "endLine": 285,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "65f703492f376694",
+            "quote": "if (!spell.triggered && at - spell.since >= WARM_HOLD_MS) {",
+            "startLine": 285
+          }
+        ],
+        "name": "Ice temperature monitoring and automatic session hold",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "When a session goes on hold, sends a text message to every phone number on its pending or paid bookings.",
+        "evidence": [
+          {
+            "endLine": 319,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "dafff9761cdaaa0c",
+            "quote": "this.dropText.send(phone, message).catch((err) => console.error(`DropText failed for ${phone}:`, err)),",
+            "startLine": 319
+          }
+        ],
+        "name": "Notifying skaters of held sessions",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Only a held session can be cancelled or released. Cancelling voids pending bookings and refunds paid ones through the payment provider. Releasing reopens ticket sales.",
+        "evidence": [
+          {
+            "endLine": 327,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "307a1709ba13f498",
+            "quote": "if (session.status !== \"held\") throw new DomainError(\"conflict\", \"only a session on hold can be cancelled\");",
+            "startLine": 327
+          },
+          {
+            "endLine": 337,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "307a1709ba13f498",
+            "quote": "await this.puckPay.refund({",
+            "startLine": 337
+          },
+          {
+            "endLine": 363,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "c60b20185a60a596",
+            "quote": "session.status = \"open\";",
+            "startLine": 363
+          }
+        ],
+        "name": "Held session cancellation with refunds and release",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Manages hire skate stock by size. Works out how many tickets and hire skates are still free, counting pending and paid bookings as using them.",
+        "evidence": [
+          {
+            "endLine": 373,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "2978858b2f3dce72",
+            "quote": "this.stock.set(size, quantity);",
+            "startLine": 373
+          },
+          {
+            "endLine": 398,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "943d615fb9ddd8a5",
+            "quote": "hireLeft[size] = Math.max(0, qty - (hire[size] ?? 0));",
+            "startLine": 398
+          },
+          {
+            "endLine": 627,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "570034c61444165f",
+            "quote": "if (b.status !== \"pending\" && b.status !== \"paid\") continue;",
+            "startLine": 627
+          }
+        ],
+        "name": "Hire skate stock and availability",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Builds a report per session and in total for a date range: tickets sold, members admitted, occupancy, skate-hire income by size, refunds, and the number of held and cancelled sessions.",
+        "evidence": [
+          {
+            "endLine": 460,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "389c5d716013c121",
+            "quote": "occupancy: ratio(ticketsSold + membersAdmitted, s.capacity),",
+            "startLine": 460
+          }
+        ],
+        "name": "Weekly operations reporting",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Runs a ticket purchase. Checks that the session can be sold, that hire quantities are valid, that the member allowance and capacity are not exceeded, and that hire stock is available. Prices the booking (members' tickets are free) and starts a payment checkout.",
+        "evidence": [
+          {
+            "endLine": 520,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if (used.tickets + input.tickets > this.effectiveCapacity(session)) {",
+            "startLine": 519
+          },
+          {
+            "endLine": 538,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "(membershipNumber !== undefined ? 0 : input.tickets * session.priceCents) +",
+            "startLine": 537
+          },
+          {
+            "endLine": 552,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "const checkout = await this.puckPay.createCheckout({",
+            "startLine": 552
+          }
+        ],
+        "name": "Ticket purchase with pricing and checkout",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Applies payment notifications from the payment provider to bookings. Ignores bookings that are already settled. Records refunds, and refunds any payment that arrives after the booking was cancelled.",
+        "evidence": [
+          {
+            "endLine": 575,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "f2665a70b81c9047",
+            "quote": "if (booking.status === \"cancelled\" && result.status === \"paid\") {",
+            "startLine": 575
+          },
+          {
+            "endLine": 601,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "f2665a70b81c9047",
+            "quote": "if (booking.status !== \"pending\") return booking; // expired/settled: ignore",
+            "startLine": 601
+          }
+        ],
+        "name": "Payment result settlement",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Marks pending bookings as expired once their payment window has passed, which frees their capacity.",
+        "evidence": [
+          {
+            "endLine": 614,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "99f0cd74c7c98f70",
+            "quote": "if (b.status === \"pending\" && b.expiresAt <= now) {",
+            "startLine": 613
+          }
+        ],
+        "name": "Expiry of unpaid bookings",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 16336,
+    "outputTokens": 5388
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "itemId": "75882fa37d58c15a",
+  "itemName": "Rink ice condition monitoring ~ Ice condition monitoring",
+  "key": "0547c888ed69cea7870800f5835ecab53ad5ea3cf0afdc025412669fa5f9fb47",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "271fe63dc23902a94f36b621f76daaffe424cd4e0c6c88040ffa7ecef6690056",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Rink ice condition monitoring\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class IceMonitorService {\nexport class IceStateRepository {\n=====SOURCE-END=====\ngraph:\n- community community:1: 3 classes (DropTextClient, IceStateRepository, IceMonitorService)\n- class IceMonitorService (node f59a45a01c2ed338): layer domain, component business, fan-out 10, fan-in 0\n- class IceStateRepository (node 347150d64b7d1da9): layer infrastructure, component persistence, fan-out 0, fan-in 2\n\n### B\ncapability: Ice condition monitoring\nwhere: component:persistence\ncode:\n=====SOURCE-BEGIN\nexport class IceStateRepository {\n=====SOURCE-END=====\ngraph:\n- component component:persistence: 8 classes (DropTextClient, MemberRepository, BookingRepository, IceStateRepository, ClubBookingRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class IceStateRepository (node 347150d64b7d1da9): layer infrastructure, component persistence, fan-out 0, fan-in 2",
+  "recordedAt": "2026-10-20T13:00:46.408Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.8,
+    "rationale": "I think A and B describe the same capability: tracking the ice condition of the rink. They differ mainly in wording (\"Rink ice condition monitoring\" vs \"Ice condition monitoring\") and in how much code each one covers. Both rest on the same class, IceStateRepository (node 347150d64b7d1da9). A is drawn from community:1, which holds IceMonitorService (the domain service), IceStateRepository and DropTextClient. B is drawn from component:persistence, but the only evidence it cites is IceStateRepository. So B is the storage side of the same monitoring work A describes, not a separate capability. Confidence is below certain because component:persistence also holds unrelated repositories (members, bookings, hire stock, sessions), so B's location is broader than its name suggests.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1828,
+    "outputTokens": 481
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "itemId": "2e3c5728fffb0180",
+  "itemName": "BookingRepository",
+  "key": "c9caa6ce879be7e4ed38d8a3c8291afe805cece2dec5c019be313b6d812dcee4",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "4040b9e6547d1682c332985f51b6d0f81cc0a2d6cd617d16921ffa7545ca84b5",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, lines 4-39.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node f8ac9873a5e46a7f, lines 9-16, logic density 1)\n- get (node 9e8ed10d3aeb24eb, lines 18-20, logic density 0)\n- update (node 88b6165265eb84a6, lines 22-30, logic density 5)\n- list (node 8bd282c91189465d, lines 32-34, logic density 0)\n- listBySession (node c1261fdf96410620, lines 36-38, logic density 0)\nFields: bookings, bySession\n\n## APG neighbourhood\nGraph statistics: 5 methods; fan-out 0; fan-in 12 (CALLS 9, CONSTRUCTOR_INJECTS 3).\n- <- CALLS Method IceMonitorService.notifyHolders (src/business/iceMonitorService.ts)\n- <- CALLS Method ReportService.weekly (src/business/reportService.ts)\n- <- CALLS Method RinkService.cancelSession (src/business/rinkService.ts)\n- <- CALLS Method RinkService.expireOverdue (src/business/rinkService.ts)\n- <- CALLS Method RinkService.getBooking (src/business/rinkService.ts)\n- <- CALLS Method RinkService.handlePaymentResult (src/business/rinkService.ts)\n- <- CALLS Method RinkService.memberUses (src/business/rinkService.ts)\n- <- CALLS Method RinkService.purchase (src/business/rinkService.ts)\n- <- CALLS Method RinkService.usage (src/business/rinkService.ts)\n- <- CONSTRUCTOR_INJECTS Class IceMonitorService (src/business/iceMonitorService.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class RinkService (src/business/rinkService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- BookingRepository: nameRole=\"repository\"\n- BookingRepository: behaviourRole=\"business-logic\"\n- BookingRepository: ioCategories=[]\n- BookingRepository: lcom4=1\n- BookingRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- BookingRepository.create: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- BookingRepository.get: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BookingRepository.update: logicDensity={\"branches\":3,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":0,\"density\":5}\n- BookingRepository.list: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BookingRepository.listBySession: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Source\n=====SOURCE-BEGIN src/persistence/bookingRepository.ts\n 4| export class BookingRepository {\n 5|   private readonly bookings = new Map<string, Booking>();\n 6|   /** session id -> its bookings, so per-session reads do not scan every booking in the season */\n 7|   private readonly bySession = new Map<string, Booking[]>();\n 8| \n 9|   create(data: Omit<Booking, \"id\">): Booking {\n10|     const booking: Booking = { id: randomUUID(), ...data };\n11|     this.bookings.set(booking.id, booking);\n12|     const group = this.bySession.get(booking.sessionId);\n13|     if (group) group.push(booking);\n14|     else this.bySession.set(booking.sessionId, [booking]);\n15|     return booking;\n16|   }\n17| \n18|   get(id: string): Booking | undefined {\n19|     return this.bookings.get(id);\n20|   }\n21| \n22|   update(booking: Booking): void {\n23|     const previous = this.bookings.get(booking.id);\n24|     this.bookings.set(booking.id, booking);\n25|     if (previous && previous !== booking) {\n26|       const group = this.bySession.get(booking.sessionId);\n27|       const at = group ? group.indexOf(previous) : -1;\n28|       if (group && at >= 0) group[at] = booking;\n29|     }\n30|   }\n31| \n32|   list(): Booking[] {\n33|     return [...this.bookings.values()];\n34|   }\n35| \n36|   listBySession(sessionId: string): Booking[] {\n37|     return [...(this.bySession.get(sessionId) ?? [])];\n38|   }\n39| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:49:28.883Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 9,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "f8ac9873a5e46a7f",
+            "quote": "create(data: Omit<Booking, \"id\">): Booking {",
+            "startLine": 9
+          }
+        ],
+        "name": "Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 36,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "c1261fdf96410620",
+            "quote": "listBySession(sessionId: string): Booking[] {",
+            "startLine": 36
+          }
+        ],
+        "name": "Session",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Stores new bookings in memory and gives each one a unique identifier. Also retrieves a booking by id, lists all bookings and saves updated ones.",
+        "evidence": [
+          {
+            "endLine": 11,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "f8ac9873a5e46a7f",
+            "quote": "const booking: Booking = { id: randomUUID(), ...data };",
+            "startLine": 10
+          },
+          {
+            "endLine": 19,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "9e8ed10d3aeb24eb",
+            "quote": "return this.bookings.get(id);",
+            "startLine": 19
+          },
+          {
+            "endLine": 24,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "88b6165265eb84a6",
+            "quote": "this.bookings.set(booking.id, booking);",
+            "startLine": 24
+          },
+          {
+            "endLine": 33,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "8bd282c91189465d",
+            "quote": "return [...this.bookings.values()];",
+            "startLine": 33
+          }
+        ],
+        "name": "Booking storage and identity assignment",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Keeps a secondary index from each session to its bookings and keeps that index in step when a booking is updated. This lets callers read a session's bookings without scanning every booking in the season.",
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "private readonly bySession = new Map<string, Booking[]>();",
+            "startLine": 7
+          },
+          {
+            "endLine": 28,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "88b6165265eb84a6",
+            "quote": "if (group && at >= 0) group[at] = booking;",
+            "startLine": 28
+          },
+          {
+            "endLine": 37,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "c1261fdf96410620",
+            "quote": "return [...(this.bySession.get(sessionId) ?? [])];",
+            "startLine": 37
+          }
+        ],
+        "name": "Per-session booking index",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3936,
+    "outputTokens": 1038
+  }
+}
