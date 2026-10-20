@@ -1,0 +1,11 @@
+row_id,style,variant,rule,file,target,question,verdict,verdict_note,author,date
+1,clean-architecture,v01-domain-imports-application-port,FF-S02,src/application/ports/Clock.ts,src/domain/entities/Loan.ts,Q4,spec,"Author-made file, not a run output: transcribed from the adjudication sheet (aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md), signed 2026-10-19 by the author via the decision desk (ops/review/2026-10-19/decision-desk/answers.json ADJ-1). Q4 A, P2.",author,2026-10-19
+2,clean-architecture,v09-dto-depends-on-http-adapter,FF-S02,src/application/dto/LoanDto.ts,src/infrastructure/http/HttpTypes.ts,Q4,spec,"ADJ-2; Q4 A, P2.",author,2026-10-19
+3,layered,v01-gateway-returns-business-money,FF-S02,src/business/model/Money.ts,src/persistence/ProductGateway.ts,Q4,spec,"ADJ-3; Q4 A, P2.",author,2026-10-19
+4,layered,v02-service-renders-view,FF-S02,src/business/services/OrderService.ts,src/presentation/views/OrderView.ts,Q4,spec,"ADJ-4; Q4 A, P2.",author,2026-10-19
+6,nestjs,v07-service-injects-concrete-repository,FF-S01,src/registrations/registrations.service.ts,src/registrations/in-memory-registration.repository.ts,Q13,spec,"ADJ-6; Q13 B, preset layer order.",author,2026-10-19
+7,nestjs,v07-service-injects-concrete-repository,FF-P03,src/registrations/registrations.service.ts,src/registrations/in-memory-registration.repository.ts,Q7,spec,"ADJ-7; Q7 A, FF-P02 owns the consumer edge.",author,2026-10-19
+8,nestjs,v10-domain-policy-holds-repository,FF-P01,src/domain/registration-policy.ts,src/registrations/in-memory-registration.repository.ts,Q20,spec,"ADJ-8; Q20 A, P2.",author,2026-10-19
+10,hexagonal,v03-use-case-injects-concrete-adapter,FF-P03,src/application/services/FindAvailableRoomsService.ts,src/adapters/outbound/persistence/InMemoryRoomRepository.ts,Q7,spec,"ADJ-10; Q7 A.",author,2026-10-19
+13,hexagonal,v05-inbound-adapter-reads-outbound-adapter,FF-P03,src/adapters/inbound/http/RoomController.ts,src/adapters/outbound/persistence/InMemoryRoomRepository.ts,Q7,spec,"ADJ-13; Q7 A, the edge is owned by the Q5 rule.",author,2026-10-19
+N1,hexagonal,v02-domain-entity-uses-driven-port,FF-S04,src/domain/model/Booking.ts,src/application/ports/out/NotificationSender.ts,Q6,spec,"N1; Q6 B, the edge is inside the core; FF-S01 still reports it (Q11 A).",author,2026-10-19
