@@ -2780,3 +2780,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, drift record order step: gate, after the pre-registration and before the run; the author's go follows after the author has seen the verdict
 
 ---
+
+## Study 2b — readiness gate: OSF deposit package and the telemetry/ gate note
+**Timestamp**: 2026-10-20T16:42:30Z
+**User Input**: "(coordinator) PR #316 is merged; proceed from main. Add a gate line or a D10 note for the OSF deposit, which is an author-account action: prepare the package (registered file, its sha256 file, the analysis script and its hash, a short README) in ops/osf-deposit-2b/ and mark the line PENDING-AUTHOR (deposit); the verdict can stay GO-READY-FOR-AUTHOR. Add a gate note on the CLI-created empty telemetry/ folder that once made a config-dir isolation pre-flight refuse, check whether the 2b generator pre-flight is exposed, and document a check-and-remove step if so."
+**AI Response**: "Merged main (PR #316 at a672d35d). D10 marked PENDING-AUTHOR (deposit), the never-waived part (pre-registration dated before the run) holding; package in ops/osf-deposit-2b/ (pre-registration, registered sha256 file, addendum 1, analysis script and helpers, SHA256SUMS equal to P8, README with the author's steps). Verdict stays GO-READY-FOR-AUTHOR with two author actions before the run: the deposit and the go. Telemetry note: the 2b generator is not exposed (the loop lists a config dir only with a generatorIsolation block, which the 2b plans lack); the post-run judge route (C4, C1d) is exposed, so runbook addendum D adds a names-only check and an rmdir of an empty telemetry/ directory, anything else a stop; the judge config dir has no such entry today."
+**Context**: v1.4 Study 2b, readiness gate, before the run; zero model calls
+
+---

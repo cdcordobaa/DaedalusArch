@@ -241,7 +241,24 @@ shasum -a 256 $A/2b-*.tar > results/v1.4-study2b/archive/tarballs.sha256
 - `--check-paths` must report 0 hits, and `npm run lint:citations` must pass, before the results commit.
 - Exercised on the rehearsal `mcp@L2` out-root on 2026-10-20 (115 files; verify OK; `results/v1.3-study2-gate/pre-run-2026-10-20/S12.txt`).
 
+### D. A CLI-created empty `telemetry/` directory in a config dir (gate note)
+
+In the 2a semantic run, Claude CLI 2.1.304 created an empty `telemetry/` directory in the judge config dir during its own cleanup, and the judge route's isolation pre-flight (the ADR-018 listing check against `CONFIG_DIR_ALLOWLIST`, `src/llm-critic/frozen.ts`) refused the next call (`LLM_CLI_ISOLATION`; `Docs/DiagnosticRuns/v1.4-exploratory-semantic-claude-2026-10-20.md` §2).
+
+- **The 2b generator is not exposed.** The same listing check runs in the loop only when a plan has a `generatorIsolation` block (`checkIsolationBeforeSpawn`, `scripts/lib/loop/isolation.ts`). The three 2b templates have none (per-run HOME isolation off, S3), so no generator turn lists a config dir, and no `telemetry/` directory can stop a 2b turn. The zero-call dry run of the real plans loaded all 30 plans with this setting.
+- **The post-run semantic layer is exposed** (C4 and C1d run through the judge route with the judge config dir, pre-registration §4 "Semantic layer"). Before each semantic run, and again after any refusal, check and remove, names only:
+
+```sh
+J=~/.firewall/judge-claude-config
+ls -A "$J"                                     # names only; never open a file
+[ -d "$J/telemetry" ] && rmdir "$J/telemetry" && echo "removed empty telemetry/ $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $S/run/logs/judge-config.log
+```
+
+- `rmdir` removes the directory only if it is empty; if it is not empty, it fails, and that is a stop: tell the author, do not delete anything. Any other entry outside the allow-list is also a stop.
+- A refusal followed by this step and a re-run of the same call is logged and is not a semantic result. It changes no cap: the refused call made no model call. Checked on 2026-10-20: the judge config dir holds no `telemetry/` entry.
+
 ## Changelog
+- 2026-10-20: gate note on the CLI-created `telemetry/` directory (§D of the readiness gate addendum).
 - 2026-10-20: readiness gate addendum (in-run and post-run checks, archiving), before any 2b call.
 - 2026-10-20: the Fable review's run-order, acceptance and scoring answers (addendum above).
 - 2026-10-20: first version, with the rehearsal's findings applied (§3 acceptance lines).

@@ -1,17 +1,18 @@
 # Study 2b readiness gate: verdict
 
-**2026-10-20. Verdict: GO-READY-FOR-AUTHOR.** Every never-waived (NW) line is green, and every other line is green, fixed now, or registered as a dated deviation before the run with what is lost. No line is NO-GO. This verdict is not the go: under gate rule 4 and GO-2B the go is the author's, given after the author has seen this verdict. Zero generator calls were made to produce it.
+**2026-10-20. Verdict: GO-READY-FOR-AUTHOR.** Every never-waived (NW) requirement holds, and every other line is green, fixed now, or registered as a dated deviation before the run with what is lost. No line is NO-GO. One line waits on the author: D10's OSF deposit (PENDING-AUTHOR), which the pre-registration places before the first 2b call; its package is ready in `ops/osf-deposit-2b/`. The author's actions before the run are therefore two: the deposit, and the go. This verdict is not the go: under gate rule 4 and GO-2B the go is the author's, given after the author has seen this verdict. Zero generator calls were made to produce it.
 
 | Status | Lines |
 |---|---|
-| GREEN | 26 (plus the "Run once" row) |
+| GREEN | 25 (plus the "Run once" row) |
+| PENDING-AUTHOR | 1 (D10: the OSF deposit, an author-account action) |
 | FIXED | 2 (S12, D12) |
 | REGISTERED-DEVIATION | 14 (V3, V4, V5, V7, V8, V9, V10, V11, S1, S3, S10, D1, D8, D16) |
 | NO-GO | 0 |
 
 **Sources.** The gate is §6 of the pre-registration (`Docs/v1.4/study2b-preregistration.md`, registered 2026-10-20T12:36:37Z; its sha256 equals `Docs/v1.4/study2b-preregistration.registered.sha256`), with the line definitions of `Docs/v1.3/study2-readiness-gate.md` and the rule of GO-2B (`ops/decisions.md`). The new deviations are DA1 to DA7 in `Docs/v1.4/study2b-preregistration-addendum-1.md`, dated before any 2b call, because the pre-registration is already dated (its §5 rule). The coordinator's decisions behind them are DELEG12 in `ops/decisions.md`.
 
-**Evidence base.** Taken on the branch of this verdict, which is `main` after PR #316 plus this change. The commands were run from this branch with the frozen trees at the tag (`<shared>/daedalus-study2b/instrument-4d28d280/`, `daedalus-build/4d28d280/`). The outputs are in `results/v1.3-study2-gate/pre-run-2026-10-20/`. Gate rule 3 still applies: the zero-call checks are re-run at the run commit by the run session, and the live S4 re-run (9 calls) is part of the run, after the go.
+**Evidence base.** Taken on the branch of this verdict, which is `main` after PR #316 (merged at `a672d35d`) plus this change. The commands were run from this branch with the frozen trees at the tag (`<shared>/daedalus-study2b/instrument-4d28d280/`, `daedalus-build/4d28d280/`). The outputs are in `results/v1.3-study2-gate/pre-run-2026-10-20/`. Gate rule 3 still applies: the zero-call checks are re-run at the run commit by the run session, and the live S4 re-run (9 calls) is part of the run, after the go.
 
 **Hard constraints kept.** No generator call. Nothing under `../daedalus-sealed/` was opened or printed: scripts read it in-process and printed sha256s and counts only. `results/v1.3-meaning/mean-01-sample.*` was not touched. No change to `scripts/v1.3`, `src`, `presets` or the freeze tag (`git diff --stat v1.4-freeze-2026-10-20 -- src presets scripts/lib scripts/v1.3` is empty). No Neo4j. No `HEAVY_ADMISSION_BYPASS`.
 
@@ -56,7 +57,7 @@ NW = never waived under GO-2B. Evidence paths are relative to the repository roo
 | D7 pins, byte-identical re-score | **NW** | GREEN | Freeze cross-check byte-identical; frozen paths equal to X; argv.ts sha256 0ed7c13b… and `presets/layered.yaml` f0d9045d… equal to P5 and the plan pin | — |
 | D8 engine of record | — | REGISTERED-DEVIATION | **DA4**; runbook §6 "Engine parity" | Parity on a post-run sample, not on every snapshot before the run |
 | D9 one analysis script | — | GREEN | `study2b-analyse.ts`, 2a reproduced, planted effect recovered (§4); P8 hashes equal to the files | — |
-| D10 pre-registration | **NW** | GREEN | Dated 2026-10-20T12:36:37Z, before any 2b call; file sha256 equals the registered one; on `main` with PR #316. The OSF deposit with that hash follows before the first call (header) | — |
+| D10 pre-registration | **NW** | PENDING-AUTHOR (deposit) | The never-waived part holds: dated 2026-10-20T12:36:37Z, before any 2b call; file sha256 equals the registered one; on `main` (PR #316, merged at `a672d35d`). Open: the OSF deposit under embargo, carrying that sha256, which the pre-registration places before the first 2b call. It is an action on the author's OSF account; the package is ready in `ops/osf-deposit-2b/` (files, `SHA256SUMS`, README with the steps) | — (nothing waived; the line turns GREEN when the deposit is recorded) |
 | D11 arm set | — | GREEN | 3 cells, shared start (§2); the real plans load and dry-run for all three | — |
 | D12 acceptance checks, no waiver | — | FIXED | Post-run runner committed (`scripts/v1.4/post-run-acceptance.ts`, DA6) and checked on the rehearsal: 15/15 stored step snapshots built, started and passed (`E/D12/acceptance-rehearsal.json`) | — |
 | D13 coverage and import-kind counts | — | GREEN | `snapshot-coverage.ts` on 90 2a snapshots: reproduces Stage C exactly (`E/D13.txt`, `E/D13-coverage.json`); computed on every 2b snapshot after the run (runbook addendum B) | — |
@@ -67,7 +68,7 @@ NW = never waived under GO-2B. Evidence paths are relative to the repository roo
 
 ### Every NW line
 
-V1 GREEN · V2 GREEN · S4 GREEN · S11 GREEN · S13 GREEN · S14 GREEN · D7 GREEN · D10 GREEN · Run once GREEN.
+V1 GREEN · V2 GREEN · S4 GREEN · S11 GREEN · S13 GREEN · S14 GREEN · D7 GREEN · D10 PENDING-AUTHOR (deposit; the NW part, the pre-registration dated before the run, holds) · Run once GREEN.
 
 ## 2. Zero-call dry run of the real 2b plans
 
@@ -86,10 +87,11 @@ V1 GREEN · V2 GREEN · S4 GREEN · S11 GREEN · S13 GREEN · S14 GREEN · D7 GR
 ## 4. Before the first 2b call (not gate lines; listed so nothing is missed)
 
 1. **The author's go**, after seeing this verdict (gate rule 4, GO-2B).
-2. **The OSF deposit** of the pre-registration with its registered sha256, and this addendum, under embargo (pre-registration header).
+2. **The OSF deposit** of the pre-registration with its registered sha256, the analysis script and addendum 1, under embargo (pre-registration header): package and steps in `ops/osf-deposit-2b/README.md` (D10, PENDING-AUTHOR).
 3. **At the run commit:** re-run the zero-call lines (gate rule 3) and the live S4 re-run for both arms (9 calls; S4 is NW).
 4. **The D_sem provenance classifier and D_sem writer** (sem-01 §6 and §8 item 1) are committed and tested before the first 2b call, as the pre-registration requires (§4, "Semantic layer"). They do not exist yet. If they are not committed in time, the two-way D_sem is a deviation that turns that reading exploratory (sem-01 T1); 2b is not held for the semantic layer.
-5. **Optional, the author's choice (DA5):** move the session transcripts that hold the task text outside the user's HOME for the duration of the run, or add a read-outside-cwd probe to the S4 re-run. Neither is required by the gate.
+5. **Gate note, the CLI-created `telemetry/` directory.** Claude CLI 2.1.304 once created an empty `telemetry/` directory in the judge config dir, and the judge route's isolation pre-flight refused a call (2a semantic run). The 2b generator is not exposed: the loop runs that listing check only for plans with a `generatorIsolation` block, and the 2b plans have none. The post-run semantic layer (C4, C1d) uses the judge route and is exposed; the check-and-remove step (names only, `rmdir` of an empty directory, anything else a stop) is in runbook addendum D. The judge config dir holds no `telemetry/` entry today.
+6. **Optional, the author's choice (DA5):** move the session transcripts that hold the task text outside the user's HOME for the duration of the run, or add a read-outside-cwd probe to the S4 re-run. Neither is required by the gate.
 
 ## 5. New deviations and what each loses
 
@@ -109,3 +111,4 @@ V1 GREEN · V2 GREEN · S4 GREEN · S11 GREEN · S13 GREEN · S14 GREEN · D7 GR
 - Scripts (all additive, zero calls): `scripts/v1.4/post-run-acceptance.ts` and `lib/post-run-acceptance.ts` (D12); `scripts/v1.4/leakage-scan.ts` and `lib/leakage-scan.ts` (V11); `scripts/v1.4/mcp-latency-live.ts` (D5); `scripts/v1.4/v9-2a.ts` (V9); test `tests/unit/scripts/v1.4/study2b-gate-checks.test.ts`.
 - CI: `.github/workflows/ci.yml` (hash gate), `Docs/v1.4/study2b-registered-artefacts.sha256`.
 - Evidence: `results/v1.3-study2-gate/pre-run-2026-10-20/`.
+- OSF deposit package (D10, for the author's account): `ops/osf-deposit-2b/` (README, `SHA256SUMS`).
