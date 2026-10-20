@@ -2,10 +2,11 @@
  * v1.4 U3 D5: the route registry. `describeRoute` is pure; `openRoute` never calls a factory, and never reads
  * GEMINI_API_KEY, in estimate or replay mode; a Gemini route needs a model. Spied fake factories only.
  */
-import { DEFAULT_ROUTE_DEPS, NoCallProvider, ONTOLOGY_ROUTES, agyExploratoryVersions, checkRoute, describeRoute, openRoute } from '../../../../src/apg-enrich/ontology/index.js';
+import { DEFAULT_ROUTE_DEPS, NoCallProvider, ONTOLOGY_ROUTES, agyExploratoryVersions, checkRoute, claudeExploratoryVersions, describeRoute, openRoute } from '../../../../src/apg-enrich/ontology/index.js';
 import type { OpenedRoute, RouteDeps } from '../../../../src/apg-enrich/ontology/index.js';
 import { AGY_EXPLORATORY_VERSIONS, AGY_PINNED_VERSION } from '../../../../src/llm-critic/agy-cli-provider.js';
-import { JUDGE_MODEL } from '../../../../src/llm-critic/frozen.js';
+import { CLAUDE_EXPLORATORY_VERSIONS } from '../../../../src/llm-critic/claude-cli-provider.js';
+import { JUDGE_MODEL, PINNED_CLI_VERSION } from '../../../../src/llm-critic/frozen.js';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import type { LLMProvider } from '../../../../src/shared/interfaces/llm-provider.js';
 
@@ -15,15 +16,16 @@ const FAKE_LLM: LLMProvider = {
   evaluate: () => Promise.resolve(DomainResult.fail([{ code: 'LLM_CALL_FAILED', message: 'fake' }])),
 };
 
-function fakeDeps(): { deps: RouteDeps; calls: string[]; agyVersions: (readonly string[] | undefined)[] } {
+function fakeDeps(): { deps: RouteDeps; calls: string[]; agyVersions: (readonly string[] | undefined)[]; claudeVersions: (readonly string[] | undefined)[] } {
   const calls: string[] = [];
   const agyVersions: (readonly string[] | undefined)[] = [];
+  const claudeVersions: (readonly string[] | undefined)[] = [];
   const deps: RouteDeps = {
-    claudeCli: (cfg) => { calls.push(`claude:${cfg.model}`); return Promise.resolve(DomainResult.ok<OpenedRoute>({ provider: new NoCallProvider(describeRoute({ route: 'claude-cli' })), dispose: () => undefined, ready: 'ready' })); },
+    claudeCli: (cfg) => { calls.push(`claude:${cfg.model}`); claudeVersions.push(cfg.exploratoryVersions); return Promise.resolve(DomainResult.ok<OpenedRoute>({ provider: new NoCallProvider(describeRoute({ route: 'claude-cli' })), dispose: () => undefined, ready: 'ready' })); },
     geminiApi: (cfg) => { calls.push(`gemini-api:${cfg.model}:${String(cfg.temperature)}:${String(cfg.maxTokens)}`); return Promise.resolve(DomainResult.ok(FAKE_LLM)); },
     agyCli: (cfg) => { calls.push(`agy:${cfg.model}`); agyVersions.push(cfg.exploratoryVersions); return Promise.resolve(DomainResult.ok(FAKE_LLM)); },
   };
-  return { deps, calls, agyVersions };
+  return { deps, calls, agyVersions, claudeVersions };
 }
 
 /** Counts reads of GEMINI_API_KEY while `fn` runs (process.env swapped for a counting proxy). */
@@ -117,11 +119,45 @@ describe('ontology routes', () => {
       expect(agyExploratoryVersions({ route: 'gemini-agy' })).toBeUndefined();
     });
 
-    it('exploratory is refused on any other route, and the cache key (describeRoute) does not change with it', () => {
-      for (const route of ['claude-cli', 'mock'] as const) {
-        expect(checkRoute({ route, exploratory: true })).toMatchObject({ success: false, errors: [{ code: 'ONTOLOGY_ROUTE_EXPLORATORY_AGY_ONLY' }] });
-      }
+    it('exploratory is refused on the routes without a CLI pin, and the cache key (describeRoute) does not change with it', () => {
+      expect(checkRoute({ route: 'mock', exploratory: true })).toMatchObject({ success: false, errors: [{ code: 'ONTOLOGY_ROUTE_EXPLORATORY_UNSUPPORTED' }] });
+      expect(checkRoute({ route: 'gemini-api', model: 'g', temperature: 0, exploratory: true })).toMatchObject({ success: false, errors: [{ code: 'ONTOLOGY_ROUTE_EXPLORATORY_UNSUPPORTED' }] });
+      expect(checkRoute({ route: 'claude-cli', exploratory: true }).success).toBe(true);
       expect(describeRoute({ route: 'gemini-agy', model: 'g', exploratory: true })).toEqual(describeRoute({ route: 'gemini-agy', model: 'g' }));
+      expect(describeRoute({ route: 'claude-cli', exploratory: true })).toEqual(describeRoute({ route: 'claude-cli' }));
+    });
+  });
+
+  describe('claude-cli exploratory allowance (author decision D1, 2026-10-19)', () => {
+    it('the frozen judge pin is unchanged and the exploratory list is frozen', () => {
+      expect(PINNED_CLI_VERSION).toBe('2.1.294');
+      expect(CLAUDE_EXPLORATORY_VERSIONS).toEqual(['2.1.303']);
+      expect(Object.isFrozen(CLAUDE_EXPLORATORY_VERSIONS)).toBe(true);
+    });
+
+    it('an exploratory claude-cli record passes CLAUDE_EXPLORATORY_VERSIONS itself to the Claude factory', async () => {
+      const { deps, claudeVersions, agyVersions } = fakeDeps();
+      const r = await openRoute({ route: 'claude-cli', exploratory: true }, deps, { mode: 'record' });
+      expect(r.success).toBe(true);
+      expect(claudeVersions).toHaveLength(1);
+      expect(claudeVersions[0]).toBe(CLAUDE_EXPLORATORY_VERSIONS);
+      expect(agyVersions).toEqual([]);
+      expect(claudeExploratoryVersions({ route: 'claude-cli', exploratory: true })).toBe(CLAUDE_EXPLORATORY_VERSIONS);
+      expect(agyExploratoryVersions({ route: 'claude-cli', exploratory: true })).toBeUndefined();
+      expect(claudeExploratoryVersions({ route: 'gemini-agy', model: 'g', exploratory: true })).toBeUndefined();
+    });
+
+    it('without the exploratory label the Claude factory gets no extra versions (strict pin)', async () => {
+      const { deps, claudeVersions } = fakeDeps();
+      await openRoute({ route: 'claude-cli' }, deps, { mode: 'record' });
+      expect(claudeVersions).toEqual([undefined]);
+      expect(claudeExploratoryVersions({ route: 'claude-cli' })).toBeUndefined();
+    });
+
+    it('estimate and replay never reach the Claude factory, exploratory or not', async () => {
+      const { deps, calls } = fakeDeps();
+      for (const mode of ['estimate', 'replay'] as const) await openRoute({ route: 'claude-cli', exploratory: true }, deps, { mode });
+      expect(calls).toEqual([]);
     });
 
     it('estimate and replay never reach the agy factory, exploratory or not', async () => {

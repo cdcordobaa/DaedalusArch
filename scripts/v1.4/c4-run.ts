@@ -10,6 +10,7 @@
  *   npx tsx scripts/v1.4/c4-run.ts --cases --pilot --provider mock                 # scripted stand-in, 0 model calls
  *   npx tsx scripts/v1.4/c4-run.ts --cases --provider claude-cli --replay          # replay the cassettes, call nothing
  *   npx tsx scripts/v1.4/c4-run.ts --cases --pilot --provider gemini-agy --model <id> --exploratory --budget 24
+ *   npx tsx scripts/v1.4/c4-run.ts --cases --pilot --provider claude-cli --exploratory --budget 24
  *   npx tsx scripts/v1.4/c4-run.ts --project <dir> --spec <yaml> [--facts <facts.json> --layers <layers.json>] --estimate
  *
  * Options:
@@ -22,7 +23,9 @@
  *   --provider claude-cli|gemini-agy|gemini-api|mock   default mock. Live routes open only in record mode, and only
  *                               after --estimate has been read; the cap below stops the run
  *   --model <id>                required for the Gemini routes
- *   --exploratory               gemini-agy only: accept the shared exploratory agy versions; recorded in A5
+ *   --exploratory               claude-cli or gemini-agy: accept the route's exploratory CLI versions besides the frozen
+ *                               pin (CLAUDE_EXPLORATORY_VERSIONS 2.1.303, D1 2026-10-19; AGY_EXPLORATORY_VERSIONS);
+ *                               recorded in A5
  *   --estimate                  print the calls (expected, upper bound), cached answers and prompt tokens; call nothing
  *   --replay                    answer from the cassettes only (a miss is an invalid run, never a call)
  *   --runs <n>                  runs per finding (default 2, C4-01 §4.2 rule 6)
