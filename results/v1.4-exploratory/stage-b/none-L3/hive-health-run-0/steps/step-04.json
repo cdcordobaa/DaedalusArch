@@ -1,0 +1,153 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/hive-health/none/run-0",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "hive-health",
+    "arm": "none",
+    "runIndex": 0
+  },
+  "stepIndex": 3,
+  "stepId": "health-report",
+  "startedAt": "2026-10-20T04:54:17.253Z",
+  "finishedAt": "2026-10-20T04:55:17.893Z",
+  "turns": [
+    {
+      "turnId": "step-04",
+      "kind": "step",
+      "promptSha256": "daf298f31c40823e146ada8a55709ddc60dbf88b2e17b0d39df91c468ce094a0",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.21306979999999998,
+          "inputTokens": 16,
+          "outputTokens": 9941,
+          "cacheReadTokens": 125238,
+          "cacheCreationTokens": 25276,
+          "numTurns": 22,
+          "durationMs": 58565
+        },
+        "wallMs": 59690,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T04:54:17.253Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-exploratory/h-l3/bin/tsc --noEmit --incremental false -p <shared>/daedalus-exploratory/h-l3/runs/claude-code-cli/claude-sonnet-5-5/hive-health/none/run-0/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-04.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "2bc9ce15f6d272dbe11fe713d1a57862b57e66b3",
+        "sourceFiles": [
+          "business/errors.ts",
+          "business/hiveService.ts",
+          "business/models.ts",
+          "business/ports.ts",
+          "business/reportService.ts",
+          "business/swarmService.ts",
+          "business/treatmentService.ts",
+          "business/varroaFlag.ts",
+          "persistence/records.ts",
+          "persistence/repositories.ts",
+          "persistence/textHiveGateway.ts",
+          "presentation/composition.ts",
+          "presentation/main.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 15,
+        "loc": 1041,
+        "diff": {
+          "added": 2,
+          "modified": 3,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.777,
+          "blockingAhs": 0.821,
+          "verdict": "fail",
+          "violationCount": 19,
+          "blockingViolationCount": 2,
+          "advisoryViolationCount": 17,
+          "blockingByRule": {
+            "FF-S03": 2
+          },
+          "advisoryByRule": {
+            "FF-C03": 2,
+            "FF-CV03": 1,
+            "FF-CV05": 13,
+            "FF-SO01": 1
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-9342276d62dcb388",
+              "filePath": "src/presentation/composition.ts",
+              "line": 7,
+              "target": "src/persistence/repositories.ts",
+              "message": "src/presentation/composition.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-f22d9df38dbebdde",
+              "filePath": "src/presentation/composition.ts",
+              "line": 18,
+              "target": "src/persistence/textHiveGateway.ts",
+              "message": "src/presentation/composition.ts (presentation) skips layers to import src/persistence/textHiveGateway.ts (persistence)"
+            }
+          ],
+          "durationMs": 2,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "finalCommit": "2bc9ce15f6d272dbe11fe713d1a57862b57e66b3",
+  "cost": {
+    "costUsd": 0.21306979999999998,
+    "inputTokens": 16,
+    "outputTokens": 9941,
+    "wallMs": 59690
+  }
+}

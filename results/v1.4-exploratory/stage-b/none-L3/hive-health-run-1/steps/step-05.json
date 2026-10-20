@@ -1,0 +1,130 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/hive-health/none/run-1",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "hive-health",
+    "arm": "none",
+    "runIndex": 1
+  },
+  "stepIndex": 4,
+  "stepId": "hotfix-false-swarms",
+  "startedAt": "2026-10-20T05:09:03.134Z",
+  "finishedAt": "2026-10-20T05:09:50.963Z",
+  "turns": [
+    {
+      "turnId": "step-05",
+      "kind": "step",
+      "promptSha256": "6ace77ae7a5ab96661987f14678efbb5f11d29ac0adfacdbf4ebd84252d39d79",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.1411979,
+          "inputTokens": 16,
+          "outputTokens": 6691,
+          "cacheReadTokens": 94639,
+          "cacheCreationTokens": 16198,
+          "numTurns": 22,
+          "durationMs": 45927
+        },
+        "wallMs": 46923,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T05:09:03.134Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-exploratory/h-l3/bin/tsc --noEmit --incremental false -p <shared>/daedalus-exploratory/h-l3/runs/claude-code-cli/claude-sonnet-5-5/hive-health/none/run-1/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-05.json",
+        "permissionDenials": 1
+      },
+      "snapshot": {
+        "commit": "dae71b0c9105174db397576c9d8aeeeb7c54c058",
+        "sourceFiles": [
+          "business/errors.ts",
+          "business/flagging.ts",
+          "business/models.ts",
+          "business/pendingAlerts.ts",
+          "business/ports.ts",
+          "business/reportService.ts",
+          "business/services.ts",
+          "business/swarmService.ts",
+          "business/treatmentService.ts",
+          "main.ts",
+          "persistence/models.ts",
+          "persistence/repositories.ts",
+          "persistence/textHiveClient.ts",
+          "presentation/app.ts"
+        ],
+        "treeFileCount": 14,
+        "loc": 1056,
+        "diff": {
+          "added": 1,
+          "modified": 3,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.893,
+          "blockingAhs": 1,
+          "verdict": "pass",
+          "violationCount": 18,
+          "blockingViolationCount": 0,
+          "advisoryViolationCount": 18,
+          "blockingByRule": {},
+          "advisoryByRule": {
+            "FF-C03": 1,
+            "FF-CV03": 1,
+            "FF-CV05": 13,
+            "FF-SO01": 3
+          },
+          "blockingFindings": [],
+          "durationMs": 2,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "finalCommit": "dae71b0c9105174db397576c9d8aeeeb7c54c058",
+  "cost": {
+    "costUsd": 0.1411979,
+    "inputTokens": 16,
+    "outputTokens": 6691,
+    "wallMs": 46923
+  }
+}
