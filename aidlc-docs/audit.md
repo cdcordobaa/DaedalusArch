@@ -2733,3 +2733,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 semantic validity design (SEM-01); 0 model calls, no Neo4j
 
 ---
+
+## Study 2b — D_sem per sem-01; hold-out attempt 3 cited; re-dated REGISTERED
+**Timestamp**: 2026-10-20T12:36:37Z
+**User Input**: "(coordinator brief) Before dating, follow sem-01 (PR #323): D_sem as D minus the findings with a stable, grounded exception claim; D_sem two ways (all claims, and claims citing only non-agent-written text); evasion candidates per cell; the reading 'semantic reading sensitive to agent-written justifications'; C4 on 2b only after the C4 pilot and the six-case set pass their sem-01 bars with Claude, else 'not run'. Neutral wording. Re-check, date, merge."
+**AI Response**: "Applied in pre-registration §4 'Semantic layer' and DELEG11; study2b-analyse gained --dsem-nonagent, evasion candidates per cell and agentJustificationReading (tested). Merged main, which brought hold-out attempt 3 (aborted, no figure): V3, DV2 and the V4 paragraph updated. Fable re-check 3: GO-WITH-FIXES (sign rule 'for a rejection'; the provenance classifier and the D_sem writer committed before the first 2b call); both applied; re-check 4: GO. Re-dated REGISTERED 2026-10-20T12:36:37Z, before any 2b call and before the OSF deposit; sha256 in Docs/v1.4/study2b-preregistration.registered.sha256."
+**Context**: v1.4 Study 2b, pre-registration dated; zero model calls besides the Fable re-checks
+
+---
