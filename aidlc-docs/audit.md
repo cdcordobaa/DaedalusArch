@@ -2498,3 +2498,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Ran the C1d 2-case pilot on Claude (CLI 2.1.304 under the D1 exploratory allowance). Defect found; 2 grounded false positives (1 of them on the clean twin, a formatting responsibility read as presentation logic); 0 hallucinations. Gemini had 0 false positives. Report updated."
 **Context**: v1.4 instrument track, TRUST-01 L3; ≤ 40 Claude calls
 ---
+
+## v1.4 research ops: Gemini S4 on agy 1.4.2 fails; exploratory generator is Claude only
+**Timestamp**: 2026-10-20T02:12:15Z
+**User Input**: "Give it the last mile" (the one-hour, zero-call timebox on agy 1.4.2 permissions, then S4 within the 30-call approval)
+**AI Response**: "Run 1: G0 failed on a check-order artifact plus ~/.agents (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
+**Context**: v1.4 instrument track, TRUST-01 L9; 24 Gemini calls
+---
