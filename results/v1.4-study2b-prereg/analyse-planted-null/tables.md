@@ -108,6 +108,7 @@ Holm over {H1, H2, H3} at FWER 0.05. MC and exact decisions agree.
 
 - **Evasion bar:** not given (needs D†).
 - **D_sem (semantic secondary, descriptive):** H1: D_sem not available (semantic layer not run, or configuration pending); H2: D_sem not available (semantic layer not run, or configuration pending); H3: D_sem not available (semantic layer not run, or configuration pending).
+- **D_sem two ways (all claims vs non-agent claims only):** H1: not available (one of the two D_sem versions is missing); H2: not available (one of the two D_sem versions is missing); H3: not available (one of the two D_sem versions is missing).
 - **Y₁ = 0 blocks dropped** (40 blocks): H1 reject false, H2 reject false, H3 reject false; exact p H1 0.4085, H2 0.7964, H3 0.7408.
 - **Robustness:** H1 sign test p 0.4049, signed-rank p 0.4287; H2 sign test p 1.0000, signed-rank p 0.6588; H3 sign test p 0.4583, signed-rank p 0.6853.
 - **Run-index halves** (replicates ≤ 5 vs the rest): first half 20 blocks, mean D none@L2 1.60, d̄ {"H1":0.4,"H2":0.05,"H3":-0.35}; second half 20 blocks, mean D none@L2 1.65, d̄ {"H1":-0.05,"H2":0.1,"H3":0.15}; sign reversal {"H1":true,"H2":false,"H3":true}.
