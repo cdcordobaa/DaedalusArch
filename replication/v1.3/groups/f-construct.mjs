@@ -158,8 +158,8 @@ const effectsGroup = {
     res['f-cs-q4-rows'] = q4c === q4h ? `${q4c} rows in clean and` : `${q4c} / ${q4h} rows in clean and`;
     res['f-cs-q24-rows'] = `${/^\+(\d+)/.exec(rowsOf('q24-b-hex'))[1]} hexagonal rows`;
 
-    // status quo (the switch file, every question at A)
-    rescore(`--out "${join(out, 'sq')}"`);
+    // status quo (every question at A). Explicit since the author's answers were applied to the switch file (U6, ADR-V13-03).
+    rescore(`--answers "${answers('sq', {})}" --out "${join(out, 'sq')}"`);
     const sq = ctx.json(join(out, 'sq', 'report.json'));
     const bl = (m) => m.blocking;
     const met = (r, st) => r.metrics.find((m) => m.style === st);
