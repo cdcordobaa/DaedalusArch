@@ -2758,3 +2758,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, pre-registration dated; zero model calls besides the Fable re-checks
 
 ---
+
+## Study 2b — readiness gate verdict (GO-READY-FOR-AUTHOR)
+**Timestamp**: 2026-10-20T16:36:37Z
+**User Input**: "(coordinator brief) Prepare the Study 2b readiness-gate verdict from main after PR #316, with zero generator calls: re-take every line not re-taken or still open (V9, V11, D6, D12, D13, S10, S12, D5, V3, S7, V8, S13), run the zero-call dry run of the real 2b plans at R = 10 with the sealed tasks.json and pinned CLI hashes checked, write the verdict with one row per line, file new deviations by the pre-registration's own post-dating rule, and merge once Build & Test is green."
+**AI Response**: "Verdict GO-READY-FOR-AUTHOR (Docs/v1.4/study2b-gate-verdict.md): 26 GREEN plus the run-once row, 2 FIXED (S12, D12), 14 REGISTERED-DEVIATION, 0 NO-GO; all 9 never-waived lines green. New deviations DA1-DA7 in Docs/v1.4/study2b-preregistration-addendum-1.md (the registered text is unchanged); DELEG12 in ops/decisions.md. Added zero-call scripts: post-run acceptance (D12, 15/15 on the rehearsal), hashed 8-gram leakage scan (V11: no leak in the repository or the 2b shared root; the session-transcript store under HOME holds the task text, kept from the agent by read confinement only), live MCP latency (D5: p95 38 ms), V9 on 2a (78/78 step diffs agree). CI gained a registered-artefact hash gate (S10). Dry run of the real plans: tasks.json and pinned CLI sha256 match, 10 replicates filled, 30 of 30 grids completed with step turns equal to maxCalls (520 in all); the dry tree was deleted. No sealed content was opened or printed; no Neo4j; no frozen path changed."
+**Context**: v1.4 Study 2b, drift record order step: gate, after the pre-registration and before the run; the author's go follows after the author has seen the verdict
+
+---

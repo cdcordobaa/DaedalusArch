@@ -184,6 +184,64 @@ Afterwards: copy the step records, call logs and score files into `results/v1.4-
 - **Scoring adds D† and the analysis script** (§6).
 - **D14.** A live kill-and-resume passed on a practice task (`results/v1.4-study2b-prereg/d14-kill-resume.md`).
 
+## Addendum 2026-10-20 (readiness gate verdict, before any 2b call)
+
+Written with the gate verdict (`Docs/v1.4/study2b-gate-verdict.md`), before any 2b call. It adds procedures only; no plan, frame, template, threshold or frozen path changes.
+
+### A. In-run checks, after every cell of every replicate (S7, D6; zero calls)
+
+Run them from `<repo>` after each `cell` line of §5 returns, on that cell's out-root `$O` (for example `$S/run/l3/r03`). They print counts only.
+
+```sh
+# S7: evaluation errors in the step records (must be 0).
+python3 -I -c 'import json,glob,sys; n=0; t=0
+for f in glob.glob(sys.argv[1]+"/runs/**/steps/step-*.json", recursive=True):
+    d=json.load(open(f)); t+=1; n+=sum(1 for x in d["turns"] if (x.get("snapshot") or {}).get("evaluationError") or (x.get("snapshot") or {}).get("evaluation") is None)
+print("step records", t, "evaluation errors", n)' "$O"
+# D6: telemetry completeness; none@L2 and none@L3 0 problems; mcp@L2 exactly the 2 inherited step-01 lines per run.
+npx tsx scripts/v1.4/loop-telemetry-check.ts "$O" --json $S/run/score/telemetry/<cell>-r<r>.json | tail -1
+```
+
+- **S7.** A step record with an `evaluationError` is a harness failure (pre-registration §5): re-run the same `cell` line, which resumes the run; the error, the resume and any redraw are logged. A second failure makes the block incomplete (§5 there). The post-run re-score at the tag (§6) is the score of record, and its `snapshots.evaluationFailures` must be 0.
+- **D6.** Any line other than the two inherited `step-01` lines of a `mcp@L2` run (rehearsal finding F3) is a problem: stop and tell the author.
+- **S1 and the pin.** A usage-limit pause is resumed by re-running the line (§5). Before each replicate, re-check the binary's sha256 (`shasum -a 256 $C`); a mismatch stops the run (DELEG6).
+- **Reads outside the cwd (V11 guard, addendum DA5).** After each cell, count the permission denials in the turn envelopes (each names the tool and its input) and, among them, those whose input names a path outside the run's `work/` directory; print counts only. This sees refused attempts; a read the CLI allowed leaves no trace in the envelope. Any such input that names a path under the user's HOME or under `<sealed>` is reported to the author at once; a confirmed read of a sealed file outside the run is a GO-2B stop.
+- **No look at outcomes.** These checks read completeness fields only. No D, Y or finding count is read before every block is scored (pre-registration §4, "No stopping-rule change").
+
+### B. Post-run checks, before any contrast is read (V8, D12, D13; zero calls)
+
+After §6.1 and before `study2b-analyse.ts`:
+
+```sh
+# V8 and D13: per-snapshot coverage and import kinds on every 2b snapshot (unmapped share, unparsed files, barrels, require, import()).
+npx tsx scripts/v1.4/snapshot-coverage.ts --out $O/coverage $S/run/l2/r01 ... $S/run/mcp/r10     # all 30 out-roots
+# D12: post-run acceptance (pre-registration §4; DELEG6, DELEG8), on every stored step snapshot.
+npx tsx scripts/v1.4/post-run-acceptance.ts $(for r in $(seq -w 1 10); do printf -- '--cell none@L2=%s --cell none@L3=%s --cell mcp@L2=%s ' $S/run/l2/r$r $S/run/l3/r$r $S/run/mcp/r$r; done) \
+  --acceptance-root <sealed acceptance root> --harness-root $S/run/h-l2 --scratch <scratch outside every out-root> --out $O/acceptance
+```
+
+- **V8.** A snapshot with more than 10 % unmapped files or an unparsed file is flagged; the primary analysis keeps it and the registered sensitivity drops flagged blocks (pre-registration §5). The coverage table is reported per cell whatever it shows.
+- **D12.** `acceptance.json` gives the pass rate per cell, the input of evasion item 1 (`study2b-analyse.ts --acceptance`). It is never a filter on D. The runner prints counts per cell only; the session does not open the test files.
+
+### C. Archiving the out-roots (S12; zero calls)
+
+After scoring, once per out-root (30 cell out-roots and the three harness roots' `runs/` records are not archived; the out-roots hold the step records, call logs and `snapshots.git`):
+
+```sh
+A=<archive dir outside <shared>/daedalus-study2b and outside the repository>
+for c in l2 l3 mcp; do for r in $(seq -w 1 10); do
+  npx tsx scripts/v1.4/loop-archive.ts --out-root $S/run/$c/r$r --tar $A/2b-$c-r$r.tar --manifest results/v1.4-study2b/archive/$c-r$r.manifest.json
+  npx tsx scripts/v1.4/loop-archive.ts --out-root $S/run/$c/r$r --verify results/v1.4-study2b/archive/$c-r$r.manifest.json
+done; done
+npx tsx scripts/v1.4/loop-archive.ts --check-paths results/v1.4-study2b     # path-free: 0 hits
+shasum -a 256 $A/2b-*.tar > results/v1.4-study2b/archive/tarballs.sha256
+```
+
+- Commit the manifests and `tarballs.sha256` (relative paths, sha256 per file, `manifestSha256`, `tarSha256`); keep the tarballs where the author archives raw outputs (the archive is deterministic ustar, so re-archiving the same out-root gives the same `tarSha256`).
+- `--check-paths` must report 0 hits, and `npm run lint:citations` must pass, before the results commit.
+- Exercised on the rehearsal `mcp@L2` out-root on 2026-10-20 (115 files; verify OK; `results/v1.3-study2-gate/pre-run-2026-10-20/S12.txt`).
+
 ## Changelog
+- 2026-10-20: readiness gate addendum (in-run and post-run checks, archiving), before any 2b call.
 - 2026-10-20: the Fable review's run-order, acceptance and scoring answers (addendum above).
 - 2026-10-20: first version, with the rehearsal's findings applied (§3 acceptance lines).
