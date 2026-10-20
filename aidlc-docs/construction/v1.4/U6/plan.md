@@ -2,7 +2,7 @@
 
 **Unit:** U6, C3 detect (P3). **Cycle:** AI-DLC v1.4 "instrument alignment", minimal depth. **Design:** `aidlc-docs/construction/v1.4/U6/functional-design/design.md`. Companions: `adjudication-sheet.md` and `adr-drafts.md` in the same folder.
 
-**Status: NOT BUILDABLE.** This unit is design only until Gate 0 is fully ticked. Once the gate passes, this plan is the single source of truth for U6 code generation.
+**Status: BUILDABLE since 2026-10-19.** Gate 0 is ticked from the author's 61 answers on the decision desk (`ops/review/2026-10-19/decision-desk/answers.json`: 56 signed by the author, 5 delegated to the coordinator, `ops/decisions.md` DELEG). This plan is the single source of truth for U6 code generation.
 
 **Review 2026-10-18 (adversarial design review, revised in place):**
 - New gate items: G0.8 (scorer alignment, design §3.3), G0.9 (refutation criteria) and G0.10 (sequencing).
@@ -29,9 +29,9 @@
 
 ## Gate 0: author decisions (blocking; none of these is the agent's to make)
 
-- [ ] G0.1 D1: the changes to the decision sheet are written in `ops/decisions.md`. Re-read them, and re-check this plan against them.
-- [ ] G0.2 P1 and P2 confirmed (`Docs/v1.3/construct-decisions.md`, Principles).
-- [ ] G0.3 Answers:
+- [x] G0.1 (signed 2026-10-19 by the author via the decision desk: A, the decision sheet as written, no changes) D1: the changes to the decision sheet are written in `ops/decisions.md`. Re-read them, and re-check this plan against them.
+- [x] G0.2 (signed 2026-10-19 by the author via the decision desk: P1 = A, P2 = A, and Precedence = A) P1 and P2 confirmed (`Docs/v1.3/construct-decisions.md`, Principles).
+- [x] G0.3 (signed 2026-10-19 by the author via the decision desk: Q4 A, Q5 C, Q6 B with the P2 owner both FF-S01 and FF-S04, Q7 A, Q8 B, Q10 C (provisional until the G0.9 Q10 check), Q12 B, Q13 B, Q20 A; all 25 in `Docs/v1.3/construct-answers.json` and the `[Answer]:` lines) Answers:
   - Q5: D / C / A. Decide it **after** G0.8. Without scorer alignment, C is recommended.
   - Q6: B / A, plus the P2 owner.
   - Q10: C / D, provisionally C. The final choice follows Step 11.
@@ -39,13 +39,26 @@
   - Q4, Q7, Q13 and Q20: recommended A, A, B, A.
   - Q8 B, confirmed by its owning unit.
   - The author fills in the matching `[Answer]:` lines of `Docs/v1.3/construct-decisions.md` (freeze-check F3).
-- [ ] G0.4 The 9 adjudication verdicts, plus N1 if Q6 is B, signed in `adjudication-sheet.md`.
-- [ ] G0.5 Approval to clone and install (`--ignore-scripts`) the 5 external layered repositories (Step 11) and the real hex/ddd projects (Step 10), or "skip and note".
-- [ ] G0.6 Owner named for freeze runbook step 3: the Neo4j development re-run and `ue-score.ts --blind`. These are author-run steps.
-- [ ] G0.7 ADR form (one ADR-V13-03, or four), and entry into the G14 deviation list.
-- [ ] G0.8 **Scorer alignment** (design §3.3): (a) the reference, `ue-score.ts` and hold-out scorers read the answers, as a declared scoring deviation built by an approved unit before the record run; or (b) no scorer change, and the registered figures are reported as computed.
-- [ ] G0.9 **Refutation criteria** for each fresh check (Steps 10 and 11), written in the ADR draft before the check runs (design §5, guard 6).
-- [ ] G0.10 **Sequencing:** when the apply commit (Step 6) lands relative to other units' development runs. Every v1.3 consumer of `CONSTRUCT_ANSWERS` changes behaviour at that commit (design §8, §9).
+- [x] G0.4 (signed 2026-10-19 by the author via the decision desk: all 9 rows and N1 `spec`) The 9 adjudication verdicts, plus N1 if Q6 is B, signed in `adjudication-sheet.md`.
+- [x] G0.5 (signed 2026-10-19 by the author via the decision desk: A, approved, pinned commits, `--ignore-scripts`) Approval to clone and install (`--ignore-scripts`) the 5 external layered repositories (Step 11) and the real hex/ddd projects (Step 10), or "skip and note".
+- [x] G0.6 (signed 2026-10-19 by the author via the decision desk: A, the author runs both) Owner named for freeze runbook step 3: the Neo4j development re-run and `ue-score.ts --blind`. These are author-run steps.
+- [x] G0.7 (signed 2026-10-19 by the author via the decision desk: A, one ADR-V13-03, entered in the G14 list now) ADR form (one ADR-V13-03, or four), and entry into the G14 deviation list.
+- [x] G0.8 (delegated to the coordinator 2026-10-19 (recommended answer): **(b)**, no scorer change; registered figures are reported as computed, so Q5 = C) **Scorer alignment** (design §3.3): (a) the reference, `ue-score.ts` and hold-out scorers read the answers, as a declared scoring deviation built by an approved unit before the record run; or (b) no scorer change, and the registered figures are reported as computed.
+- [x] G0.9 (delegated to the coordinator 2026-10-19 (recommended answer): the four criteria below, as drafted on the signing sheet §5, dated 2026-10-19, before any fresh check ran) **Refutation criteria** for each fresh check (Steps 10 and 11), written in the ADR draft before the check runs (design §5, guard 6).
+- [x] G0.10 (signed 2026-10-19 by the author via the decision desk: A, the apply commit lands after the other units' development runs; the PR that carries it is merged only then) **Sequencing:** when the apply commit (Step 6) lands relative to other units' development runs. Every v1.3 consumer of `CONSTRUCT_ANSWERS` changes behaviour at that commit (design §8, §9).
+
+### G0.8 and G0.9 entries (2026-10-19)
+
+**G0.8 = (b), no scorer change** (delegated to the coordinator 2026-10-19 (recommended answer)). `reference-model.ts`, `ue-score.ts` and `holdout-score.ts` are not changed. The registered figures are reported as the scorers compute them. Consequences: Q5 is C (FF-S01, scored natively); no `blind-rule-mapping.json` row for FF-S05 is needed; under Q10 C the author-manifest FF-P01 rows in layered stay misses in the author view. No scoring deviation enters the G14 list.
+
+**G0.9 refutation criteria** (delegated to the coordinator 2026-10-19 (recommended answer); signing sheet `ops/notes/signing-sheet-2026-10-19.md` §5). Dated 2026-10-19, before any fresh check of Steps 10 and 11 ran. A met criterion may only send a question back to A, or Q10 from C to D; it never adds an option or changes a list.
+
+| Switch | Fresh check | The result that withdraws it |
+|---|---|---|
+| Q5 C | MO-H03 seeds and twins (hexagonal; ddd has no seeded check); correctness read of the adapter-pair rows on the real hex/ddd projects | any MO-H03 seed missed, **or** any twin gains a blocking row, **or** any listed real-code row is judged incorrect by the C3 correctness procedure and is not also reported by FF-S01 → Q5 back to A |
+| Q6 B | MO-H02 seeds with FF-S04 expected; twins | any MO-H02 seed missed, **or** any twin gains a blocking row → Q6 back to A |
+| Q10 C | FF-P01 and new FF-S01 package rows on the 5 external Layered repos | any listed row judged incorrect by the C3 procedure and not also reported by FF-S01 → Q10 goes to D |
+| Q12 B | adjacent-upward FF-S03 rows on the 5 external Layered repos | any adjacent-upward edge that Q12 B stops reporting under FF-S03 is not reported by FF-S01 either → Q12 back to A |
 
 ---
 

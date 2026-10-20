@@ -303,7 +303,15 @@ Fixed before any label, for the primary field and the stratified p̂:
 ## 12. Sign-off
 
 ```
-L4 = __        R3 accepted __   R4 accepted __   R5 accepted __
-κ definition (§4) dated: ____-__-__     sample sha256: ________________
-signed: ______________________ (author)   before first label: yes / no
+L4 = A         R3 accepted yes  R4 accepted yes  R5 accepted yes
+κ definition (§4) dated: 2026-10-19     sample sha256: recorded by the author (SAMPLE-HASH = A; expected prefix d4697ec5377d6fdc)
+signed: the author, via the decision desk, 2026-10-19   before first label: yes (no label exists on 2026-10-19)
 ```
+
+Each item above was **signed 2026-10-19 by the author via the decision desk** (`ops/review/2026-10-19/decision-desk/answers.json`; none of them was delegated):
+- **L4 = A** (practitioner reading; field A primary, κ gate on field A). Records the 2026-10-18 decision (`ops/decisions.md`).
+- **R3, R4, R5 accepted** (option A each). R4 keeps field B consistent with Q3 C (`Docs/v1.3/construct-decisions.md`); calibration item C4 stands as written.
+- **KAPPA-DATE = A.** The κ definition of §4 (pass if κ ≥ 0.60 on field A, n = 60) is binding from 2026-10-19, before any label.
+- **SAMPLE-HASH = A.** The author computes and records the full sha256 of the sample (`shasum -a 256`). The session that transcribed this sign-off did not open the sample, so the full hash is not written here; if the author's prefix differs from `d4697ec5377d6fdc`, stop and ask (§6).
+- **V6-PTR = A.** The author adds the three one-line pointers of blocker B4 to the frozen documents (validation-protocol §3, labelling §6, human-labelling-protocol §6), dated. Until they exist, V6 stays red.
+- **FIELD-A-DATE = A.** Field A labels are due by 2026-11-30, before chapters 7 to 9 (MEAN-02 §0). If the date is missed, the thesis says field A is unmeasured. It still depends on blocker B2 (a qualified rater).

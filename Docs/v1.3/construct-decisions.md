@@ -1,6 +1,6 @@
 # v1.3 construct decisions (for the author)
 
-**2026-10-15, revision 1 (adversarial review applied). Status: open, for the author to fill in.** Each question below needs one letter on its `[Answer]:` line.
+**2026-10-15, revision 1 (adversarial review applied). Status: answered 2026-10-19: all 25 questions, P1, P2 and Precedence signed by the author via the decision desk (`ops/review/2026-10-19/decision-desk/answers.json`).** Each question below needs one letter on its `[Answer]:` line.
 
 **Order of options.** In every question, option A is the status quo: what the after-fixes tool does today. Where the sealed text says something else, the question says so. The change options follow. The recommendation comes after the options, on its own line.
 
@@ -24,6 +24,11 @@ Two principles decide several questions at once. Confirm or reject each before a
 | **P2** | **One edge, one rule.** An edge is reported under the rule whose construct it breaks, and not again under a second rule. | Q4 (layer cycles), Q7 (FF-P03 consumers), Q12 (FF-S03 on upward edges), Q20 (transitive purity), Q11 (no FF-S04 in DDD) | Q5 (the new rule replaces FF-S03 for that edge). Q6: option B reports an application → adapter edge under both FF-S01 and FF-S04, which P2 argues against. The existing domain → adapter overlap of FF-S01 and FF-S04 has the same problem. |
 
 **Precedence.** When a style's canonical source and a rule's current wording disagree, the source wins (as in `Docs/v1.3-reference-notes.md`, "Precedence"). Source rows are cited as **[SRS: Style, Rule]** from `Docs/v1.3/style-rule-sources.md`.
+
+**Principle answers.**
+- P1: A, confirmed (signed 2026-10-19 by the author via the decision desk).
+- P2: A, confirmed (signed 2026-10-19 by the author via the decision desk). The declared exception is Q6 B: an application → adapter edge is reported by both FF-S01 and FF-S04; ADR-V13-03 names both owners.
+- Precedence (PREC): A, the source wins through a declared ADR (signed 2026-10-19 by the author via the decision desk). Q15, Q18 and Q21 follow the sources.
 
 ## Decide these yourself (high stakes)
 
@@ -111,7 +116,7 @@ export class OrderService {
   constructor(private readonly orders: OrderGateway, private readonly products: ProductGateway) {}
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -142,7 +147,7 @@ static fromRequest(request: Request): Member { … }
 import type { Order } from '../../ordering/domain/order/Order.js';
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -172,7 +177,7 @@ import { Member } from './Member';
 import { Loan } from './Loan';
 ```
 
-[Answer]:
+[Answer]: C (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -198,7 +203,7 @@ import { Loan } from './Loan';
 import { Clock } from '../../application/ports/Clock';
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -229,7 +234,7 @@ constructor(private readonly findAvailableRooms: FindAvailableRooms,
             private readonly roomStore: InMemoryRoomRepository) {}
 ```
 
-[Answer]:
+[Answer]: C (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -255,7 +260,7 @@ import { HttpError } from '../../adapters/inbound/http/HttpTypes';
 if (booking === undefined) throw new HttpError(404, `No booking ${bookingId}`);
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -281,7 +286,7 @@ import { InMemoryRoomRepository } from '../../adapters/outbound/persistence/InMe
     private readonly rooms: InMemoryRoomRepository,
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -316,7 +321,7 @@ export class LoanPolicy {
   private readonly clock = new SystemClock();
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -344,7 +349,7 @@ export class LoanPolicy {
 export class InMemoryLoanRepository {
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -379,7 +384,7 @@ import { Entity } from 'typeorm';
 @Entity('orders')
 ```
 
-[Answer]:
+[Answer]: C (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -404,7 +409,7 @@ import { Entity } from 'typeorm';
 import type { PlaceOrderCommand } from '../../application/PlaceOrder.js';
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -430,7 +435,7 @@ import { Money } from '../business/model/Money';
 priceOf(sku: string): Money | undefined {
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -466,7 +471,7 @@ import { InMemoryRegistrationRepository } from './in-memory-registration.reposit
     private readonly registrations: InMemoryRegistrationRepository,
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -494,7 +499,7 @@ private current: number;
 set value(v: number) { this.current = v; }
 ```
 
-[Answer]:
+[Answer]: C (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -521,7 +526,7 @@ set value(v: number) { this.current = v; }
 import { formatCurrency } from '../../utils/formatCurrency.js';
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -545,7 +550,7 @@ import { formatCurrency } from '../../utils/formatCurrency.js';
 
 **Example:** see Q11. The `import type` of `PlaceOrderCommand` in `Customer.ts` closes the cycle.
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -572,7 +577,7 @@ import { formatCurrency } from '../../utils/formatCurrency.js';
 import type { GetOrderSummary } from '../../ordering/index.js';  // g03: '../../ordering/application/GetOrderSummary.js'
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -597,7 +602,7 @@ import type { GetOrderSummary } from '../../ordering/index.js';  // g03: '../../
 import { OrderId } from '../../ordering/domain/order/value-objects/OrderId.js';
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -622,7 +627,7 @@ import { OrderId } from '../../ordering/domain/order/value-objects/OrderId.js';
 import type { OrderLine } from '../domain/order/OrderLine.js';
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -648,7 +653,7 @@ import { InMemoryRegistrationRepository } from '../registrations/in-memory-regis
 private readonly history = new InMemoryRegistrationRepository();
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -674,7 +679,7 @@ private readonly history = new InMemoryRegistrationRepository();
 export class InvoiceIssued implements DomainEvent {
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -700,7 +705,7 @@ import { WorkshopsService } from '../workshops/workshops.service';
     private readonly workshopsService: WorkshopsService,
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -726,7 +731,7 @@ import { Loan } from '../../domain/entities/Loan';
 const loan: Loan | undefined = await this.loanRepository.findById(…);
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -758,7 +763,7 @@ import { DateRange } from '../../../domain/model/DateRange';
 DateRange.parse(String(request.query['checkIn']), String(request.query['checkOut']));
 ```
 
-[Answer]:
+[Answer]: A (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
@@ -791,7 +796,7 @@ These are ambiguities 6a, 6c, 12 and 13. They stay silent only because nothing b
 export interface WaitlistRepository {
 ```
 
-[Answer]:
+[Answer]: B (signed 2026-10-19 by the author via the decision desk)
 
 ---
 
