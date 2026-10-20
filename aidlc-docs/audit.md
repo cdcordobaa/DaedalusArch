@@ -2566,3 +2566,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION — exploratory study Stage B (approved counts, amendment 1)
 
 ---
+
+## Exploratory study Stage C — per-rule exposure count (zero calls)
+**Timestamp**: 2026-10-20T06:15:51Z
+**User Input**: "Scheduled task: build the per-rule exposure count registered for Stage C (2026-10-20 changelog entry): opportunities, violations and violations per opportunity for every scored snapshot and Layered blocking rule, from the scorer's own evaluated graph; zero opportunities reported as not exercised; definitions fixed before any study data; validate on the development set; open a PR, do not merge."
+**AI Response**: "Wrote Docs/v1.4/exposure-definitions.md first (2026-10-20T06:08Z): the compiled Layered blocking rules are FF-S01, FF-S02, FF-S03, FF-P01 (FF-S04, FF-P03, FF-P06 are not compiled for layered); each opportunity query is the compiled rule text with its violation predicate deleted (cross-layer import edges for FF-S01 and FF-S03, business-layer package imports for FF-P01, module dependency edges for FF-S02). Added scripts/v1.4/exposure-count.ts and scripts/v1.4/lib/exposure.ts (cypher-interp only, the evaluated graph and compiled Cypher kept from the pipeline) and tests/unit/scripts/v1.4/exposure-count.test.ts. Dev set (13 Layered reference trees): every row check passed, counts agree with a hand import scan on clean, v03, v07 and v05; FF-P01 not exercised on 11 of 13 trees. The committed Stage A and B records hold no trees (60 scored snapshots, all no-tree), so the Stage C run is a local command in the doc. No rule, preset, answer, scorer or pass criterion changed."
+**Context**: CONSTRUCTION — exploratory study Stage C analysis addition (descriptive only)
+
+---

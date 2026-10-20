@@ -1,0 +1,900 @@
+{
+  "aggregates": [
+    {
+      "exercised": 2,
+      "group": "layered-reference",
+      "notExercised": 11,
+      "opportunities": 2,
+      "ruleId": "FF-P01",
+      "snapshots": 13,
+      "violations": 2,
+      "violationsPerOpportunity": 1.000000
+    },
+    {
+      "exercised": 13,
+      "group": "layered-reference",
+      "notExercised": 0,
+      "opportunities": 229,
+      "ruleId": "FF-S01",
+      "snapshots": 13,
+      "violations": 2,
+      "violationsPerOpportunity": 0.008734
+    },
+    {
+      "exercised": 13,
+      "group": "layered-reference",
+      "notExercised": 0,
+      "opportunities": 824,
+      "ruleId": "FF-S02",
+      "snapshots": 13,
+      "violations": 2,
+      "violationsPerOpportunity": 0.002427
+    },
+    {
+      "exercised": 13,
+      "group": "layered-reference",
+      "notExercised": 0,
+      "opportunities": 229,
+      "ruleId": "FF-S03",
+      "snapshots": 13,
+      "violations": 5,
+      "violationsPerOpportunity": 0.021834
+    }
+  ],
+  "params": {
+    "definitions": "Docs/v1.4/exposure-definitions.md",
+    "engine": "cypher-interp",
+    "mode": "devset",
+    "reference": "tests/fixtures/v1.3-reference/layered",
+    "scoringMode": "v1.3",
+    "spec": "tests/fixtures/v1.3-reference/layered/spec.yaml",
+    "style": "layered"
+  },
+  "snapshots": [
+    {
+      "id": "layered/clean",
+      "kind": "clean",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 62,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        }
+      ]
+    },
+    {
+      "id": "layered/n01-controller-parses-money",
+      "kind": "near-miss",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 63,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        }
+      ]
+    },
+    {
+      "id": "layered/n02-reporting-service-reads-database",
+      "kind": "near-miss",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 19,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 66,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 19,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        }
+      ]
+    },
+    {
+      "id": "layered/n03-views-import-model-barrel",
+      "kind": "near-miss",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 67,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        }
+      ]
+    },
+    {
+      "id": "layered/v01-gateway-returns-business-money",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.055556
+        },
+        {
+          "opportunities": 63,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.055556
+        }
+      ]
+    },
+    {
+      "id": "layered/v02-service-renders-view",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.055556
+        },
+        {
+          "opportunities": 63,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.055556
+        }
+      ]
+    },
+    {
+      "id": "layered/v03-controller-reads-gateway",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 63,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.055556
+        }
+      ]
+    },
+    {
+      "id": "layered/v04-view-types-persistence-record",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 63,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.055556
+        }
+      ]
+    },
+    {
+      "id": "layered/v05-business-model-cycle",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 64,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.015625
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        }
+      ]
+    },
+    {
+      "id": "layered/v06-router-controller-cycle",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 63,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.015873
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        }
+      ]
+    },
+    {
+      "id": "layered/v07-business-model-typeorm-decorator",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 1,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 1.000000
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 62,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        }
+      ]
+    },
+    {
+      "id": "layered/v08-business-service-takes-express-request",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 1,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 1.000000
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 62,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 17,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        }
+      ]
+    },
+    {
+      "id": "layered/v09-presentation-root-builds-database",
+      "kind": "violation",
+      "notCompiled": [
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-P03"
+        },
+        {
+          "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+          "ruleId": "FF-P06"
+        },
+        {
+          "reason": "not applicable to style layered",
+          "ruleId": "FF-S04"
+        }
+      ],
+      "rowCheck": true,
+      "rules": [
+        {
+          "opportunities": 0,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-P01",
+          "status": "not-exercised",
+          "template": "domain-purity",
+          "unit": "restricted-layer-package-import",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": null
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S01",
+          "status": "exercised",
+          "template": "dependency-direction",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 63,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S02",
+          "status": "exercised",
+          "template": "no-cyclic-deps",
+          "unit": "module-dependency-edge",
+          "violationRows": 0,
+          "violations": 0,
+          "violationsPerOpportunity": 0.000000
+        },
+        {
+          "opportunities": 18,
+          "rowsOutsideOpportunities": 0,
+          "ruleId": "FF-S03",
+          "status": "exercised",
+          "template": "no-layer-skip",
+          "unit": "cross-layer-import-edge",
+          "violationRows": 1,
+          "violations": 1,
+          "violationsPerOpportunity": 0.055556
+        }
+      ]
+    }
+  ]
+}
