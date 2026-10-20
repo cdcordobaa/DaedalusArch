@@ -2611,3 +2611,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.4 freeze (runbook steps 2-8 and 10 on the dev set); hold-out blocked before the run; zero model calls
 
 ---
+
+## v1.3 hold-out via the DELEG4 path-only blind adapter (coordinator)
+**Timestamp**: 2026-10-20T09:19:13Z
+**User Input**: "Delegated (DELEG4): run the hold-out once at the freeze tag without anyone seeing sealed content. No scorer or runner change. A blind session copies the sealed tree into the loader's layout, changing paths only and never fabricating a file. A script verifies the content-hash multiset. The frozen runner scores the copy once on one capped Neo4j, and only aggregates are reported. If loading fails again, stop without retrying."
+**AI Response**: "DELEG4 and prespec addendum 1 (own hash row) were committed before the run. The sealed copy matched 1379b561 (608 files). The blind claude-opus-5-5 session (dontAsk, no user settings or hooks, scoped tools) converted 594 files and marked ddd incomplete (patch format; the loader reads ddd as overlay). Script check: converted is a sub-multiset of the source, 0 changed files, MAP consistent. The structure check at the tag (four styles) failed: 34 variants do not materialise (a patch modifies a file that does not exist). STOP: the live run was never started and no figure exists. results/v1.3-holdout/run-1 was not created. The work dir and Neo4j were removed. Disclosure: a redaction bug printed 34 sealed project-relative file paths into the coordinator transcript. Run note Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md."
+**Context**: CONSTRUCTION, v1.3/v1.4 hold-out (prespec addendum 1); no scoring run; gate V4 stays red; 1 model session (blind adapter)
+
+---

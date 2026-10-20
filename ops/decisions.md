@@ -93,6 +93,7 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 **Post-seal changes now pending: M3, D5, N3 (and V4 if the count triggers it).** Each one is a declared deviation. The examiner review flags the count of deviations as a risk in its own right. I'll write them up together as one dated list, so the director sees all of them at once.
 
 ## Changelog
+- 2026-10-20 (after the attempt): DELEG4 outcome. The adapter converted four styles; ddd is incomplete (patch format). Under the frozen loader 34 variants do not materialise, so the run stopped before scoring and no figure exists (`Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md`). Open for the author: a registered fallback for r_f in ADR-V14-04 §4 part A, or layered becomes exploratory.
 - 2026-10-20: DELEG4 (the hold-out through a path-only blind adapter), recorded before the run.
 - 2026-10-19 (evening): F23 marked done under "Still open" (REV-04 §6 item 7).
 - 2026-10-19: the drift record, tasks, fallback, generators, styles, label timing, V4 (c), U6 under the spec-derived principle, the signing sheet, D15 (pending B2) and the automated FP/FN review.
