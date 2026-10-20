@@ -1,0 +1,57 @@
+{
+ "description": "Study 2b (confirmatory) TEMPLATE, phase (d): cell mcp@L2 (arm daedalus-mcp: the 9 spec-only MCP tools, evaluate_project denied, server built at the freeze tag and started with --confine, outside every cwd), replicates 1..R, branching at step 2 from each block’s none@L2 step-1 tree (sharedStart), steps 2-5. Claude Sonnet only (claude-sonnet-5-5, CLI pin 2.1.304, the version recorded by the plan probe); per-run HOME isolation OFF as declared for 2a (no generatorIsolation block); the generator argv of the freeze tag (explicit customizations-off flags, DELEG3; MCP only through --strict-mcp-config). TEMPLATE: fill with scripts/v1.4/study2b-plans.ts (tasks path, replicates, acceptance root, MCP build); never run unfilled. Runbook: Docs/v1.4/study2b-runbook.md.",
+ "tasksFile": "<tasks>",
+ "adapters": [
+  {
+   "adapterId": "claude-code-cli",
+   "modelId": "claude-sonnet-5-5",
+   "cliVersion": "2.1.304"
+  }
+ ],
+ "arms": [
+  "daedalus-mcp"
+ ],
+ "runs": 2,
+ "orderSeed": 20261019,
+ "outRoot": "<local>",
+ "binary": "<local>",
+ "harnessRoot": "<local>",
+ "allowBash": true,
+ "timeoutMs": 1200000,
+ "engine": "cypher-interp",
+ "specSha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8",
+ "taskProfiles": {
+  "<every-task>": {
+   "style": "layered",
+   "specMode": "static",
+   "evaluatorSpec": "presets/layered.yaml"
+  }
+ },
+ "daedalus": {
+  "nodeBinary": "<daedalus-build>/node",
+  "serverEntry": "<daedalus-build>/dist/mcp-server/main.js",
+  "specPath": "<daedalus-build>/presets/layered.yaml"
+ },
+ "frame": {
+  "specRung": "L2",
+  "attention": true
+ },
+ "acceptance": {
+  "enabled": true,
+  "testsRoot": "<acceptance-root>"
+ },
+ "sharedStart": {
+  "fromOutRoot": [
+   "<local>",
+   "<local>"
+  ],
+  "fromCell": "none@L2",
+  "step": 1
+ },
+ "callBudget": {
+  "runs": 8,
+  "stepTurns": 32,
+  "maxRepairTurns": 0,
+  "maxCalls": 32
+ }
+}
