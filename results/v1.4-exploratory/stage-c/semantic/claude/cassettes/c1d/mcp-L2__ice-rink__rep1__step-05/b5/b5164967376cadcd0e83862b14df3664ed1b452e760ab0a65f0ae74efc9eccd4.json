@@ -1,0 +1,88 @@
+{
+  "itemId": "community:0",
+  "itemName": "community:0",
+  "key": "b5164967376cadcd0e83862b14df3664ed1b452e760ab0a65f0ae74efc9eccd4",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "14785a04eb1bb836db8e9217ea8e40c3b6d038d83dc052fe04bea53852196159",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"0\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- MemberRepository (node 1cdbf101edd01700), file src/persistence/memberRepository.ts, declaration line 3: \"export class MemberRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store club members; Look up member by membership number; List all members\n- ClubService (node 2e2e749b26fb57a2), file src/business/clubService.ts, declaration line 40: \"export class ClubService {\"\n  component business, layer domain; responsibilities: Club hourly rate management; Club rink booking with conflict detection; Monthly club invoicing; Club booking listing\n- ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, declaration line 4: \"export class ClubBookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve club bookings; Query club bookings chronologically by day or month; Hold the club hourly rate\n\n## APG relations of the group\nGraph statistics: 3 classes; 4 relations inside the group; 0 outgoing relations to code outside it.\n- ClubService -> CALLS ClubBookingRepository\n- ClubService -> CALLS MemberRepository\n- ClubService -> CONSTRUCTOR_INJECTS ClubBookingRepository\n- ClubService -> CONSTRUCTOR_INJECTS MemberRepository\n\n## Comments near the code\n- ClubService.invoice: Monthly invoice: hours at the club rate; a half rink is charged at half the rate.",
+  "recordedAt": "2026-10-20T12:53:13.038Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Lets clubs book rink time (full or half rink) without double booking: conflicting reservations are detected, and bookings are stored and listed by day or month in time order.",
+        "evidence": [
+          {
+            "endLine": 40,
+            "file": "src/business/clubService.ts",
+            "nodeId": "2e2e749b26fb57a2",
+            "quote": "export class ClubService {",
+            "startLine": 40
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "export class ClubBookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Club rink reservation",
+        "realizedBy": [
+          "2e2e749b26fb57a2",
+          "440da90bcde7901a"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Bills clubs each month for the hours they booked at the club hourly rate, with half-rink bookings charged at half the rate. The business can also set and maintain that rate.",
+        "evidence": [
+          {
+            "endLine": 40,
+            "file": "src/business/clubService.ts",
+            "nodeId": "2e2e749b26fb57a2",
+            "quote": "export class ClubService {",
+            "startLine": 40
+          }
+        ],
+        "name": "Monthly club billing",
+        "realizedBy": [
+          "2e2e749b26fb57a2",
+          "440da90bcde7901a"
+        ]
+      },
+      {
+        "confidence": 0.65,
+        "description": "Keeps a register of club members, finds a member by membership number and lists all members, so club operations can be tied to known members.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/persistence/memberRepository.ts",
+            "nodeId": "1cdbf101edd01700",
+            "quote": "export class MemberRepository {",
+            "startLine": 3
+          }
+        ],
+        "name": "Club membership registry",
+        "realizedBy": [
+          "1cdbf101edd01700",
+          "2e2e749b26fb57a2"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2258,
+    "outputTokens": 744
+  }
+}

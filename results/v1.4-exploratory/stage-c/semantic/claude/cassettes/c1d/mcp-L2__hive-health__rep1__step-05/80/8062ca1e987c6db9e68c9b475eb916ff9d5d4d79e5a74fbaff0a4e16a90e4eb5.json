@@ -1,0 +1,58 @@
+{
+  "itemId": "e625ab1bb66d4580",
+  "itemName": "UnauthorizedError",
+  "key": "8062ca1e987c6db9e68c9b475eb916ff9d5d4d79e5a74fbaff0a4e16a90e4eb5",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "1bf743c7f600e426b9ab143279e56604172bb84eb0ecf4ac35adcca9b8beec40",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass UnauthorizedError (node e625ab1bb66d4580), file src/presentation/server.ts, lines 10-10.\nComponent: presentation. Declared layer: presentation (kind presentation).\nMethods:\n- (none)\nFields: (none)\n\n## APG neighbourhood\nGraph statistics: 0 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- UnauthorizedError: nameRole=\"unknown\"\n- UnauthorizedError: behaviourRole=\"coordination\"\n- UnauthorizedError: ioCategories=[]\n- UnauthorizedError: lcom4=0\n- UnauthorizedError: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"business\"]}\n\n## Source\n=====SOURCE-BEGIN src/presentation/server.ts\n10| class UnauthorizedError extends Error {}\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:20:42.426Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.4,
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/presentation/server.ts",
+            "nodeId": "e625ab1bb66d4580",
+            "quote": "class UnauthorizedError extends Error {}",
+            "startLine": 10
+          }
+        ],
+        "name": "Authorization",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.6,
+        "description": "Represents the error condition raised when a caller is not authorized to perform a request at the server boundary, allowing the transport layer to map it to an unauthorized response.",
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/presentation/server.ts",
+            "nodeId": "e625ab1bb66d4580",
+            "quote": "class UnauthorizedError extends Error {}",
+            "startLine": 10
+          }
+        ],
+        "name": "Signal unauthorized request",
+        "naturalLayer": "presentation"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2538,
+    "outputTokens": 348
+  }
+}

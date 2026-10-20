@@ -1,0 +1,151 @@
+{
+  "itemId": "8ce0b3f14177346a",
+  "itemName": "PuckPayClient",
+  "key": "5bf4e86578ffa666d83d1a688a23f6b31578af39817594ad4e9a590f0a97df0d",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "d84b5fe7ffd252df89cb2e3ca977f2c36c63316265028c20b99c3a631b0cdbf2",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass PuckPayClient (node 8ce0b3f14177346a), file src/persistence/puckPayClient.ts, lines 15-51.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- createCheckout (node d723a70ef555b905, lines 21-36, logic density 4)\n- refund (node 1a9b7ac4f6946b90, lines 39-50, logic density 2)\nFields: baseUrl, apiKey\n\n## APG neighbourhood\nGraph statistics: 2 methods; fan-out 1 (IMPLEMENTS 1); fan-in 0.\n- -> IMPLEMENTS Interface PuckPayGateway (src/persistence/puckPayClient.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- PuckPayClient: nameRole=\"adapter\"\n- PuckPayClient: behaviourRole=\"adapter\"\n- PuckPayClient: ioCategories=[\"http-client\"]\n- PuckPayClient: lcom4=1\n- PuckPayClient: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[\"http-client\"],\"componentDependencies\":[]}\n- PuckPayClient.createCheckout: logicDensity={\"branches\":2,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":2,\"density\":4}\n- PuckPayClient.refund: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\nFlags:\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of DropTextClient.send in component persistence\n- logic-density/adapter-logic-density: adapter method PuckPayClient.createCheckout: 2 branches, 0 comparisons, 0 arithmetic, 2 validation throws\n\n## Comments near the code\n- PuckPayClient: HTTP client for the PuckPay API.\n- PuckPayClient.refund: Refunds the payment made for the checkout with this reference.\n\n## Source\n=====SOURCE-BEGIN src/persistence/puckPayClient.ts\n15| export class PuckPayClient implements PuckPayGateway {\n16|   constructor(\n17|     private readonly baseUrl: string,\n18|     private readonly apiKey: string,\n19|   ) {}\n20| \n21|   async createCheckout(req: CheckoutRequest): Promise<{ checkoutUrl: string }> {\n22|     const res = await fetch(`${this.baseUrl.replace(/\\/$/, \"\")}/checkouts`, {\n23|       method: \"POST\",\n24|       headers: {\n25|         \"content-type\": \"application/json\",\n26|         authorization: `Bearer ${this.apiKey}`,\n27|       },\n28|       body: JSON.stringify(req),\n29|       signal: AbortSignal.timeout(10_000),\n30|     });\n31|     if (!res.ok) throw new Error(`PuckPay responded with HTTP ${res.status}`);\n32|     const body = (await res.json()) as { checkoutUrl?: unknown; url?: unknown };\n33|     const url = body.checkoutUrl ?? body.url;\n34|     if (typeof url !== \"string\") throw new Error(\"PuckPay response lacks a checkout link\");\n35|     return { checkoutUrl: url };\n36|   }\n37| \n38|   /** Refunds the payment made for the checkout with this reference. */\n39|   async refund(reference: string, amountCents: number): Promise<void> {\n40|     const res = await fetch(`${this.baseUrl.replace(/\\/$/, \"\")}/refunds`, {\n41|       method: \"POST\",\n42|       headers: {\n43|         \"content-type\": \"application/json\",\n44|         authorization: `Bearer ${this.apiKey}`,\n45|       },\n46|       body: JSON.stringify({ reference, amountCents }),\n47|       signal: AbortSignal.timeout(10_000),\n48|     });\n49|     if (!res.ok) throw new Error(`PuckPay refund responded with HTTP ${res.status}`);\n50|   }\n51| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:06:02.519Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 21,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "d723a70ef555b905",
+            "quote": "async createCheckout(req: CheckoutRequest): Promise<{ checkoutUrl: string }> {",
+            "startLine": 21
+          }
+        ],
+        "name": "Checkout",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 39,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "1a9b7ac4f6946b90",
+            "quote": "async refund(reference: string, amountCents: number): Promise<void> {",
+            "startLine": 39
+          }
+        ],
+        "name": "Refund",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "8ce0b3f14177346a",
+            "quote": "export class PuckPayClient implements PuckPayGateway {",
+            "startLine": 15
+          }
+        ],
+        "name": "Payment Gateway",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 46,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "1a9b7ac4f6946b90",
+            "quote": "body: JSON.stringify({ reference, amountCents }),",
+            "startLine": 46
+          }
+        ],
+        "name": "Payment Reference",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.92,
+        "description": "Sends a checkout request to the external PuckPay payment provider over HTTP and returns the hosted checkout link where the customer can pay.",
+        "evidence": [
+          {
+            "endLine": 22,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "d723a70ef555b905",
+            "quote": "const res = await fetch(`${this.baseUrl.replace(/\\/$/, \"\")}/checkouts`, {",
+            "startLine": 21
+          },
+          {
+            "endLine": 35,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "d723a70ef555b905",
+            "quote": "return { checkoutUrl: url };",
+            "startLine": 35
+          }
+        ],
+        "name": "Create payment checkout with PuckPay",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Turns HTTP failures into errors and accepts either of two response shapes (checkoutUrl or url), rejecting replies that contain no checkout link.",
+        "evidence": [
+          {
+            "endLine": 33,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "d723a70ef555b905",
+            "quote": "const url = body.checkoutUrl ?? body.url;",
+            "startLine": 33
+          },
+          {
+            "endLine": 34,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "d723a70ef555b905",
+            "quote": "if (typeof url !== \"string\") throw new Error(\"PuckPay response lacks a checkout link\");",
+            "startLine": 34
+          }
+        ],
+        "name": "Interpret and validate provider checkout response",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Asks PuckPay to refund an amount, in cents, of the payment made for a given checkout reference, and reports an error if the provider rejects the request.",
+        "evidence": [
+          {
+            "endLine": 46,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "1a9b7ac4f6946b90",
+            "quote": "body: JSON.stringify({ reference, amountCents }),",
+            "startLine": 46
+          },
+          {
+            "endLine": 49,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "1a9b7ac4f6946b90",
+            "quote": "if (!res.ok) throw new Error(`PuckPay refund responded with HTTP ${res.status}`);",
+            "startLine": 49
+          }
+        ],
+        "name": "Refund payment via PuckPay",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3617,
+    "outputTokens": 1367
+  }
+}

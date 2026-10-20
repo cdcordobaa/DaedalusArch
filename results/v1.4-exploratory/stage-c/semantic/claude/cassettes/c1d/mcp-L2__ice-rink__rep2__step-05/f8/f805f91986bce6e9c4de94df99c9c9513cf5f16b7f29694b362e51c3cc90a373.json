@@ -1,0 +1,107 @@
+{
+  "itemId": "community:1",
+  "itemName": "community:1",
+  "key": "f805f91986bce6e9c4de94df99c9c9513cf5f16b7f29694b362e51c3cc90a373",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "5741b3e072278c93cd610cdab44b12a5bf47afb9b25ab5efcb451d306ec86971",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"1\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- SessionService (node 42a26b41b626f9ec), file src/business/sessionService.ts, declaration line 26: \"export class SessionService {\"\n  component business, layer domain; responsibilities: Validate and schedule new skating sessions; List and retrieve sessions with availability; Compute session availability; Reduce capacity for overlapping club bookings\n- ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, declaration line 4: \"export class ClubBookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store club bookings; Look up club bookings by id or list them all; Query club bookings by date or month\n- ClubBookingService (node 44fb2545d0048ec3), file src/business/clubBookingService.ts, declaration line 38: \"export class ClubBookingService {\"\n  component business, layer domain; responsibilities: Validate club booking requests; Prevent overlapping rink bookings; Record club bookings; Calculate monthly club invoice\n- HireStockRepository (node ada57feca2e90c67), file src/persistence/hireStockRepository.ts, declaration line 2: \"export class HireStockRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store hire skate stock per shoe size; Look up hire stock for a shoe size; List all hire stock\n\n## APG relations of the group\nGraph statistics: 4 classes; 6 relations inside the group; 6 outgoing relations to code outside it.\n- ClubBookingService -> CALLS ClubBookingRepository\n- ClubBookingService -> CONSTRUCTOR_INJECTS ClubBookingRepository\n- SessionService -> CALLS ClubBookingRepository\n- SessionService -> CALLS HireStockRepository\n- SessionService -> CONSTRUCTOR_INJECTS ClubBookingRepository\n- SessionService -> CONSTRUCTOR_INJECTS HireStockRepository\n\n## Comments near the code\n- SessionService.effectiveCapacity: Club bookings overlapping the session take half the rink (half capacity) or all of it (zero).\n- ClubBookingService.invoice: Monthly invoice: every booked hour (whole or half rink) at the club rate.\n- HireStockRepository: Fixed stock of hire skates per shoe size.",
+  "recordedAt": "2026-10-20T13:09:30.447Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Scheduling public skating sessions and showing how many places are left, with capacity reduced when club bookings take part or all of the rink.",
+        "evidence": [
+          {
+            "endLine": 26,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "42a26b41b626f9ec",
+            "quote": "export class SessionService {",
+            "startLine": 26
+          }
+        ],
+        "name": "Skating session scheduling and availability",
+        "realizedBy": [
+          "42a26b41b626f9ec",
+          "440da90bcde7901a",
+          "ada57feca2e90c67"
+        ]
+      },
+      {
+        "confidence": 0.9,
+        "description": "Accepting club requests to book the rink (whole or half), refusing bookings that clash, and recording them.",
+        "evidence": [
+          {
+            "endLine": 38,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "44fb2545d0048ec3",
+            "quote": "export class ClubBookingService {",
+            "startLine": 38
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "export class ClubBookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Club rink booking",
+        "realizedBy": [
+          "44fb2545d0048ec3",
+          "440da90bcde7901a"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Billing each club monthly for every hour it booked at the club rate.",
+        "evidence": [
+          {
+            "endLine": 38,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "44fb2545d0048ec3",
+            "quote": "export class ClubBookingService {",
+            "startLine": 38
+          }
+        ],
+        "name": "Monthly club invoicing",
+        "realizedBy": [
+          "44fb2545d0048ec3",
+          "440da90bcde7901a"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Tracking the fixed stock of hire skates per shoe size. Session availability probably uses it, but that is inferred from the wiring, not seen in code.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "ada57feca2e90c67",
+            "quote": "export class HireStockRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Hire skate stock management",
+        "realizedBy": [
+          "ada57feca2e90c67",
+          "42a26b41b626f9ec"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2534,
+    "outputTokens": 1436
+  }
+}

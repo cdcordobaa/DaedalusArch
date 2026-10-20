@@ -1,0 +1,28 @@
+{
+  "itemId": "7186cd9797902cb3",
+  "itemName": "Customer SMS notification ~ SMS notification",
+  "key": "dbcb85d40da7ad614f08d49f52f7bfa3e0d5ae473061c5ba70bd38f25b8b02be",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "c9138be619526ebd466f0a9028dd6404caf552728743eb6b0fc27629421d05a2",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Customer SMS notification\nwhere: community:0\ncode:\n=====SOURCE-BEGIN\nexport class TextHiveClient {\n=====SOURCE-END=====\ngraph:\n- community community:0: 6 classes (NotFoundError, TextHiveClient, ConflictError, ValidationError, UnauthorizedError, ForbiddenError)\n- class TextHiveClient (node 8e8d371ee25514db): layer infrastructure, component persistence, fan-out 0, fan-in 0\n\n### B\ncapability: SMS notification\nwhere: component:persistence\ncode:\n=====SOURCE-BEGIN\nexport class TextHiveClient {\n=====SOURCE-END=====\ngraph:\n- component component:persistence: 9 classes (ScaleRepository, HiveRepository, WeightReadingRepository, InspectionRepository, TextHiveClient, ApiaryRepository, TreatmentRepository, HarvestRepository, ProductRepository)\n- class TextHiveClient (node 8e8d371ee25514db): layer infrastructure, component persistence, fan-out 0, fan-in 0",
+  "recordedAt": "2026-10-20T15:13:17.956Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.86,
+    "rationale": "A and B point to the same code: class TextHiveClient (node 8e8d371ee25514db), declared as `export class TextHiveClient {`. Both describe it as SMS notification. The only differences are how each one groups the class (community:0 vs component:persistence) and A's extra word \"Customer\". Neither changes what the code does: it is one SMS client. The visible code doesn't show who receives the messages, so the \"Customer\" qualifier isn't backed by evidence, which keeps confidence a bit below certain.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1798,
+    "outputTokens": 309
+  }
+}

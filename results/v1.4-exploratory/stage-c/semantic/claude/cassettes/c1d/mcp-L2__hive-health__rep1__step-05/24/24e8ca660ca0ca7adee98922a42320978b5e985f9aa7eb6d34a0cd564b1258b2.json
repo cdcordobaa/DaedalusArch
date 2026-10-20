@@ -1,0 +1,135 @@
+{
+  "itemId": "community:0",
+  "itemName": "community:0",
+  "key": "24e8ca660ca0ca7adee98922a42320978b5e985f9aa7eb6d34a0cd564b1258b2",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "742d9b8d96d559158231aba97700e7ea7dce11bb380afb56aa6dfd1e6ffb4319",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"0\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- NotFoundError (node 1d689d7aed6f811c), file src/business/errors.ts, declaration line 2: \"export class NotFoundError extends Error {}\"\n  component business, layer domain; responsibilities: Signal missing business resource\n- TextHiveClient (node 8e8d371ee25514db), file src/persistence/textHiveClient.ts, declaration line 1: \"export class TextHiveClient {\"\n  component persistence, layer infrastructure; responsibilities: Send SMS via TextHive gateway; Gateway configuration and failure reporting\n- ConflictError (node 97d78fc7fa6c1e13), file src/business/errors.ts, declaration line 4: \"export class ConflictError extends Error {}\"\n  component business, layer domain; responsibilities: Signal business conflict\n- ValidationError (node a1528852461831a2), file src/business/errors.ts, declaration line 1: \"export class ValidationError extends Error {}\"\n  component business, layer domain; responsibilities: Signal business validation failure\n- UnauthorizedError (node e625ab1bb66d4580), file src/presentation/server.ts, declaration line 10: \"class UnauthorizedError extends Error {}\"\n  component presentation, layer presentation; responsibilities: Signal unauthorized access\n- ForbiddenError (node eda714dca104af35), file src/business/errors.ts, declaration line 3: \"export class ForbiddenError extends Error {}\"\n  component business, layer domain; responsibilities: Signal authorization denial\n- ScaleService (node f7e458262ae72ac4), file src/business/scaleService.ts, declaration line 23: \"export class ScaleService {\"\n  component business, layer domain; responsibilities: Link a hive scale to a hive; Detect a suspected swarm from weight loss; Suppress swarm alerts; Schedule and send the swarm SMS alert\n\n## APG relations of the group\nGraph statistics: 7 classes; 2 relations inside the group; 10 outgoing relations to code outside it.\n- ScaleService -> CALLS TextHiveClient\n- ScaleService -> CONSTRUCTOR_INJECTS TextHiveClient",
+  "recordedAt": "2026-10-20T12:22:47.999Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Watches hive weight readings from linked scales, flags a suspected swarm when weight drops, lets alerts be suppressed, and schedules and sends a swarm alert by SMS.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "f7e458262ae72ac4",
+            "quote": "export class ScaleService {",
+            "startLine": 23
+          },
+          {
+            "endLine": 1,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "8e8d371ee25514db",
+            "quote": "export class TextHiveClient {",
+            "startLine": 1
+          }
+        ],
+        "name": "Swarm detection and beekeeper alerting",
+        "realizedBy": [
+          "f7e458262ae72ac4",
+          "8e8d371ee25514db"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Links a physical hive scale to a hive so that its weight readings are tied to that hive.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "f7e458262ae72ac4",
+            "quote": "export class ScaleService {",
+            "startLine": 23
+          }
+        ],
+        "name": "Hive scale registration",
+        "realizedBy": [
+          "f7e458262ae72ac4"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Sends text messages through an external SMS gateway, including gateway setup and reporting when delivery fails.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "8e8d371ee25514db",
+            "quote": "export class TextHiveClient {",
+            "startLine": 1
+          }
+        ],
+        "name": "SMS notification delivery",
+        "realizedBy": [
+          "8e8d371ee25514db"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Reports when a business request is invalid, refers to something that does not exist, conflicts with the current state, or is not allowed for the user, either because the user is not signed in or does not have permission.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "a1528852461831a2",
+            "quote": "export class ValidationError extends Error {}",
+            "startLine": 1
+          },
+          {
+            "endLine": 2,
+            "file": "src/business/errors.ts",
+            "nodeId": "1d689d7aed6f811c",
+            "quote": "export class NotFoundError extends Error {}",
+            "startLine": 2
+          },
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "eda714dca104af35",
+            "quote": "export class ForbiddenError extends Error {}",
+            "startLine": 3
+          },
+          {
+            "endLine": 4,
+            "file": "src/business/errors.ts",
+            "nodeId": "97d78fc7fa6c1e13",
+            "quote": "export class ConflictError extends Error {}",
+            "startLine": 4
+          },
+          {
+            "endLine": 10,
+            "file": "src/presentation/server.ts",
+            "nodeId": "e625ab1bb66d4580",
+            "quote": "class UnauthorizedError extends Error {}",
+            "startLine": 10
+          }
+        ],
+        "name": "Business rule and access violation reporting",
+        "realizedBy": [
+          "a1528852461831a2",
+          "1d689d7aed6f811c",
+          "97d78fc7fa6c1e13",
+          "eda714dca104af35",
+          "e625ab1bb66d4580"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2471,
+    "outputTokens": 1203
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "itemId": "ff2b8e42e8a96c17",
+  "itemName": "Session ~ Skating Session",
+  "key": "a30c6383687bcf89bb38e7ae67349009f2317383913bfa59f3c7714f77aa4355",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "c4f34ec4392d6509ac82efdb1259d9b23c8bf2f02991d8cd68675b9a05337828",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Session\nwhere: BookingRepository (uses), src/persistence/bookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nfindBySession(sessionId: string): Booking[] {\n=====SOURCE-END=====\ngraph:\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 12\n- <- CALLS Method BookingService.create\n- <- CALLS Method BookingService.get\n- <- CALLS Method BookingService.handlePaymentResult\n- <- CALLS Method BookingService.releaseExpired\n- <- CALLS Method IceMonitorService.cancel\n- <- CALLS Method IceMonitorService.hold\n- <- CALLS Method ReportService.weekly\n- <- CALLS Method SessionService.availability\n\n### B\nconcept: Skating Session\nwhere: BookingService (uses), src/business/bookingService.ts, component business\ncode:\n=====SOURCE-BEGIN\nconst session = this.sessions.findById(input.sessionId);\n=====SOURCE-END=====\ngraph:\n- class BookingService (node 3aa201f0edaa9fd6): layer domain, component business, fan-out 13, fan-in 0\n- -> CALLS Method BookingRepository.create\n- -> CALLS Method BookingRepository.findActiveByMembership\n- -> CALLS Method BookingRepository.findById\n- -> CALLS Method BookingRepository.findPending\n- -> CALLS Method BookingRepository.save\n- -> CALLS Method HireStockRepository.get\n- -> CALLS Method SessionRepository.findById\n- -> CALLS Method SessionService.availability",
+  "recordedAt": "2026-10-20T13:15:43.665Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "A and B are the same concept. Both refer to the session that bookings point to through a sessionId. In A, BookingRepository looks up bookings with `findBySession(sessionId: string)`. In B, BookingService loads the session with `this.sessions.findById(input.sessionId)` through SessionRepository. In an ice rink booking setting (IceMonitorService, HireStockRepository), 'Session' and 'Skating Session' are the same real-world bookable skating time slot under two names.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2052,
+    "outputTokens": 283
+  }
+}

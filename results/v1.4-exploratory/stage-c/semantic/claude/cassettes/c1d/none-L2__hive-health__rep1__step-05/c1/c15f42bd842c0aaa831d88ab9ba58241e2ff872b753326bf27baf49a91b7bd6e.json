@@ -1,0 +1,58 @@
+{
+  "itemId": "a1528852461831a2",
+  "itemName": "ValidationError",
+  "key": "c15f42bd842c0aaa831d88ab9ba58241e2ff872b753326bf27baf49a91b7bd6e",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "d0ba19871ecc183ff0db13eb77e0504fde25cebe3ab5a2a572ba34802457027b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ValidationError (node a1528852461831a2), file src/business/errors.ts, lines 1-1.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- (none)\nFields: (none)\n\n## APG neighbourhood\nGraph statistics: 0 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ValidationError: nameRole=\"unknown\"\n- ValidationError: behaviourRole=\"coordination\"\n- ValidationError: ioCategories=[]\n- ValidationError: lcom4=0\n- ValidationError: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\nFlags:\n- communities/community-component-mismatch: src/business/errors.ts (component business) clusters with community 0 whose majority component is presentation\n\n## Source\n=====SOURCE-BEGIN src/business/errors.ts\n1| export class ValidationError extends Error {}\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:22:05.145Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.5,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "a1528852461831a2",
+            "quote": "export class ValidationError extends Error {}",
+            "startLine": 1
+          }
+        ],
+        "name": "Validation Failure",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.7,
+        "description": "Gives the business layer its own error type, so a broken business rule or invalid input can be told apart from generic technical errors.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "a1528852461831a2",
+            "quote": "export class ValidationError extends Error {}",
+            "startLine": 1
+          }
+        ],
+        "name": "Signal business validation failure",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2555,
+    "outputTokens": 323
+  }
+}

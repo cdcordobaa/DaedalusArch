@@ -1,0 +1,28 @@
+{
+  "itemId": "621af0be5de8c006",
+  "itemName": "SMS text messaging to customers ~ Customer SMS notification",
+  "key": "c9b152a96b5845934a4469ae61e87361c30be5cbd6b1f980be84079a2e1a50f4",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "e2b185c126f134248a380a7de18ad38bcfd281eef28311cf315d88954d0f34af",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: SMS text messaging to customers\nwhere: community:0\ncode:\n=====SOURCE-BEGIN\nexport class DropTextClient {\n=====SOURCE-END=====\ngraph:\n- community community:0: 2 classes (DomainError, DropTextClient)\n- class DropTextClient (node 0e0ffaf33c6872c8): layer infrastructure, component persistence, fan-out 0, fan-in 2\n\n### B\ncapability: Customer SMS notification\nwhere: component:persistence\ncode:\n=====SOURCE-BEGIN\nexport class DropTextClient {\n=====SOURCE-END=====\ngraph:\n- component component:persistence: 8 classes (DropTextClient, MemberRepository, BookingRepository, ClubBookingRepository, TemperatureRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class DropTextClient (node 0e0ffaf33c6872c8): layer infrastructure, component persistence, fan-out 0, fan-in 2",
+  "recordedAt": "2026-10-20T15:26:23.556Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "A and B name the same capability: sending SMS text messages to customers. Both point to the same class, DropTextClient (node 0e0ffaf33c6872c8, infrastructure layer, persistence component). \"SMS text messaging to customers\" and \"Customer SMS notification\" are two wordings of that one capability. They are scoped differently. A comes from community:0, which holds DomainError and DropTextClient. B comes from the larger persistence component, whose other classes are repositories and PuckPayClient. Only DropTextClient relates to SMS in either scope, so in both cases the capability rests on that one class.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1762,
+    "outputTokens": 381
+  }
+}

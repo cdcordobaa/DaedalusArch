@@ -1,0 +1,108 @@
+{
+  "itemId": "8e8d371ee25514db",
+  "itemName": "TextHiveClient",
+  "key": "b30f6cadb473d613540f78a3dda80dcc5b41717a7e044f76df03545234849ade",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "52ffec4a04098683f05d6ce0b2439df3dd35b6e8ca3d4b7a841189f1ec967f65",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TextHiveClient (node 8e8d371ee25514db), file src/persistence/textHiveClient.ts, lines 1-13.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- sendSms (node 0b796fc4ce30a87c, lines 4-12, logic density 4)\nFields: baseUrl\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 2 (CALLS 1, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method ScaleService.sendIfStillSuspected (src/business/scaleService.ts)\n- <- CONSTRUCTOR_INJECTS Class ScaleService (src/business/scaleService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TextHiveClient: nameRole=\"adapter\"\n- TextHiveClient: behaviourRole=\"adapter\"\n- TextHiveClient: ioCategories=[\"http-client\"]\n- TextHiveClient: lcom4=1\n- TextHiveClient: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[\"http-client\"],\"componentDependencies\":[]}\n- TextHiveClient.sendSms: logicDensity={\"branches\":2,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":2,\"density\":4}\nFlags:\n- logic-density/adapter-logic-density: adapter method TextHiveClient.sendSms: 2 branches, 0 comparisons, 0 arithmetic, 2 validation throws\n- communities/community-component-mismatch: src/persistence/textHiveClient.ts (component persistence) clusters with community 0 whose majority component is business\n\n## Source\n=====SOURCE-BEGIN src/persistence/textHiveClient.ts\n 1| export class TextHiveClient {\n 2|   constructor(private readonly baseUrl: string | undefined = process.env.TEXTHIVE_URL) {}\n 3| \n 4|   async sendSms(phoneNumber: string, message: string): Promise<void> {\n 5|     if (!this.baseUrl) throw new Error(\"TEXTHIVE_URL is not configured\");\n 6|     const response = await fetch(this.baseUrl, {\n 7|       method: \"POST\",\n 8|       headers: { \"Content-Type\": \"application/json\" },\n 9|       body: JSON.stringify({ phoneNumber, message }),\n10|     });\n11|     if (!response.ok) throw new Error(`TextHive responded with ${response.status}`);\n12|   }\n13| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:17:27.881Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "async sendSms(phoneNumber: string, message: string): Promise<void> {",
+            "startLine": 4
+          }
+        ],
+        "name": "SMS Notification",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.65,
+        "evidence": [
+          {
+            "endLine": 9,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "body: JSON.stringify({ phoneNumber, message }),",
+            "startLine": 9
+          }
+        ],
+        "name": "Phone Number",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.92,
+        "description": "Delivers an SMS text message to a phone number by POSTing a JSON payload to the external TextHive HTTP service.",
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "const response = await fetch(this.baseUrl, {",
+            "startLine": 6
+          },
+          {
+            "endLine": 9,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "body: JSON.stringify({ phoneNumber, message }),",
+            "startLine": 9
+          }
+        ],
+        "name": "Send SMS via TextHive gateway",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Reads the TextHive endpoint from the environment, refuses to send when it isn't configured, and turns non-OK HTTP responses into errors.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "8e8d371ee25514db",
+            "quote": "constructor(private readonly baseUrl: string | undefined = process.env.TEXTHIVE_URL) {}",
+            "startLine": 2
+          },
+          {
+            "endLine": 5,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "if (!this.baseUrl) throw new Error(\"TEXTHIVE_URL is not configured\");",
+            "startLine": 5
+          },
+          {
+            "endLine": 11,
+            "file": "src/persistence/textHiveClient.ts",
+            "nodeId": "0b796fc4ce30a87c",
+            "quote": "if (!response.ok) throw new Error(`TextHive responded with ${response.status}`);",
+            "startLine": 11
+          }
+        ],
+        "name": "Gateway configuration and failure reporting",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3101,
+    "outputTokens": 948
+  }
+}

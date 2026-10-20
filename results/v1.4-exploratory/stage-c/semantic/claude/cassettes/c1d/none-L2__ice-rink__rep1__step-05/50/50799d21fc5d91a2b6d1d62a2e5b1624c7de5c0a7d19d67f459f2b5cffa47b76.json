@@ -1,0 +1,28 @@
+{
+  "itemId": "1baee6cfd92d5aee",
+  "itemName": "Club rink hire and monthly invoicing ~ Club rink booking and monthly invoicing",
+  "key": "50799d21fc5d91a2b6d1d62a2e5b1624c7de5c0a7d19d67f459f2b5cffa47b76",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "e69b5373acde208eea5adc737322a78beb623822a01c5ce319eb77c577a247ba",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Club rink hire and monthly invoicing\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class ClubBookingRepository {\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- community community:1: 8 classes (MemberRepository, RinkService, BookingRepository, ClubBookingRepository, TemperatureRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 25, fan-in 0\n- class ClubBookingRepository (node 440da90bcde7901a): layer infrastructure, component persistence, fan-out 0, fan-in 8\n\n### B\ncapability: Club rink booking and monthly invoicing\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 2 classes (DomainError, RinkService)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 25, fan-in 0",
+  "recordedAt": "2026-10-20T15:24:53.147Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "A and B describe the same capability. In club rink use, \"hire\" and \"booking\" mean the same thing, and both capabilities cover monthly invoicing. Both rest on the same domain class, RinkService (node 21c65604dec116b1, layer domain, component business). A is scoped to community:1, which also contains ClubBookingRepository (node 440da90bcde7901a), the persistence class for club bookings. B is scoped to component:business, which contains RinkService. The two differ only in how the code is grouped, not in what the capability does.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1802,
+    "outputTokens": 306
+  }
+}

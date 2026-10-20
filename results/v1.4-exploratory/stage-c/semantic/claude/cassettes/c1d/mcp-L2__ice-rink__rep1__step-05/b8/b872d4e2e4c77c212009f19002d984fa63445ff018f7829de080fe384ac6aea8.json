@@ -1,0 +1,28 @@
+{
+  "itemId": "258408a0918f366f",
+  "itemName": "Skate hire inventory ~ Skate hire stock management",
+  "key": "b872d4e2e4c77c212009f19002d984fa63445ff018f7829de080fe384ac6aea8",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "a33031a369d3951890dc47e82ca041ed7e2b092a864bdeb535ef94c96e0a6399",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Skate hire inventory\nwhere: community:3\ncode:\n=====SOURCE-BEGIN\nexport class HireStockRepository {\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- community community:3: 5 classes (RinkService, BookingRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0\n- class HireStockRepository (node ada57feca2e90c67): layer infrastructure, component persistence, fan-out 0, fan-in 5\n\n### B\ncapability: Skate hire stock management\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 5 classes (DomainError, RinkService, ClubService, ReportService, IceMonitorService)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0",
+  "recordedAt": "2026-10-20T13:02:39.081Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.72,
+    "rationale": "I think A and B name the same capability. \"Skate hire inventory\" and \"Skate hire stock management\" mean nearly the same thing: keeping track of the skates available to hire. Both point to the same class, RinkService (node 21c65604dec116b1, domain layer, business component), and the only code shown for either is `export class RinkService {`. A also includes HireStockRepository (node ada57feca2e90c67), the persistence class that stores the hire stock. B is attached to the whole business component, which also holds ClubService, ReportService and IceMonitorService, so its scope is wider. The two differ in where they are located, not in what they describe. B probably locates the same capability at the domain-service level, while A also includes its storage. My confidence is moderate because B's location is broad and the business component does not contain HireStockRepository.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1778,
+    "outputTokens": 540
+  }
+}

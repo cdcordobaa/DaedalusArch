@@ -9,7 +9,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 - **The 9 spec–manifest disagreement rows (C3).** U6 will deliver a short adjudication sheet.
 - ~~**F23.**~~ *Done 2026-10-19:* the author and an examiner compared the domains with the sealed list; two demo tasks were replaced (`Docs/DiagnosticRuns/v1.3-f23-and-v4-count-2026-10-18.md`, Part 3).
 
-## Settled in chat, 2026-10-19
+## Settled by the author, 2026-10-19
 
 | Id | Decision | Work it creates |
 |---|---|---|
@@ -57,7 +57,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 | **DELEG-H3** | **Delegated to the coordinator under GO-2B, 2026-10-20, recorded 11:07Z before attempt 3: hold-out attempt 3, one try only.** It combines attempt 1 path-only layout (the attempt-1 blind adapter session re-run unchanged, because its MAP was deleted with the work dir) with attempt 2 header-only repair of creation patches, now applied by a deterministic script (in a header line `--- a/<p>` with <p> absent from the clean project becomes `--- /dev/null`). It is verified by the attempt-2 verifier unchanged, then the structure check runs at the tag on the 4 patch-format styles. On 0 problems the hold-out runs live once on one capped Neo4j; on any problem, STOP. Fallback F-RF (addendum 2 §2) still applies if layered gets no figure | `Docs/v1.3/holdout-prespec-addendum-3-2026-10-20.md` |
 | **DELEG12** | **Study 2b readiness gate, delegated to the coordinator under GO-2B (2026-10-20, before any 2b call).** The gate (§6 of the pre-registration, 42 lines) is re-taken with zero generator calls; verdict GO-READY-FOR-AUTHOR, no NW line red. Lines that could not be made green are registered as dated deviations DA1–DA7 in pre-registration addendum 1, because the pre-registration is already dated: (DA1, V9) the MCP-vs-scorer composition-root disagreement stays a limitation, since a fix needs `src/`; D† is the guard (2a: 78/78 step diffs agree); (DA2, S10) CI on `main` runs a registered-artefact hash gate instead of `--check-prereg`, which the loop harness lacks and which would need frozen code; (DA3, V8) fidelity is measured after the run on every 2b snapshot at the TRUST-01 L1 bar; (DA4, D8) engine parity on a post-run seeded sample, Neo4j governing; (DA5, V11) leak rule fixed before the spans were seen (a shared verbatim run of 20 words or more, or a whole-file match): no leak in the repository or the 2b shared root, the session-transcript store under HOME holds the task text and is kept from the agent by read confinement only, with a post-cell denial check; (DA6, D12) the post-run acceptance runner is committed as registered and checked on the rehearsal (15/15); (DA7, S1) the usage-limit pause is not exercised live. S12 (archiving procedure) and D12 are fixed. The author's go follows after the author has seen the verdict | `Docs/v1.4/study2b-gate-verdict.md`; `Docs/v1.4/study2b-preregistration-addendum-1.md` |
 
-## Settled in chat, 2026-10-18 (late)
+## Settled by the author, 2026-10-18 (late)
 - **D1:** confirm the decision sheet **as written**, with no changes.
 - **L4:** **practitioner reading**: a finding is meaningful if a competent developer of that style would ask for it to change in review. Style fidelity is recorded as a second field.
 - **Standing OK for three counted runs.** Each one is still reported with its count before it starts:
@@ -72,7 +72,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 
 | Id | Decision | Work it creates |
 |---|---|---|
-| **M3** | **Study 2 is redesigned around drift.** Confirmed in chat, knowing that the registered simulation puts trend outcomes at power ≤ 0.08 | A design note first (working mode). Then a new primary outcome, a new power simulation, and updates to the deviation record and readiness gate before the freeze, all taken to the director at design stage |
+| **M3** | **Study 2 is redesigned around drift.** Confirmed by the author, knowing that the registered simulation puts trend outcomes at power ≤ 0.08 | A design note first (working mode). Then a new primary outcome, a new power simulation, and updates to the deviation record and readiness gate before the freeze, all taken to the director at design stage |
 | **M5** | The efficiency test (graph tools vs raw files) becomes a thesis result | A design note: fixed questions, repo sizes, tool sets and caps, a call count, and a falsifier |
 | **D2b** | Layered keeps counting wiring-code imports; no composition slot | Keeps the base rate at 5.33 and the power. The count includes imports from correct wiring code, and this is stated as a construct limit |
 | **D5** | DDD gets a declared post-seal cycle rule, with an ADR | An ADR plus the rule. It counts as a deviation and changes the tiers Study 2 is scored on |
@@ -83,9 +83,9 @@ The working copy is the decision board, a private claude.ai artifact the author 
 
 **These match my recommendation:**
 - **D2a:** run F23 now.
-- **D3:** the free rater labels meaning on about 60 findings, plus the K3 cases. Confirmed in chat.
-- **M1:** the claim is F1–F3 plus Study 2. Tacit knowledge goes in the discussion. Confirmed in chat.
-- **M2:** confirmatory claims only where norms are declared (greenfield). Changed in chat from "both".
+- **D3:** the free rater labels meaning on about 60 findings, plus the K3 cases. Confirmed by the author.
+- **M1:** the claim is F1–F3 plus Study 2. Tacit knowledge goes in the discussion. Confirmed by the author.
+- **M2:** confirmatory claims only where norms are declared (greenfield). Changed by the author from "both".
 - **M4:** the model interprets before detection, as facts.
 - **M6:** pre-register an evasion check.
 - **N1:** the model supplies facts, not verdicts.
@@ -111,6 +111,6 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 - 2026-10-20: DELEG4 (the hold-out through a path-only blind adapter), recorded before the run.
 - 2026-10-19 (evening): F23 marked done under "Still open" (REV-04 §6 item 7).
 - 2026-10-19: the drift record, tasks, fallback, generators, styles, label timing, V4 (c), U6 under the spec-derived principle, the signing sheet, D15 (pending B2) and the automated FP/FN review.
-- 2026-10-18: all board decisions recorded except L4, plus the D1 changes. M2, M3, D3 and M1 were confirmed in chat.
+- 2026-10-18: all board decisions recorded except L4, plus the D1 changes. M2, M3, D3 and M1 were confirmed by the author.
 - 2026-10-18: D4 settled.
 - 2026-10-18: first version, D1–D7.

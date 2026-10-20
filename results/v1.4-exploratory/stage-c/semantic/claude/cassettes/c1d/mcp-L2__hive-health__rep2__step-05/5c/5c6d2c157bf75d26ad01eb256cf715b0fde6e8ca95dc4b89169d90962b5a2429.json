@@ -1,0 +1,252 @@
+{
+  "itemId": "67cb7dff33e3b097",
+  "itemName": "BeekeepingService",
+  "key": "5c6d2c157bf75d26ad01eb256cf715b0fde6e8ca95dc4b89169d90962b5a2429",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "e1f7c832dfdc66d8a3f7eafb1bcf80ed552d3185152f950d05b453331fce5c1a",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass BeekeepingService (node 67cb7dff33e3b097), file src/business/services.ts, lines 53-216.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- registerApiary (node f74d7f9a2baf64e4, lines 63-70, logic density 0)\n- listApiaries (node 0f0c23d4ba590976, lines 72-74, logic density 0)\n- getApiary (node 8c59a7d4cd3c7cda, lines 76-80, logic density 2)\n- registerHive (node 1113f209fcd6f84e, lines 82-94, logic density 3)\n- listHives (node 3d6cd4eabce12452, lines 96-99, logic density 0)\n- getHive (node 2cc00c141875bad1, lines 101-103, logic density 0)\n- listHivesNeedingTreatment (node ed20f95b35b2d5c1, lines 105-110, logic density 0)\n- recordInspection (node 5fcdb4ba08d6fc82, lines 112-148, logic density 8)\n- listInspections (node b51c33e2844e822f, lines 150-153, logic density 0)\n- findHive (node 59ef1e784c6734ca, lines 155-159, logic density 2)\n- toStatus (node 42c28f9b8ff24726, lines 161-167, logic density 0)\n- isFlagged (node f9273e3d7a892096, lines 172-201, logic density 11)\n- latestInspection (node 2cb0cb88dddffbf4, lines 203-215, logic density 5)\nFields: apiaries, hives, inspections, treatments, onInspection\n\n## APG neighbourhood\nGraph statistics: 13 methods; fan-out 14 (CALLS 10, CONSTRUCTOR_INJECTS 4); fan-in 2 (CALLS 1, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method ReportService.quarterlyReport (src/business/reportService.ts)\n- -> CALLS Method ApiaryRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method ApiaryRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method ApiaryRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findByApiary (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method InspectionRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method InspectionRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.findByHive (src/persistence/repositories.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- -> CONSTRUCTOR_INJECTS Class ApiaryRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class InspectionRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentRepository (src/persistence/repositories.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- BeekeepingService: nameRole=\"service\"\n- BeekeepingService: behaviourRole=\"business-logic\"\n- BeekeepingService: ioCategories=[]\n- BeekeepingService: lcom4=1\n- BeekeepingService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- BeekeepingService.registerApiary: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BeekeepingService.listApiaries: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BeekeepingService.getApiary: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- BeekeepingService.registerHive: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":1,\"density\":3}\n- BeekeepingService.listHives: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BeekeepingService.getHive: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BeekeepingService.listHivesNeedingTreatment: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BeekeepingService.recordInspection: logicDensity={\"branches\":3,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":3,\"density\":8}\n- BeekeepingService.listInspections: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BeekeepingService.findHive: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- BeekeepingService.toStatus: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BeekeepingService.isFlagged: logicDensity={\"branches\":5,\"comparisons\":2,\"arithmetic\":4,\"validationThrows\":0,\"density\":11}\n- BeekeepingService.latestInspection: logicDensity={\"branches\":2,\"comparisons\":3,\"arithmetic\":0,\"validationThrows\":0,\"density\":5}\nFlags:\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.linkScale in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.linkScale in component business\n- clones/same-component-near: fragment clone (near, similarity 0.80) of ScaleService.linkScale in component business\n- clones/same-component-near: fragment clone (near, similarity 0.80) of ScaleService.linkScale in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of BeekeepingService.findHive in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of BeekeepingService.getApiary in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of TreatmentService.findHive in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BeekeepingService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BeekeepingService.registerHive in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordTreatment in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordHarvest in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordTreatment in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordHarvest in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.registerProduct in component business\n- clones/same-component-near: fragment clone (near, similarity 0.81) of TreatmentService.recordHarvest in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of TreatmentService.findHive in component business\n\n## Comments near the code\n- BeekeepingService.isFlagged: A hive is flagged by an inspection above the threshold and stays flagged / until a treatment is recorded and a later inspection is within the threshold. / Only events before `before` (epoch ms) are considered.\n\n## Source\n=====SOURCE-BEGIN src/business/services.ts\n 53| export class BeekeepingService {\n 54|   constructor(\n 55|     private readonly apiaries: ApiaryRepository,\n 56|     private readonly hives: HiveRepository,\n 57|     private readonly inspections: InspectionRepository,\n 58|     private readonly treatments: TreatmentRepository,\n 59|   ) {}\n 60| \n 61|   onInspection?: (hiveId: string, inspectionTime: number) => void;\n 62| \n 63|   registerApiary(memberId: string | undefined, input: { name?: unknown; region?: unknown }): Apiary {\n 64|     const ownerId = requireMember(memberId);\n 65|     return this.apiaries.create({\n 66|       ownerId,\n 67|       name: requireString(input.name, \"name\"),\n 68|       region: requireString(input.region, \"region\"),\n 69|     });\n 70|   }\n 71| \n 72|   listApiaries(): Apiary[] {\n 73|     return this.apiaries.findAll();\n 74|   }\n 75| \n 76|   getApiary(id: string): Apiary {\n 77|     const apiary = this.apiaries.findById(id);\n 78|     if (!apiary) throw new DomainError(\"not_found\", \"Apiary not found\");\n 79|     return apiary;\n 80|   }\n 81| \n 82|   registerHive(memberId: string | undefined, apiaryId: string, input: { name?: unknown }): HiveStatus {\n 83|     const ownerId = requireMember(memberId);\n 84|     const apiary = this.getApiary(apiaryId);\n 85|     if (apiary.ownerId !== ownerId) {\n 86|       throw new DomainError(\"forbidden\", \"Only the apiary owner can add hives\");\n 87|     }\n 88|     const hive = this.hives.create({\n 89|       apiaryId,\n 90|       ownerId,\n 91|       name: requireString(input.name, \"name\"),\n 92|     });\n 93|     return this.toStatus(hive);\n 94|   }\n 95| \n 96|   listHives(apiaryId: string): HiveStatus[] {\n 97|     this.getApiary(apiaryId);\n 98|     return this.hives.findByApiary(apiaryId).map((h) => this.toStatus(h));\n 99|   }\n100| \n101|   getHive(id: string): HiveStatus {\n102|     return this.toStatus(this.findHive(id));\n103|   }\n104| \n105|   listHivesNeedingTreatment(): HiveStatus[] {\n106|     return this.hives\n107|       .findAll()\n108|       .map((h) => this.toStatus(h))\n109|       .filter((h) => h.needsTreatment);\n110|   }\n111| \n112|   recordInspection(\n113|     memberId: string | undefined,\n114|     hiveId: string,\n115|     input: {\n116|       date?: unknown;\n117|       queenSeen?: unknown;\n118|       broodFrames?: unknown;\n119|       temperament?: unknown;\n120|       varroaPer100Bees?: unknown;\n121|     },\n122|   ): Inspection {\n123|     const ownerId = requireMember(memberId);\n124|     const hive = this.findHive(hiveId);\n125|     if (hive.ownerId !== ownerId) {\n126|       throw new DomainError(\"forbidden\", \"Only the hive owner can record inspections\");\n127|     }\n128|     const date = requireDate(input.date);\n129|     if (typeof input.queenSeen !== \"boolean\") {\n130|       throw new DomainError(\"validation\", \"queenSeen must be a boolean\");\n131|     }\n132|     const broodFrames = requireIntInRange(input.broodFrames, \"broodFrames\", 0, 100);\n133|     const temperament = requireIntInRange(input.temperament, \"temperament\", 1, 5);\n134|     const mites = input.varroaPer100Bees;\n135|     if (typeof mites !== \"number\" || !Number.isFinite(mites) || mites < 0) {\n136|       throw new DomainError(\"validation\", \"varroaPer100Bees must be a number >= 0\");\n137|     }\n138|     const inspection = this.inspections.create({\n139|       hiveId,\n140|       date,\n141|       queenSeen: input.queenSeen,\n142|       broodFrames,\n143|       temperament,\n144|       varroaPer100Bees: mites,\n145|     });\n146|     this.onInspection?.(hiveId, Date.parse(date));\n147|     return inspection;\n148|   }\n149| \n150|   listInspections(hiveId: string): Inspection[] {\n151|     this.findHive(hiveId);\n152|     return this.inspections.findByHive(hiveId);\n153|   }\n154| \n155|   private findHive(id: string): Hive {\n156|     const hive = this.hives.findById(id);\n157|     if (!hive) throw new DomainError(\"not_found\", \"Hive not found\");\n158|     return hive;\n159|   }\n160| \n161|   private toStatus(hive: Hive): HiveStatus {\n162|     return {\n163|       ...hive,\n164|       latestInspection: this.latestInspection(hive.id),\n165|       needsTreatment: this.isFlagged(hive.id),\n166|     };\n167|   }\n168| \n169|   // A hive is flagged by an inspection above the threshold and stays flagged\n170|   // until a treatment is recorded and a later inspection is within the threshold.\n171|   // Only events before `before` (epoch ms) are considered.\n172|   isFlagged(hiveId: string, before: number = Infinity): boolean {\n173|     type Event = { time: number; order: number; mites?: number };\n174|     const events: Event[] = [\n175|       ...this.inspections.findByHive(hiveId).map((i) => ({\n176|         time: Date.parse(i.date),\n177|         order: i.recordedAt,\n178|         mites: i.varroaPer100Bees,\n179|       })),\n180|       ...this.treatments.findByHive(hiveId).map((t, n) => ({\n181|         time: Date.parse(t.startDate),\n182|         order: Number.MAX_SAFE_INTEGER - 1000 + n,\n183|       })),\n184|     ]\n185|       .filter((e) => e.time < before)\n186|       .sort((a, b) => a.time - b.time || a.order - b.order);\n187| \n188|     let flagged = false;\n189|     let treated = false;\n190|     for (const e of events) {\n191|       if (e.mites === undefined) {\n192|         if (flagged) treated = true;\n193|       } else if (e.mites > TREATMENT_THRESHOLD) {\n194|         flagged = true;\n195|         treated = false;\n196|       } else if (flagged && treated) {\n197|         flagged = false;\n198|       }\n199|     }\n200|     return flagged;\n201|   }\n202| \n203|   private latestInspection(hiveId: string): Inspection | null {\n204|     let latest: Inspection | null = null;\n205|     for (const i of this.inspections.findByHive(hiveId)) {\n206|       if (\n207|         latest === null ||\n208|         Date.parse(i.date) > Date.parse(latest.date) ||\n209|         (Date.parse(i.date) === Date.parse(latest.date) && i.recordedAt > latest.recordedAt)\n210|       ) {\n211|         latest = i;\n212|       }\n213|     }\n214|     return latest;\n215|   }\n216| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:34:15.557Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 70,
+            "file": "src/business/services.ts",
+            "nodeId": "f74d7f9a2baf64e4",
+            "quote": "registerApiary(memberId: string | undefined, input: { name?: unknown; region?: unknown }): Apiary {",
+            "startLine": 63
+          }
+        ],
+        "name": "Apiary",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 159,
+            "file": "src/business/services.ts",
+            "nodeId": "59ef1e784c6734ca",
+            "quote": "private findHive(id: string): Hive {",
+            "startLine": 155
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 167,
+            "file": "src/business/services.ts",
+            "nodeId": "42c28f9b8ff24726",
+            "quote": "latestInspection: this.latestInspection(hive.id),",
+            "startLine": 161
+          }
+        ],
+        "name": "Hive Status",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 148,
+            "file": "src/business/services.ts",
+            "nodeId": "5fcdb4ba08d6fc82",
+            "quote": "const inspection = this.inspections.create({",
+            "startLine": 112
+          }
+        ],
+        "name": "Inspection",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 201,
+            "file": "src/business/services.ts",
+            "nodeId": "f9273e3d7a892096",
+            "quote": "...this.treatments.findByHive(hiveId).map((t, n) => ({",
+            "startLine": 172
+          }
+        ],
+        "name": "Treatment",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 201,
+            "file": "src/business/services.ts",
+            "nodeId": "f9273e3d7a892096",
+            "quote": "} else if (e.mites > TREATMENT_THRESHOLD) {",
+            "startLine": 172
+          }
+        ],
+        "name": "Varroa Mite Treatment Threshold",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 94,
+            "file": "src/business/services.ts",
+            "nodeId": "1113f209fcd6f84e",
+            "quote": "if (apiary.ownerId !== ownerId) {",
+            "startLine": 82
+          }
+        ],
+        "name": "Member (Owner)",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Registers a new apiary owned by the requesting member, with a validated name and region, and lists or retrieves apiaries. Fails with not_found if the apiary does not exist.",
+        "evidence": [
+          {
+            "endLine": 70,
+            "file": "src/business/services.ts",
+            "nodeId": "f74d7f9a2baf64e4",
+            "quote": "const ownerId = requireMember(memberId);",
+            "startLine": 63
+          },
+          {
+            "endLine": 80,
+            "file": "src/business/services.ts",
+            "nodeId": "8c59a7d4cd3c7cda",
+            "quote": "if (!apiary) throw new DomainError(\"not_found\", \"Apiary not found\");",
+            "startLine": 76
+          }
+        ],
+        "name": "Apiary registration and lookup",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Lets only the owner of an apiary add hives to it, and returns each hive's status.",
+        "evidence": [
+          {
+            "endLine": 94,
+            "file": "src/business/services.ts",
+            "nodeId": "1113f209fcd6f84e",
+            "quote": "throw new DomainError(\"forbidden\", \"Only the apiary owner can add hives\");",
+            "startLine": 82
+          }
+        ],
+        "name": "Hive registration restricted to apiary owner",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Lists and retrieves hives together with their latest inspection and whether they need treatment. Also lists every hive that currently needs treatment.",
+        "evidence": [
+          {
+            "endLine": 167,
+            "file": "src/business/services.ts",
+            "nodeId": "42c28f9b8ff24726",
+            "quote": "needsTreatment: this.isFlagged(hive.id),",
+            "startLine": 161
+          },
+          {
+            "endLine": 110,
+            "file": "src/business/services.ts",
+            "nodeId": "ed20f95b35b2d5c1",
+            "quote": ".filter((h) => h.needsTreatment);",
+            "startLine": 105
+          }
+        ],
+        "name": "Hive status reporting",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Records a hive inspection, which only the hive owner may do. It validates the date, whether the queen was seen, brood frames (0-100), temperament (1-5) and the varroa mite count (a number of at least 0), then notifies a listener.",
+        "evidence": [
+          {
+            "endLine": 148,
+            "file": "src/business/services.ts",
+            "nodeId": "5fcdb4ba08d6fc82",
+            "quote": "const temperament = requireIntInRange(input.temperament, \"temperament\", 1, 5);",
+            "startLine": 112
+          },
+          {
+            "endLine": 148,
+            "file": "src/business/services.ts",
+            "nodeId": "5fcdb4ba08d6fc82",
+            "quote": "throw new DomainError(\"forbidden\", \"Only the hive owner can record inspections\");",
+            "startLine": 112
+          },
+          {
+            "endLine": 148,
+            "file": "src/business/services.ts",
+            "nodeId": "5fcdb4ba08d6fc82",
+            "quote": "this.onInspection?.(hiveId, Date.parse(date));",
+            "startLine": 112
+          }
+        ],
+        "name": "Inspection recording with validation",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.95,
+        "description": "Decides whether a hive needs treatment. A hive becomes flagged when an inspection's mite count is above the threshold. It stays flagged until a treatment is recorded and a later inspection is within the threshold. Only events before a given time are considered.",
+        "evidence": [
+          {
+            "endLine": 201,
+            "file": "src/business/services.ts",
+            "nodeId": "f9273e3d7a892096",
+            "quote": "} else if (e.mites > TREATMENT_THRESHOLD) {",
+            "startLine": 172
+          },
+          {
+            "endLine": 201,
+            "file": "src/business/services.ts",
+            "nodeId": "f9273e3d7a892096",
+            "quote": "} else if (flagged && treated) {",
+            "startLine": 172
+          }
+        ],
+        "name": "Varroa treatment-need determination",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Finds a hive's most recent inspection by date, using the time it was recorded to break ties.",
+        "evidence": [
+          {
+            "endLine": 215,
+            "file": "src/business/services.ts",
+            "nodeId": "2cb0cb88dddffbf4",
+            "quote": "(Date.parse(i.date) === Date.parse(latest.date) && i.recordedAt > latest.recordedAt)",
+            "startLine": 203
+          }
+        ],
+        "name": "Latest inspection selection",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 7753,
+    "outputTokens": 2298
+  }
+}

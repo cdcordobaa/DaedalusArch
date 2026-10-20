@@ -1,0 +1,79 @@
+{
+  "itemId": "community:0",
+  "itemName": "community:0",
+  "key": "c1fbc625aa5fbf21f949ed84dd5516b47f71b7ce61a1eb13af1923443338472e",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "78189e196cff82a942db93dc947d92b8a3ea11b09c553d225a4fc5ed3623627e",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"0\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DomainError (node 07801d262a4a214c), file src/business/errors.ts, declaration line 3: \"export class DomainError extends Error {\"\n  component business, layer domain; responsibilities: Represent classified business rule violations\n- TextHiveSmsGateway (node 4bbae8839219163c), file src/persistence/smsGateway.ts, declaration line 5: \"export class TextHiveSmsGateway implements SmsGateway {\"\n  component persistence, layer infrastructure; responsibilities: Deliver SMS messages via TextHive; Report SMS provider failures; Configure SMS provider endpoint and credentials\n- ScaleService (node f7e458262ae72ac4), file src/business/scaleService.ts, declaration line 35: \"export class ScaleService {\"\n  component business, layer domain; responsibilities: Link a hive scale to a hive; Record and validate weight readings; Detect suspected swarms from weight drops; Suppress swarm alerts explained by inspections\n\n## APG relations of the group\nGraph statistics: 3 classes; 0 relations inside the group; 12 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- ScaleService.cancelAlertsForInspection: Called when an inspection is recorded: cancels held SMS alerts it explains.",
+  "recordedAt": "2026-10-20T12:37:13.020Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Linking scales to hives, recording and validating weight readings, and spotting likely swarms from sudden weight drops, while ignoring drops that a recorded inspection explains.",
+        "evidence": [
+          {
+            "endLine": 35,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "f7e458262ae72ac4",
+            "quote": "export class ScaleService {",
+            "startLine": 35
+          }
+        ],
+        "name": "Hive weight monitoring and swarm detection",
+        "realizedBy": [
+          "f7e458262ae72ac4"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Sending swarm alerts to beekeepers as text messages through an external SMS provider, reporting delivery failures, and cancelling held alerts that a recorded inspection explains.",
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/persistence/smsGateway.ts",
+            "nodeId": "4bbae8839219163c",
+            "quote": "export class TextHiveSmsGateway implements SmsGateway {",
+            "startLine": 5
+          }
+        ],
+        "name": "Beekeeper SMS alerting",
+        "realizedBy": [
+          "4bbae8839219163c",
+          "f7e458262ae72ac4"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Flagging and sorting rule breaches, such as invalid weight readings, so callers can handle them in a consistent way.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 3
+          }
+        ],
+        "name": "Business rule violation reporting",
+        "realizedBy": [
+          "07801d262a4a214c"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2177,
+    "outputTokens": 690
+  }
+}

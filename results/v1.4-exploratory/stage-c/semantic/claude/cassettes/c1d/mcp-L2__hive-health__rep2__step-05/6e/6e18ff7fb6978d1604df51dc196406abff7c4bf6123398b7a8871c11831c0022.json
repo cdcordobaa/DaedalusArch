@@ -1,0 +1,176 @@
+{
+  "itemId": "community:1",
+  "itemName": "community:1",
+  "key": "6e18ff7fb6978d1604df51dc196406abff7c4bf6123398b7a8871c11831c0022",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "a5f33b39d6db0442885b7084a5438958c6840c7e0fd1d8feef32bf983b5b272c",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"1\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ScaleRepository (node 18ab235f6c31a91a), file src/persistence/repositories.ts, declaration line 126: \"export class ScaleRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store scales keyed by serial number; Look up a scale by serial number\n- HiveRepository (node 22ea3eb4c082b330), file src/persistence/repositories.ts, declaration line 85: \"export class HiveRepository {\"\n  component persistence, layer infrastructure; responsibilities: Register and store hives; Retrieve hives\n- TreatmentService (node 2912145e8ad12343), file src/business/treatmentService.ts, declaration line 13: \"export class TreatmentService {\"\n  component business, layer domain; responsibilities: Recording hive treatments; Recording honey harvests; Harvest safety rule: treatment and withdrawal period; Querying a hive's treatment and harvest history\n- TreatmentProductRepository (node 4799b1081a692790), file src/persistence/repositories.ts, declaration line 13: \"export class TreatmentProductRepository {\"\n  component persistence, layer infrastructure; responsibilities: Register treatment product records; Retrieve treatment products\n- WeightReadingRepository (node 47ce227c703f72aa), file src/persistence/repositories.ts, declaration line 139: \"export class WeightReadingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store weight readings; Query a scale's readings within a time window\n- InspectionRepository (node 55c79c4bdccf51e6), file src/persistence/repositories.ts, declaration line 107: \"export class InspectionRepository {\"\n  component persistence, layer infrastructure; responsibilities: Record hive inspections; Retrieve a hive's inspection history\n- BeekeepingService (node 67cb7dff33e3b097), file src/business/services.ts, declaration line 53: \"export class BeekeepingService {\"\n  component business, layer domain; responsibilities: Apiary registration and lookup; Hive registration with ownership rule; Inspection recording and validation; Varroa treatment-need determination; Hive status reporting\n- ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, declaration line 44: \"export class ReportService {\"\n  component business, layer domain; responsibilities: Quarterly regional report orchestration; Attribute hives to regions; Compute share of varroa-flagged hives; Count treatments per product in the quarter; Total honey harvested in the quarter\n- ApiaryRepository (node a8066b48e1c14319), file src/persistence/repositories.ts, declaration line 67: \"export class ApiaryRepository {\"\n  component persistence, layer infrastructure; responsibilities: Register new apiaries in storage; Retrieve apiaries\n- TreatmentRepository (node b2566037ba6b6900), file src/persistence/repositories.ts, declaration line 31: \"export class TreatmentRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store treatment records; Look up a hive's treatments; List all treatments\n- HarvestRepository (node cfa247680820ee47), file src/persistence/repositories.ts, declaration line 49: \"export class HarvestRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store harvest records; Retrieve harvests per hive; List all harvests\n\n## APG relations of the group\nGraph statistics: 11 classes; 28 relations inside the group; 0 outgoing relations to code outside it.\n- BeekeepingService -> CALLS ApiaryRepository\n- BeekeepingService -> CALLS HiveRepository\n- BeekeepingService -> CALLS InspectionRepository\n- BeekeepingService -> CALLS TreatmentRepository\n- BeekeepingService -> CONSTRUCTOR_INJECTS ApiaryRepository\n- BeekeepingService -> CONSTRUCTOR_INJECTS HiveRepository\n- BeekeepingService -> CONSTRUCTOR_INJECTS InspectionRepository\n- BeekeepingService -> CONSTRUCTOR_INJECTS TreatmentRepository\n- ReportService -> CALLS ApiaryRepository\n- ReportService -> CALLS BeekeepingService\n- ReportService -> CALLS HarvestRepository\n- ReportService -> CALLS HiveRepository\n- ReportService -> CALLS TreatmentProductRepository\n- ReportService -> CALLS TreatmentRepository\n- ReportService -> CONSTRUCTOR_INJECTS ApiaryRepository\n- ReportService -> CONSTRUCTOR_INJECTS BeekeepingService\n- ReportService -> CONSTRUCTOR_INJECTS HarvestRepository\n- ReportService -> CONSTRUCTOR_INJECTS HiveRepository\n- ReportService -> CONSTRUCTOR_INJECTS TreatmentProductRepository\n- ReportService -> CONSTRUCTOR_INJECTS TreatmentRepository\n- TreatmentService -> CALLS HarvestRepository\n- TreatmentService -> CALLS HiveRepository\n- TreatmentService -> CALLS TreatmentProductRepository\n- TreatmentService -> CALLS TreatmentRepository\n- TreatmentService -> CONSTRUCTOR_INJECTS HarvestRepository\n- TreatmentService -> CONSTRUCTOR_INJECTS HiveRepository\n- TreatmentService -> CONSTRUCTOR_INJECTS TreatmentProductRepository\n- TreatmentService -> CONSTRUCTOR_INJECTS TreatmentRepository\n\n## Comments near the code\n- BeekeepingService.isFlagged: A hive is flagged by an inspection above the threshold and stays flagged / until a treatment is recorded and a later inspection is within the threshold. / Only events before `before` (epoch ms) are considered.",
+  "recordedAt": "2026-10-20T12:37:55.310Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Register apiaries and hives, enforce hive ownership rules, and look them up again.",
+        "evidence": [
+          {
+            "endLine": 53,
+            "file": "src/business/services.ts",
+            "nodeId": "67cb7dff33e3b097",
+            "quote": "export class BeekeepingService {",
+            "startLine": 53
+          },
+          {
+            "endLine": 67,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "a8066b48e1c14319",
+            "quote": "export class ApiaryRepository {",
+            "startLine": 67
+          },
+          {
+            "endLine": 85,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "22ea3eb4c082b330",
+            "quote": "export class HiveRepository {",
+            "startLine": 85
+          }
+        ],
+        "name": "Apiary and hive registry",
+        "realizedBy": [
+          "67cb7dff33e3b097",
+          "a8066b48e1c14319",
+          "22ea3eb4c082b330"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Record and validate hive inspections, keep each hive's inspection history, decide whether a hive needs varroa treatment, and report its health status.",
+        "evidence": [
+          {
+            "endLine": 53,
+            "file": "src/business/services.ts",
+            "nodeId": "67cb7dff33e3b097",
+            "quote": "export class BeekeepingService {",
+            "startLine": 53
+          },
+          {
+            "endLine": 107,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "55c79c4bdccf51e6",
+            "quote": "export class InspectionRepository {",
+            "startLine": 107
+          }
+        ],
+        "name": "Hive health inspection and varroa monitoring",
+        "realizedBy": [
+          "67cb7dff33e3b097",
+          "55c79c4bdccf51e6",
+          "b2566037ba6b6900"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Record hive treatments with registered treatment products, record honey harvests, block harvests during a treatment's withdrawal period, and show each hive's treatment and harvest history.",
+        "evidence": [
+          {
+            "endLine": 13,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "2912145e8ad12343",
+            "quote": "export class TreatmentService {",
+            "startLine": 13
+          },
+          {
+            "endLine": 31,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "b2566037ba6b6900",
+            "quote": "export class TreatmentRepository {",
+            "startLine": 31
+          },
+          {
+            "endLine": 13,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "4799b1081a692790",
+            "quote": "export class TreatmentProductRepository {",
+            "startLine": 13
+          },
+          {
+            "endLine": 49,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "cfa247680820ee47",
+            "quote": "export class HarvestRepository {",
+            "startLine": 49
+          }
+        ],
+        "name": "Treatment and honey harvest tracking with food-safety withdrawal rules",
+        "realizedBy": [
+          "2912145e8ad12343",
+          "b2566037ba6b6900",
+          "4799b1081a692790",
+          "cfa247680820ee47",
+          "22ea3eb4c082b330"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Produce quarterly reports per region: assign hives to regions, compute the share of varroa-flagged hives, count treatments per product, and total the honey harvested.",
+        "evidence": [
+          {
+            "endLine": 44,
+            "file": "src/business/reportService.ts",
+            "nodeId": "a663bd12cbc0090c",
+            "quote": "export class ReportService {",
+            "startLine": 44
+          }
+        ],
+        "name": "Quarterly regional beekeeping reporting",
+        "realizedBy": [
+          "a663bd12cbc0090c",
+          "67cb7dff33e3b097",
+          "a8066b48e1c14319",
+          "22ea3eb4c082b330",
+          "b2566037ba6b6900",
+          "4799b1081a692790",
+          "cfa247680820ee47"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Store hive scales by serial number along with their weight readings, and query a scale's readings over a time window.",
+        "evidence": [
+          {
+            "endLine": 126,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "18ab235f6c31a91a",
+            "quote": "export class ScaleRepository {",
+            "startLine": 126
+          },
+          {
+            "endLine": 139,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "47ce227c703f72aa",
+            "quote": "export class WeightReadingRepository {",
+            "startLine": 139
+          }
+        ],
+        "name": "Hive weight monitoring",
+        "realizedBy": [
+          "18ab235f6c31a91a",
+          "47ce227c703f72aa"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3788,
+    "outputTokens": 1747
+  }
+}

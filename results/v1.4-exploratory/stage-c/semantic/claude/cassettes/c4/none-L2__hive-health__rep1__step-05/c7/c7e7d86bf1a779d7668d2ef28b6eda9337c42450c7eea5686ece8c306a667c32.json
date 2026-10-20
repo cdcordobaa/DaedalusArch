@@ -1,0 +1,44 @@
+{
+  "itemId": "c4f:44e69c4aa76c1875",
+  "itemName": "FF-S03 src/presentation/server.ts",
+  "key": "c7e7d86bf1a779d7668d2ef28b6eda9337c42450c7eea5686ece8c306a667c32",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "interpret",
+    "promptHash": "3014fab107f8ce5ad324b761406f4faec7a93603b893330b0987f24cc1729889",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "facea2932293bfdf5c089b10b035102f81276bf19e6f6f1e2033f400f7a5604a",
+    "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d"
+  },
+  "prompt": "## Task\nA deterministic rule (FF-S03) found this blocking violation: src/presentation/server.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence). The verdict is fixed (C3: FF-S03 blocking fail). Read the code, the graph and the prose together; the graph alone does not show intent. Then:\n1. explanation: one paragraph on what the dependency or responsibility is and why the rule flags it.\n2. intentMatch.status: does the finding contradict, or stay consistent with, an intent the project declares in its docs, ADRs or comments? If the project declares nothing on it, say no-declared-intent. Read an ADR's status: a superseded or rejected ADR declares nothing.\n3. exceptionClaim: claim a declared exception only when a doc or comment line grants this case on purpose, and cite that line (path, lines, exact quote). Never cite code as the grant. A mention, a negation or a superseded decision is not a grant. Otherwise claimed false, citation null, scope null.\n4. severityClass: rank the work inside the blocking tier (high, medium, low). It never moves the finding out of the blocking tier.\n5. cites: the path:line of every line your answer rests on.\n\n## Finding\nrule FF-S03; origin symbolic; files src/presentation/server.ts, src/persistence/repositories.ts; sites e625ab1bb66d4580; edge src/presentation/server.ts:12 -> src/persistence/repositories.ts\n\n## Facts (A2)\n- (none)\n\n## Graph slice\n- UnauthorizedError: Graph statistics: 0 methods; fan-out 0; fan-in 0.\n- UnauthorizedError: (none)\n\n## Code\n=====SOURCE-BEGIN src/presentation/server.ts (node file:src/presentation/server.ts)\n 1| import http from \"node:http\";\n 2| import { HiveService } from \"../business/hiveService\";\n 3| import { ReportService } from \"../business/reportService\";\n 4| import { ScaleService } from \"../business/scaleService\";\n 5| import { TreatmentService } from \"../business/treatmentService\";\n 6| import {\n 7|   ConflictError,\n 8|   ForbiddenError,\n 9|   NotFoundError,\n10|   ValidationError,\n11| } from \"../business/errors\";\n12| import {\n13|   ApiaryRepository,\n14|   HiveRepository,\n15|   HarvestRepository,\n16|   InspectionRepository,\n17|   ProductRepository,\n18|   ScaleRepository,\n19|   TreatmentRepository,\n20|   WeightReadingRepository,\n21| } from \"../persistence/repositories\";\n22| import { TextHiveClient } from \"../persistence/textHiveClient\";\n23| \n24| class UnauthorizedError extends Error {}\n25| \n26| function readBody(req: http.IncomingMessage): Promise<Record<string, unknown>> {\n27|   return new Promise((resolve, reject) => {\n28|     const chunks: Buffer[] = [];\n29|     req.on(\"data\", (c: Buffer) => chunks.push(c));\n30|     req.on(\"error\", reject);\n31|     req.on(\"end\", () => {\n32|       const text = Buffer.concat(chunks).toString(\"utf8\");\n33|       if (text.trim() === \"\") return resolve({});\n34|       try {\n35|         const parsed: unknown = JSON.parse(text);\n36|         if (typeof parsed !== \"object\" || parsed === null || Array.isArray(parsed)) {\n37|           return reject(new ValidationError(\"body must be a JSON object\"));\n38|         }\n39|         resolve(parsed as Record<string, unknown>);\n40|       } catch {\n41|         reject(new ValidationError(\"body must be valid JSON\"));\n42|       }\n43|     });\n44|   });\n45| }\n46| \n47| function memberId(req: http.IncomingMessage): string {\n48|   const raw = req.headers[\"x-member-id\"];\n49|   const value = Array.isArray(raw) ? raw[0] : raw;\n50|   if (!value || value.trim() === \"\") {\n51|     throw new UnauthorizedError(\"x-member-id header is required\");\n52|   }\n53|   return value.trim();\n54| }\n55| \n56| export function createServer(\n57|   service: HiveService,\n58|   scaleService: ScaleService,\n59|   treatmentService: TreatmentService,\n60|   reportService: ReportService,\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:08:40.420Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "cites": [
+      "src/presentation/server.ts:2",
+      "src/presentation/server.ts:12",
+      "src/presentation/server.ts:21",
+      "src/presentation/server.ts:22",
+      "src/presentation/server.ts:56",
+      "src/presentation/server.ts:60"
+    ],
+    "exceptionClaim": {
+      "citation": null,
+      "claimed": false,
+      "scope": null
+    },
+    "explanation": "Lines 12-21 of src/presentation/server.ts import eight persistence classes directly from src/persistence/repositories.ts: ApiaryRepository, HiveRepository, HarvestRepository, InspectionRepository, ProductRepository, ScaleRepository, TreatmentRepository and WeightReadingRepository. Line 22 also imports TextHiveClient from the persistence layer. The file already depends on the business layer: HiveService, ScaleService, TreatmentService, ReportService and the business error types (lines 2-11). createServer also takes those services as parameters (lines 56-60). So the HTTP layer reaches past the business layer and depends on concrete storage types. FF-S03 flags exactly this pattern, where presentation imports persistence without going through business. The excerpt ends at line 60, so it does not show whether the repositories are only used to wire things up (a composition-root pattern) or are called inside request handlers. Either way the source dependency crosses the layer boundary. Nothing in the material provided, whether docs, ADRs or comments, says what the intended layering is or allows this shortcut.",
+    "intentMatch": {
+      "cites": [],
+      "status": "no-declared-intent"
+    },
+    "severityClass": "medium"
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3111,
+    "outputTokens": 762
+  }
+}

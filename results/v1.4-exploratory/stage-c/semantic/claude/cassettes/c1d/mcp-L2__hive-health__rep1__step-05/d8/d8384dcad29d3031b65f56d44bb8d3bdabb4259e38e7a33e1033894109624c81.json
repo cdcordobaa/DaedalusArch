@@ -1,0 +1,28 @@
+{
+  "itemId": "37bb8cc525e8bca7",
+  "itemName": "Hive ~ Hive Scale",
+  "key": "d8384dcad29d3031b65f56d44bb8d3bdabb4259e38e7a33e1033894109624c81",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "1b39d2c2ab3f50d5f0d3320446d04730c6b0c34bd1117d2851f1b1f82b2b2fa9",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Hive\nwhere: HiveRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly items = new Map<string, HiveRecord>();\n=====SOURCE-END=====\ngraph:\n- class HiveRepository (node 22ea3eb4c082b330): layer infrastructure, component persistence, fan-out 0, fan-in 17\n- <- CALLS Method HarvestService.listHarvests\n- <- CALLS Method HarvestService.recordHarvest\n- <- CALLS Method HiveService.getHive\n- <- CALLS Method HiveService.listHives\n- <- CALLS Method HiveService.listInspections\n- <- CALLS Method HiveService.recordInspection\n- <- CALLS Method HiveService.registerHive\n- <- CALLS Method ReportService.quarterly\n\n### B\nconcept: Hive Scale\nwhere: ScaleService (uses), src/business/scaleService.ts, component business\ncode:\n=====SOURCE-BEGIN\nlinkScale(memberId: string, hiveId: string, serial: unknown, phoneNumber: unknown): ScaleRecord {\n=====SOURCE-END=====\ngraph:\n- class ScaleService (node f7e458262ae72ac4): layer domain, component business, fan-out 12, fan-in 0\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method InspectionRepository.findByHive\n- -> CALLS Method ScaleRepository.findBySerial\n- -> CALLS Method ScaleRepository.save\n- -> CALLS Method TextHiveClient.sendSms\n- -> CALLS Method WeightReadingRepository.create\n- -> CALLS Method WeightReadingRepository.findBetween\n- -> CONSTRUCTOR_INJECTS Class HiveRepository",
+  "recordedAt": "2026-10-20T12:27:18.738Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.9,
+    "rationale": "A and B are different concepts. A is the Hive itself: HiveRepository stores HiveRecord entries (\"private readonly items = new Map<string, HiveRecord>();\"). B is the Hive Scale, a separate device with its own serial number and phone number. A scale gets linked to a hive (\"linkScale(memberId: string, hiveId: string, serial: unknown, phoneNumber: unknown): ScaleRecord {\"). It returns a separate ScaleRecord and is saved through its own ScaleRepository. B points to a hive through hiveId and calls HiveRepository.findById, so the two are associated, not two names for one thing.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2105,
+    "outputTokens": 340
+  }
+}

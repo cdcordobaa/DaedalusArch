@@ -1,0 +1,28 @@
+{
+  "itemId": "5cb2532b440c5744",
+  "itemName": "Monthly club invoicing ~ Club rink hire and monthly invoicing",
+  "key": "15621551d336059671738684ed42a891b2ffa0d9ec7e074b0b43b1ecb25f983d",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "5d50544eaead85deb66872216e51bc3ce44d384fcfce6d3536666b6fbf3d8f4b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Monthly club invoicing\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class ClubBookingService {\n=====SOURCE-END=====\ngraph:\n- community community:1: 4 classes (SessionService, ClubBookingRepository, ClubBookingService, HireStockRepository)\n- class ClubBookingService (node 44fb2545d0048ec3): layer domain, component business, fan-out 6, fan-in 0\n- class ClubBookingRepository (node 440da90bcde7901a): layer infrastructure, component persistence, fan-out 0, fan-in 7\n\n### B\ncapability: Club rink hire and monthly invoicing\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class ClubBookingService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 6 classes (DomainError, BookingService, SessionService, ClubBookingService, ReportService, IceMonitorService)\n- class ClubBookingService (node 44fb2545d0048ec3): layer domain, component business, fan-out 6, fan-in 0",
+  "recordedAt": "2026-10-20T13:18:12.754Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.72,
+    "rationale": "A and B point to the same class: ClubBookingService, node 44fb2545d0048ec3, quoted as \"export class ClubBookingService {\". That class is the only domain/business class the two groupings share. A's label, \"Monthly club invoicing\", is covered by B's label, \"Club rink hire and monthly invoicing\". B's label just adds the rink-hire booking side, which is the same service's main job. The two differ in how they group the code: A is a community made up of the service, its repositories and SessionService, while B is the whole business component. That changes the surrounding classes, not the capability, so they most likely name the same club-booking and invoicing capability. Confidence is held down because B's label is broader than A's.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1795,
+    "outputTokens": 398
+  }
+}

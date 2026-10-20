@@ -3,7 +3,7 @@
 <!-- study2-protocol: primary=D-new-blocking-identities-steps-2-to-k; k=5; arms=none,daedalus-mcp; cells=none@L2,none@L3,mcp@L2; start=shared-step-1; unit=distinct-edge; tasks=new-4-layered-2-ddd-sealed-at-freeze; fallback=run-exploratory; order=freeze,hold-out,pilot-and-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,gemini-pin -->
 
 **Status: declared deviation, dated 2026-10-19. Not a pre-registration.**
-- **The decisions are the author's.** The board decided M3 on 2026-10-18 (`ops/decisions.md`, "Settled on 2026-10-18"). The author confirmed it, and chose the tasks, the fallback and the generators in chat on 2026-10-19 at about 20:00 UTC. An AI session wrote them down and took none of them.
+- **The decisions are the author's.** The board decided M3 on 2026-10-18 (`ops/decisions.md`, "Settled on 2026-10-18"). The author confirmed it, and chose the tasks, the fallback and the generators on 2026-10-19 at about 20:00 UTC. An AI session wrote them down and took none of them.
 - **It changes a plan, not a registration.** Study 2 has not been pre-registered (gate D10 RED), so this changes a plan. It is still a change made after development material was seen, so it is declared, with what was seen (§3).
 - **It supersedes §2 of the first deviation** ([`Docs/v1.3/study2-deviation-2026-10-16.md`](../v1.3/study2-deviation-2026-10-16.md), the level outcome Y). From today, this record is the single source of the Study 2 protocol. `scripts/v1.3/protocol-consistency-check.mjs` reads its block (§2), and every protocol document carries the line above.
 - **What was read to write it.** No sealed directory, no answer key and no `.env` were read. It names no sealed task.

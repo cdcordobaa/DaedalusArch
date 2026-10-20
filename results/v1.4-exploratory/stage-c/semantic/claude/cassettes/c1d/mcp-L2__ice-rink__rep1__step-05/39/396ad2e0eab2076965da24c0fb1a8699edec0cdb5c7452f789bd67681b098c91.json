@@ -1,0 +1,28 @@
+{
+  "itemId": "7ca87c4ae9c71e3c",
+  "itemName": "Club Booking ~ Booking",
+  "key": "396ad2e0eab2076965da24c0fb1a8699edec0cdb5c7452f789bd67681b098c91",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "58e2054975df773306bcaba688cc463122b721ead724c0dbce99452a67c375d3",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Club Booking\nwhere: ClubService (uses), src/business/clubService.ts, component business\ncode:\n=====SOURCE-BEGIN\nbook(input: NewClubBookingInput): ClubBooking & { rink: \"whole\" | \"half\" } {\n=====SOURCE-END=====\ngraph:\n- class ClubService (node 2e2e749b26fb57a2): layer domain, component business, fan-out 10, fan-in 0\n- -> CALLS Method ClubBookingRepository.create\n- -> CALLS Method ClubBookingRepository.getRate\n- -> CALLS Method ClubBookingRepository.list\n- -> CALLS Method ClubBookingRepository.listByDate\n- -> CALLS Method ClubBookingRepository.listByMonth\n- -> CALLS Method ClubBookingRepository.setRate\n- -> CALLS Method MemberRepository.add\n- -> CALLS Method MemberRepository.list\n\n### B\nconcept: Booking\nwhere: BookingRepository (uses), src/persistence/bookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\ncreate(data: Omit<Booking, \"id\">): Booking {\n=====SOURCE-END=====\ngraph:\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 12\n- <- CALLS Method IceMonitorService.notifyHolders\n- <- CALLS Method ReportService.weekly\n- <- CALLS Method RinkService.cancelSession\n- <- CALLS Method RinkService.expireOverdue\n- <- CALLS Method RinkService.getBooking\n- <- CALLS Method RinkService.handlePaymentResult\n- <- CALLS Method RinkService.memberUses\n- <- CALLS Method RinkService.purchase",
+  "recordedAt": "2026-10-20T12:59:36.707Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.75,
+    "rationale": "These look like two different concepts. ClubBooking (A) is a club reserving the rink: ClubService.book returns a ClubBooking with a rink portion of \"whole\" or \"half\". It is stored through its own ClubBookingRepository, which also has methods for rates and listing by date or month. Booking (B) is stored through BookingRepository and is used by RinkService for individual session purchases, payment results, expiry, cancellation and member uses. IceMonitorService also uses it to notify holders. The two have separate types and separate repositories and do different jobs: a club reserving the rink versus a person's paid ticket for a session. The fact that both are rink bookings is a shared general idea, not proof they are the same thing.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2098,
+    "outputTokens": 404
+  }
+}

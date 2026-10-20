@@ -1,0 +1,28 @@
+{
+  "itemId": "3384115dc1ad774b",
+  "itemName": "Skating session scheduling and management ~ Public skating session scheduling and capacity management",
+  "key": "0f66247088b58431c58d9b25eb61ad324bc5371d5e3aeace98f23fec7b8734a4",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "853ba19e59ec14dabcda8fa581438df522c0ead96a3ad45bbe6ed1ffa30da1e8",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Skating session scheduling and management\nwhere: community:3\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\nexport class SessionRepository {\n=====SOURCE-END=====\ngraph:\n- community community:3: 5 classes (RinkService, BookingRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0\n- class SessionRepository (node e3915d8f30e495a9): layer infrastructure, component persistence, fan-out 0, fan-in 12\n\n### B\ncapability: Public skating session scheduling and capacity management\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 5 classes (DomainError, RinkService, ClubService, ReportService, IceMonitorService)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0",
+  "recordedAt": "2026-10-20T13:01:09.919Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.75,
+    "rationale": "Yes, they appear to name the same capability. Both are anchored on the same class, RinkService (node 21c65604dec116b1, domain layer, business component), and both describe scheduling and managing skating sessions. B's wording (\"public\" sessions, \"capacity management\") is narrower but fits inside A's \"session scheduling and management\". The differences come from how each was grouped: A is a community that also contains the persistence and integration classes (SessionRepository, BookingRepository, PuckPayClient, HireStockRepository). B is the business component, which also contains other services (ClubService, ReportService, IceMonitorService). Those extra classes don't change the core capability either label describes. Confidence is moderate because the only code shown is the class declarations.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1785,
+    "outputTokens": 500
+  }
+}

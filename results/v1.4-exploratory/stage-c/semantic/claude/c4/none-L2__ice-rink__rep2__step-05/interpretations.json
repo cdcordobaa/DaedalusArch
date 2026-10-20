@@ -1,0 +1,834 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "none-L2__ice-rink__rep2__step-05"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": true
+  },
+  "entries": [
+    {
+      "findingId": "c4f:051c173cd604b64a",
+      "finding": {
+        "id": "c4f:051c173cd604b64a",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/temperatureRepository.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/temperatureRepository.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 10,
+          "target": "src/persistence/temperatureRepository.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:10",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:1",
+                "src/presentation/server.ts:18"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "src/presentation/server.ts is the process entry point and acts as the composition root. At line 10 it imports TemperatureRepository from the persistence layer. At line 45 it creates an instance and passes it straight into the IceMonitorService constructor from the business layer. The file never calls the repository itself. It only wires the object into the service that uses it. The same file follows this pattern for every other persistence class (lines 1–4, 6, 9, 18–29, 41–44). FF-S03 flags this because the presentation layer reaches past the business layer to depend directly on a persistence module, which breaks strict layering. The graph only shows a presentation→persistence edge and cannot tell wiring apart from data access. The code shows this is a construction-only dependency. The project provides no documentation, ADR or comment that names server.ts as a composition root allowed to skip layers.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "c4687431dd779b4ada215ca04b53175de9423b8094db8f7a9234fc5f65cae360",
+          "date": "2026-10-20T12:11:05.277Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:10",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:1",
+                "src/presentation/server.ts:6",
+                "src/presentation/server.ts:9"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "src/presentation/server.ts is the process entry point. It acts as the composition root: it builds every repository and client and passes them into the business services. Line 10 imports TemperatureRepository from the persistence layer, and line 45 creates an instance of it and passes it straight into the IceMonitorService constructor. That gives a direct edge from presentation to persistence that bypasses the business layer, which is exactly what FF-S03 (no layer skipping) forbids, so the rule flags it. The import is used only for wiring, not for data access from request handlers. It matches the other persistence imports in the same file (lines 1-4, 6, 9), so this edge is one instance of a wider pattern: object wiring lives inside the presentation layer. No project docs, ADRs or comments were supplied that mark server.ts as an allowed composition root or grant an exception for it, so there is no declared intent to check the finding against and no exception to claim. The fix is small and mechanical: move the wiring into a composition module outside the layered packages, or let the business layer provide a factory for IceMonitorService. Either way no behaviour changes, so the work ranks low inside the blocking tier.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "c4687431dd779b4ada215ca04b53175de9423b8094db8f7a9234fc5f65cae360",
+          "date": "2026-10-20T12:11:14.283Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "src/presentation/server.ts is the process entry point and acts as the composition root. At line 10 it imports TemperatureRepository from the persistence layer. At line 45 it creates an instance and passes it straight into the IceMonitorService constructor from the business layer. The file never calls the repository itself. It only wires the object into the service that uses it. The same file follows this pattern for every other persistence class (lines 1–4, 6, 9, 18–29, 41–44). FF-S03 flags this because the presentation layer reaches past the business layer to depend directly on a persistence module, which breaks strict layering. The graph only shows a presentation→persistence edge and cannot tell wiring apart from data access. The code shows this is a construction-only dependency. The project provides no documentation, ADR or comment that names server.ts as a composition root allowed to skip layers.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:4413b4beb4596b25",
+      "finding": {
+        "id": "c4f:4413b4beb4596b25",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/sessionRepository.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/sessionRepository.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 6,
+          "target": "src/persistence/sessionRepository.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:6",
+                "src/presentation/server.ts:18",
+                "src/presentation/server.ts:30",
+                "src/presentation/server.ts:36",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:52"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 6, src/presentation/server.ts imports SessionRepository from the persistence layer. At line 18 it creates the repository directly and then passes that instance to business services: SessionService (line 30), BookingService (line 36), IceMonitorService (line 45) and ReportService (line 52). In practice this file is the app's composition root. It reads environment variables, builds every repository and client, wires the services together and starts the HTTP listener. It never calls SessionRepository methods itself. FF-S03 still flags the edge because a presentation-layer file reaches past the business layer into persistence, and the layered model only lets presentation depend on business. The import is just for wiring, but its location inside src/presentation is what makes it a layer skip. The same pattern applies to the other persistence imports on lines 1–4, 9 and 10. No docs, ADRs or comments in the supplied material say whether the composition root is meant to sit in the presentation layer.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "2424df261f560ac9c462a795fd8f64179d5eaa557c5d73777a21110f4a3a811a",
+          "date": "2026-10-20T12:11:22.444Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:6",
+                "src/presentation/server.ts:18",
+                "src/presentation/server.ts:30",
+                "src/presentation/server.ts:36",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:52"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 6, src/presentation/server.ts imports SessionRepository from the persistence layer. It never calls the repository for data. It only builds it once (line 18) and passes that instance into the business services: SessionService (line 30), BookingService (line 36), IceMonitorService (line 45) and ReportService (line 52). So server.ts works as the app's composition root, the startup file that wires everything together. It sits in the presentation folder, though, so its static import goes straight from presentation to persistence and skips the business layer. FF-S03 forbids that layer skip, and it can't tell wiring code apart from route handlers that query persistence directly. Lines 1–4, 9 and 10 import other persistence modules the same way, so this edge is one of several. None of the material provided (docs, ADRs or code comments) says the composition root may sit in presentation or may reach into persistence.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "2424df261f560ac9c462a795fd8f64179d5eaa557c5d73777a21110f4a3a811a",
+          "date": "2026-10-20T12:11:32.327Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "At line 6, src/presentation/server.ts imports SessionRepository from the persistence layer. At line 18 it creates the repository directly and then passes that instance to business services: SessionService (line 30), BookingService (line 36), IceMonitorService (line 45) and ReportService (line 52). In practice this file is the app's composition root. It reads environment variables, builds every repository and client, wires the services together and starts the HTTP listener. It never calls SessionRepository methods itself. FF-S03 still flags the edge because a presentation-layer file reaches past the business layer into persistence, and the layered model only lets presentation depend on business. The import is just for wiring, but its location inside src/presentation is what makes it a layer skip. The same pattern applies to the other persistence imports on lines 1–4, 9 and 10. No docs, ADRs or comments in the supplied material say whether the composition root is meant to sit in the presentation layer.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:64804249b7a8309a",
+      "finding": {
+        "id": "c4f:64804249b7a8309a",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/hireStockRepository.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/hireStockRepository.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 2,
+          "target": "src/persistence/hireStockRepository.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:2",
+                "src/presentation/server.ts:20",
+                "src/presentation/server.ts:21",
+                "src/presentation/server.ts:22",
+                "src/presentation/server.ts:23",
+                "src/presentation/server.ts:30",
+                "src/presentation/server.ts:36"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "src/presentation/server.ts is the process entry point and acts as the composition root. At line 2 it imports HireStockRepository from the persistence layer, and at lines 20-23 it builds the repository with a hard-coded stock table of 10 pairs for each skate size from 36 to 45. It then injects that instance into SessionService (line 30) and BookingService (line 36). The presentation code doesn't call repository methods itself. It only creates the object and passes it to business services, which is plain dependency-injection wiring. FF-S03 still flags it because it forbids the presentation layer from importing persistence directly and skipping the business layer. The edge at server.ts:2 does exactly that, and the same file imports several other persistence modules the same way (lines 1, 3, 4, 6, 9, 10). The seed data at lines 20-23 also puts a domain configuration decision (initial hire stock) inside the presentation layer. No project docs, ADRs or comments were provided that say whether server.ts is meant to be an approved composition root.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "7b0686774b650f41224689486b9fdbd9b0b336c6fda217653e389d4cbbda540e",
+          "date": "2026-10-20T12:11:41.209Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:2",
+                "src/presentation/server.ts:20",
+                "src/presentation/server.ts:21",
+                "src/presentation/server.ts:22",
+                "src/presentation/server.ts:23",
+                "src/presentation/server.ts:30",
+                "src/presentation/server.ts:36"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "src/presentation/server.ts imports HireStockRepository from the persistence layer (line 2). It builds the repository with a hard-coded boot-size stock table (lines 20-23) and passes it into SessionService and BookingService (lines 30, 36). FF-S03 forbids presentation from skipping the business layer to reach persistence directly, so this edge is flagged. Reading the code, server.ts works as the process entry point and composition root. It creates no-dependency instances and passes them into business services. It does not call repository methods from request handlers. The same pattern appears for every other persistence class it imports (lines 1, 3, 4, 6, 9, 10). So the violation is about where the dependency wiring lives, not about business logic leaking into the presentation layer. Still, the layered rule makes no exception for a composition root. Also, the stock seed data (shoe sizes and quantities) is hard-coded in the presentation layer.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "7b0686774b650f41224689486b9fdbd9b0b336c6fda217653e389d4cbbda540e",
+          "date": "2026-10-20T12:11:49.684Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "src/presentation/server.ts is the process entry point and acts as the composition root. At line 2 it imports HireStockRepository from the persistence layer, and at lines 20-23 it builds the repository with a hard-coded stock table of 10 pairs for each skate size from 36 to 45. It then injects that instance into SessionService (line 30) and BookingService (line 36). The presentation code doesn't call repository methods itself. It only creates the object and passes it to business services, which is plain dependency-injection wiring. FF-S03 still flags it because it forbids the presentation layer from importing persistence directly and skipping the business layer. The edge at server.ts:2 does exactly that, and the same file imports several other persistence modules the same way (lines 1, 3, 4, 6, 9, 10). The seed data at lines 20-23 also puts a domain configuration decision (initial hire stock) inside the presentation layer. No project docs, ADRs or comments were provided that say whether server.ts is meant to be an approved composition root.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:76958b6c175b3da4",
+      "finding": {
+        "id": "c4f:76958b6c175b3da4",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/clubBookingRepository.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/clubBookingRepository.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 4,
+          "target": "src/persistence/clubBookingRepository.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:4",
+                "src/presentation/server.ts:29",
+                "src/presentation/server.ts:30",
+                "src/presentation/server.ts:31",
+                "src/presentation/server.ts:47",
+                "src/presentation/server.ts:1",
+                "src/presentation/server.ts:6"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 4, src/presentation/server.ts imports ClubBookingRepository straight from the persistence layer. FF-S03 flags this because a presentation module reaches persistence without going through the business layer. The code shows how the import is used: server.ts is the process entry point and acts as the composition root. It creates the repository once (line 29) and passes that one instance into SessionService (line 30) and ClubBookingService (lines 31-34). Only the business services reach createApp (lines 47-55), so no request-handling code calls the repository directly. The same file imports many other persistence classes the same way (lines 1-3, 6, 9-10), so this edge is one case of a wider wiring pattern rather than a stray shortcut. Still, the presentation layer now depends at compile time on a concrete persistence class, and that skip is what the layering rule forbids. The finding stays a blocking fail. Because this is wiring code and not a data-access path, the fix is structural: move object construction into a separate bootstrap or composition module that the layering rules allow, or have the business layer provide factories. The handler logic does not need to change. No docs, ADRs or comments came with this finding, so no project intent or exception can be cited.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "39ba235aa9bfcf57e58a0bbb33d1c009bbb58252afeac42663a1b198ef5efe28",
+          "date": "2026-10-20T12:11:59.292Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:4",
+                "src/presentation/server.ts:29",
+                "src/presentation/server.ts:30",
+                "src/presentation/server.ts:31",
+                "src/presentation/server.ts:47",
+                "src/presentation/server.ts:50"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 4, src/presentation/server.ts imports ClubBookingRepository from the persistence layer. At line 29 it creates an instance, and it passes that instance to SessionService (line 30) and ClubBookingService (lines 31-34). FF-S03 flags this because a presentation-layer module depends directly on a persistence-layer module instead of going through the business layer. The code shows what the import is for: server.ts is the process entry point and composition root. It builds every repository and client, injects them into business services, and hands only those services to createApp (lines 47-55). No request handling in presentation touches the repository. The same pattern is used for every other persistence import in the file (lines 1-3, 6, 9-10). So this is a wiring dependency, not a data-access shortcut. Even so, the composition root sits inside the presentation layer, so the layer rule sees an edge that skips the business layer. No project documentation, ADR or comment was available in the provided material that states an intent about this edge or grants an exception for the composition root.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "39ba235aa9bfcf57e58a0bbb33d1c009bbb58252afeac42663a1b198ef5efe28",
+          "date": "2026-10-20T12:12:07.391Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "At line 4, src/presentation/server.ts imports ClubBookingRepository straight from the persistence layer. FF-S03 flags this because a presentation module reaches persistence without going through the business layer. The code shows how the import is used: server.ts is the process entry point and acts as the composition root. It creates the repository once (line 29) and passes that one instance into SessionService (line 30) and ClubBookingService (lines 31-34). Only the business services reach createApp (lines 47-55), so no request-handling code calls the repository directly. The same file imports many other persistence classes the same way (lines 1-3, 6, 9-10), so this edge is one case of a wider wiring pattern rather than a stray shortcut. Still, the presentation layer now depends at compile time on a concrete persistence class, and that skip is what the layering rule forbids. The finding stays a blocking fail. Because this is wiring code and not a data-access path, the fix is structural: move object construction into a separate bootstrap or composition module that the layering rules allow, or have the business layer provide factories. The handler logic does not need to change. No docs, ADRs or comments came with this finding, so no project intent or exception can be cited.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:91f1961018fd80d2",
+      "finding": {
+        "id": "c4f:91f1961018fd80d2",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/bookingRepository.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/bookingRepository.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 1,
+          "target": "src/persistence/bookingRepository.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:1",
+                "src/presentation/server.ts:19",
+                "src/presentation/server.ts:30",
+                "src/presentation/server.ts:35",
+                "src/presentation/server.ts:36",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:47",
+                "src/presentation/server.ts:52"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "src/presentation/server.ts is the process entry point and acts as the composition root. Line 1 imports BookingRepository from the persistence layer, and line 19 creates it. That instance is then passed into SessionService, BookingService, IceMonitorService and ReportService (lines 30, 35-36, 45, 52). The same file also imports other persistence types directly: HireStockRepository, PuckPayClient, ClubBookingRepository, SessionRepository, DropTextClient and TemperatureRepository (lines 2-4, 6, 9-10). FF-S03 checks the layering presentation -> business -> persistence. A presentation file that imports a persistence module skips the business layer, so the rule flags the edge server.ts:1 -> bookingRepository.ts. The import is only used for dependency wiring at startup. No request handler reads from or writes to the repository directly, because request handling goes through createApp, which only receives business services (lines 47-55). The coupling is real but narrow: the composition root sits inside the presentation folder, so the presentation layer depends on concrete persistence classes. The usual fix is to move the wiring into a dedicated bootstrap or composition module outside the presentation layer, or to have the business layer expose factories. No project docs, ADRs or comments were provided to show that this placement is intended.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "98915828911c03882ea688ef9aaa4c4aee87e106e95f718956b2c67b6ea88553",
+          "date": "2026-10-20T12:12:18.088Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:1",
+                "src/presentation/server.ts:19",
+                "src/presentation/server.ts:30",
+                "src/presentation/server.ts:35",
+                "src/presentation/server.ts:36",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:47",
+                "src/presentation/server.ts:52"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "src/presentation/server.ts imports BookingRepository from the persistence layer at line 1. Rule FF-S03 flags this because presentation is skipping the business layer and depending on persistence directly. The code shows what the import is for. server.ts is the process entry point and acts as the composition root. It builds the repository (line 19), passes it into SessionService, BookingService, IceMonitorService and ReportService (lines 30, 35-37, 45, 52), and then gives only those business services to createApp (lines 47-55). It never calls the repository to handle a request, so business rules are not bypassed at runtime. It is still a real compile-time dependency from a presentation-layer file to a persistence module, and that is what the layering rule forbids. This file also imports several other persistence modules the same way (lines 2-4, 6, 9-10). I was given no project docs, ADRs or comments, so nothing here declares a composition-root exception.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "98915828911c03882ea688ef9aaa4c4aee87e106e95f718956b2c67b6ea88553",
+          "date": "2026-10-20T12:12:26.271Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "src/presentation/server.ts is the process entry point and acts as the composition root. Line 1 imports BookingRepository from the persistence layer, and line 19 creates it. That instance is then passed into SessionService, BookingService, IceMonitorService and ReportService (lines 30, 35-36, 45, 52). The same file also imports other persistence types directly: HireStockRepository, PuckPayClient, ClubBookingRepository, SessionRepository, DropTextClient and TemperatureRepository (lines 2-4, 6, 9-10). FF-S03 checks the layering presentation -> business -> persistence. A presentation file that imports a persistence module skips the business layer, so the rule flags the edge server.ts:1 -> bookingRepository.ts. The import is only used for dependency wiring at startup. No request handler reads from or writes to the repository directly, because request handling goes through createApp, which only receives business services (lines 47-55). The coupling is real but narrow: the composition root sits inside the presentation folder, so the presentation layer depends on concrete persistence classes. The usual fix is to move the wiring into a dedicated bootstrap or composition module outside the presentation layer, or to have the business layer expose factories. No project docs, ADRs or comments were provided to show that this placement is intended.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:aef007626521e658",
+      "finding": {
+        "id": "c4f:aef007626521e658",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/puckPayClient.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/puckPayClient.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 3,
+          "target": "src/persistence/puckPayClient.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:3",
+                "src/presentation/server.ts:24",
+                "src/presentation/server.ts:25",
+                "src/presentation/server.ts:26",
+                "src/presentation/server.ts:27",
+                "src/presentation/server.ts:35",
+                "src/presentation/server.ts:36",
+                "src/presentation/server.ts:37",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:47"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 3, src/presentation/server.ts imports PuckPayClient from the persistence layer. At lines 24-27 it creates the client using the PUCKPAY_URL and PUCKPAY_API_KEY environment variables. It then passes the instance into BookingService (lines 35-37) and IceMonitorService (line 45), both in the business layer. FF-S03 flags this because a presentation-layer file depends directly on a persistence module and skips the business layer between them. The code shows that server.ts works as the app's composition root, not as a request handler. It never calls PuckPayClient methods itself. It only builds the object and injects it into business services, and it does the same for the other repositories and the DropText client (lines 1-4, 6, 9-10, 18-20, 29, 41-45). So the dependency comes from where the wiring lives, not from presentation logic reaching into data access. Even so, the file sits under src/presentation, so the layer rule counts it as a presentation-to-persistence edge. No project documentation, ADR or comment was provided that says where composition should happen or that exempts this file.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "6aa03344f349c8b3b4a24a82f6387098cd15797f2fe6076d74577c52543656db",
+          "date": "2026-10-20T12:12:35.189Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:3",
+                "src/presentation/server.ts:24",
+                "src/presentation/server.ts:25",
+                "src/presentation/server.ts:26",
+                "src/presentation/server.ts:27",
+                "src/presentation/server.ts:36",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:47"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "src/presentation/server.ts is the process entry point. It also acts as the composition root: it builds every repository and external client and passes them into the business services. On line 3 it imports PuckPayClient from the persistence layer, and on lines 24-27 it creates that client from the PUCKPAY_URL and PUCKPAY_API_KEY environment variables. On line 36 it passes the client to BookingService, and on line 45 to IceMonitorService. The presentation layer never calls PuckPayClient itself; it only builds the client and hands it on. Even so, the import is a direct edge from presentation to persistence that skips the business layer, so FF-S03 flags it. The same file has similar wiring imports for the other repositories and clients (lines 1, 2, 4, 6, 9, 10), so this edge is one example of a wider pattern: the composition root sits inside the presentation layer. It is not a stray data-access call from a controller.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "6aa03344f349c8b3b4a24a82f6387098cd15797f2fe6076d74577c52543656db",
+          "date": "2026-10-20T12:12:44.908Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "At line 3, src/presentation/server.ts imports PuckPayClient from the persistence layer. At lines 24-27 it creates the client using the PUCKPAY_URL and PUCKPAY_API_KEY environment variables. It then passes the instance into BookingService (lines 35-37) and IceMonitorService (line 45), both in the business layer. FF-S03 flags this because a presentation-layer file depends directly on a persistence module and skips the business layer between them. The code shows that server.ts works as the app's composition root, not as a request handler. It never calls PuckPayClient methods itself. It only builds the object and injects it into business services, and it does the same for the other repositories and the DropText client (lines 1-4, 6, 9-10, 18-20, 29, 41-45). So the dependency comes from where the wiring lives, not from presentation logic reaching into data access. Even so, the file sits under src/presentation, so the layer rule counts it as a presentation-to-persistence edge. No project documentation, ADR or comment was provided that says where composition should happen or that exempts this file.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:bce0eb15cecba04a",
+      "finding": {
+        "id": "c4f:bce0eb15cecba04a",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/dropTextClient.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/dropTextClient.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 9,
+          "target": "src/persistence/dropTextClient.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:9",
+                "src/presentation/server.ts:41",
+                "src/presentation/server.ts:42",
+                "src/presentation/server.ts:43",
+                "src/presentation/server.ts:44",
+                "src/presentation/server.ts:45"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 9, src/presentation/server.ts imports DropTextClient from the persistence layer. At lines 41-44 it builds the client from DROPTEXT_URL and DROPTEXT_API_KEY, and at line 45 it passes it into IceMonitorService, a business-layer service. The presentation layer never calls DropTextClient itself. The import exists only so the file can create and pass in dependencies at startup. server.ts acts as the app's startup and wiring file (its composition root): lines 1-4, 6 and 10 import other persistence classes the same way and build them. FF-S03 flags this because the import goes straight from presentation to persistence and skips the business layer, whatever the reason. The rule cannot tell startup wiring apart from a real shortcut around the business layer. The fix is structural: move the setup code into a separate startup/wiring module that sits outside the layer rules, or let the business layer expose factories. No behaviour needs to change.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "83b2ec39fab90baf11101c00dd020d7909241ab6d2995681444279f4e94eac4f",
+          "date": "2026-10-20T12:13:04.278Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:9",
+                "src/presentation/server.ts:41",
+                "src/presentation/server.ts:42",
+                "src/presentation/server.ts:43",
+                "src/presentation/server.ts:44",
+                "src/presentation/server.ts:45",
+                "src/presentation/server.ts:1",
+                "src/presentation/server.ts:10"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 9, src/presentation/server.ts imports DropTextClient from the persistence layer. At lines 41-44 it builds the client from the DROPTEXT_URL and DROPTEXT_API_KEY environment variables. At line 45 it passes the client to IceMonitorService in the business layer. The file never calls DropTextClient methods. It uses the class only to build and wire objects at startup, which is the job of a composition root. FF-S03 still flags the edge because a presentation-layer module depends directly on a persistence-layer module and skips the business layer. The same pattern appears for every other repository and client in this file (lines 1-4, 6 and 10), so this edge is one example of a broader wiring choice rather than a stray data access. The supplied material has no documentation, ADR or comment that names server.ts as a composition root or allows this edge.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "83b2ec39fab90baf11101c00dd020d7909241ab6d2995681444279f4e94eac4f",
+          "date": "2026-10-20T12:13:13.043Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "At line 9, src/presentation/server.ts imports DropTextClient from the persistence layer. At lines 41-44 it builds the client from DROPTEXT_URL and DROPTEXT_API_KEY, and at line 45 it passes it into IceMonitorService, a business-layer service. The presentation layer never calls DropTextClient itself. The import exists only so the file can create and pass in dependencies at startup. server.ts acts as the app's startup and wiring file (its composition root): lines 1-4, 6 and 10 import other persistence classes the same way and build them. FF-S03 flags this because the import goes straight from presentation to persistence and skips the business layer, whatever the reason. The rule cannot tell startup wiring apart from a real shortcut around the business layer. The fix is structural: move the setup code into a separate startup/wiring module that sits outside the layer rules, or let the business layer expose factories. No behaviour needs to change.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+{
+  "itemId": "42a26b41b626f9ec",
+  "itemName": "SessionService",
+  "key": "30f3bcdfea1a5350ed009fa07c9cb6a6f7ab8e40b6fd2843beab3aa2d5bb7502",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "0c14d7b978ec32eeed7490694c0c6e2c16fb21786f065d064fd7f89f14f2b58d",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass SessionService (node 42a26b41b626f9ec), file src/business/sessionService.ts, lines 24-81.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- effectiveCapacity (node 963eddd9c042a15e, lines 33-42, logic density 9)\n- create (node 02d7282b0ad909cf, lines 44-55, logic density 13)\n- list (node 1a79c9619e0202f3, lines 57-59, logic density 0)\n- get (node 93046e1fb75e64c6, lines 61-65, logic density 2)\n- availability (node ba0d757bbe0f3b99, lines 67-80, logic density 9)\nFields: sessions, bookings, stock, clubBookings\n\n## APG neighbourhood\nGraph statistics: 5 methods; fan-out 10 (CALLS 6, CONSTRUCTOR_INJECTS 4); fan-in 2 (CALLS 1, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method BookingService.create (src/business/bookingService.ts)\n- -> CALLS Method BookingRepository.findBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.findByDate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method HireStockRepository.all (src/persistence/hireStockRepository.ts)\n- -> CALLS Method SessionRepository.create (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.findAll (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.findById (src/persistence/sessionRepository.ts)\n- <- CONSTRUCTOR_INJECTS Class BookingService (src/business/bookingService.ts)\n- -> CONSTRUCTOR_INJECTS Class BookingRepository (src/persistence/bookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class ClubBookingRepository (src/persistence/clubBookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class HireStockRepository (src/persistence/hireStockRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class SessionRepository (src/persistence/sessionRepository.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- SessionService: nameRole=\"service\"\n- SessionService: behaviourRole=\"business-logic\"\n- SessionService: ioCategories=[]\n- SessionService: lcom4=1\n- SessionService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- SessionService.effectiveCapacity: logicDensity={\"branches\":3,\"comparisons\":5,\"arithmetic\":1,\"validationThrows\":0,\"density\":9}\n- SessionService.create: logicDensity={\"branches\":5,\"comparisons\":3,\"arithmetic\":0,\"validationThrows\":5,\"density\":13}\n- SessionService.list: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- SessionService.get: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- SessionService.availability: logicDensity={\"branches\":2,\"comparisons\":3,\"arithmetic\":4,\"validationThrows\":0,\"density\":9}\nFlags:\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BookingService.create in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BookingService.create in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ClubBookingService.create in component business\n\n## Comments near the code\n- SessionService.effectiveCapacity: Capacity after club bookings: halved if one half is taken, zero if the whole rink is.\n\n## Source\n=====SOURCE-BEGIN src/business/sessionService.ts\n24| export class SessionService {\n25|   constructor(\n26|     private readonly sessions: SessionRepository,\n27|     private readonly bookings: BookingRepository,\n28|     private readonly stock: HireStockRepository,\n29|     private readonly clubBookings: ClubBookingRepository,\n30|   ) {}\n31| \n32|   /** Capacity after club bookings: halved if one half is taken, zero if the whole rink is. */\n33|   effectiveCapacity(session: Session): number {\n34|     const overlapping = this.clubBookings\n35|       .findByDate(session.date)\n36|       .filter((c) => c.start < session.end && session.start < c.end);\n37|     if (overlapping.some((c) => c.area === \"whole\")) return 0;\n38|     const halvesTaken = new Set(overlapping.map((c) => c.area)).size;\n39|     if (halvesTaken >= 2) return 0;\n40|     if (halvesTaken === 1) return Math.floor(session.capacity / 2);\n41|     return session.capacity;\n42|   }\n43| \n44|   create(input: NewSession): Session {\n45|     if (!DATE.test(input.date) || Number.isNaN(Date.parse(input.date)))\n46|       throw new DomainError(400, \"date must be YYYY-MM-DD\");\n47|     if (!TIME.test(input.start) || !TIME.test(input.end))\n48|       throw new DomainError(400, \"start and end must be HH:MM\");\n49|     if (input.end <= input.start) throw new DomainError(400, \"end must be after start\");\n50|     if (!Number.isInteger(input.capacity) || input.capacity < 1)\n51|       throw new DomainError(400, \"capacity must be a positive integer\");\n52|     if (!Number.isInteger(input.priceCents) || input.priceCents < 0)\n53|       throw new DomainError(400, \"priceCents must be a non-negative integer\");\n54|     return this.sessions.create({ ...input, status: \"open\" });\n55|   }\n56| \n57|   list(): Array<Session & { availability: Availability }> {\n58|     return this.sessions.findAll().map((s) => ({ ...s, availability: this.availability(s) }));\n59|   }\n60| \n61|   get(id: string): Session & { availability: Availability } {\n62|     const s = this.sessions.findById(id);\n63|     if (!s) throw new DomainError(404, \"session not found\");\n64|     return { ...s, availability: this.availability(s) };\n65|   }\n66| \n67|   availability(session: Session): Availability {\n68|     const active = this.bookings\n69|       .findBySession(session.id)\n70|       .filter((b) => b.status === \"pending\" || b.status === \"paid\");\n71|     const ticketsUsed = active.reduce((n, b) => n + b.tickets, 0);\n72|     const hireLeft: Record<string, number> = {};\n73|     for (const [size, total] of Object.entries(this.stock.all())) {\n74|       const used = active.reduce((n, b) => n + (b.hire[size] ?? 0), 0);\n75|       hireLeft[size] = total - used;\n76|     }\n77|     // Held or cancelled sessions sell no more tickets.\n78|     const capacity = session.status === \"open\" ? this.effectiveCapacity(session) : 0;\n79|     return { ticketsLeft: Math.max(0, capacity - ticketsUsed), hireLeft };\n80|   }\n81| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:28:22.929Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 44,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "02d7282b0ad909cf",
+            "quote": "create(input: NewSession): Session {",
+            "startLine": 44
+          }
+        ],
+        "name": "Skating Session",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 79,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": "return { ticketsLeft: Math.max(0, capacity - ticketsUsed), hireLeft };",
+            "startLine": 79
+          }
+        ],
+        "name": "Session Availability",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 33,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "963eddd9c042a15e",
+            "quote": "effectiveCapacity(session: Session): number {",
+            "startLine": 33
+          }
+        ],
+        "name": "Effective Capacity",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 36,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "963eddd9c042a15e",
+            "quote": ".filter((c) => c.start < session.end && session.start < c.end);",
+            "startLine": 36
+          }
+        ],
+        "name": "Club Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 71,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": "const ticketsUsed = active.reduce((n, b) => n + b.tickets, 0);",
+            "startLine": 71
+          }
+        ],
+        "name": "Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 73,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": "for (const [size, total] of Object.entries(this.stock.all())) {",
+            "startLine": 73
+          }
+        ],
+        "name": "Hire Stock",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 71,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": "const ticketsUsed = active.reduce((n, b) => n + b.tickets, 0);",
+            "startLine": 71
+          }
+        ],
+        "name": "Ticket",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.92,
+        "description": "Works out how many skaters a session can take once club bookings that overlap it are counted. Capacity drops to zero if a club has the whole rink or both halves, and is halved if one half is taken.",
+        "evidence": [
+          {
+            "endLine": 37,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "963eddd9c042a15e",
+            "quote": "if (overlapping.some((c) => c.area === \"whole\")) return 0;",
+            "startLine": 37
+          },
+          {
+            "endLine": 40,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "963eddd9c042a15e",
+            "quote": "if (halvesTaken === 1) return Math.floor(session.capacity / 2);",
+            "startLine": 40
+          }
+        ],
+        "name": "Compute effective session capacity after club bookings",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Checks a new session's date, start and end times, capacity and price, then saves it with status open.",
+        "evidence": [
+          {
+            "endLine": 49,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "02d7282b0ad909cf",
+            "quote": "if (input.end <= input.start) throw new DomainError(400, \"end must be after start\");",
+            "startLine": 49
+          },
+          {
+            "endLine": 54,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "02d7282b0ad909cf",
+            "quote": "return this.sessions.create({ ...input, status: \"open\" });",
+            "startLine": 54
+          }
+        ],
+        "name": "Validate and schedule new sessions",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Works out how many tickets and how much hire stock of each size are left. Only pending and paid bookings count against them, and sessions that are not open sell no tickets.",
+        "evidence": [
+          {
+            "endLine": 70,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": ".filter((b) => b.status === \"pending\" || b.status === \"paid\");",
+            "startLine": 70
+          },
+          {
+            "endLine": 78,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": "const capacity = session.status === \"open\" ? this.effectiveCapacity(session) : 0;",
+            "startLine": 78
+          },
+          {
+            "endLine": 75,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "ba0d757bbe0f3b99",
+            "quote": "hireLeft[size] = total - used;",
+            "startLine": 75
+          }
+        ],
+        "name": "Calculate ticket and hire-equipment availability",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Lists all sessions, or looks one up by id, and attaches its current availability. Reports a not-found error when no session has that id.",
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "1a79c9619e0202f3",
+            "quote": "return this.sessions.findAll().map((s) => ({ ...s, availability: this.availability(s) }));",
+            "startLine": 58
+          },
+          {
+            "endLine": 63,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "93046e1fb75e64c6",
+            "quote": "if (!s) throw new DomainError(404, \"session not found\");",
+            "startLine": 63
+          }
+        ],
+        "name": "Retrieve sessions with their availability",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4825,
+    "outputTokens": 1994
+  }
+}

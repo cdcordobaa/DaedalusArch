@@ -1,0 +1,28 @@
+{
+  "itemId": "359d795d8a99a0fd",
+  "itemName": "Booking ~ Club Booking",
+  "key": "dbd7f2c084ee420b3ef6a4eda717c4d8a853510adaedb65341701ca97af1cfa9",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "363fcf8816abd806eeca8cd2ed83abcf51278cb0000e302f97c2084135f7297d",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Booking\nwhere: BookingRepository (uses), src/persistence/bookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly bookings = new Map<string, Booking>();\n=====SOURCE-END=====\ngraph:\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 12\n- <- CALLS Method BookingService.create\n- <- CALLS Method BookingService.get\n- <- CALLS Method BookingService.handlePaymentResult\n- <- CALLS Method BookingService.releaseExpired\n- <- CALLS Method IceMonitorService.cancel\n- <- CALLS Method IceMonitorService.notifyHolders\n- <- CALLS Method ReportService.range\n- <- CALLS Method SessionService.availability\n\n### B\nconcept: Club Booking\nwhere: SessionService (uses), src/business/sessionService.ts, component business\ncode:\n=====SOURCE-BEGIN\n.filter((c) => c.start < session.end && session.start < c.end);\n=====SOURCE-END=====\ngraph:\n- class SessionService (node 42a26b41b626f9ec): layer domain, component business, fan-out 10, fan-in 2\n- <- CALLS Method BookingService.create\n- -> CALLS Method BookingRepository.findBySession\n- -> CALLS Method ClubBookingRepository.findByDate\n- -> CALLS Method HireStockRepository.all\n- -> CALLS Method SessionRepository.create\n- -> CALLS Method SessionRepository.findAll\n- -> CALLS Method SessionRepository.findById\n- <- CONSTRUCTOR_INJECTS Class BookingService",
+  "recordedAt": "2026-10-20T15:39:30.777Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.8,
+    "rationale": "Booking is stored in its own map in BookingRepository (\"private readonly bookings = new Map<string, Booking>();\") and is looked up per session (SessionService -> BookingRepository.findBySession). Club bookings come from a separate ClubBookingRepository (SessionService -> ClubBookingRepository.findByDate) and are filtered by overlapping time ranges (\".filter((c) => c.start < session.end && session.start < c.end);\"). This suggests a club booking reserves a block of time that can reduce session availability, rather than being a customer's place in a session. Only Booking appears in the payment and expiry flows (BookingService.handlePaymentResult, releaseExpired). They have separate repositories, lookups and lifecycles, so they are related but distinct concepts.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2067,
+    "outputTokens": 803
+  }
+}

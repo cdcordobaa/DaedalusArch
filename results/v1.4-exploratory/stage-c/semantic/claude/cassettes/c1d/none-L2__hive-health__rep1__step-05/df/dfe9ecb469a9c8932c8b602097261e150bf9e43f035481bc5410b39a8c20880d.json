@@ -1,0 +1,28 @@
+{
+  "itemId": "71c187da77daca72",
+  "itemName": "Treatment Product ~ Product",
+  "key": "dfe9ecb469a9c8932c8b602097261e150bf9e43f035481bc5410b39a8c20880d",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "fc0ba606b39d3eda8c12e72b1a5c93b3562001b3511b2ebf389b86dc02582713",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Treatment Product\nwhere: TreatmentService (uses), src/business/treatmentService.ts, component business\ncode:\n=====SOURCE-BEGIN\nreturn this.products.create({ name: requireText(name, \"name\"), withdrawalDays });\n=====SOURCE-END=====\ngraph:\n- class TreatmentService (node 2912145e8ad12343): layer domain, component business, fan-out 12, fan-in 0\n- -> CALLS Method HarvestRepository.create\n- -> CALLS Method HarvestRepository.findByHive\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method ProductRepository.create\n- -> CALLS Method ProductRepository.findAll\n- -> CALLS Method ProductRepository.findById\n- -> CALLS Method TreatmentRepository.create\n- -> CALLS Method TreatmentRepository.findByHive\n\n### B\nconcept: Product\nwhere: ProductRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly items = new Map<string, ProductRecord>();\n=====SOURCE-END=====\ngraph:\n- class ProductRepository (node f86df271c26e9cd6): layer infrastructure, component persistence, fan-out 0, fan-in 7\n- <- CALLS Method ReportService.quarterlyReport\n- <- CALLS Method TreatmentService.addProduct\n- <- CALLS Method TreatmentService.listProducts\n- <- CALLS Method TreatmentService.recordHarvest\n- <- CALLS Method TreatmentService.recordTreatment\n- <- CONSTRUCTOR_INJECTS Class ReportService\n- <- CONSTRUCTOR_INJECTS Class TreatmentService",
+  "recordedAt": "2026-10-20T15:10:48.843Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "Yes, A and B appear to be the same concept: the treatment product (a veterinary product with a withdrawal period). In A, TreatmentService (node 2912145e8ad12343, src/business/treatmentService.ts) creates a product with `this.products.create({ name: requireText(name, \"name\"), withdrawalDays })`. The graph shows this call goes to ProductRepository.create, and ProductRepository is injected into TreatmentService through its constructor. In B, ProductRepository (node f86df271c26e9cd6, src/persistence/repositories.ts) stores these same entities in `private readonly items = new Map<string, ProductRecord>();`. So 'Treatment Product' in the business layer and 'Product' in the persistence layer look like one thing under two names. I can't see the ProductRecord definition, so this rests on the call link and the withdrawalDays field.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2079,
+    "outputTokens": 454
+  }
+}

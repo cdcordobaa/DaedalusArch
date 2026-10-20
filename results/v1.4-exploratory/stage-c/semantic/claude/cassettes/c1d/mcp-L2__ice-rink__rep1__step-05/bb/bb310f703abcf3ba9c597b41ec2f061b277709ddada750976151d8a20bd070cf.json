@@ -1,0 +1,146 @@
+{
+  "itemId": "community:3",
+  "itemName": "community:3",
+  "key": "bb310f703abcf3ba9c597b41ec2f061b277709ddada750976151d8a20bd070cf",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "cb55da789ffb2a34fec577a7141331489899bc1ab92602ecce796dd18e79c319",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"3\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- RinkService (node 21c65604dec116b1), file src/business/rinkService.ts, declaration line 52: \"export class RinkService {\"\n  component business, layer domain; responsibilities: Session scheduling and validation; Session hold lifecycle (release/cancel with refunds); Hire skate stock management; Availability and effective capacity calculation; Ticket purchase with pricing and oversell protection; Membership free-session entitlement; Payment checkout orchestration; Payment result settlement; Expiry of unpaid bookings\n- BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, declaration line 4: \"export class BookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve bookings; Index bookings by skating session\n- PuckPayClient (node 8ce0b3f14177346a), file src/persistence/puckPayClient.ts, declaration line 15: \"export class PuckPayClient {\"\n  component persistence, layer infrastructure; responsibilities: Create payment checkout with PuckPay; Validate payment provider responses; Issue payment refunds via PuckPay\n- HireStockRepository (node ada57feca2e90c67), file src/persistence/hireStockRepository.ts, declaration line 2: \"export class HireStockRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store hire skate stock per shoe size; Look up hire stock for a size; List all hire stock\n- SessionRepository (node e3915d8f30e495a9), file src/persistence/sessionRepository.ts, declaration line 4: \"export class SessionRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve rink sessions; List sessions in schedule order\n\n## APG relations of the group\nGraph statistics: 5 classes; 8 relations inside the group; 4 outgoing relations to code outside it.\n- RinkService -> CALLS BookingRepository\n- RinkService -> CALLS HireStockRepository\n- RinkService -> CALLS PuckPayClient\n- RinkService -> CALLS SessionRepository\n- RinkService -> CONSTRUCTOR_INJECTS BookingRepository\n- RinkService -> CONSTRUCTOR_INJECTS HireStockRepository\n- RinkService -> CONSTRUCTOR_INJECTS PuckPayClient\n- RinkService -> CONSTRUCTOR_INJECTS SessionRepository\n\n## Comments near the code\n- RinkService.effectiveCapacity: Capacity left after club bookings: halved by one blocked half, zero when both are blocked.\n- RinkService.createSession: ---- manager operations ----\n- RinkService.releaseSession: Manager: puts a held session back on sale.\n- RinkService.cancelSession: Manager: cancels a held session and refunds every ticket through PuckPay. Safe to retry.\n- RinkService.listSessions: ---- public queries ----\n- RinkService.purchase: ---- purchasing ----\n- RinkService.handlePaymentResult: Handles PuckPay's webhook. Idempotent for already-settled bookings.\n- RinkService.expireOverdue: Releases unpaid bookings whose 15-minute window has elapsed.\n- RinkService.usage: Tickets and hire skates held by pending or paid bookings.\n- PuckPayClient: HTTP client for PuckPay's API (external system access).\n- HireStockRepository: Fixed stock of hire skates per shoe size.",
+  "recordedAt": "2026-10-20T12:54:05.750Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "The rink manager can create and schedule skating sessions, hold them, put held sessions back on sale or cancel them, and the public can list sessions in schedule order.",
+        "evidence": [
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/sessionRepository.ts",
+            "nodeId": "e3915d8f30e495a9",
+            "quote": "export class SessionRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Skating session scheduling and management",
+        "realizedBy": [
+          "21c65604dec116b1",
+          "e3915d8f30e495a9"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Customers can buy tickets for skating sessions. Prices are worked out, available capacity is reduced when club bookings block part of the rink, and overselling is prevented. Bookings are stored and looked up by session.",
+        "evidence": [
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "export class BookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Ticket sales and session availability",
+        "realizedBy": [
+          "21c65604dec116b1",
+          "2e3c5728fffb0180"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "The rink keeps a fixed stock of hire skates for each shoe size and reserves them alongside ticket bookings, so customers can't hire more skates than are available.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "ada57feca2e90c67",
+            "quote": "export class HireStockRepository {",
+            "startLine": 2
+          },
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          }
+        ],
+        "name": "Skate hire inventory",
+        "realizedBy": [
+          "21c65604dec116b1",
+          "ada57feca2e90c67"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Customers pay for bookings through the external PuckPay payment provider. Payment results arrive by webhook and settle the bookings, and tickets for cancelled sessions are refunded.",
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "8ce0b3f14177346a",
+            "quote": "export class PuckPayClient {",
+            "startLine": 15
+          },
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          }
+        ],
+        "name": "Online payment and refunds",
+        "realizedBy": [
+          "21c65604dec116b1",
+          "8ce0b3f14177346a",
+          "2e3c5728fffb0180"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Members can get free sessions they are entitled to, and bookings that stay unpaid past the 15-minute payment window are released so the tickets and skates go back on sale.",
+        "evidence": [
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          }
+        ],
+        "name": "Membership free-session entitlement and unpaid booking expiry",
+        "realizedBy": [
+          "21c65604dec116b1",
+          "2e3c5728fffb0180"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2940,
+    "outputTokens": 1597
+  }
+}
