@@ -5,7 +5,7 @@
  *   npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]
  *                                       [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]
  *                                       [--claude-config-dir <abs>] [--gemini-home-none <abs>] [--gemini-home-mcp <abs>]
- *                                       [--engine neo4j|cypher-interp|both] [--call-log]
+ *                                       [--engine neo4j|cypher-interp|both] [--call-log] [--shared-start-from <abs>]...
  *   npx tsx scripts/loop-harness-cli.ts --help
  *
  * `--dry-run` replaces the generator, the firewall and the type-check with the stubs of `stub.ts`: the whole loop
@@ -21,6 +21,10 @@
  *
  * A plan with `frame` (off by default) gives every task's frames its spec rung and the attention sentence
  * (`plan.ts`, `rungs.ts`); the L3/L4 rule sentences are read from each task's static evaluator spec, also in a dry run.
+ *
+ * A plan with `sharedStart` (off by default; `shared-start.ts`) branches every run at step 2 from the step-1 tree of
+ * its source run in `sharedStart.fromOutRoot`, checked against this grid's tasks sha256 and each task's spec; in a dry
+ * run the source must be a dry run too.
  *
  * The grid writes `<outRoot>/schedule.json` (the plan and tasks file sha256 and the seeded order). Re-running the same
  * plan resumes: complete runs are skipped, a run stopped mid-step restarts that step from the last snapshot. A
@@ -68,6 +72,9 @@ import type { LoopEngine } from './engine-tee.js';
 import { assertGateApplied, gateEvaluationFailures, restartCounts, runDirFor, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
 import { loadLoopPlan, loopRunId, mcpSpecCheck, mcpSpecFor, planCallBudget, planFrame, scheduleLoopRuns, SPEC_SHA_ENV } from './plan.js';
+import type { LoopPlanFile } from './plan.js';
+import { fromOutRootFor, parseCell } from './shared-start.js';
+import type { SharedStartContext } from './shared-start.js';
 import { taskFrameExtras } from './rungs.js';
 import type { TaskFrameExtras } from './rungs.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
@@ -85,7 +92,7 @@ export const LOOP_USAGE = [
   'usage: npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]',
   '                                          [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]',
   '                                          [--claude-config-dir <abs>] [--gemini-home-none <abs>] [--gemini-home-mcp <abs>]',
-  '                                          [--engine neo4j|cypher-interp|both] [--call-log]',
+  '                                          [--engine neo4j|cypher-interp|both] [--call-log] [--shared-start-from <abs>]...',
   '       npx tsx scripts/loop-harness-cli.ts --help',
   '',
   'Runs the multi-step firewall-in-the-loop grid: each run applies the k steps of a task to one work directory under',
@@ -97,6 +104,8 @@ export const LOOP_USAGE = [
   'interpreter parity check on every snapshot. Absent = the default wiring.',
   'An agy-cli (Gemini) adapter is off by default: it needs a gemini block with enabled: true, and a live grid refuses',
   'it without a passing committed S4 result; --gemini-home-none / --gemini-home-mcp fill its "<local>" homes.',
+  'A plan with sharedStart branches every run at step 2 from a source run\'s step-1 tree; --shared-start-from',
+  '(repeatable, in order) fills the "<local>" entries of sharedStart.fromOutRoot.',
   '',
 ].join('\n');
 
@@ -148,7 +157,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
   let callLog = false;
   let plan: string | undefined;
   let engine: string | undefined;
-  const local: { binary?: string; harnessRoot?: string; outRoot?: string; claudeConfigDir?: string } = {};
+  const local: { binary?: string; harnessRoot?: string; outRoot?: string; claudeConfigDir?: string; sharedStartFrom?: string[] } = {};
   const homes: { codexHome?: string; userHome?: string } = {};
   const geminiHomes: { none?: string; mcp?: string } = {};
   const value = (i: number): string | undefined => {
@@ -166,6 +175,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
     '--gemini-home-none': (v) => (geminiHomes.none = v),
     '--gemini-home-mcp': (v) => (geminiHomes.mcp = v),
     '--engine': (v) => (engine = v),
+    '--shared-start-from': (v) => (local.sharedStartFrom = [...(local.sharedStartFrom ?? []), v]),
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i] ?? '';
@@ -478,6 +488,14 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
   });
 }
 
+/** The loop's shared-start context of a plan (undefined without `sharedStart`). */
+export function sharedStartContext(plan: Pick<LoopPlanFile, 'sharedStart'>, tasksSha256: string): SharedStartContext | undefined {
+  const s = plan.sharedStart;
+  const cell = s !== undefined ? parseCell(s.fromCell) : undefined;
+  if (s === undefined || cell === undefined) return undefined;
+  return { fromCell: s.fromCell, fromArm: cell.arm, fromRung: cell.rung, tasksSha256, fromOutRootFor: (r) => fromOutRootFor(s, r) };
+}
+
 /** Runs the grid of a loaded plan with a given wiring; returns every run's result. */
 export async function runLoopGrid(
   loaded: LoadedPlan,
@@ -497,6 +515,7 @@ export async function runLoopGrid(
   });
   if (!claimed.success) return DomainResult.fail(claimed.errors);
   const tasks = new Map(loaded.tasks.tasks.map((t) => [t.id, t]));
+  const shared = sharedStartContext(plan, options.tasksSha256);
   const results: LoopRunResult[] = [];
   for (const spec of specs) {
     const agent = wiring.agents.get(agentKey(spec.adapterId, spec.modelId));
@@ -519,6 +538,7 @@ export async function runLoopGrid(
         ...(plan.gate?.shownRules !== undefined ? { gateShownRules: plan.gate.shownRules } : {}),
         ...(options.callLog === true ? { callLog: true } : {}),
         ...(plan.acceptance?.enabled === true ? { acceptance: acceptanceRunner(plan.acceptance) } : {}),
+        ...(shared !== undefined ? { sharedStart: shared } : {}),
       },
       spec,
     );

@@ -43,6 +43,10 @@
  * measured snapshot also gets the black-box tests of steps 1..k run against its service, started from a copy outside
  * `work/`; the record goes on the snapshot and the step's final one on the step record.
  *
+ * Shared step-1 start (`LoopContext.sharedStart`, optional, `shared-start.ts`): the run directory is created from
+ * another run's step 1 (its tree, commits, step-1 record and turn records), checked first and refused on any mismatch;
+ * the loop then starts at step 2 as a resume with one step done would. Absent: nothing changes.
+ *
  * Resume: the step records are the only progress state. On start, a run with every step record and `completedAt` is
  * skipped; otherwise the work tree is put back to the last recorded step's final commit (the base commit when none),
  * any partial step after it is logged in `restarts.jsonl` and discarded, and the loop continues with the next step.
@@ -67,7 +71,9 @@ import { treeLoc } from '../so5-size.js';
 import type { AcceptanceRunner } from './acceptance.js';
 import { loopRunId } from './plan.js';
 import { L4_SPEC_FILE, MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from './prompts.js';
-import { WorkTreeSnapshots, SNAPSHOT_GIT_DIR } from './snapshot.js';
+import { WorkTreeSnapshots, SNAPSHOT_GIT_DIR, gitHasCommit } from './snapshot.js';
+import { checkSharedStartSource, inheritedStepRecord, sharedStartMatches } from './shared-start.js';
+import type { SharedStartContext, SharedStartSeed } from './shared-start.js';
 import { placeSpec, readLogMethod, watchSpecRead } from './rungs.js';
 import type { ReadLogMethod, SpecReadLog, TaskFrameExtras } from './rungs.js';
 import { callLogPathFor, earliestWriteSince, stepProcess } from './process-metrics.js';
@@ -201,6 +207,8 @@ export interface LoopContext {
   readonly callLog?: boolean;
   /** Per-snapshot acceptance checks (`acceptance.ts`); absent (the default) means none run and none are recorded. */
   readonly acceptance?: AcceptanceRunner;
+  /** Shared step-1 start (`shared-start.ts`); absent (the default) means every run draws its own step 1. */
+  readonly sharedStart?: SharedStartContext;
 }
 
 export type LoopRunResult =
@@ -394,8 +402,49 @@ class LoopRun {
     return { evaluator: e.evaluatorFor(specFile), ref };
   }
 
-  /** Creates the run directory (skeleton, snapshot store, base commit, run.json); a half-created one is replaced. */
+  /** The source run id of a shared-start run (undefined without `sharedStart`). */
+  private sharedSourceRunId(): string | undefined {
+    const s = this.ctx.sharedStart;
+    return s === undefined ? undefined : loopRunId({ ...this.spec, arm: s.fromArm });
+  }
+
+  /** The checked source of a shared-start run; undefined without `sharedStart`. */
+  private sharedSeed(): DomainResult<SharedStartSeed | undefined> {
+    const s = this.ctx.sharedStart;
+    if (s === undefined) return DomainResult.ok(undefined);
+    if (this.extras?.placedSpec !== undefined) {
+      return DomainResult.fail([{ code: 'LOOP_SHARED_START_SOURCE', message: `${this.runId}: an L4 frame places its spec before step 1, so it cannot branch from another run's step 1` }]);
+    }
+    const e = this.profile?.evaluation;
+    return checkSharedStartSource({
+      ctx: s,
+      spec: this.spec,
+      task: this.task,
+      specSha256: e?.kind === 'static' ? e.specSha256 : undefined,
+      attention: this.extras?.extras.attention ?? false,
+      dryRun: this.ctx.dryRun,
+      runDirFor,
+      runIdOf: loopRunId,
+      hasCommit: gitHasCommit,
+      snapshotGitDir: SNAPSHOT_GIT_DIR,
+    });
+  }
+
+  /** Shared start: step 1's record and turn records from the source, under this run's id (`shared-start.ts`). */
+  private inheritStep1(seed: SharedStartSeed): void {
+    writeJsonAtomic(stepRecordPath(this.runDir, 0), inheritedStepRecord(seed, this.runId, this.spec));
+    const turns = path.join(seed.sourceRunDir, TURNS_DIR, 'step-01');
+    if (fs.existsSync(turns)) copyTree(turns, path.join(this.runDir, TURNS_DIR, 'step-01'));
+  }
+
+  /**
+   * Creates the run directory (skeleton, snapshot store, base commit, run.json); a half-created one is replaced. A
+   * shared-start run checks its source first, and its store and step 1 come from the source.
+   */
   private create(): DomainResult<RunRecord> {
+    const seeded = this.sharedSeed();
+    if (!seeded.success) return DomainResult.fail(seeded.errors);
+    const seed = seeded.data;
     if (fs.existsSync(this.runDir)) fs.rmSync(this.runDir, { recursive: true, force: true });
     fs.mkdirSync(this.runDir, { recursive: true });
     const prep = this.ctx.prepareWorkDir(this.workDir);
@@ -407,14 +456,23 @@ class LoopRun {
     }
     const init = this.snaps.init();
     if (!init.success) return DomainResult.fail(init.errors);
-    const base = this.snaps.commit('base: skeleton');
-    if (!base.success) return DomainResult.fail(base.errors);
+    let baseCommit: string;
+    if (seed !== undefined) {
+      const fetched = this.snaps.seedFrom(seed.sourceGitDir, seed.record.sourceCommit);
+      if (!fetched.success) return DomainResult.fail(fetched.errors);
+      this.inheritStep1(seed);
+      baseCommit = seed.record.sourceBaseCommit;
+    } else {
+      const base = this.snaps.commit('base: skeleton');
+      if (!base.success) return DomainResult.fail(base.errors);
+      baseCommit = base.data;
+    }
     const record: RunRecord = {
       schema: 'loop-run/v1',
       runId: this.runId,
       spec: this.spec,
       steps: this.task.steps.length,
-      baseCommit: base.data,
+      baseCommit,
       createdAt: this.ctx.now().toISOString(),
       dryRun: this.ctx.dryRun,
       ...(this.extras !== undefined
@@ -428,6 +486,7 @@ class LoopRun {
         : {}),
       ...(this.shownRules !== undefined ? { heldOutRules: { shownRuleIds: this.shownRules } } : {}),
       ...(this.ctx.callLog === true ? { callLog: true as const } : {}),
+      ...(seed !== undefined ? { sharedStart: seed.record } : {}),
     };
     writeJsonAtomic(path.join(this.runDir, RUN_JSON), record);
     return DomainResult.ok(record);
@@ -731,9 +790,15 @@ class LoopRun {
         { code: 'LOOP_CALL_LOG_MISMATCH', message: `${this.runId}: run.json was created ${record.callLog === true ? 'with' : 'without'} --call-log; resume it the same way` },
       ]);
     }
+    const shared = sharedStartMatches(record, this.sharedSourceRunId(), this.runId);
+    if (!shared.success) return DomainResult.fail(shared.errors);
     const steps = this.task.steps.length;
     const done = readStepRecords(this.runDir, steps);
     if (done.length === steps && record.completedAt !== undefined) return DomainResult.ok({ kind: 'skipped-complete', runId: this.runId });
+    // A shared-start run never draws step 1: without its inherited record it cannot go on (start it in a fresh outRoot).
+    if (record.sharedStart !== undefined && done[0]?.inherited === undefined) {
+      return DomainResult.fail([{ code: 'LOOP_SHARED_START_BROKEN', message: `${this.runId}: the inherited step-1 record is missing or unreadable; the run cannot draw step 1 itself` }]);
+    }
 
     let last = done[done.length - 1]?.finalCommit ?? record.baseCommit;
     const head = this.snaps.head();

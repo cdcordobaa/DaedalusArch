@@ -38,6 +38,12 @@
  * version (a Codex value must equal `codex.cliVersion`); `generatorIsolation.claudeConfigDir` (`"<local>"` filled from
  * `--claude-config-dir`) isolates every Claude spawn and requires `cliVersion` on every Claude adapter.
  *
+ * Shared step-1 start (`sharedStart`, optional, off when absent; `shared-start.ts`, unit U13): the plan's runs branch
+ * at step 2 from the step-1 tree of a source cell's runs in another out-root. Every task then needs a static profile
+ * (the source's step-1 spec hash is compared with it), an L4 frame is refused, and the call budget counts steps 2..k
+ * only. `firstRun` (optional, default 0) starts the run indexes there, so a plan can run replicate 2 alone; the arm
+ * order is drawn as a plan of `firstRun + runs` runs would draw it, the earlier blocks skipped.
+ *
  * Gemini (decision CDX; off by default): an `agy-cli` adapter is accepted only with a `gemini` block whose `enabled` is
  * exactly true, and its `cliVersion` must equal `gemini.cliVersion` (`agy-gen-plan.ts`). A plan without `agy-cli`
  * validates, schedules and reports errors exactly as before.
@@ -65,6 +71,8 @@ import { CONTEXT_ROOT_RE, LOOP_STYLES } from './style.js';
 import type { LoopContextDecl, LoopStyle } from './style.js';
 import { SPEC_RUNGS } from './prompts.js';
 import type { SpecRung } from './prompts.js';
+import { fromOutRoots, validateSharedStart } from './shared-start.js';
+import type { SharedStartPlan } from './shared-start.js';
 import { LOOP_ARMS, parseLoopEngine } from './types.js';
 import type { LoopArm, LoopEngine, LoopRunSpec, LoopTask, LoopTasksFile, TaskAcceptance } from './types.js';
 
@@ -147,6 +155,10 @@ export interface LoopPlanFile {
   readonly specSha256?: string;
   /** Per-snapshot acceptance checks (`acceptance.ts`, gate D12); off unless `enabled` is true. */
   readonly acceptance?: AcceptancePlan;
+  /** The first run index (default 0); the plan runs `firstRun .. firstRun + runs - 1`. */
+  readonly firstRun?: number;
+  /** Shared step-1 start (module header); absent = every run draws its own step 1. */
+  readonly sharedStart?: SharedStartPlan;
 }
 
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
@@ -289,6 +301,18 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   }
   if (raw.specSha256 !== undefined && (typeof raw.specSha256 !== 'string' || !SHA256_RE.test(raw.specSha256))) {
     errors.push(err('LOOP_PLAN_INVALID', 'specSha256 must be a lower-case 64-hex sha256'));
+  }
+  if (raw.firstRun !== undefined && (!Number.isInteger(raw.firstRun) || (raw.firstRun as number) < 0)) errors.push(err('LOOP_PLAN_INVALID', 'firstRun must be a non-negative integer'));
+  if (raw.sharedStart !== undefined) {
+    const last = Number.isInteger(raw.runs) && (raw.firstRun === undefined || Number.isInteger(raw.firstRun)) ? ((raw.firstRun as number | undefined) ?? 0) + (raw.runs as number) - 1 : undefined;
+    errors.push(...validateSharedStart(raw.sharedStart, last));
+    if (isRecord(raw.frame) && raw.frame.specRung === 'L4') errors.push(err('LOOP_PLAN_INVALID', 'sharedStart cannot run an L4 frame (its spec is placed in the tree before step 1)'));
+    if (!isRecord(raw.taskProfiles)) errors.push(err('LOOP_PLAN_INVALID', 'sharedStart needs a static taskProfiles entry for every task (the source step-1 spec hash is checked against it)'));
+    else {
+      for (const [id, p] of Object.entries(raw.taskProfiles)) {
+        if (isRecord(p) && (p.specMode ?? 'static') !== 'static') errors.push(err('LOOP_PLAN_INVALID', `taskProfiles.${id}: sharedStart needs a static spec`));
+      }
+    }
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(raw as unknown as LoopPlanFile);
 }
@@ -435,10 +459,11 @@ function validateProfiles(raw: unknown): DomainError[] {
   return errors;
 }
 
-/** The model calls of a plan (module header). */
-export function planCallBudget(plan: Pick<LoopPlanFile, 'adapters' | 'arms' | 'runs'>, tasks: readonly LoopTask[]): CallBudget {
+/** The model calls of a plan (module header); a shared-start plan draws steps 2..k only. */
+export function planCallBudget(plan: Pick<LoopPlanFile, 'adapters' | 'arms' | 'runs'> & Partial<Pick<LoopPlanFile, 'sharedStart'>>, tasks: readonly LoopTask[]): CallBudget {
   const reps = plan.adapters.length * plan.runs;
-  const steps = tasks.reduce((a, t) => a + t.steps.length, 0);
+  const inherited = plan.sharedStart !== undefined ? plan.sharedStart.step : 0;
+  const steps = tasks.reduce((a, t) => a + Math.max(0, t.steps.length - inherited), 0);
   const gate = plan.arms.includes('gate') ? 1 : 0;
   const stepTurns = steps * plan.arms.length * reps;
   const maxRepairTurns = steps * gate * reps;
@@ -452,6 +477,12 @@ export function checkPlanAgainstTasks(plan: LoopPlanFile, tasks: LoopTasksFile):
   for (const id of Object.keys(plan.taskProfiles ?? {})) if (!ids.has(id)) errors.push(err('LOOP_PLAN_INVALID', `taskProfiles.${id}: no such task`));
   if (plan.evaluatorSpec === undefined) {
     for (const id of ids) if (plan.taskProfiles?.[id] === undefined) errors.push(err('LOOP_PLAN_INVALID', `task ${id} has no profile and the plan has no evaluatorSpec`));
+  }
+  if (plan.sharedStart !== undefined) {
+    for (const t of tasks.tasks) {
+      if (plan.taskProfiles?.[t.id] === undefined) errors.push(err('LOOP_PLAN_INVALID', `task ${t.id}: sharedStart needs a static profile for every task`));
+      if (t.steps.length <= plan.sharedStart.step) errors.push(err('LOOP_PLAN_INVALID', `task ${t.id}: sharedStart needs at least 2 steps`));
+    }
   }
   if (plan.callBudget !== undefined) {
     const want = planCallBudget(plan, tasks.tasks);
@@ -476,6 +507,8 @@ export interface LocalOverrides {
   readonly harnessRoot?: string;
   readonly outRoot?: string;
   readonly claudeConfigDir?: string;
+  /** `--shared-start-from`, in order: fills the `"<local>"` entries of `sharedStart.fromOutRoot`. */
+  readonly sharedStartFrom?: readonly string[];
 }
 
 /** Plan-load checks a caller turns on (all OFF by default). */
@@ -547,6 +580,19 @@ export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOve
     if (iso.claudeConfigDir !== LOCAL) return DomainResult.fail([err('LOOP_PLAN_INVALID', '--claude-config-dir given but the plan pins claudeConfigDir')]);
     filled.generatorIsolation = { ...iso, claudeConfigDir: cfg };
   }
+  const from = local.sharedStartFrom;
+  if (from !== undefined && from.length > 0) {
+    const ss = filled.sharedStart;
+    const given: unknown = isRecord(ss) ? ss.fromOutRoot : undefined;
+    const roots: readonly unknown[] | undefined = typeof given === 'string' ? [given] : Array.isArray(given) ? (given as unknown[]) : undefined;
+    const holes = roots !== undefined ? roots.filter((r) => r === LOCAL).length : 0;
+    if (!isRecord(ss) || roots === undefined || holes !== from.length) {
+      return DomainResult.fail([err('LOOP_PLAN_INVALID', `--shared-start-from given ${String(from.length)} time(s) but the plan's sharedStart.fromOutRoot has ${String(holes)} "<local>" entr${holes === 1 ? 'y' : 'ies'}`)]);
+    }
+    let k = 0;
+    const filledRoots = roots.map((r): unknown => (r === LOCAL ? from[k++] : r));
+    filled.sharedStart = { ...ss, fromOutRoot: typeof ss.fromOutRoot === 'string' ? filledRoots[0] : filledRoots };
+  }
   const plan = validatePlan(filled);
   if (!plan.success) return DomainResult.fail(plan.errors);
   const tasksPath = path.resolve(repoRoot, plan.data.tasksFile);
@@ -556,6 +602,16 @@ export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOve
   if (!tasks.success) return DomainResult.fail(tasks.errors);
   const cross = [...checkPlanAgainstTasks(plan.data, tasks.data), ...checkSpecEquality(plan.data, repoRoot, checks)];
   if (cross.length > 0) return DomainResult.fail(cross);
+  const shared = plan.data.sharedStart;
+  if (shared !== undefined) {
+    const out = path.resolve(plan.data.outRoot);
+    for (const from of fromOutRoots(shared)) {
+      const rel = path.relative(path.resolve(from), out);
+      if (rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))) {
+        return DomainResult.fail([err('LOOP_PLAN_INVALID', `outRoot must lie outside sharedStart.fromOutRoot ${from} (the source grid is never written)`)]);
+      }
+    }
+  }
   const acc = plan.data.acceptance;
   if (acc?.enabled === true) {
     const rel = path.relative(path.resolve(plan.data.outRoot), path.resolve(acc.testsRoot));
@@ -572,13 +628,16 @@ export function loopRunId(spec: LoopRunSpec): string {
 }
 
 /** The seeded blocked order of every loop run (see the module header). */
-export function scheduleLoopRuns(plan: Pick<LoopPlanFile, 'adapters' | 'arms' | 'runs' | 'orderSeed'>, tasks: readonly LoopTask[]): readonly LoopRunSpec[] {
+export function scheduleLoopRuns(plan: Pick<LoopPlanFile, 'adapters' | 'arms' | 'runs' | 'orderSeed'> & Partial<Pick<LoopPlanFile, 'firstRun'>>, tasks: readonly LoopTask[]): readonly LoopRunSpec[] {
   const rng = mulberry32(plan.orderSeed);
   const out: LoopRunSpec[] = [];
-  for (let r = 0; r < plan.runs; r++) {
+  const first = plan.firstRun ?? 0;
+  for (let r = 0; r < first + plan.runs; r++) {
     for (const a of plan.adapters) {
       for (const t of tasks) {
-        for (const arm of rng.pickDistinct(plan.arms, plan.arms.length)) {
+        const order = rng.pickDistinct(plan.arms, plan.arms.length);
+        if (r < first) continue;
+        for (const arm of order) {
           out.push({ adapterId: a.adapterId, modelId: a.modelId, taskId: t.id, arm, runIndex: r });
         }
       }
