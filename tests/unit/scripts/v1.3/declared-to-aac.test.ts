@@ -5,6 +5,8 @@ import { parseSpec } from '../../../../src/spec-parser/index.js';
 // v1.4 U2: the declared rules exactly, so the sealed rule set (the post-seal overlay would add FF-P07; Docs/v1.4/adr-v14.md).
 import { compileFunctions, V13_SEALED_COMPILE_OPTIONS } from '../../../../src/fitness-compiler/index.js';
 import { compilerInputFromSpec } from '../../../../src/fitness-compiler/compiler-input.js';
+import { CONSTRUCT_ANSWERS } from '../../../../src/shared/construct-switches.js';
+import { CONSTRUCT_COMPOSITION_ROOT_GLOBS } from '../../../../src/construct-switches/overlays.js';
 import { assignLayers } from '../../../../scripts/v1.3/lib/layer-assignment.js';
 import {
   boundariesAllows, boundariesElement, classifyDcRule, compactLayers, escapeGlob, evaluateGraphRules, nxTagMatches,
@@ -236,7 +238,8 @@ describe('declared-to-aac: per-file rule off (D6)', () => {
       if (!compiled.success) throw new Error('compile');
       const q = compiled.data.symbolicQueries.find((x) => String(x.functionId) === 'FF-S03');
       const patterns = (q?.params.excludePatterns ?? []) as string[];
-      expect(patterns.length).toBe(1);
+      // The team's one exclude, plus the composition-root globs Q25 B adds to the layer rules (applied answers, ADR-V13-03).
+      expect(patterns.length).toBe(1 + (CONSTRUCT_ANSWERS.Q25 === 'B' ? CONSTRUCT_COMPOSITION_ROOT_GLOBS.length : 0));
       const v = evaluateGraphRules(
         [{ source: 'libs/a/src/x.ts', target: 'libs/b/src/i.ts' }, { source: 'libs/a/z.ts', target: 'libs/b/src/i.ts' }],
         (f) => t.layerOf.get(f) ?? null, new Set(t.allowed), patterns,
