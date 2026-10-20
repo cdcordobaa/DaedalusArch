@@ -423,9 +423,9 @@ describe('ISO-09 CLI version pin (T24)', () => {
     });
     const code = (r: Awaited<ReturnType<typeof checkJudgeIsolation>>): string | null => (r.success ? null : r.errors[0]?.code ?? null);
 
-    it('the frozen pin is unchanged; the exploratory list is 2.1.303 and frozen', () => {
+    it('the frozen pin is unchanged; the exploratory list is 2.1.303 and 2.1.304 and frozen', () => {
       expect(F.PINNED_CLI_VERSION).toBe('2.1.294');
-      expect(CLAUDE_EXPLORATORY_VERSIONS).toEqual(['2.1.303']);
+      expect(CLAUDE_EXPLORATORY_VERSIONS).toEqual(['2.1.303', '2.1.304']);
       expect(Object.isFrozen(CLAUDE_EXPLORATORY_VERSIONS)).toBe(true);
     });
 
@@ -442,7 +442,7 @@ describe('ISO-09 CLI version pin (T24)', () => {
     });
 
     it('any other version drifts in both modes', async () => {
-      for (const v of ['2.1.302', '2.1.304', '2.2.0']) {
+      for (const v of ['2.1.302', '2.1.305', '2.2.0']) {
         expect(code(await check(v))).toBe('LLM_CLI_VERSION_DRIFT');
         expect(code(await check(v, CLAUDE_EXPLORATORY_VERSIONS))).toBe('LLM_CLI_VERSION_DRIFT');
       }

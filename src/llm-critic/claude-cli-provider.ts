@@ -55,7 +55,7 @@ import { knownSecretsFrom } from './cassette-provider.js';
  * the CLI auto-updated to 2.1.303). Passed only by exploratory callers (the ontology route with `exploratory: true`);
  * `PINNED_CLI_VERSION` in `frozen.ts` is unchanged and every frozen judge run still holds it alone.
  */
-export const CLAUDE_EXPLORATORY_VERSIONS: readonly string[] = Object.freeze(['2.1.303']);
+export const CLAUDE_EXPLORATORY_VERSIONS: readonly string[] = Object.freeze(['2.1.303', '2.1.304']);
 
 export interface ClaudeCliProviderConfig {
   /** Binary name or absolute path; resolved against the child `PATH` (default `claude`). */

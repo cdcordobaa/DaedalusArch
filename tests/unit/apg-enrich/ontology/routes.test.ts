@@ -131,7 +131,7 @@ describe('ontology routes', () => {
   describe('claude-cli exploratory allowance (author decision D1, 2026-10-19)', () => {
     it('the frozen judge pin is unchanged and the exploratory list is frozen', () => {
       expect(PINNED_CLI_VERSION).toBe('2.1.294');
-      expect(CLAUDE_EXPLORATORY_VERSIONS).toEqual(['2.1.303']);
+      expect(CLAUDE_EXPLORATORY_VERSIONS).toEqual(['2.1.303', '2.1.304']);
       expect(Object.isFrozen(CLAUDE_EXPLORATORY_VERSIONS)).toBe(true);
     });
 
