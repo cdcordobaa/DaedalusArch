@@ -1,0 +1,114 @@
+{
+ "note": "U6 plan Step 10 real-code check, 2026-10-20. Real projects of experiments/v1.3-operators-hexddd/projects.json at pinned SHAs, no install, cypher-interp. Rows: status-quo FF-S03 adapter-pair rows that Q5 C moves to FF-S01; none was an FF-S01 row at the status quo. C3 = scripts/v1.3/check-correct.ts on the answers-mode report.",
+ "rows": [
+  {
+   "base": "ddh-hexagonal",
+   "file": "src/modules/user/queries/find-users/find-users.graphql-resolver.ts",
+   "target": "src/modules/user/database/user.repository.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between adapters-inbound and adapters-outbound"
+  },
+  {
+   "base": "ddh-hexagonal",
+   "file": "src/modules/user/queries/find-users/find-users.http.controller.ts",
+   "target": "src/modules/user/database/user.repository.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between adapters-inbound and adapters-outbound"
+  },
+  {
+   "base": "ddh-ddd",
+   "file": "src/modules/user/queries/find-users/find-users.graphql-resolver.ts",
+   "target": "src/modules/user/database/user.repository.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between api and infrastructure"
+  },
+  {
+   "base": "ddh-ddd",
+   "file": "src/modules/user/queries/find-users/find-users.http.controller.ts",
+   "target": "src/modules/user/database/user.repository.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between api and infrastructure"
+  },
+  {
+   "base": "bitloops-hexagonal",
+   "file": "src/api/todo.sse.controller.ts",
+   "target": "src/bounded-contexts/iam/iam/oidc/oidc-auth.guard.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between adapters-inbound and adapters-outbound"
+  },
+  {
+   "base": "bitloops-hexagonal",
+   "file": "src/api/todo.rest.controller.ts",
+   "target": "src/lib/infra/nest-jetstream/index.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between adapters-inbound and adapters-outbound"
+  },
+  {
+   "base": "bitloops-hexagonal",
+   "file": "src/api/todo.sse.controller.ts",
+   "target": "src/lib/infra/nest-jetstream/index.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between adapters-inbound and adapters-outbound"
+  },
+  {
+   "base": "bitloops-hexagonal",
+   "file": "src/api/authentication.controller.ts",
+   "target": "src/bounded-contexts/iam/iam/oidc/oidc-auth.guard.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between adapters-inbound and adapters-outbound"
+  },
+  {
+   "base": "bitloops-hexagonal",
+   "file": "src/api/todo.rest.controller.ts",
+   "target": "src/bounded-contexts/iam/iam/oidc/oidc-auth.guard.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between adapters-inbound and adapters-outbound"
+  },
+  {
+   "base": "bitloops-ddd",
+   "file": "src/api/todo.sse.controller.ts",
+   "target": "src/bounded-contexts/iam/iam/oidc/oidc-auth.guard.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between api and infrastructure"
+  },
+  {
+   "base": "bitloops-ddd",
+   "file": "src/api/todo.rest.controller.ts",
+   "target": "src/lib/infra/nest-jetstream/index.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between api and infrastructure"
+  },
+  {
+   "base": "bitloops-ddd",
+   "file": "src/api/todo.rest.controller.ts",
+   "target": "src/bounded-contexts/iam/iam/oidc/oidc-auth.guard.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between api and infrastructure"
+  },
+  {
+   "base": "bitloops-ddd",
+   "file": "src/api/todo.sse.controller.ts",
+   "target": "src/lib/infra/nest-jetstream/index.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between api and infrastructure"
+  },
+  {
+   "base": "bitloops-ddd",
+   "file": "src/api/authentication.controller.ts",
+   "target": "src/bounded-contexts/iam/iam/oidc/oidc-auth.guard.ts",
+   "c3": "correct",
+   "c3Reason": "no allowed edge either way between api and infrastructure"
+  }
+ ],
+ "q6NewFF-S04": {
+  "ddh-hexagonal": {
+   "new": 2,
+   "alsoFF-S01": 2
+  },
+  "bitloops-hexagonal": {
+   "new": 21,
+   "alsoFF-S01": 21
+  },
+  "c3Note": "check-correct.ts labels all 23 incorrect (\"not in the domain layer\"): the checker reads FF-S04 as the pre-Q6 domain-only construct; not a G0.9 criterion"
+ }
+}

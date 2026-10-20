@@ -19,11 +19,18 @@
  *
  * Usage (repository root):
  *   node --import tsx scripts/v1.3/blind-misses-rescore.ts --base results/v1.3-reference/after-member-facts
- *       [--graph-cache <file>] [--json <file>]
+ *       [--graph-cache <file>] [--json <file>] [--answers <json>] [--verdicts <csv>] [--as-run] [--key-base <dir>]
+ *
+ * U6 options (design §6.3; without them the output is byte-identical to before):
+ * - `--verdicts <csv>`: an adjudicated view next to the author and blind views (`lib/adjudication-verdicts.ts`).
+ * - `--answers <json>`: one more set, "answers file", read with `parseAnswersDocument` (Q8 B added if unset).
+ * - `--as-run`: score a run whose raw/ already has the switch file's answers applied (no `rescore()` of the rows);
+ *   the author view is the registered computation of those rows. `--key-base <dir>` is the run the blind key and its
+ *   scores.json check come from (default `--base`).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { STATUS_QUO_ANSWERS, withAnswers } from '../../src/shared/construct-switches.js';
+import { CONSTRUCT_ANSWERS, STATUS_QUO_ANSWERS, withAnswers } from '../../src/shared/construct-switches.js';
 import type { ConstructAnswers } from '../../src/shared/construct-switches.js';
 import type { ConstructOption, ConstructQuestionId } from '../../src/shared/construct-switch-catalogue.js';
 import { parseSpec } from '../../src/spec-parser/index.js';
@@ -32,118 +39,17 @@ import { ADAPTER_ISOLATION_ID } from '../../src/construct-switches/overlays.js';
 import { cachedGraphs, extractingGraphs, readRaw, rescore } from './lib/construct-rescore.js';
 import type { GraphProvider } from './lib/construct-rescore.js';
 import { loadAllReferences } from './lib/reference-model.js';
-import type { LoadedReference } from './lib/reference-model.js';
 import { must } from './lib/must.js';
+import { rebuildBlindKey, scoreBlind } from './lib/blind-key.js';
+import type { Counts, F } from './lib/blind-key.js';
+import { adjudicatedKey, checkVerdicts, readVerdicts } from './lib/adjudication-verdicts.js';
+import { parseAnswersDocument } from './lib/construct-answers.js';
 
 const argv = process.argv.slice(2);
 const opt = (name: string): string | undefined => {
   const i = argv.indexOf(name);
   return i >= 0 ? argv[i + 1] : undefined;
 };
-
-interface F { readonly ruleId: string; readonly file: string; readonly target?: string }
-interface Counts { tp: number; fn: number; fp: number }
-
-// ── Matching, as ue-score.ts ─────────────────────────────────────────────────
-
-function canon(f: F): F {
-  if (f.ruleId !== 'FF-S02') return { ruleId: f.ruleId, file: f.file, ...(f.target !== undefined && f.target !== '' ? { target: f.target } : {}) };
-  const files = [...new Set([...f.file.split(','), ...(f.target !== undefined && f.target !== '' ? f.target.split(',') : [])].map((s) => s.trim()).filter((s) => s !== ''))].sort();
-  const rest = files.slice(1).join(',');
-  return { ruleId: f.ruleId, file: files[0] ?? f.file, ...(rest !== '' ? { target: rest } : {}) };
-}
-const fkey = (f: F): string => `${f.ruleId}|${f.file}|${f.target ?? ''}`;
-
-function match(expected: readonly F[], actual: readonly F[]): { pairs: [number, number][]; fnIdx: number[]; fpIdx: number[] } {
-  const used = new Array<boolean>(actual.length).fill(false);
-  const m = new Array<number>(expected.length).fill(-1);
-  for (const exactOnly of [true, false]) {
-    expected.forEach((e, ei) => {
-      if (m[ei] !== -1) return;
-      const ai = actual.findIndex((a, i) => {
-        if (used[i] || a.ruleId !== e.ruleId || a.file !== e.file) return false;
-        const et = e.target ?? '';
-        const at = a.target ?? '';
-        if (et !== '' && at !== '') return et === at;
-        return !exactOnly;
-      });
-      if (ai >= 0) { used[ai] = true; m[ei] = ai; }
-    });
-  }
-  return {
-    pairs: m.flatMap((ai, ei) => (ai >= 0 ? [[ei, ai] as [number, number]] : [])),
-    fnIdx: m.flatMap((ai, ei) => (ai < 0 ? [ei] : [])),
-    fpIdx: actual.flatMap((_, i) => (used[i] ? [] : [i])),
-  };
-}
-
-// ── The adjudication sheet ───────────────────────────────────────────────────
-
-function parseCsv(text: string): Record<string, string>[] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = '';
-  let q = false;
-  for (let i = 0; i < text.length; i += 1) {
-    const c = text[i];
-    if (q) {
-      if (c === '"' && text[i + 1] === '"') { cell += '"'; i += 1; } else if (c === '"') q = false; else cell += c;
-    } else if (c === '"') q = true;
-    else if (c === ',') { row.push(cell); cell = ''; } else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; } else if (c !== '\r') cell += c;
-  }
-  if (cell !== '' || row.length > 0) { row.push(cell); rows.push(row); }
-  const [head, ...body] = rows;
-  const h = must(head, 'csv header');
-  return body.map((r) => Object.fromEntries(h.map((k, i) => [k, r[i] ?? ''])));
-}
-
-// ── Blind key ────────────────────────────────────────────────────────────────
-
-type BlindKey = Map<string, F[]>; // style/variant -> scored blind-expanded rows (canonical)
-
-function rebuildBlindKey(base: string, refs: readonly LoadedReference[]): BlindKey {
-  const sheet = parseCsv(fs.readFileSync(path.join(base, 'adjudication.csv'), 'utf8'));
-  const key: BlindKey = new Map();
-  for (const ref of refs) {
-    const scope = new Set(ref.descriptor.scopeRules.map((r) => r.ruleId));
-    for (const v of ref.variants) {
-      const variant = v.manifest.variant;
-      const mine = sheet.filter((r) => r.style === ref.style && r.variant === variant);
-      const sheetRow = (r: Record<string, string>): F => canon({ ruleId: must(r.rule, 'rule'), file: must(r.file, 'file'), ...(r.target ? { target: r.target } : {}) });
-      const blindOnlyAbsent = new Set(mine.filter((r) => r.tool === 'finding' && r.blind === 'none').map((r) => fkey(sheetRow(r))));
-      const listed = mine.filter((r) => r.blind === 'finding' && r.scope === 'scored').map(sheetRow);
-      const listedKeys = new Set(listed.map(fkey));
-      const agreed = readRaw(path.join(base, 'raw'), ref.style, variant).filter((a) => scope.has(a.ruleId)).map(canon)
-        .filter((a) => !blindOnlyAbsent.has(fkey(a)) && !listedKeys.has(fkey(a)));
-      const seen = new Set<string>();
-      key.set(`${ref.style}/${variant}`, [...listed, ...agreed].filter((f) => { const k = fkey(f); if (seen.has(k)) return false; seen.add(k); return true; }));
-    }
-  }
-  return key;
-}
-
-// ── Scoring ──────────────────────────────────────────────────────────────────
-
-interface StyleBlind { blocking: Counts; all: Counts; fn: string[]; fp: string[] }
-
-function scoreBlind(
-  ref: LoadedReference, key: BlindKey, actualOf: (variant: string) => readonly F[],
-  scope: ReadonlySet<string>, blocking: ReadonlySet<string>, keyRename: (variant: string, f: F) => F, keyDrop: (variant: string, f: F) => boolean,
-): StyleBlind {
-  const out: StyleBlind = { blocking: { tp: 0, fn: 0, fp: 0 }, all: { tp: 0, fn: 0, fp: 0 }, fn: [], fp: [] };
-  for (const v of ref.variants) {
-    const variant = v.manifest.variant;
-    const expected = must(key.get(`${ref.style}/${variant}`), `blind key ${ref.style}/${variant}`)
-      .filter((e) => !keyDrop(variant, e)).map((e) => keyRename(variant, e)).filter((e) => scope.has(e.ruleId));
-    const actual = actualOf(variant).filter((a) => scope.has(a.ruleId)).map(canon);
-    const { pairs, fnIdx, fpIdx } = match(expected, actual);
-    const label = (f: F): string => `${variant} ${f.ruleId} ${f.file}${f.target !== undefined ? ` -> ${f.target}` : ''}`;
-    for (const [ei] of pairs) { const e = must(expected[ei], 'e'); out.all.tp += 1; if (blocking.has(e.ruleId)) out.blocking.tp += 1; }
-    for (const ei of fnIdx) { const e = must(expected[ei], 'e'); out.all.fn += 1; if (blocking.has(e.ruleId)) { out.blocking.fn += 1; out.fn.push(label(e)); } }
-    for (const ai of fpIdx) { const a = must(actual[ai], 'a'); out.all.fp += 1; if (blocking.has(a.ruleId)) { out.blocking.fp += 1; out.fp.push(label(a)); } }
-  }
-  return out;
-}
 
 const STYLES = ['clean-architecture', 'layered', 'nestjs', 'hexagonal', 'ddd'] as const;
 const cell = (c: Counts): string => `R ${String(c.tp)}/${String(c.tp + c.fn)}, P ${String(c.tp)}/${String(c.tp + c.fp)}`;
@@ -170,17 +76,41 @@ const SETS: readonly { readonly name: string; readonly changes: Changes }[] = [
   { name: 'blind reading (Q4 B, Q5 C, Q6 B, Q7 B, Q10 C, Q12 B, Q13 C, Q20 B, Q25 B)', changes: { Q8: 'B', Q4: 'B', Q5: 'C', Q6: 'B', Q7: 'B', Q10: 'C', Q12: 'B', Q13: 'C', Q20: 'B', Q25: 'B' } },
 ];
 
+interface SetResult {
+  readonly name: string;
+  readonly changes: Changes;
+  readonly answers: ConstructAnswers;
+  readonly r: Awaited<ReturnType<typeof rescore>>;
+  /** Tool rows per style/variant; undefined means the rescore's own rows. */
+  readonly actual?: (style: string, variant: string) => readonly F[];
+  /** FF-P06 FLOWS_TO rows N/A under Q8 B, per style/variant (as-run only; otherwise the rescore's extras). */
+  readonly notApplicable?: (style: string, variant: string) => readonly F[];
+}
+
+/** FF-P06 FLOWS_TO rows of a saved run's evidence (Q8 B: N/A), as raw rows. */
+function flowsToRows(evidenceBase: string, style: string, variant: string): F[] {
+  const file = path.join(evidenceBase, 'evidence', style, `${variant}.json`);
+  if (!fs.existsSync(file)) return [];
+  const v = (JSON.parse(fs.readFileSync(file, 'utf8')) as { violations?: { functionId: string; filePath: string; target?: string; discriminator?: string[] }[] }).violations ?? [];
+  return v.filter((x) => String(x.functionId) === 'FF-P06' && x.discriminator?.[2] === 'FLOWS_TO')
+    .map((x) => ({ ruleId: 'FF-P06', file: x.filePath, ...(x.target !== undefined && x.target !== '' ? { target: x.target } : {}) }));
+}
+
 async function main(): Promise<void> {
   const base = path.resolve(opt('--base') ?? 'results/v1.3-reference/after-member-facts');
+  const asRun = argv.includes('--as-run');
+  const keyBase = path.resolve(opt('--key-base') ?? base);
+  const answersFile = opt('--answers');
+  const verdictsFile = opt('--verdicts');
   const refs = loadAllReferences(process.cwd());
-  const key = rebuildBlindKey(base, refs);
+  const key = rebuildBlindKey(keyBase, refs);
 
   // Check: the rebuilt key reproduces the committed blind-expanded counts.
-  const committed = JSON.parse(fs.readFileSync(path.join(base, 'scores.json'), 'utf8')) as { views: { style: string; view: string; blocking: Counts; all: Counts }[] };
+  const committed = JSON.parse(fs.readFileSync(path.join(keyBase, 'scores.json'), 'utf8')) as { views: { style: string; view: string; blocking: Counts; all: Counts }[] };
   for (const ref of refs) {
     const scope = new Set(ref.descriptor.scopeRules.map((r) => r.ruleId));
     const blocking = new Set(ref.descriptor.scopeRules.filter((r) => r.blockingCandidate).map((r) => r.ruleId));
-    const s = scoreBlind(ref, key, (variant) => readRaw(path.join(base, 'raw'), ref.style, variant), scope, blocking, (_v, f) => f, () => false);
+    const s = scoreBlind(ref, key, (variant) => readRaw(path.join(keyBase, 'raw'), ref.style, variant), scope, blocking, (_v, f) => f, () => false);
     const c = must(committed.views.find((x) => x.style === ref.style && x.view === 'blind-expanded'), `${ref.style} blind-expanded`);
     for (const k of ['blocking', 'all'] as const) {
       if (s[k].tp !== c[k].tp || s[k].fn !== c[k].fn || s[k].fp !== c[k].fp) {
@@ -189,6 +119,9 @@ async function main(): Promise<void> {
     }
   }
   console.log('Rebuilt blind-expanded key reproduces scores.json (blocking and all rules, 5 styles).\n');
+
+  const verdicts = verdictsFile !== undefined ? readVerdicts(path.resolve(verdictsFile)) : undefined;
+  if (verdictsFile !== undefined && verdicts === undefined) console.log(`No verdicts file at ${verdictsFile}: no adjudicated view.\n`);
 
   const cacheFile = opt('--graph-cache');
   const extracting = extractingGraphs();
@@ -206,15 +139,47 @@ async function main(): Promise<void> {
     adapterLayers.set(ref.style, layerViewOf(parsed.data.layerModel).adapterLayers);
   }
 
-  const json: Record<string, unknown> = {};
-  try {
-    for (const set of SETS) {
+  // The sets to score: the fixed list, plus the answers file; under --as-run, the saved run only.
+  async function* sets(): AsyncGenerator<SetResult> {
+    if (asRun) {
+      // The tool rows are the base's raw/ as written (the answers are already applied in the run); the author view is
+      // what the registered scorer computes from them (sealed scope and tiers, G0.8 b). Renames follow the switch file.
+      for (const ref of refs) for (const v of ref.variants) await tracked(ref, v.manifest.variant);
+      const r = await rescore({ repoRoot: process.cwd(), base, answers: STATUS_QUO_ANSWERS });
+      const changes: Changes = Object.fromEntries(Object.entries(CONSTRUCT_ANSWERS).filter(([, o]) => o !== 'A')) as Changes;
+      yield {
+        name: 'as run (switch file)', changes, answers: CONSTRUCT_ANSWERS, r,
+        actual: (style, variant) => readRaw(path.join(base, 'raw'), style, variant),
+        notApplicable: (style, variant) => (CONSTRUCT_ANSWERS.Q8 === 'B' ? flowsToRows(keyBase, style, variant) : []),
+      };
+      return;
+    }
+    const list: { name: string; changes: Changes }[] = [...SETS];
+    if (answersFile !== undefined) {
+      const parsed = parseAnswersDocument(JSON.parse(fs.readFileSync(path.resolve(answersFile), 'utf8')) as unknown);
+      for (const w of parsed.warnings) console.error(`warning: ${w}`);
+      const changes: Changes = { Q8: 'B', ...Object.fromEntries(Object.entries(parsed.answers).filter(([q, o]) => o !== 'A' || q === 'Q8')) };
+      list.push({ name: 'answers file', changes });
+    }
+    for (const set of list) {
       const answers: ConstructAnswers = withAnswers(set.changes, STATUS_QUO_ANSWERS);
       const r = await rescore({ repoRoot: process.cwd(), base, answers, graphs: tracked, ...(Object.keys(set.changes).length === 0 ? {} : { forceGeneralPath: true }) });
+      yield { name: set.name, changes: set.changes, answers, r };
+    }
+  }
+
+  const json: Record<string, unknown> = {};
+  try {
+    for await (const set of sets()) {
+      const { r, answers } = set;
+      const check = verdicts !== undefined ? checkVerdicts(verdicts, key, answers) : undefined;
+      const adjKey = check !== undefined ? adjudicatedKey(key, check) : undefined;
       const rows: string[] = [];
       const pooledA = { blocking: { tp: 0, fn: 0, fp: 0 }, all: { tp: 0, fn: 0, fp: 0 } };
       const pooledB = { blocking: { tp: 0, fn: 0, fp: 0 }, all: { tp: 0, fn: 0, fp: 0 } };
+      const pooledJ = { blocking: { tp: 0, fn: 0, fp: 0 }, all: { tp: 0, fn: 0, fp: 0 } };
       const perStyle: Record<string, unknown> = {};
+      const adjPerStyle: Record<string, unknown> = {};
       for (const style of STYLES) {
         const ref = must(refs.find((x) => x.style === style), style);
         const m = must(r.run.metrics.find((x) => x.style === style), `${style} metrics`);
@@ -236,21 +201,38 @@ async function main(): Promise<void> {
           if (q5 === 'D' && f.ruleId === 'FF-S01' && isAdapterPair(variant, f)) return { ...f, ruleId: to };
           return f;
         };
-        const naKeys = (variant: string): F[] => [...(r.extras.notApplicable[`${style}/${variant}`]?.tool ?? [])];
+        const naKeys = (variant: string): F[] => [...(set.notApplicable !== undefined ? set.notApplicable(style, variant) : r.extras.notApplicable[`${style}/${variant}`]?.tool ?? [])];
         const drop = (variant: string, f: F): boolean => f.ruleId === 'FF-P06' && naKeys(variant).some((n) => n.file === f.file && (f.target === undefined || n.target === f.target));
-        const b = scoreBlind(ref, key, (variant) => r.extras.actual[`${style}/${variant}`] ?? [], scope, blocking, rename, drop);
+        const actualOf = (variant: string): readonly F[] => (set.actual !== undefined ? set.actual(style, variant) : r.extras.actual[`${style}/${variant}`] ?? []);
+        const b = scoreBlind(ref, key, actualOf, scope, blocking, rename, drop);
         const a = { blocking: { tp: m.blocking.tp, fn: m.blocking.fn, fp: m.blocking.fp }, all: { tp: m.all.tp, fn: m.all.fn, fp: m.all.fp } };
         pooledA.blocking = addC(pooledA.blocking, a.blocking); pooledA.all = addC(pooledA.all, a.all);
         pooledB.blocking = addC(pooledB.blocking, b.blocking); pooledB.all = addC(pooledB.all, b.all);
-        rows.push(`| ${style} | ${cell(a.blocking)} | ${cell(b.blocking)} | ${cell(a.all)} | ${cell(b.all)} |`);
+        let adjCell = '';
+        if (adjKey !== undefined) {
+          const j = scoreBlind(ref, adjKey, actualOf, scope, blocking, rename, drop);
+          pooledJ.blocking = addC(pooledJ.blocking, j.blocking); pooledJ.all = addC(pooledJ.all, j.all);
+          adjCell = ` ${cell(j.blocking)} |`;
+          adjPerStyle[style] = { recall: [j.blocking.tp, j.blocking.tp + j.blocking.fn], precision: [j.blocking.tp, j.blocking.tp + j.blocking.fp], blocking: j.blocking, all: j.all, blockingMisses: j.fn, blockingFalseAlarms: j.fp };
+        }
+        rows.push(`| ${style} | ${cell(a.blocking)} | ${cell(b.blocking)} | ${cell(a.all)} | ${cell(b.all)} |${adjCell}`);
         perStyle[style] = { author: a, blind: { blocking: b.blocking, all: b.all }, blindBlockingMisses: b.fn, blindBlockingFalseAlarms: b.fp };
       }
-      rows.push(`| **pooled** | **${cell(pooledA.blocking)}** | **${cell(pooledB.blocking)}** | ${cell(pooledA.all)} | ${cell(pooledB.all)} |`);
-      json[set.name] = { changes: set.changes, perStyle, pooled: { author: pooledA, blind: pooledB } };
+      rows.push(`| **pooled** | **${cell(pooledA.blocking)}** | **${cell(pooledB.blocking)}** | ${cell(pooledA.all)} | ${cell(pooledB.all)} |${adjKey !== undefined ? ` **${cell(pooledJ.blocking)}** |` : ''}`);
+      json[set.name] = {
+        changes: set.changes, perStyle, pooled: { author: pooledA, blind: pooledB },
+        ...(check !== undefined && verdictsFile !== undefined ? {
+          adjudicated: {
+            verdictsFile: path.relative(process.cwd(), path.resolve(verdictsFile)), removed: check.removedLabels, kept: check.kept, inconsistencies: check.inconsistencies,
+            perStyle: adjPerStyle, pooled: { recall: [pooledJ.blocking.tp, pooledJ.blocking.tp + pooledJ.blocking.fn], precision: [pooledJ.blocking.tp, pooledJ.blocking.tp + pooledJ.blocking.fp] },
+          },
+        } : {}),
+      };
       console.log(`### ${set.name}\n`);
-      console.log('| Style | Author blocking | Blind (expanded) blocking | Author all rules | Blind all rules |');
-      console.log('|---|---|---|---|---|');
+      console.log(`| Style | Author blocking | Blind (expanded) blocking | Author all rules | Blind all rules |${adjKey !== undefined ? ' Adjudicated blocking |' : ''}`);
+      console.log(`|---|---|---|---|---|${adjKey !== undefined ? '---|' : ''}`);
       for (const l of rows) console.log(l);
+      for (const x of check?.inconsistencies ?? []) console.log(`\n- BR-U6-C1: ${x}`);
       console.log('');
     }
   } finally {

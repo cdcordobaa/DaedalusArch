@@ -1,0 +1,361 @@
+{
+  "as run (switch file)": {
+    "changes": {
+      "Q3": "C",
+      "Q5": "C",
+      "Q6": "B",
+      "Q8": "B",
+      "Q10": "D",
+      "Q12": "B",
+      "Q13": "B",
+      "Q14": "C",
+      "Q15": "B",
+      "Q16": "B",
+      "Q18": "B",
+      "Q21": "B",
+      "Q22": "B",
+      "Q23": "B",
+      "Q25": "B"
+    },
+    "perStyle": {
+      "clean-architecture": {
+        "author": {
+          "blocking": {
+            "tp": 13,
+            "fn": 0,
+            "fp": 0
+          },
+          "all": {
+            "tp": 15,
+            "fn": 1,
+            "fp": 0
+          }
+        },
+        "blind": {
+          "blocking": {
+            "tp": 12,
+            "fn": 2,
+            "fp": 1
+          },
+          "all": {
+            "tp": 14,
+            "fn": 5,
+            "fp": 1
+          }
+        },
+        "blindBlockingMisses": [
+          "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+          "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+        ],
+        "blindBlockingFalseAlarms": [
+          "v08-domain-service-holds-infrastructure-clock FF-P06 src/domain/services/LoanPolicy.ts -> src/infrastructure/system/SystemClock.ts"
+        ]
+      },
+      "layered": {
+        "author": {
+          "blocking": {
+            "tp": 7,
+            "fn": 4,
+            "fp": 0
+          },
+          "all": {
+            "tp": 7,
+            "fn": 4,
+            "fp": 0
+          }
+        },
+        "blind": {
+          "blocking": {
+            "tp": 7,
+            "fn": 3,
+            "fp": 0
+          },
+          "all": {
+            "tp": 7,
+            "fn": 3,
+            "fp": 0
+          }
+        },
+        "blindBlockingMisses": [
+          "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+          "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+          "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+        ],
+        "blindBlockingFalseAlarms": []
+      },
+      "nestjs": {
+        "author": {
+          "blocking": {
+            "tp": 11,
+            "fn": 0,
+            "fp": 0
+          },
+          "all": {
+            "tp": 12,
+            "fn": 1,
+            "fp": 0
+          }
+        },
+        "blind": {
+          "blocking": {
+            "tp": 10,
+            "fn": 3,
+            "fp": 1
+          },
+          "all": {
+            "tp": 11,
+            "fn": 5,
+            "fp": 1
+          }
+        },
+        "blindBlockingMisses": [
+          "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+          "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+          "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+        ],
+        "blindBlockingFalseAlarms": [
+          "v10-domain-policy-holds-repository FF-P06 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+        ]
+      },
+      "hexagonal": {
+        "author": {
+          "blocking": {
+            "tp": 12,
+            "fn": 1,
+            "fp": 4
+          },
+          "all": {
+            "tp": 13,
+            "fn": 3,
+            "fp": 4
+          }
+        },
+        "blind": {
+          "blocking": {
+            "tp": 15,
+            "fn": 3,
+            "fp": 1
+          },
+          "all": {
+            "tp": 16,
+            "fn": 6,
+            "fp": 1
+          }
+        },
+        "blindBlockingMisses": [
+          "v02-domain-entity-uses-driven-port FF-S04 src/domain/model/Booking.ts -> src/application/ports/out/NotificationSender.ts",
+          "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+        ],
+        "blindBlockingFalseAlarms": [
+          "v10-domain-service-holds-adapter FF-P06 src/domain/services/AvailabilityChecker.ts -> src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+        ]
+      },
+      "ddd": {
+        "author": {
+          "blocking": {
+            "tp": 9,
+            "fn": 0,
+            "fp": 2
+          },
+          "all": {
+            "tp": 11,
+            "fn": 1,
+            "fp": 2
+          }
+        },
+        "blind": {
+          "blocking": {
+            "tp": 10,
+            "fn": 0,
+            "fp": 1
+          },
+          "all": {
+            "tp": 12,
+            "fn": 0,
+            "fp": 1
+          }
+        },
+        "blindBlockingMisses": [],
+        "blindBlockingFalseAlarms": [
+          "n01-acl-internal-import FF-DS02 src/billing/acl/OrderingAcl.ts -> src/ordering/domain/order/value-objects/OrderId.ts"
+        ]
+      }
+    },
+    "pooled": {
+      "author": {
+        "blocking": {
+          "tp": 52,
+          "fn": 5,
+          "fp": 6
+        },
+        "all": {
+          "tp": 58,
+          "fn": 10,
+          "fp": 6
+        }
+      },
+      "blind": {
+        "blocking": {
+          "tp": 54,
+          "fn": 11,
+          "fp": 4
+        },
+        "all": {
+          "tp": 60,
+          "fn": 19,
+          "fp": 4
+        }
+      }
+    },
+    "adjudicated": {
+      "verdictsFile": "results/v1.3-reference/after-member-facts/adjudication-verdicts.csv",
+      "removed": [
+        "1 clean-architecture/v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+        "2 clean-architecture/v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts",
+        "3 layered/v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+        "4 layered/v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+        "6 nestjs/v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+        "7 nestjs/v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+        "8 nestjs/v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts",
+        "10 hexagonal/v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+        "13 hexagonal/v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+        "N1 hexagonal/v02-domain-entity-uses-driven-port FF-S04 src/domain/model/Booking.ts -> src/application/ports/out/NotificationSender.ts"
+      ],
+      "kept": [],
+      "inconsistencies": [],
+      "perStyle": {
+        "clean-architecture": {
+          "recall": [
+            12,
+            12
+          ],
+          "precision": [
+            12,
+            13
+          ],
+          "blocking": {
+            "tp": 12,
+            "fn": 0,
+            "fp": 1
+          },
+          "all": {
+            "tp": 14,
+            "fn": 3,
+            "fp": 1
+          },
+          "blockingMisses": [],
+          "blockingFalseAlarms": [
+            "v08-domain-service-holds-infrastructure-clock FF-P06 src/domain/services/LoanPolicy.ts -> src/infrastructure/system/SystemClock.ts"
+          ]
+        },
+        "layered": {
+          "recall": [
+            7,
+            8
+          ],
+          "precision": [
+            7,
+            7
+          ],
+          "blocking": {
+            "tp": 7,
+            "fn": 1,
+            "fp": 0
+          },
+          "all": {
+            "tp": 7,
+            "fn": 1,
+            "fp": 0
+          },
+          "blockingMisses": [
+            "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+          ],
+          "blockingFalseAlarms": []
+        },
+        "nestjs": {
+          "recall": [
+            10,
+            10
+          ],
+          "precision": [
+            10,
+            11
+          ],
+          "blocking": {
+            "tp": 10,
+            "fn": 0,
+            "fp": 1
+          },
+          "all": {
+            "tp": 11,
+            "fn": 2,
+            "fp": 1
+          },
+          "blockingMisses": [],
+          "blockingFalseAlarms": [
+            "v10-domain-policy-holds-repository FF-P06 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+          ]
+        },
+        "hexagonal": {
+          "recall": [
+            15,
+            15
+          ],
+          "precision": [
+            15,
+            16
+          ],
+          "blocking": {
+            "tp": 15,
+            "fn": 0,
+            "fp": 1
+          },
+          "all": {
+            "tp": 16,
+            "fn": 3,
+            "fp": 1
+          },
+          "blockingMisses": [],
+          "blockingFalseAlarms": [
+            "v10-domain-service-holds-adapter FF-P06 src/domain/services/AvailabilityChecker.ts -> src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+          ]
+        },
+        "ddd": {
+          "recall": [
+            10,
+            10
+          ],
+          "precision": [
+            10,
+            11
+          ],
+          "blocking": {
+            "tp": 10,
+            "fn": 0,
+            "fp": 1
+          },
+          "all": {
+            "tp": 12,
+            "fn": 0,
+            "fp": 1
+          },
+          "blockingMisses": [],
+          "blockingFalseAlarms": [
+            "n01-acl-internal-import FF-DS02 src/billing/acl/OrderingAcl.ts -> src/ordering/domain/order/value-objects/OrderId.ts"
+          ]
+        }
+      },
+      "pooled": {
+        "recall": [
+          54,
+          55
+        ],
+        "precision": [
+          54,
+          58
+        ]
+      }
+    }
+  }
+}

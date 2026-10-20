@@ -22,6 +22,7 @@ import * as path from 'node:path';
 import { createPipeline } from '../../src/pipeline/pipeline-factory.js';
 import type { PipelineConfig } from '../../src/pipeline/types.js';
 import { parseInstrumentVersion } from '../../src/fitness-compiler/role-exemptions.js';
+import { STATUS_QUO_ANSWERS } from '../../src/shared/construct-switches.js';
 import { compileFunctions, V13_COMPILE_OPTIONS } from '../../src/fitness-compiler/index.js';
 import { compilerInputFromSpec } from '../../src/fitness-compiler/compiler-input.js';
 import { parseSpec } from '../../src/spec-parser/spec-parser.js';
@@ -119,6 +120,9 @@ export async function runPair(pair: Pair, postSeal: boolean | undefined, repoRoo
       evaluationMode: 'symbolic-only', pipelineMode: 'stateless', persist: false, diff: false, verbose: false,
       apgStorePath: path.join(scratch, '.apg'), instrumentVersion: parseInstrumentVersion('v2'), scoringMode: pair.scoringMode,
       graphEngine: 'cypher-interp',
+      // The U2 delta is measured at the construct status quo, as its committed baseline was; the applied answers
+      // (ADR-V13-03 draft) would move rows that are not the post-seal rules' delta.
+      constructAnswers: STATUS_QUO_ANSWERS,
       ...(postSeal !== undefined ? { postSealRules: postSeal } : {}),
     };
     const { executor, cleanup } = createPipeline(config);

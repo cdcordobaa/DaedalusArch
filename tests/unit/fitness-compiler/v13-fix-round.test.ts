@@ -16,7 +16,7 @@ import { applyRoleTokens, V13_ROLE_NAME_REWRITES } from '../../../src/fitness-co
 import { V13_STYLE_APPLICABILITY, v13InapplicableReason } from '../../../src/fitness-compiler/v13-applicability.js';
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { CompiledFunctions } from '../../../src/shared/types/evaluation.js';
-import { CONSTRUCT_ANSWERS } from '../../../src/shared/construct-switches.js';
+import { CONSTRUCT_ANSWERS, STATUS_QUO_ANSWERS } from '../../../src/shared/construct-switches.js';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const SPECS = ['specs/clean-arch.yaml', 'presets/clean-architecture.yaml', 'presets/nestjs.yaml', 'presets/layered.yaml', 'presets/hexagonal.yaml', 'presets/ddd.yaml'];
@@ -78,8 +78,9 @@ describe('fix 3: FF-P06 style applicability (ADR-V13-02 draft)', () => {
 
   it('only FF-P06 changes applicability: the same function set otherwise', async () => {
     for (const spec of SPECS) {
-      // v1.4 U2: the sealed rule set (the post-seal rules add functions; tests/unit/post-seal covers them).
-      const a = (await compile(spec, V13_SEALED_COMPILE_OPTIONS)).symbolicQueries.map((q) => q.name);
+      // v1.4 U2: the sealed rule set (the post-seal rules add functions; tests/unit/post-seal covers them). The fix
+      // round is measured at the construct status quo; the applied answers are covered in tests/unit/construct-switches.
+      const a = (await compile(spec, { ...V13_SEALED_COMPILE_OPTIONS, constructSwitches: STATUS_QUO_ANSWERS })).symbolicQueries.map((q) => q.name);
       const b = (await compile(spec, {})).symbolicQueries.map((q) => q.name).filter((n) => !(spec === 'presets/layered.yaml' && n === 'domain-state-purity'));
       expect([spec, a]).toEqual([spec, b]);
     }
