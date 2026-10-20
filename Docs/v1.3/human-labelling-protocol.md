@@ -62,6 +62,8 @@ Hold-out disagreements are not adjudicated. They are reported as the agreement t
 - **All pairs:** author–second rater, author–Gemini, second rater–Gemini. Each pair gets the 3×3 table, κ and AC1 on the three-way and binary labels, and observed agreement with its Wilson interval, from `audit-sheet.ts agreement` or its human–human mode.
 - If a pair is below the gate, the result is reported as it is. The protocol is not re-run with a new sample to reach the gate.
 
+**V6 pointer (delegated edit to a frozen document, 2026-10-20; author's delegation DELEG2, item V6-PTR):** for the C3m (MEAN-01 meaning) labels, κ is defined in `ops/notes/mean-01-codebook-and-sample.md` §4 and dated in its §12 sign-off (binding from 2026-10-19, before any label). This line only points there; nothing above changes.
+
 ## 7. Reported figures
 
 From the second rater's labels: the share of `yes` among the tool's blocking findings (human *meaningful* precision), and the share of manifest items the rater confirms. From the "anything else?" pass: violations that the manifest and the tool both missed, per case. Also the decoy false-yes rate, which is the raters' own false-alarm rate. Every figure is given per source stratum and pooled, with Wilson intervals.

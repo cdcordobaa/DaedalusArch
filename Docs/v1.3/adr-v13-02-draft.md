@@ -1,5 +1,7 @@
 # ADR-V13-02 (draft): FF-P06 domain-state-purity applies only to styles with an isolated domain
 
+> **Moved 2026-10-20.** Accepted under the author's delegation (DELEG2) and moved to `Docs/v1.3/adr-v13.md` §ADR-V13-02. This draft is kept for history and is not the record.
+
 **Date**: 2026-10-15. **Status**: Draft, for the author. Implemented on `v1.3-fixes` as a v1.3 style-applicability rule (`V13_COMPILE_OPTIONS.styleApplicability`); the v1.2E compile is unchanged. Written before the reference validation was rerun with the change.
 
 This is a development-cycle decision for v1.3. It does not change Study 1 (v1.2E, frozen), the sealed tier table (`Docs/v1.3/rule-tiers.md`) or any manifest.

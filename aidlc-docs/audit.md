@@ -2603,3 +2603,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track / exploratory study Stage B prerequisite; DELEG3 in ops/decisions.md; run note Docs/DiagnosticRuns/v1.4-claude-s4-mcp-2026-10-20.md (Run 2); 16 live Claude calls
 
 ---
+
+## v1.3/v1.4 instrument freeze and the hold-out (coordinator, under DELEG2)
+**Timestamp**: 2026-10-20T08:24:16Z
+**User Input**: "Coordinator brief (acting under the author's delegation DELEG2/GO-2B): accept ADR-V13-03 under delegation, record the MEAN-01 sample hash with shasum only, add the V6 pointers; run every freeze-check item to OK including the F8 record run, ue-score --blind and the engine cross-check; write the Study 2 tunables manifest; tag the freeze after the generator-args PR merges; run the sealed hold-out exactly once, blind, on one capped Neo4j, and report its figures as computed."
+**AI Response**: "Delegated items done (ADR-V13-02 and ADR-V13-03 accepted under delegation, tier reasons no longer 'unsigned'; ADR-V14-04 accepted under delegation, option (1), before the tag; sample sha256 recorded; three V6 pointer lines). Waited for PR #311 (generator args), merged at 2c1d5576. F8 record run on Neo4j 5.26.24 + APOC (raw byte-identical to the Q10 D dev run; ue-score --blind as a script, output unread); F9 green on the second attempt (first lost a suite to a jest worker SIGSEGV); manifest, prespec freeze, Study 2 tunables, sealed-hashes rows. Strict freeze-check: F1-F14 OK, FREEZE PRECONDITIONS MET. X = 4d28d280, Y = a4280a63, tag v1.4-freeze-2026-10-20 on X, pushed. cypher-interp cross-check: raw byte-identical. The hold-out was NOT run: its sealed layout (input/ and out/; no expected-findings.json where the loader looks; ddd overlay without a clean variant) cannot be loaded by the registered runner, and an adapter needs a non-blind look and a frozen-path change. Run note Docs/DiagnosticRuns/v1.4-freeze-2026-10-20.md."
+**Context**: CONSTRUCTION, v1.4 freeze (runbook steps 2-8 and 10 on the dev set); hold-out blocked before the run; zero model calls
+
+---

@@ -96,7 +96,7 @@ This is s2d-01 §6, with today's decisions applied.
 | Line | Treatment |
 |---|---|
 | V1, V2, V3, V9, V11 | Kept |
-| V4 | Kept, under a V4 ADR dated before the hold-out. A style the hold-out only "characterises" is reported as exploratory in Study 2 |
+| V4 | Kept, under a V4 ADR dated before the hold-out. A style the hold-out only "characterises" is reported as exploratory in Study 2. **Dated deviation, 2026-10-20 (ADR-V14-04 accepted under the author's delegation, DELEG2, before the freeze tag and the hold-out):** such a style "is exploratory unless §4 of ADR-V14-04 passes" (bar option (1), margins A = 0.05, B = 0.10) |
 | **V5** | **Deviation, timing (author 2026-10-19): the independent rater's labels are collected after the study.** They don't feed the run. The κ definition (V6) is still dated before the first label |
 | V6 | Kept, with its trigger moved: the definition must be signed before the first label, which may come after the run |
 | V7 | [W] waived: the judge is dropped from Study 2 |

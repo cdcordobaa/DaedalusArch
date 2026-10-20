@@ -1,5 +1,7 @@
 # ADR-V13-03 (draft): Construct decisions Q1–Q25
 
+> **Moved 2026-10-20.** Accepted under the author's delegation (DELEG2) and moved to `Docs/v1.3/adr-v13.md` §ADR-V13-03. This draft is kept for history and is not the record.
+
 **Date**: 2026-10-19 (draft written 2026-10-20 from the signed answers). **Status**: Draft, for the author's signature. The construct **answers** are signed (the author, decision desk, 2026-10-19). This ADR **text** is not signed yet: the U6 plan puts the signature after the fresh checks (U6 plan Steps 8 and 11b; U6 design §4.1, §9). When signed, the text moves to `Docs/v1.3/adr-v13.md` §ADR-V13-03 (freeze-check F4), and the reason strings in `src/construct-switches/tiers.ts` lose "unsigned" (F5).
 
 This is a development-cycle decision for v1.3. It does not change Study 1 (v1.2E, frozen), the sealed tier table (`Docs/v1.3/rule-tiers.md`), the presets, the frozen template text or any manifest. Under `--scoring v1.2e` no switch applies.
