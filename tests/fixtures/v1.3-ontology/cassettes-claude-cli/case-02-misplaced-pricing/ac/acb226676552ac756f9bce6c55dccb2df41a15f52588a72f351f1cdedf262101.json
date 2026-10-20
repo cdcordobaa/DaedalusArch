@@ -1,0 +1,80 @@
+{
+  "itemId": "9e5dca9006c883b8",
+  "itemName": "ConsoleMailer",
+  "key": "acb226676552ac756f9bce6c55dccb2df41a15f52588a72f351f1cdedf262101",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ConsoleMailer (node 9e5dca9006c883b8), file src/notifications/infrastructure/console-mailer.ts, lines 3-10.\nComponent: notifications. Declared layer: infrastructure (kind infrastructure).\nMethods:\n- send (node a1ab40e4bf0d3824, lines 6-9, logic density 0)\nFields: sent\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 1 (IMPLEMENTS 1); fan-in 0.\n- -> IMPLEMENTS Interface Mailer (src/notifications/application/mailer.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ConsoleMailer: nameRole=\"unknown\"\n- ConsoleMailer: behaviourRole=\"coordination\"\n- ConsoleMailer: ioCategories=[]\n- ConsoleMailer: lcom4=1\n- ConsoleMailer: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- ConsoleMailer.send: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Source\n=====SOURCE-BEGIN src/notifications/infrastructure/console-mailer.ts\n 3| export class ConsoleMailer implements Mailer {\n 4|   readonly sent: string[] = [];\n 5| \n 6|   send(to: string, subject: string, body: string): Promise<void> {\n 7|     this.sent.push(`${to}|${subject}|${body}`);\n 8|     return Promise.resolve();\n 9|   }\n10| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T01:25:07.739Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "a1ab40e4bf0d3824",
+            "quote": "send(to: string, subject: string, body: string): Promise<void> {",
+            "startLine": 6
+          }
+        ],
+        "name": "Email Notification",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Implements the Mailer port by recording outgoing email messages (recipient, subject, body) in memory instead of really sending them. This makes it a stand-in delivery adapter for development and testing.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "9e5dca9006c883b8",
+            "quote": "export class ConsoleMailer implements Mailer {",
+            "startLine": 3
+          },
+          {
+            "endLine": 7,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "a1ab40e4bf0d3824",
+            "quote": "this.sent.push(`${to}|${subject}|${body}`);",
+            "startLine": 7
+          }
+        ],
+        "name": "Email delivery adapter (in-memory/console stub)",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.7,
+        "description": "Keeps a readable log of every message it has sent, so tests or developers can check which notifications went out.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "9e5dca9006c883b8",
+            "quote": "readonly sent: string[] = [];",
+            "startLine": 4
+          }
+        ],
+        "name": "Record sent messages for inspection",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2789,
+    "outputTokens": 647
+  }
+}

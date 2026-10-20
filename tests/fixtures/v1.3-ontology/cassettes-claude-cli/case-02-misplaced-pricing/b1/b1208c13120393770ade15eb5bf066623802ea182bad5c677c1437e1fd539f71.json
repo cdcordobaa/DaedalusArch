@@ -1,0 +1,86 @@
+{
+  "itemId": "component:notifications",
+  "itemName": "component:notifications",
+  "key": "b1208c13120393770ade15eb5bf066623802ea182bad5c677c1437e1fd539f71",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "593971d9bc715dfab12d9ece35e3ebdc1ecf026b18701b775194db201b219177",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"notifications\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ConsoleMailer (node 9e5dca9006c883b8), file src/notifications/infrastructure/console-mailer.ts, declaration line 3: \"export class ConsoleMailer implements Mailer {\"\n  component notifications, layer infrastructure; responsibilities: Email delivery adapter (in-memory/console stub); Record sent messages for inspection\n- OrderNotificationService (node ee110f001f97012a), file src/notifications/application/order-notification.service.ts, declaration line 4: \"export class OrderNotificationService {\"\n  component notifications, layer application; responsibilities: Compute volume discount and payable amount; Send order confirmation to customer\n\n## APG relations of the group\nGraph statistics: 2 classes; 0 relations inside the group; 3 outgoing relations to code outside it.\n- (none)",
+  "recordedAt": "2026-10-20T01:25:52.106Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Lets the business tell customers that their order is confirmed by sending them a confirmation message.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/notifications/application/order-notification.service.ts",
+            "nodeId": "ee110f001f97012a",
+            "quote": "export class OrderNotificationService {",
+            "startLine": 4
+          },
+          {
+            "endLine": 3,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "9e5dca9006c883b8",
+            "quote": "export class ConsoleMailer implements Mailer {",
+            "startLine": 3
+          }
+        ],
+        "name": "Customer order confirmation",
+        "realizedBy": [
+          "ee110f001f97012a",
+          "9e5dca9006c883b8"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Applies volume discounts to orders and works out the amount the customer has to pay.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/notifications/application/order-notification.service.ts",
+            "nodeId": "ee110f001f97012a",
+            "quote": "export class OrderNotificationService {",
+            "startLine": 4
+          }
+        ],
+        "name": "Volume discount pricing",
+        "realizedBy": [
+          "ee110f001f97012a"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Sends email to customers and keeps a record of sent messages so they can be checked (currently a console/in-memory stand-in).",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "9e5dca9006c883b8",
+            "quote": "export class ConsoleMailer implements Mailer {",
+            "startLine": 3
+          }
+        ],
+        "name": "Email delivery",
+        "realizedBy": [
+          "9e5dca9006c883b8"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2017,
+    "outputTokens": 697
+  }
+}
