@@ -1,0 +1,61 @@
+{
+  "itemId": "community:2",
+  "itemName": "community:2",
+  "key": "9fdf93721736a1348073ba5d7ccd983012871f2fee2c6f8547bcebe4dd4d7a4d",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "c578d309059aa799333093e9301a95edcc29c90f174ab735ebbbd981238c2d65",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"2\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DomainError (node 07801d262a4a214c), file src/business/errors.ts, declaration line 1: \"export class DomainError extends Error {\"\n  component business, layer domain; responsibilities: Classify business rule failures; Carry a human-readable failure message\n- ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, declaration line 58: \"export class ReportService {\"\n  component business, layer domain; responsibilities: Determine weekly reporting period; Compute per-session sales, attendance and refund figures; Flag sessions held or cancelled for ice; Aggregate weekly totals for the manager's report; Gather report data from repositories\n\n## APG relations of the group\nGraph statistics: 2 classes; 0 relations inside the group; 4 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- ReportService: Builds the manager's weekly report; one pass over the period's sessions and their bookings.\n- ReportService.weekly: `from` defaults to the Monday of the current week, `to` to six days after `from`.",
+  "recordedAt": "2026-10-20T12:53:45.186Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Produces the manager's weekly report covering the reporting week: sales, attendance and refunds for each session, which sessions were held or cancelled because of ice, and the totals for the week.",
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/business/reportService.ts",
+            "nodeId": "a663bd12cbc0090c",
+            "quote": "export class ReportService {",
+            "startLine": 58
+          }
+        ],
+        "name": "Weekly management reporting",
+        "realizedBy": [
+          "a663bd12cbc0090c"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Reports broken business rules as a separate kind of failure, with a message a person can read.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 1
+          }
+        ],
+        "name": "Business rule violation reporting",
+        "realizedBy": [
+          "07801d262a4a214c"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2095,
+    "outputTokens": 370
+  }
+}

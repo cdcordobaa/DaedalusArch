@@ -1,0 +1,28 @@
+{
+  "itemId": "43c2889ebce20eb0",
+  "itemName": "Hive weight monitoring with scales ~ Hive weight monitoring",
+  "key": "5639801a130ab9e925351fccb5a42fecd27856d282bc7bdf7f7830256037f249",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "1da5f29a8cbaed3058156e08ac5ebd9c75165d507ac6c39fe0577db4ee1f42f4",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Hive weight monitoring with scales\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class ScaleRepository {\nexport class WeightReadingRepository {\n=====SOURCE-END=====\ngraph:\n- community community:1: 12 classes (ScaleRepository, HiveRepository, TreatmentService, TreatmentProductRepository, WeightReadingRepository, InspectionRepository, HiveService, ReportService, ApiaryRepository, TreatmentRepository, HarvestRepository, HarvestService)\n- class ScaleRepository (node 18ab235f6c31a91a): layer infrastructure, component persistence, fan-out 0, fan-in 4\n- class WeightReadingRepository (node 47ce227c703f72aa): layer infrastructure, component persistence, fan-out 0, fan-in 2\n\n### B\ncapability: Hive weight monitoring\nwhere: component:persistence\ncode:\n=====SOURCE-BEGIN\nexport class ScaleRepository {\nexport class WeightReadingRepository {\n=====SOURCE-END=====\ngraph:\n- component component:persistence: 9 classes (ScaleRepository, HiveRepository, TreatmentProductRepository, WeightReadingRepository, InspectionRepository, TextHiveClient, ApiaryRepository, TreatmentRepository, HarvestRepository)\n- class ScaleRepository (node 18ab235f6c31a91a): layer infrastructure, component persistence, fan-out 0, fan-in 4\n- class WeightReadingRepository (node 47ce227c703f72aa): layer infrastructure, component persistence, fan-out 0, fan-in 2",
+  "recordedAt": "2026-10-20T12:29:55.760Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.93,
+    "rationale": "A and B rest on exactly the same code: ScaleRepository (node 18ab235f6c31a91a) and WeightReadingRepository (node 47ce227c703f72aa). The only difference is the grouping each was found in. A comes from a community and B from the persistence component. A's label adds \"with scales\", but that just describes the scale-based mechanism already behind B's \"Hive weight monitoring\". Same classes, same intent, so they name the same business capability.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1991,
+    "outputTokens": 244
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "itemId": "440da90bcde7901a",
+  "itemName": "ClubBookingRepository",
+  "key": "acd6a005e5e74dacb9e2d5d043616c2b28d7ea0fbffc6a559d2eff02fa102eea",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "354e393f591c1ac3292a9868b24d151939ea9f77395feaf3947fc24181a1f64e",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, lines 4-39.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node 21192a96bd61076b, lines 8-12, logic density 0)\n- get (node 45459fbfadd2a437, lines 14-16, logic density 0)\n- list (node d51f93ef1293de6d, lines 18-22, logic density 0)\n- listByDate (node 3706a0b511c76892, lines 24-26, logic density 1)\n- listByMonth (node 658ec2b79afece18, lines 28-30, logic density 0)\n- getRate (node 0ab07cc6666b909b, lines 32-34, logic density 0)\n- setRate (node e944891662dee33e, lines 36-38, logic density 0)\nFields: bookings, rateCentsPerHour\n\n## APG neighbourhood\nGraph statistics: 7 methods; fan-out 0; fan-in 8 (CALLS 6, CONSTRUCTOR_INJECTS 2).\n- <- CALLS Method ClubService.book (src/business/clubService.ts)\n- <- CALLS Method ClubService.getRate (src/business/clubService.ts)\n- <- CALLS Method ClubService.invoice (src/business/clubService.ts)\n- <- CALLS Method ClubService.list (src/business/clubService.ts)\n- <- CALLS Method ClubService.setRate (src/business/clubService.ts)\n- <- CALLS Method RinkService.effectiveCapacity (src/business/rinkService.ts)\n- <- CONSTRUCTOR_INJECTS Class ClubService (src/business/clubService.ts)\n- <- CONSTRUCTOR_INJECTS Class RinkService (src/business/rinkService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ClubBookingRepository: nameRole=\"repository\"\n- ClubBookingRepository: behaviourRole=\"coordination\"\n- ClubBookingRepository: ioCategories=[]\n- ClubBookingRepository: lcom4=2\n- ClubBookingRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- ClubBookingRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingRepository.get: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingRepository.list: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingRepository.listByDate: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- ClubBookingRepository.listByMonth: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingRepository.getRate: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingRepository.setRate: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of SessionRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of SessionRepository.list in component persistence\n\n## Source\n=====SOURCE-BEGIN src/persistence/clubBookingRepository.ts\n 4| export class ClubBookingRepository {\n 5|   private readonly bookings = new Map<string, ClubBooking>();\n 6|   private rateCentsPerHour = Number(process.env.CLUB_RATE_CENTS_PER_HOUR ?? 0);\n 7| \n 8|   create(data: Omit<ClubBooking, \"id\">): ClubBooking {\n 9|     const booking: ClubBooking = { id: randomUUID(), ...data };\n10|     this.bookings.set(booking.id, booking);\n11|     return booking;\n12|   }\n13| \n14|   get(id: string): ClubBooking | undefined {\n15|     return this.bookings.get(id);\n16|   }\n17| \n18|   list(): ClubBooking[] {\n19|     return [...this.bookings.values()].sort((a, b) =>\n20|       `${a.date} ${a.start}`.localeCompare(`${b.date} ${b.start}`),\n21|     );\n22|   }\n23| \n24|   listByDate(date: string): ClubBooking[] {\n25|     return this.list().filter((b) => b.date === date);\n26|   }\n27| \n28|   listByMonth(month: string): ClubBooking[] {\n29|     return this.list().filter((b) => b.date.startsWith(`${month}-`));\n30|   }\n31| \n32|   getRate(): number {\n33|     return this.rateCentsPerHour;\n34|   }\n35| \n36|   setRate(cents: number): void {\n37|     this.rateCentsPerHour = cents;\n38|   }\n39| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:50:05.653Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "private readonly bookings = new Map<string, ClubBooking>();",
+            "startLine": 5
+          }
+        ],
+        "name": "Club Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 33,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "0ab07cc6666b909b",
+            "quote": "return this.rateCentsPerHour;",
+            "startLine": 33
+          }
+        ],
+        "name": "Club Hourly Rate",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Keeps club bookings in an in-memory store. It assigns a new id to each booking and looks bookings up by id.",
+        "evidence": [
+          {
+            "endLine": 12,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "21192a96bd61076b",
+            "quote": "const booking: ClubBooking = { id: randomUUID(), ...data };",
+            "startLine": 8
+          },
+          {
+            "endLine": 16,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "45459fbfadd2a437",
+            "quote": "return this.bookings.get(id);",
+            "startLine": 14
+          }
+        ],
+        "name": "Store and retrieve club bookings",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Returns club bookings sorted by date and start time. It can also narrow the list to one day or one calendar month, which supports scheduling and monthly invoicing.",
+        "evidence": [
+          {
+            "endLine": 21,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "d51f93ef1293de6d",
+            "quote": "return [...this.bookings.values()].sort((a, b) =>",
+            "startLine": 19
+          },
+          {
+            "endLine": 25,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "3706a0b511c76892",
+            "quote": "return this.list().filter((b) => b.date === date);",
+            "startLine": 25
+          },
+          {
+            "endLine": 29,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "658ec2b79afece18",
+            "quote": "return this.list().filter((b) => b.date.startsWith(`${month}-`));",
+            "startLine": 29
+          }
+        ],
+        "name": "List club bookings chronologically, by day or by month",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.75,
+        "description": "Holds the club's hourly rate in cents. The starting value comes from an environment setting, and the rate can be read or changed later.",
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "private rateCentsPerHour = Number(process.env.CLUB_RATE_CENTS_PER_HOUR ?? 0);",
+            "startLine": 6
+          },
+          {
+            "endLine": 37,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "e944891662dee33e",
+            "quote": "this.rateCentsPerHour = cents;",
+            "startLine": 37
+          }
+        ],
+        "name": "Hold the club hourly rate",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4078,
+    "outputTokens": 1166
+  }
+}

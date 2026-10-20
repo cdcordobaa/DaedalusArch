@@ -1,0 +1,28 @@
+{
+  "itemId": "5cb2532b440c5744",
+  "itemName": "Treatment and honey harvest compliance ~ Hive treatment and honey harvest recording",
+  "key": "489888ca21246c9e95511c185fbf15e6d483ee6d204e0a239fd995b6f38e4bd2",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "28680f7f3e2bcb749f53b9231964fd427d3408cac19bc4d6d9241b4a1056a34f",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Treatment and honey harvest compliance\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class TreatmentService {\nexport class ProductRepository {\nexport class TreatmentRepository {\nexport class HarvestRepository {\n=====SOURCE-END=====\ngraph:\n- community community:1: 12 classes (ScaleRepository, HiveRepository, TreatmentService, WeightReadingRepository, InspectionRepository, HiveService, ReportService, ApiaryRepository, TreatmentRepository, HarvestRepository, ScaleService, ProductRepository)\n- class TreatmentService (node 2912145e8ad12343): layer domain, component business, fan-out 12, fan-in 0\n- class ProductRepository (node f86df271c26e9cd6): layer infrastructure, component persistence, fan-out 0, fan-in 7\n- class TreatmentRepository (node b2566037ba6b6900): layer infrastructure, component persistence, fan-out 0, fan-in 8\n- class HarvestRepository (node cfa247680820ee47): layer infrastructure, component persistence, fan-out 0, fan-in 5\n- class HiveRepository (node 22ea3eb4c082b330): layer infrastructure, component persistence, fan-out 0, fan-in 17\n\n### B\ncapability: Hive treatment and honey harvest recording\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class TreatmentService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 8 classes (NotFoundError, TreatmentService, ConflictError, ValidationError, HiveService, ReportService, ForbiddenError, ScaleService)\n- class TreatmentService (node 2912145e8ad12343): layer domain, component business, fan-out 12, fan-in 0",
+  "recordedAt": "2026-10-20T15:14:15.842Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.72,
+    "rationale": "I think A and B describe the same capability. Both are built around the same class, TreatmentService (node 2912145e8ad12343), and both cover hive treatments and honey harvests. A frames it from the data side, in community:1, which includes TreatmentService and the TreatmentRepository, HarvestRepository and ProductRepository it depends on. B frames it from the business component, where TreatmentService is the only relevant class. A says \"compliance\" and B says \"recording\", but they're the same service doing the same job, probably logging treatments with products and checking those records against harvests. The wording differs only in emphasis, not in scope. I'm not fully certain because the class bodies aren't shown, so I can't confirm whether there's compliance logic, such as withdrawal-period checks, that goes beyond recording.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2043,
+    "outputTokens": 444
+  }
+}

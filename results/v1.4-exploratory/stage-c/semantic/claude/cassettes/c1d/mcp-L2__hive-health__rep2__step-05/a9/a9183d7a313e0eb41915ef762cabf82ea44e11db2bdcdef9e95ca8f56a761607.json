@@ -1,0 +1,28 @@
+{
+  "itemId": "66b7b14fc15d4dc9",
+  "itemName": "Hive ~ Hive Owner",
+  "key": "a9183d7a313e0eb41915ef762cabf82ea44e11db2bdcdef9e95ca8f56a761607",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "12681a12fa509943a90d0fc05792b1503030c791b0fcbafae086db8dccdf790b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Hive\nwhere: HiveRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly items = new Map<string, Hive>();\n=====SOURCE-END=====\ngraph:\n- class HiveRepository (node 22ea3eb4c082b330): layer infrastructure, component persistence, fan-out 0, fan-in 12\n- <- CALLS Method BeekeepingService.findHive\n- <- CALLS Method BeekeepingService.listHives\n- <- CALLS Method BeekeepingService.listHivesNeedingTreatment\n- <- CALLS Method BeekeepingService.registerHive\n- <- CALLS Method ReportService.quarterlyReport\n- <- CALLS Method ScaleService.linkScale\n- <- CALLS Method ScaleService.recordReading\n- <- CALLS Method TreatmentService.findHive\n\n### B\nconcept: Hive Owner\nwhere: TreatmentService (uses), src/business/treatmentService.ts, component business\ncode:\n=====SOURCE-BEGIN\nif (hive.ownerId !== ownerId) {\n=====SOURCE-END=====\ngraph:\n- class TreatmentService (node 2912145e8ad12343): layer domain, component business, fan-out 12, fan-in 0\n- -> CALLS Method HarvestRepository.create\n- -> CALLS Method HarvestRepository.findByHive\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method TreatmentProductRepository.create\n- -> CALLS Method TreatmentProductRepository.findAll\n- -> CALLS Method TreatmentProductRepository.findById\n- -> CALLS Method TreatmentRepository.create\n- -> CALLS Method TreatmentRepository.findByHive",
+  "recordedAt": "2026-10-20T12:41:43.461Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.88,
+    "rationale": "These are different concepts. A is the Hive itself: HiveRepository (node 22ea3eb4c082b330, src/persistence/repositories.ts) stores Hive entities in `private readonly items = new Map<string, Hive>();`. B is the Hive Owner, the person or beekeeper who owns a hive. TreatmentService (node 2912145e8ad12343, src/business/treatmentService.ts) only refers to the owner through the hive's ownerId attribute, in an authorization check: `if (hive.ownerId !== ownerId) {`. A hive refers to its owner, but the hive and its owner are separate real-world things, not one concept under two names.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2090,
+    "outputTokens": 359
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "itemId": "22ea3eb4c082b330",
+  "itemName": "HiveRepository",
+  "key": "86ba723788be6b388d1d5edeb28a85d7efd8d52971003d3357ec738278910409",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "3f8862e4e5c0a3f823fbeada19dec8db3b508b5c3dc24c2ffde289f4cc97cfec",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass HiveRepository (node 22ea3eb4c082b330), file src/persistence/repositories.ts, lines 85-105.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node ff8063fb893e3735, lines 88-92, logic density 0)\n- findById (node 55c35ff85aa24bfd, lines 94-96, logic density 0)\n- findByApiary (node 021f87dcade9ca46, lines 98-100, logic density 1)\n- findAll (node 9b15d4ca946c2a5f, lines 102-104, logic density 0)\nFields: items\n\n## APG neighbourhood\nGraph statistics: 4 methods; fan-out 0; fan-in 12 (CALLS 8, CONSTRUCTOR_INJECTS 4).\n- <- CALLS Method BeekeepingService.findHive (src/business/services.ts)\n- <- CALLS Method BeekeepingService.listHives (src/business/services.ts)\n- <- CALLS Method BeekeepingService.listHivesNeedingTreatment (src/business/services.ts)\n- <- CALLS Method BeekeepingService.registerHive (src/business/services.ts)\n- <- CALLS Method ReportService.quarterlyReport (src/business/reportService.ts)\n- <- CALLS Method ScaleService.linkScale (src/business/scaleService.ts)\n- <- CALLS Method ScaleService.recordReading (src/business/scaleService.ts)\n- <- CALLS Method TreatmentService.findHive (src/business/treatmentService.ts)\n- <- CONSTRUCTOR_INJECTS Class BeekeepingService (src/business/services.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class ScaleService (src/business/scaleService.ts)\n- <- CONSTRUCTOR_INJECTS Class TreatmentService (src/business/treatmentService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- HiveRepository: nameRole=\"repository\"\n- HiveRepository: behaviourRole=\"coordination\"\n- HiveRepository: ioCategories=[]\n- HiveRepository: lcom4=1\n- HiveRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- HiveRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- HiveRepository.findById: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- HiveRepository.findByApiary: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- HiveRepository.findAll: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of TreatmentProductRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of TreatmentRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of HarvestRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of ApiaryRepository.create in component persistence\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n 85| export class HiveRepository {\n 86|   private readonly items = new Map<string, Hive>();\n 87| \n 88|   create(data: Omit<Hive, \"id\">): Hive {\n 89|     const hive: Hive = { id: randomUUID(), ...data };\n 90|     this.items.set(hive.id, hive);\n 91|     return hive;\n 92|   }\n 93| \n 94|   findById(id: string): Hive | undefined {\n 95|     return this.items.get(id);\n 96|   }\n 97| \n 98|   findByApiary(apiaryId: string): Hive[] {\n 99|     return [...this.items.values()].filter((h) => h.apiaryId === apiaryId);\n100|   }\n101| \n102|   findAll(): Hive[] {\n103|     return [...this.items.values()];\n104|   }\n105| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:31:57.480Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 86,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "22ea3eb4c082b330",
+            "quote": "private readonly items = new Map<string, Hive>();",
+            "startLine": 86
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 98,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "021f87dcade9ca46",
+            "quote": "findByApiary(apiaryId: string): Hive[] {",
+            "startLine": 98
+          }
+        ],
+        "name": "Apiary",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Stores new hives in memory and gives each one a unique identifier.",
+        "evidence": [
+          {
+            "endLine": 92,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "ff8063fb893e3735",
+            "quote": "const hive: Hive = { id: randomUUID(), ...data };",
+            "startLine": 88
+          }
+        ],
+        "name": "Hive storage and registration",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Gets hives back by their identifier, lists all hives, or lists the hives that belong to one apiary.",
+        "evidence": [
+          {
+            "endLine": 96,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "55c35ff85aa24bfd",
+            "quote": "return this.items.get(id);",
+            "startLine": 94
+          },
+          {
+            "endLine": 100,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "021f87dcade9ca46",
+            "quote": "return [...this.items.values()].filter((h) => h.apiaryId === apiaryId);",
+            "startLine": 98
+          },
+          {
+            "endLine": 104,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "9b15d4ca946c2a5f",
+            "quote": "return [...this.items.values()];",
+            "startLine": 102
+          }
+        ],
+        "name": "Hive lookup",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3776,
+    "outputTokens": 737
+  }
+}

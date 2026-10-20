@@ -1,0 +1,167 @@
+{
+  "itemId": "2912145e8ad12343",
+  "itemName": "TreatmentService",
+  "key": "90c61fd5b68a608c730b3d3c72e92d033b997fa46a1afe2e856c20e2f6c3dda3",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "rules",
+    "promptHash": "0d65560fbfe67c363cda80bf5b9add94bcc53d61e0483605f8a0151cbee69228",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "f0fc4d535ca2368dc75f2c1669e4a1b8563970f49941a37b2cf4202334cf7327",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nExtract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind \"business\": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind \"input-validation\": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.\n\n## Class\nClass TreatmentService (node 2912145e8ad12343), file src/business/treatmentService.ts, lines 37-117.\nComponent: business. Declared layer: business (kind domain).\nCandidate methods (proposed by the cheap proxies):\n- addProduct (node a8c208dbfc04fcee, lines 45-54, logic density 3)\n- recordTreatment (node 72d370555108c6ea, lines 60-74, logic density 10)\n- listTreatments (node f7ca3c201150d6e2, lines 76-79, logic density 2)\n- recordHarvest (node 59d9d557e26b05fa, lines 81-111, logic density 17)\n- listHarvests (node 502f3a2735f24d62, lines 113-116, logic density 2)\n\n## APG neighbourhood\nGraph statistics: 6 methods; fan-out 12 (CALLS 8, CONSTRUCTOR_INJECTS 4); fan-in 0.\n- -> CALLS Method HarvestRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method HarvestRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method ProductRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method ProductRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method ProductRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.findByHive (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HarvestRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class ProductRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentRepository (src/persistence/repositories.ts)\n\n## Source\n=====SOURCE-BEGIN src/business/treatmentService.ts\n 37| export class TreatmentService {\n 38|   constructor(\n 39|     private readonly hives: HiveRepository,\n 40|     private readonly products: ProductRepository,\n 41|     private readonly treatments: TreatmentRepository,\n 42|     private readonly harvests: HarvestRepository,\n 43|   ) {}\n 44| \n 45|   addProduct(name: unknown, withdrawalDays: unknown): ProductRecord {\n 46|     if (\n 47|       typeof withdrawalDays !== \"number\" ||\n 48|       !Number.isInteger(withdrawalDays) ||\n 49|       withdrawalDays < 0\n 50|     ) {\n 51|       throw new ValidationError(\"withdrawalDays must be a non-negative integer\");\n 52|     }\n 53|     return this.products.create({ name: requireText(name, \"name\"), withdrawalDays });\n 54|   }\n 55| \n 56|   listProducts(): ProductRecord[] {\n 57|     return this.products.findAll();\n 58|   }\n 59| \n 60|   recordTreatment(memberId: string, hiveId: string, input: TreatmentInput): TreatmentRecord {\n 61|     const hive = this.hives.findById(hiveId);\n 62|     if (!hive) throw new NotFoundError(\"hive not found\");\n 63|     if (hive.ownerId !== memberId) {\n 64|       throw new ForbiddenError(\"only the hive owner can record treatments\");\n 65|     }\n 66|     const productId = requireText(input.productId, \"productId\");\n 67|     const startDate = requireDate(input.startDate, \"startDate\");\n 68|     const endDate = requireDate(input.endDate, \"endDate\");\n 69|     if (!this.products.findById(productId)) throw new ValidationError(\"unknown product\");\n 70|     if (dayNumber(endDate) < dayNumber(startDate)) {\n 71|       throw new ValidationError(\"endDate must not be before startDate\");\n 72|     }\n 73|     return this.treatments.create({ hiveId, productId, startDate, endDate });\n 74|   }\n 75| \n 76|   listTreatments(hiveId: string): TreatmentRecord[] {\n 77|     if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n 78|     return this.treatments.findByHive(hiveId);\n 79|   }\n 80| \n 81|   recordHarvest(\n 82|     memberId: string,\n 83|     hiveId: string,\n 84|     date: unknown,\n 85|     kilograms: unknown,\n 86|   ): HarvestRecord {\n 87|     const hive = this.hives.findById(hiveId);\n 88|     if (!hive) throw new NotFoundError(\"hive not found\");\n 89|     if (hive.ownerId !== memberId) {\n 90|       throw new ForbiddenError(\"only the hive owner can record harvests\");\n 91|     }\n 92|     const when = requireDate(date, \"date\");\n 93|     if (typeof kilograms !== \"number\" || !Number.isFinite(kilograms) || kilograms <= 0) {\n 94|       throw new ValidationError(\"kilograms must be a positive number\");\n 95|     }\n 96| \n 97|     const day = dayNumber(when);\n 98|     for (const t of this.treatments.findByHive(hiveId)) {\n 99|       const withdrawal = this.products.findById(t.productId)?.withdrawalDays ?? 0;\n100|       const start = dayNumber(t.startDate);\n101|       const end = dayNumber(t.endDate);\n102|       if (day >= start && (day <= end || day < end + withdrawal)) {\n103|         throw new ConflictError(\n104|           day <= end\n105|             ? \"harvest refused: hive is under treatment\"\n106|             : \"harvest refused: withdrawal period has not passed\",\n107|         );\n108|       }\n109|     }\n110|     return this.harvests.create({ hiveId, date: when, kilograms });\n111|   }\n112| \n113|   listHarvests(hiveId: string): HarvestRecord[] {\n114|     if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n115|     return this.harvests.findByHive(hiveId);\n116|   }\n117| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T14:51:45.239Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "rules": [
+      {
+        "confidence": 0.95,
+        "enforcedBy": "a8c208dbfc04fcee",
+        "evidence": [
+          {
+            "endLine": 51,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "a8c208dbfc04fcee",
+            "quote": "withdrawalDays < 0",
+            "startLine": 46
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "A product's withdrawal period must be a whole number of days, zero or more.",
+        "subject": "Product.withdrawalDays",
+        "threshold": 0,
+        "unit": "days"
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "72d370555108c6ea",
+        "evidence": [
+          {
+            "endLine": 65,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (hive.ownerId !== memberId) {",
+            "startLine": 63
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "Only the hive's owner may record a treatment on that hive.",
+        "subject": "Treatment.recordedBy",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "72d370555108c6ea",
+        "evidence": [
+          {
+            "endLine": 72,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (dayNumber(endDate) < dayNumber(startDate)) {",
+            "startLine": 70
+          }
+        ],
+        "kind": "business",
+        "operator": ">=",
+        "statement": "A treatment's end date must not be before its start date.",
+        "subject": "Treatment.endDate",
+        "threshold": null,
+        "unit": "date"
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "59d9d557e26b05fa",
+        "evidence": [
+          {
+            "endLine": 91,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "if (hive.ownerId !== memberId) {",
+            "startLine": 89
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "Only the hive's owner may record a harvest from that hive.",
+        "subject": "Harvest.recordedBy",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.95,
+        "enforcedBy": "59d9d557e26b05fa",
+        "evidence": [
+          {
+            "endLine": 95,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "if (typeof kilograms !== \"number\" || !Number.isFinite(kilograms) || kilograms <= 0) {",
+            "startLine": 93
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">",
+        "statement": "A harvest's weight must be a positive, finite number of kilograms.",
+        "subject": "Harvest.kilograms",
+        "threshold": 0,
+        "unit": "kg"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "59d9d557e26b05fa",
+        "evidence": [
+          {
+            "endLine": 107,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "if (day >= start && (day <= end || day < end + withdrawal)) {",
+            "startLine": 102
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "A harvest is refused while the hive is under treatment, meaning on any day from the treatment's start date to its end date.",
+        "subject": "Harvest.date",
+        "threshold": null,
+        "unit": "days"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "59d9d557e26b05fa",
+        "evidence": [
+          {
+            "endLine": 99,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "const withdrawal = this.products.findById(t.productId)?.withdrawalDays ?? 0;",
+            "startLine": 99
+          },
+          {
+            "endLine": 102,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "if (day >= start && (day <= end || day < end + withdrawal)) {",
+            "startLine": 102
+          }
+        ],
+        "kind": "business",
+        "operator": ">=",
+        "statement": "A harvest is allowed only once the product's withdrawal period has passed after a treatment ends: the harvest day must be at least the treatment's end day plus the withdrawal days.",
+        "subject": "Harvest.date",
+        "threshold": null,
+        "unit": "days"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4288,
+    "outputTokens": 2056
+  }
+}

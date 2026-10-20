@@ -1,0 +1,94 @@
+{
+  "itemId": "community:1",
+  "itemName": "community:1",
+  "key": "6f78c006812df43a503c5eaffefa2c323cb28171b28621f891b7216cb5883fa2",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "8cbdf9114eeff27ce91188eb2b8f9321f34dcda9ae76f9a2c727e26c0e58946a",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"1\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DropTextClient (node 0e0ffaf33c6872c8), file src/persistence/dropTextClient.ts, declaration line 2: \"export class DropTextClient {\"\n  component persistence, layer infrastructure; responsibilities: Send text message via DropText; Report messaging provider failures\n- IceStateRepository (node 347150d64b7d1da9), file src/persistence/iceStateRepository.ts, declaration line 2: \"export class IceStateRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store the ice-too-warm start time\n- IceMonitorService (node f59a45a01c2ed338), file src/business/iceMonitorService.ts, declaration line 23: \"export class IceMonitorService {\"\n  component business, layer domain; responsibilities: Validate ice temperature readings; Track sustained warm-ice condition; Put the next skating session on ice hold; Notify booking holders of the session hold\n\n## APG relations of the group\nGraph statistics: 3 classes; 4 relations inside the group; 5 outgoing relations to code outside it.\n- IceMonitorService -> CALLS DropTextClient\n- IceMonitorService -> CALLS IceStateRepository\n- IceMonitorService -> CONSTRUCTOR_INJECTS DropTextClient\n- IceMonitorService -> CONSTRUCTOR_INJECTS IceStateRepository\n\n## Comments near the code\n- DropTextClient: HTTP client for DropText's API (external system access).\n- IceStateRepository: Remembers since when the ice has continuously been too warm.\n- IceMonitorService: Turns FrostSense readings into session holds.\n- IceMonitorService.nextSession: The earliest session that has not started yet and is not cancelled.",
+  "recordedAt": "2026-10-20T12:53:30.868Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Checks ice temperature readings from the rink sensors and keeps track of how long the ice has been too warm, so the business can spot a lasting warm-ice problem.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "f59a45a01c2ed338",
+            "quote": "export class IceMonitorService {",
+            "startLine": 23
+          },
+          {
+            "endLine": 2,
+            "file": "src/persistence/iceStateRepository.ts",
+            "nodeId": "347150d64b7d1da9",
+            "quote": "export class IceStateRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Rink ice condition monitoring",
+        "realizedBy": [
+          "f59a45a01c2ed338",
+          "347150d64b7d1da9"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Puts the next upcoming skating session that is not cancelled on hold when the ice has stayed too warm.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "f59a45a01c2ed338",
+            "quote": "export class IceMonitorService {",
+            "startLine": 23
+          }
+        ],
+        "name": "Skating session hold for poor ice",
+        "realizedBy": [
+          "f59a45a01c2ed338"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Sends a text message to people who booked a session when it is put on hold, using an outside messaging provider, and reports when that provider fails.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "0e0ffaf33c6872c8",
+            "quote": "export class DropTextClient {",
+            "startLine": 2
+          },
+          {
+            "endLine": 23,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "f59a45a01c2ed338",
+            "quote": "export class IceMonitorService {",
+            "startLine": 23
+          }
+        ],
+        "name": "Customer text notification of session holds",
+        "realizedBy": [
+          "f59a45a01c2ed338",
+          "0e0ffaf33c6872c8"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2333,
+    "outputTokens": 853
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "itemId": "ac07d42023c2e610",
+  "itemName": "Treatment Product ~ Treatment",
+  "key": "30aafe5045b0c3ef4ae6051a11a36bf1df874443f8684360d58d7fedf52979e4",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "b31b0c6e0b6cff5a4fa99d2e048c2da360dccc2ef82e294e4d1a90964b5a3e77",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Treatment Product\nwhere: TreatmentService (uses), src/business/treatmentService.ts, component business\ncode:\n=====SOURCE-BEGIN\nreturn this.products.create({ name: requireText(name, \"name\"), withdrawalDays });\n=====SOURCE-END=====\ngraph:\n- class TreatmentService (node 2912145e8ad12343): layer domain, component business, fan-out 12, fan-in 0\n- -> CALLS Method HarvestRepository.create\n- -> CALLS Method HarvestRepository.findByHive\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method ProductRepository.create\n- -> CALLS Method ProductRepository.findAll\n- -> CALLS Method ProductRepository.findById\n- -> CALLS Method TreatmentRepository.create\n- -> CALLS Method TreatmentRepository.findByHive\n\n### B\nconcept: Treatment\nwhere: TreatmentRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly items: TreatmentRecord[] = [];\n=====SOURCE-END=====\ngraph:\n- class TreatmentRepository (node b2566037ba6b6900): layer infrastructure, component persistence, fan-out 0, fan-in 8\n- <- CALLS Method HiveService.isFlagged\n- <- CALLS Method ReportService.quarterlyReport\n- <- CALLS Method TreatmentService.listTreatments\n- <- CALLS Method TreatmentService.recordHarvest\n- <- CALLS Method TreatmentService.recordTreatment\n- <- CONSTRUCTOR_INJECTS Class HiveService\n- <- CONSTRUCTOR_INJECTS Class ReportService\n- <- CONSTRUCTOR_INJECTS Class TreatmentService",
+  "recordedAt": "2026-10-20T15:10:36.033Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "These are two different concepts. A is a treatment product, a catalogue item with a name and withdrawal days, created through ProductRepository: \"return this.products.create({ name: requireText(name, \\\"name\\\"), withdrawalDays });\". B is a treatment, the record of a product being applied to a hive, stored as TreatmentRecord items in TreatmentRepository: \"private readonly items: TreatmentRecord[] = [];\". The graph backs this up: TreatmentService calls ProductRepository and TreatmentRepository separately, and also calls TreatmentRepository.findByHive. So a product and a treatment that uses a product are related, but they are not the same thing.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2109,
+    "outputTokens": 357
+  }
+}

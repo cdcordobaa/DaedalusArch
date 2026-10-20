@@ -1,0 +1,28 @@
+{
+  "itemId": "8545d051826d167a",
+  "itemName": "Skate Hire ~ Hire Skate Stock",
+  "key": "940459b112b1aba20517616c69951574393a7c5be68a0e085756be91a63c9a87",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "c790ffd77dae5bb577b9ee7278b4a131acca28515078c1d6e3a47e4f9329898e",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Skate Hire\nwhere: BookingService (uses), src/business/bookingService.ts, component business\ncode:\n=====SOURCE-BEGIN\nif (this.stock.get(size) === 0) throw new DomainError(400, `no hire skates of size ${size}`);\n=====SOURCE-END=====\ngraph:\n- class BookingService (node 3aa201f0edaa9fd6): layer domain, component business, fan-out 13, fan-in 0\n- -> CALLS Method BookingRepository.create\n- -> CALLS Method BookingRepository.findActiveByMembership\n- -> CALLS Method BookingRepository.findById\n- -> CALLS Method BookingRepository.findPending\n- -> CALLS Method BookingRepository.save\n- -> CALLS Method HireStockRepository.get\n- -> CALLS Method SessionRepository.findById\n- -> CALLS Method SessionService.availability\n\n### B\nconcept: Hire Skate Stock\nwhere: HireStockRepository (defines), src/persistence/hireStockRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly stock = new Map<string, number>();\n=====SOURCE-END=====\ngraph:\n- class HireStockRepository (node ada57feca2e90c67): layer infrastructure, component persistence, fan-out 0, fan-in 4\n- <- CALLS Method BookingService.create\n- <- CALLS Method SessionService.availability\n- <- CONSTRUCTOR_INJECTS Class BookingService\n- <- CONSTRUCTOR_INJECTS Class SessionService",
+  "recordedAt": "2026-10-20T13:14:53.859Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.6,
+    "rationale": "A's only evidence for 'Skate Hire' in BookingService is a check on hire-skate stock by size (\"if (this.stock.get(size) === 0) throw new DomainError(400, `no hire skates of size ${size}`);\"). Via BookingService's CALLS edge to HireStockRepository.get, this reads the same per-size inventory that HireStockRepository (node ada57feca2e90c67) defines in B (\"private readonly stock = new Map<string, number>();\"). The graph also shows BookingService constructor-injecting HireStockRepository. Both labels therefore point to the same real-world thing: skates available for hire, counted by size. Confidence is only moderate because 'Skate Hire' could also mean the act of renting skates within a booking, which would only depend on the stock rather than be the stock.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2012,
+    "outputTokens": 1016
+  }
+}

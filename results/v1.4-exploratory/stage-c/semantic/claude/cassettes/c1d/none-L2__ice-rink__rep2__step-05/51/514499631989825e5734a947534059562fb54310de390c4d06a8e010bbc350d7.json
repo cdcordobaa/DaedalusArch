@@ -1,0 +1,132 @@
+{
+  "itemId": "community:0",
+  "itemName": "community:0",
+  "key": "514499631989825e5734a947534059562fb54310de390c4d06a8e010bbc350d7",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "be46462f933d18cb191512778ca0128563cacaa2f5fc8e5458da516718032d6b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"0\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DomainError (node 07801d262a4a214c), file src/business/errors.ts, declaration line 1: \"export class DomainError extends Error {\"\n  component business, layer domain; responsibilities: Signal business rule violations; Classify failures into status categories\n- BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, declaration line 4: \"export class BookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Booking persistence; Session booking index; Booking queries\n- BookingService (node 3aa201f0edaa9fd6), file src/business/bookingService.ts, declaration line 23: \"export class BookingService {\"\n  component business, layer domain; responsibilities: Validate booking requests; Enforce ticket and skate-hire availability; Enforce the monthly free-skate allowance for members; Calculate booking price; Orchestrate booking creation and payment checkout; Apply payment results to bookings; Expire unpaid bookings\n- SessionService (node 42a26b41b626f9ec), file src/business/sessionService.ts, declaration line 24: \"export class SessionService {\"\n  component business, layer domain; responsibilities: Compute effective session capacity after club bookings; Validate and schedule new sessions; Calculate ticket and hire-equipment availability; Retrieve sessions with their availability\n- ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, declaration line 49: \"export class ReportService {\"\n  component business, layer domain; responsibilities: Weekly period resolution; Date range validation; Session sales and occupancy aggregation; Report CSV export\n- HireStockRepository (node ada57feca2e90c67), file src/persistence/hireStockRepository.ts, declaration line 2: \"export class HireStockRepository {\"\n  component persistence, layer infrastructure; responsibilities: Hold hire skate stock per shoe size; Look up stock for a shoe size; List full hire stock\n\n## APG relations of the group\nGraph statistics: 6 classes; 12 relations inside the group; 11 outgoing relations to code outside it.\n- BookingService -> CALLS BookingRepository\n- BookingService -> CALLS HireStockRepository\n- BookingService -> CALLS SessionService\n- BookingService -> CONSTRUCTOR_INJECTS BookingRepository\n- BookingService -> CONSTRUCTOR_INJECTS HireStockRepository\n- BookingService -> CONSTRUCTOR_INJECTS SessionService\n- ReportService -> CALLS BookingRepository\n- ReportService -> CONSTRUCTOR_INJECTS BookingRepository\n- SessionService -> CALLS BookingRepository\n- SessionService -> CALLS HireStockRepository\n- SessionService -> CONSTRUCTOR_INJECTS BookingRepository\n- SessionService -> CONSTRUCTOR_INJECTS HireStockRepository\n\n## Comments near the code\n- BookingService.handlePaymentResult: Applies a PuckPay payment result. Idempotent; late payments do not revive released bookings.\n- SessionService.effectiveCapacity: Capacity after club bookings: halved if one half is taken, zero if the whole rink is.\n- ReportService.weekly: Report for the Monday-to-Sunday week containing `date`.\n- ReportService.range: Report for an arbitrary inclusive date range (e.g. a whole season).\n- HireStockRepository: Fixed stock of hire skates per shoe size.",
+  "recordedAt": "2026-10-20T15:33:13.000Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Customers can book tickets for skating sessions. Each request is checked and priced, then paid through PuckPay checkout. Payment results are applied without double-processing, and unpaid bookings are released when they expire. Business rule violations are reported as classified domain errors.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/bookingService.ts",
+            "nodeId": "3aa201f0edaa9fd6",
+            "quote": "export class BookingService {",
+            "startLine": 23
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "export class BookingRepository {",
+            "startLine": 4
+          },
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 1
+          }
+        ],
+        "name": "Skating session booking and payment",
+        "realizedBy": [
+          "3aa201f0edaa9fd6",
+          "2e3c5728fffb0180",
+          "07801d262a4a214c"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Members get a monthly allowance of free skates, and the business enforces this limit when they book.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/bookingService.ts",
+            "nodeId": "3aa201f0edaa9fd6",
+            "quote": "export class BookingService {",
+            "startLine": 23
+          }
+        ],
+        "name": "Member free-skate allowance",
+        "realizedBy": [
+          "3aa201f0edaa9fd6"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Staff can schedule new rink sessions and see how many tickets are still available. Available capacity goes down when clubs book the rink: it halves if one half is taken and drops to zero if the whole rink is booked.",
+        "evidence": [
+          {
+            "endLine": 24,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "42a26b41b626f9ec",
+            "quote": "export class SessionService {",
+            "startLine": 24
+          }
+        ],
+        "name": "Rink session scheduling and capacity management",
+        "realizedBy": [
+          "42a26b41b626f9ec",
+          "2e3c5728fffb0180"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "The business holds a fixed stock of hire skates for each shoe size. It works out how many skates of each size are free for a session and stops bookings when a size runs out.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "ada57feca2e90c67",
+            "quote": "export class HireStockRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Skate hire stock and availability",
+        "realizedBy": [
+          "ada57feca2e90c67",
+          "42a26b41b626f9ec",
+          "3aa201f0edaa9fd6"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Staff can get sales and occupancy reports for a Monday-to-Sunday week or for any date range, such as a whole season, and export them as CSV.",
+        "evidence": [
+          {
+            "endLine": 49,
+            "file": "src/business/reportService.ts",
+            "nodeId": "a663bd12cbc0090c",
+            "quote": "export class ReportService {",
+            "startLine": 49
+          }
+        ],
+        "name": "Sales and occupancy reporting",
+        "realizedBy": [
+          "a663bd12cbc0090c",
+          "2e3c5728fffb0180"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2940,
+    "outputTokens": 1322
+  }
+}

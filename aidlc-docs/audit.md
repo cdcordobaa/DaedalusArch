@@ -2687,6 +2687,12 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Editorial: neutralised wording in public records; no decision, figure or outcome changed. Pinned files (sealed-hash rows, freeze manifest, prereg artefacts) were left unchanged."
 **Context**: Repository hygiene; documents only, zero model calls
 
+## Exploratory Study 2a: semantic scoring (C1d and C4) on a Claude configuration
+**Timestamp**: 2026-10-20T15:44:37Z
+**User Input**: "Coordinator brief: the author decided to run the 2a semantic scoring with a Claude configuration today, with same-vendor bias measured later through swap arms; this includes the author's OK for the C1d cap change. Write a dated Amendment 2 before any call, smoke one snapshot, then run C1d on the 12 registered snapshots and C4 on the 4 none@L2 snapshots under caps C1d 700 and C4 80, one lane, no Neo4j, no Gemini, no src change; report, ledger rows, PR and merge on green."
+**AI Response**: "Amendment 2 committed and pushed at 12:00Z, before the first call. Route claude-cli, model claude-opus-5-5, CLI 2.1.304 under D1 (no 2.1.294 binary), judge config dir. C4 needed no new route; a thin driver scripts/v1.4/semantic-sample.ts was added (no src change). C1d used 700 of 700 calls: 7 snapshots complete, 1 truncated, 4 not run, reported as truncated. 45 SEM-MISPLACED verdicts (33 at confidence 0.75 or above); 39 of them are an application-vs-domain kind-mapping artefact of the Layered preset; 6 candidate K3 facts (2 at 0.75 or above); 0 SEM-DUP. C4 used 34 of 80 calls: 17 of 17 findings no-declared-intent, 0 exception claims, severity medium 3 and low 14, all stable; D_sem = D on all 4 blocks. One pre-flight stop (CLI-created empty telemetry dir in the judge config dir), removed with rmdir and resumed under the same cap. Report Docs/DiagnosticRuns/v1.4-exploratory-semantic-claude-2026-10-20.md."
+**Context**: CONSTRUCTION, exploratory Study 2a Stage C, estimand 8; 734 model calls (subscription CLI route) plus 13 pre-flight probes
+
 ---
 
 ## Editorial: decision venue wording

@@ -1,0 +1,124 @@
+{
+  "itemId": "50b830f77ad06c02",
+  "itemName": "TemperatureRepository",
+  "key": "a66ec6079fa4fd79ee709b183d5fb5e55e12c70ccdd6bf1ab510ca64c934a27b",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "d6b404a422c4e7454606f5f9c2570611a649a39e8db083cdeff679ffb15e7dfb",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TemperatureRepository (node 50b830f77ad06c02), file src/persistence/temperatureRepository.ts, lines 5-22.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- add (node a25da41ce1f0ebbc, lines 8-12, logic density 4)\n- all (node fd8b29f434d657f7, lines 15-17, logic density 0)\n- clear (node 5a1ff940399d4f0d, lines 19-21, logic density 0)\nFields: readings\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 0; fan-in 4 (CALLS 3, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method IceMonitorService.recordReading (src/business/iceMonitorService.ts)\n- <- CALLS Method IceMonitorService.release (src/business/iceMonitorService.ts)\n- <- CALLS Method IceMonitorService.warmLongEnough (src/business/iceMonitorService.ts)\n- <- CONSTRUCTOR_INJECTS Class IceMonitorService (src/business/iceMonitorService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TemperatureRepository: nameRole=\"repository\"\n- TemperatureRepository: behaviourRole=\"business-logic\"\n- TemperatureRepository: ioCategories=[]\n- TemperatureRepository: lcom4=1\n- TemperatureRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- TemperatureRepository.add: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":2,\"validationThrows\":0,\"density\":4}\n- TemperatureRepository.all: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TemperatureRepository.clear: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Comments near the code\n- TemperatureRepository.all: Readings in chronological order.\n\n## Source\n=====SOURCE-BEGIN src/persistence/temperatureRepository.ts\n 5| export class TemperatureRepository {\n 6|   private readings: TemperatureReading[] = [];\n 7| \n 8|   add(reading: TemperatureReading): void {\n 9|     this.readings.push(reading);\n10|     this.readings.sort((a, b) => a.at - b.at);\n11|     if (this.readings.length > MAX_READINGS) this.readings.splice(0, this.readings.length - MAX_READINGS);\n12|   }\n13| \n14|   /** Readings in chronological order. */\n15|   all(): TemperatureReading[] {\n16|     return [...this.readings];\n17|   }\n18| \n19|   clear(): void {\n20|     this.readings = [];\n21|   }\n22| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:29:40.968Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "50b830f77ad06c02",
+            "quote": "private readings: TemperatureReading[] = [];",
+            "startLine": 6
+          }
+        ],
+        "name": "Temperature Reading",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.5,
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "fd8b29f434d657f7",
+            "quote": "all(): TemperatureReading[] {",
+            "startLine": 15
+          }
+        ],
+        "name": "Reading History",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Keeps an in-memory collection of temperature readings and adds new readings to it.",
+        "evidence": [
+          {
+            "endLine": 9,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "a25da41ce1f0ebbc",
+            "quote": "this.readings.push(reading);",
+            "startLine": 9
+          }
+        ],
+        "name": "Store temperature readings",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.6,
+        "description": "Sorts readings by timestamp so the reading history is always in time order.",
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "a25da41ce1f0ebbc",
+            "quote": "this.readings.sort((a, b) => a.at - b.at);",
+            "startLine": 10
+          }
+        ],
+        "name": "Keep readings in chronological order",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.55,
+        "description": "Keeps only the most recent MAX_READINGS readings by dropping the oldest ones.",
+        "evidence": [
+          {
+            "endLine": 11,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "a25da41ce1f0ebbc",
+            "quote": "if (this.readings.length > MAX_READINGS) this.readings.splice(0, this.readings.length - MAX_READINGS);",
+            "startLine": 11
+          }
+        ],
+        "name": "Cap the retained reading history",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Returns a copy of all stored readings and can clear the whole history.",
+        "evidence": [
+          {
+            "endLine": 16,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "fd8b29f434d657f7",
+            "quote": "return [...this.readings];",
+            "startLine": 16
+          },
+          {
+            "endLine": 20,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "5a1ff940399d4f0d",
+            "quote": "this.readings = [];",
+            "startLine": 20
+          }
+        ],
+        "name": "Provide and reset the reading history",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3243,
+    "outputTokens": 983
+  }
+}

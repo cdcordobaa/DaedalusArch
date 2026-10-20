@@ -1,0 +1,208 @@
+{
+  "itemId": "2912145e8ad12343",
+  "itemName": "TreatmentService",
+  "key": "da550fdbc738d7cf9bbc32ebfe71fc0e6725a542eda625a58d827c8934e4dcca",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "529349664805035d71b888bb0531c4ec73fd1279e8d918a7024ce4cc70687d13",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TreatmentService (node 2912145e8ad12343), file src/business/treatmentService.ts, lines 37-117.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- addProduct (node a8c208dbfc04fcee, lines 45-54, logic density 3)\n- listProducts (node d2bd39d3ed6f1b95, lines 56-58, logic density 0)\n- recordTreatment (node 72d370555108c6ea, lines 60-74, logic density 10)\n- listTreatments (node f7ca3c201150d6e2, lines 76-79, logic density 2)\n- recordHarvest (node 59d9d557e26b05fa, lines 81-111, logic density 17)\n- listHarvests (node 502f3a2735f24d62, lines 113-116, logic density 2)\nFields: hives, products, treatments, harvests\n\n## APG neighbourhood\nGraph statistics: 6 methods; fan-out 12 (CALLS 8, CONSTRUCTOR_INJECTS 4); fan-in 0.\n- -> CALLS Method HarvestRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method HarvestRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method ProductRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method ProductRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method ProductRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.findByHive (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HarvestRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class ProductRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentRepository (src/persistence/repositories.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TreatmentService: nameRole=\"service\"\n- TreatmentService: behaviourRole=\"business-logic\"\n- TreatmentService: ioCategories=[]\n- TreatmentService: lcom4=1\n- TreatmentService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- TreatmentService.addProduct: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":1,\"density\":3}\n- TreatmentService.listProducts: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TreatmentService.recordTreatment: logicDensity={\"branches\":4,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":4,\"density\":10}\n- TreatmentService.listTreatments: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- TreatmentService.recordHarvest: logicDensity={\"branches\":6,\"comparisons\":6,\"arithmetic\":1,\"validationThrows\":4,\"density\":17}\n- TreatmentService.listHarvests: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\nFlags:\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.registerHive in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.registerHive in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-near: fragment clone (near, similarity 0.81) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HiveService.listInspections in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HiveService.listInspections in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of HiveService.listInspections in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of HiveService.listInspections in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.linkScale in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.linkScale in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of ScaleService.listScales in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of ScaleService.listScales in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of ScaleService.listScales in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of ScaleService.listScales in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.recordReading in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordHarvest in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordTreatment in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of TreatmentService.listHarvests in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of TreatmentService.listTreatments in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of TreatmentService.listHarvests in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of TreatmentService.listTreatments in component business\n\n## Source\n=====SOURCE-BEGIN src/business/treatmentService.ts\n 37| export class TreatmentService {\n 38|   constructor(\n 39|     private readonly hives: HiveRepository,\n 40|     private readonly products: ProductRepository,\n 41|     private readonly treatments: TreatmentRepository,\n 42|     private readonly harvests: HarvestRepository,\n 43|   ) {}\n 44| \n 45|   addProduct(name: unknown, withdrawalDays: unknown): ProductRecord {\n 46|     if (\n 47|       typeof withdrawalDays !== \"number\" ||\n 48|       !Number.isInteger(withdrawalDays) ||\n 49|       withdrawalDays < 0\n 50|     ) {\n 51|       throw new ValidationError(\"withdrawalDays must be a non-negative integer\");\n 52|     }\n 53|     return this.products.create({ name: requireText(name, \"name\"), withdrawalDays });\n 54|   }\n 55| \n 56|   listProducts(): ProductRecord[] {\n 57|     return this.products.findAll();\n 58|   }\n 59| \n 60|   recordTreatment(memberId: string, hiveId: string, input: TreatmentInput): TreatmentRecord {\n 61|     const hive = this.hives.findById(hiveId);\n 62|     if (!hive) throw new NotFoundError(\"hive not found\");\n 63|     if (hive.ownerId !== memberId) {\n 64|       throw new ForbiddenError(\"only the hive owner can record treatments\");\n 65|     }\n 66|     const productId = requireText(input.productId, \"productId\");\n 67|     const startDate = requireDate(input.startDate, \"startDate\");\n 68|     const endDate = requireDate(input.endDate, \"endDate\");\n 69|     if (!this.products.findById(productId)) throw new ValidationError(\"unknown product\");\n 70|     if (dayNumber(endDate) < dayNumber(startDate)) {\n 71|       throw new ValidationError(\"endDate must not be before startDate\");\n 72|     }\n 73|     return this.treatments.create({ hiveId, productId, startDate, endDate });\n 74|   }\n 75| \n 76|   listTreatments(hiveId: string): TreatmentRecord[] {\n 77|     if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n 78|     return this.treatments.findByHive(hiveId);\n 79|   }\n 80| \n 81|   recordHarvest(\n 82|     memberId: string,\n 83|     hiveId: string,\n 84|     date: unknown,\n 85|     kilograms: unknown,\n 86|   ): HarvestRecord {\n 87|     const hive = this.hives.findById(hiveId);\n 88|     if (!hive) throw new NotFoundError(\"hive not found\");\n 89|     if (hive.ownerId !== memberId) {\n 90|       throw new ForbiddenError(\"only the hive owner can record harvests\");\n 91|     }\n 92|     const when = requireDate(date, \"date\");\n 93|     if (typeof kilograms !== \"number\" || !Number.isFinite(kilograms) || kilograms <= 0) {\n 94|       throw new ValidationError(\"kilograms must be a positive number\");\n 95|     }\n 96| \n 97|     const day = dayNumber(when);\n 98|     for (const t of this.treatments.findByHive(hiveId)) {\n 99|       const withdrawal = this.products.findById(t.productId)?.withdrawalDays ?? 0;\n100|       const start = dayNumber(t.startDate);\n101|       const end = dayNumber(t.endDate);\n102|       if (day >= start && (day <= end || day < end + withdrawal)) {\n103|         throw new ConflictError(\n104|           day <= end\n105|             ? \"harvest refused: hive is under treatment\"\n106|             : \"harvest refused: withdrawal period has not passed\",\n107|         );\n108|       }\n109|     }\n110|     return this.harvests.create({ hiveId, date: when, kilograms });\n111|   }\n112| \n113|   listHarvests(hiveId: string): HarvestRecord[] {\n114|     if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n115|     return this.harvests.findByHive(hiveId);\n116|   }\n117| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:20:00.695Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 73,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "return this.treatments.create({ hiveId, productId, startDate, endDate });",
+            "startLine": 73
+          }
+        ],
+        "name": "Treatment",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 110,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "return this.harvests.create({ hiveId, date: when, kilograms });",
+            "startLine": 110
+          }
+        ],
+        "name": "Harvest",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 53,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "a8c208dbfc04fcee",
+            "quote": "return this.products.create({ name: requireText(name, \"name\"), withdrawalDays });",
+            "startLine": 53
+          }
+        ],
+        "name": "Treatment Product",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 99,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "const withdrawal = this.products.findById(t.productId)?.withdrawalDays ?? 0;",
+            "startLine": 99
+          }
+        ],
+        "name": "Withdrawal Period",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 61,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "const hive = this.hives.findById(hiveId);",
+            "startLine": 61
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 63,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (hive.ownerId !== memberId) {",
+            "startLine": 63
+          }
+        ],
+        "name": "Hive Owner",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Registers treatment products and checks that each one's withdrawal period is a non-negative whole number of days. Also lists the product catalogue.",
+        "evidence": [
+          {
+            "endLine": 51,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "a8c208dbfc04fcee",
+            "quote": "throw new ValidationError(\"withdrawalDays must be a non-negative integer\");",
+            "startLine": 51
+          },
+          {
+            "endLine": 57,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "d2bd39d3ed6f1b95",
+            "quote": "return this.products.findAll();",
+            "startLine": 57
+          }
+        ],
+        "name": "Treatment product catalogue management",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Records a treatment on a hive. Only the hive's owner may do this, the product must be known, and the end date cannot come before the start date.",
+        "evidence": [
+          {
+            "endLine": 64,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "throw new ForbiddenError(\"only the hive owner can record treatments\");",
+            "startLine": 64
+          },
+          {
+            "endLine": 72,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (dayNumber(endDate) < dayNumber(startDate)) {\n      throw new ValidationError(\"endDate must not be before startDate\");\n    }",
+            "startLine": 70
+          }
+        ],
+        "name": "Recording hive treatments",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.92,
+        "description": "Records honey harvests that only the hive owner may log, with a positive weight in kilograms. A harvest is refused while the hive is under treatment or before the product's withdrawal period has ended.",
+        "evidence": [
+          {
+            "endLine": 102,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "if (day >= start && (day <= end || day < end + withdrawal)) {",
+            "startLine": 102
+          },
+          {
+            "endLine": 94,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "throw new ValidationError(\"kilograms must be a positive number\");",
+            "startLine": 94
+          },
+          {
+            "endLine": 90,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "throw new ForbiddenError(\"only the hive owner can record harvests\");",
+            "startLine": 90
+          }
+        ],
+        "name": "Harvest recording with treatment withdrawal enforcement",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.75,
+        "description": "Returns the treatments and harvests for an existing hive. Fails with a not-found error if the hive does not exist.",
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "f7ca3c201150d6e2",
+            "quote": "return this.treatments.findByHive(hiveId);",
+            "startLine": 78
+          },
+          {
+            "endLine": 115,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "502f3a2735f24d62",
+            "quote": "return this.harvests.findByHive(hiveId);",
+            "startLine": 115
+          }
+        ],
+        "name": "Hive treatment and harvest history lookup",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 6102,
+    "outputTokens": 1873
+  }
+}

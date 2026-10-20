@@ -1,0 +1,245 @@
+{
+  "itemId": "f7e458262ae72ac4",
+  "itemName": "ScaleService",
+  "key": "8ba8299d4a46c7c31b6626512caab8e6875338b04f99c23403a11df81a19a092",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "183af55269cb1147b51c8a8836a120aade73d1f0714d4204108861ce4b4f9da6",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ScaleService (node f7e458262ae72ac4), file src/business/scaleService.ts, lines 43-163.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- inspectedAround (node 6aee253b835d8d0b, lines 55-60, logic density 3)\n- cancelPendingAlerts (node 55a3687c5af59fcd, lines 63-74, logic density 7)\n- linkScale (node 0325ab7d4cbd9dae, lines 76-100, logic density 10)\n- listScales (node c61903d169ea3ab5, lines 102-105, logic density 2)\n- recordReading (node 066aa15062c63d0d, lines 107-146, logic density 17)\n- sendAlert (node 62ce6be11750c86e, lines 148-162, logic density 4)\nFields: pending, hives, scales, readings, sms, inspections, holdMs\n\n## APG neighbourhood\nGraph statistics: 6 methods; fan-out 12 (CALLS 7, CONSTRUCTOR_INJECTS 5); fan-in 0.\n- -> CALLS Method HiveRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method InspectionRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method ScaleRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method ScaleRepository.findBySerial (src/persistence/repositories.ts)\n- -> CALLS Method ScaleRepository.save (src/persistence/repositories.ts)\n- -> CALLS Method WeightReadingRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method WeightReadingRepository.findBySerialBetween (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class InspectionRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class ScaleRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Interface SmsGateway (src/business/scaleService.ts)\n- -> CONSTRUCTOR_INJECTS Class WeightReadingRepository (src/persistence/repositories.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ScaleService: nameRole=\"service\"\n- ScaleService: behaviourRole=\"business-logic\"\n- ScaleService: ioCategories=[]\n- ScaleService: lcom4=1\n- ScaleService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- ScaleService.inspectedAround: logicDensity={\"branches\":0,\"comparisons\":2,\"arithmetic\":1,\"validationThrows\":0,\"density\":3}\n- ScaleService.cancelPendingAlerts: logicDensity={\"branches\":2,\"comparisons\":3,\"arithmetic\":2,\"validationThrows\":0,\"density\":7}\n- ScaleService.linkScale: logicDensity={\"branches\":4,\"comparisons\":3,\"arithmetic\":0,\"validationThrows\":3,\"density\":10}\n- ScaleService.listScales: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- ScaleService.recordReading: logicDensity={\"branches\":6,\"comparisons\":4,\"arithmetic\":4,\"validationThrows\":3,\"density\":17}\n- ScaleService.sendAlert: logicDensity={\"branches\":3,\"comparisons\":0,\"arithmetic\":1,\"validationThrows\":0,\"density\":4}\nFlags:\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.registerHive in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-near: fragment clone (near, similarity 0.81) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HiveService.listInspections in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of HiveService.listInspections in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordTreatment in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordHarvest in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of TreatmentService.listTreatments in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of TreatmentService.listHarvests in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of TreatmentService.listTreatments in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of TreatmentService.listHarvests in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.addProduct in component business\n\n## Comments near the code\n- ScaleService.cancelPendingAlerts: Called when an inspection is recorded: cancels unsent swarm SMS it explains.\n\n## Source\n=====SOURCE-BEGIN src/business/scaleService.ts\n 43| export class ScaleService {\n 44|   private readonly pending = new Map<string, PendingAlert>();\n 45| \n 46|   constructor(\n 47|     private readonly hives: HiveRepository,\n 48|     private readonly scales: ScaleRepository,\n 49|     private readonly readings: WeightReadingRepository,\n 50|     private readonly sms: SmsGateway,\n 51|     private readonly inspections: InspectionRepository,\n 52|     private readonly holdMs = INSPECTION_AFTER_MS,\n 53|   ) {}\n 54| \n 55|   private inspectedAround(hiveId: string, dropAt: number, until: number): boolean {\n 56|     return this.inspections.findByHive(hiveId).some((i) => {\n 57|       const at = Date.parse(i.date);\n 58|       return at >= dropAt - INSPECTION_BEFORE_MS && at <= until;\n 59|     });\n 60|   }\n 61| \n 62|   // Called when an inspection is recorded: cancels unsent swarm SMS it explains.\n 63|   cancelPendingAlerts(hiveId: string, inspectedAt: number): void {\n 64|     for (const [serial, alert] of this.pending) {\n 65|       if (\n 66|         alert.hiveId === hiveId &&\n 67|         inspectedAt >= alert.dropAt - INSPECTION_BEFORE_MS &&\n 68|         inspectedAt <= alert.dropAt + INSPECTION_AFTER_MS\n 69|       ) {\n 70|         clearTimeout(alert.timer);\n 71|         this.pending.delete(serial);\n 72|       }\n 73|     }\n 74|   }\n 75| \n 76|   linkScale(\n 77|     memberId: string,\n 78|     hiveId: string,\n 79|     serialNumber: unknown,\n 80|     phoneNumber: unknown,\n 81|   ): ScaleRecord {\n 82|     const hive = this.hives.findById(hiveId);\n 83|     if (!hive) throw new NotFoundError(\"hive not found\");\n 84|     if (hive.ownerId !== memberId) {\n 85|       throw new ForbiddenError(\"only the hive owner can link a scale\");\n 86|     }\n 87|     const serial = requireText(serialNumber, \"serialNumber\");\n 88|     const phone = requireText(phoneNumber, \"phoneNumber\");\n 89|     const existing = this.scales.findBySerial(serial);\n 90|     if (existing && existing.ownerId !== memberId) {\n 91|       throw new ConflictError(\"scale is already linked by another member\");\n 92|     }\n 93|     return this.scales.save({\n 94|       serialNumber: serial,\n 95|       hiveId,\n 96|       ownerId: memberId,\n 97|       phoneNumber: phone,\n 98|       lastAlertAt: existing && existing.hiveId === hiveId ? existing.lastAlertAt : null,\n 99|     });\n100|   }\n101| \n102|   listScales(hiveId: string): ScaleRecord[] {\n103|     if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n104|     return this.scales.findByHive(hiveId);\n105|   }\n106| \n107|   async recordReading(input: ReadingInput): Promise<ReadingResult> {\n108|     const serial = requireText(input.serialNumber, \"serialNumber\");\n109|     const kg = input.kilograms;\n110|     if (typeof kg !== \"number\" || !Number.isFinite(kg) || kg < 0) {\n111|       throw new ValidationError(\"kilograms must be a non-negative number\");\n112|     }\n113|     const readAt = Date.parse(requireText(input.time, \"time\"));\n114|     if (Number.isNaN(readAt)) throw new ValidationError(\"time must be a valid date\");\n115| \n116|     const scale = this.scales.findBySerial(serial);\n117|     if (!scale) throw new NotFoundError(\"scale not found\");\n118| \n119|     this.readings.create({ serialNumber: serial, kilograms: kg, readAt });\n120| \n121|     const recent = this.readings.findBySerialBetween(serial, readAt - SWARM_WINDOW_MS, readAt);\n122|     const drop = Math.max(...recent.map((r) => r.kilograms)) - kg;\n123|     if (drop <= SWARM_DROP_KG) return { accepted: true, swarmSuspected: false };\n124| \n125|     // Opening the hive for an inspection also drops the scale reading.\n126|     if (this.inspectedAround(scale.hiveId, readAt, readAt + INSPECTION_AFTER_MS)) {\n127|       return { accepted: true, swarmSuspected: false };\n128|     }\n129| \n130|     // Avoid texting repeatedly for the same ongoing drop.\n131|     const recentlyAlerted =\n132|       (scale.lastAlertAt !== null &&\n133|         readAt >= scale.lastAlertAt &&\n134|         readAt - scale.lastAlertAt < SWARM_WINDOW_MS) ||\n135|       this.pending.has(serial);\n136|     if (recentlyAlerted) return { accepted: true, swarmSuspected: true };\n137| \n138|     // Hold the SMS for the post-drop inspection window so a late inspection can cancel it.\n139|     const timer = setTimeout(() => {\n140|       this.pending.delete(serial);\n141|       void this.sendAlert(serial, readAt, drop);\n142|     }, this.holdMs);\n143|     timer.unref();\n144|     this.pending.set(serial, { hiveId: scale.hiveId, dropAt: readAt, timer });\n145|     return { accepted: true, swarmSuspected: true };\n146|   }\n147| \n148|   private async sendAlert(serial: string, readAt: number, drop: number): Promise<void> {\n149|     const scale = this.scales.findBySerial(serial);\n150|     if (!scale) return;\n151|     if (this.inspectedAround(scale.hiveId, readAt, readAt + INSPECTION_AFTER_MS)) return;\n152|     const hive = this.hives.findById(scale.hiveId);\n153|     this.scales.save({ ...scale, lastAlertAt: readAt });\n154|     try {\n155|       await this.sms.sendSms(\n156|         scale.phoneNumber,\n157|         `Possible swarm: hive \"${hive ? hive.name : scale.hiveId}\" lost ${drop.toFixed(1)} kg within an hour.`,\n158|       );\n159|     } catch (err) {\n160|       console.error(\"failed to send swarm SMS\", err);\n161|     }\n162|   }\n163| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:40:42.600Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 81,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "0325ab7d4cbd9dae",
+            "quote": "): ScaleRecord {",
+            "startLine": 81
+          }
+        ],
+        "name": "Hive Scale",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 119,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "this.readings.create({ serialNumber: serial, kilograms: kg, readAt });",
+            "startLine": 119
+          }
+        ],
+        "name": "Weight Reading",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 144,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "this.pending.set(serial, { hiveId: scale.hiveId, dropAt: readAt, timer });",
+            "startLine": 144
+          }
+        ],
+        "name": "Swarm Alert",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 82,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "0325ab7d4cbd9dae",
+            "quote": "const hive = this.hives.findById(hiveId);",
+            "startLine": 82
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 56,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "6aee253b835d8d0b",
+            "quote": "return this.inspections.findByHive(hiveId).some((i) => {",
+            "startLine": 56
+          }
+        ],
+        "name": "Inspection",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 84,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "0325ab7d4cbd9dae",
+            "quote": "if (hive.ownerId !== memberId) {",
+            "startLine": 84
+          }
+        ],
+        "name": "Member",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Links a hive scale to a hive. Only the hive's owner may do this, and a scale already linked by another member cannot be claimed.",
+        "evidence": [
+          {
+            "endLine": 86,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "0325ab7d4cbd9dae",
+            "quote": "throw new ForbiddenError(\"only the hive owner can link a scale\");",
+            "startLine": 84
+          },
+          {
+            "endLine": 92,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "0325ab7d4cbd9dae",
+            "quote": "throw new ConflictError(\"scale is already linked by another member\");",
+            "startLine": 90
+          }
+        ],
+        "name": "Link scale to hive",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Lists the scales linked to an existing hive.",
+        "evidence": [
+          {
+            "endLine": 104,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "c61903d169ea3ab5",
+            "quote": "return this.scales.findByHive(hiveId);",
+            "startLine": 104
+          }
+        ],
+        "name": "List hive scales",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Checks and stores a weight reading from a scale. The weight must be a non-negative number and the time must be a valid date.",
+        "evidence": [
+          {
+            "endLine": 112,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "throw new ValidationError(\"kilograms must be a non-negative number\");",
+            "startLine": 110
+          },
+          {
+            "endLine": 119,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "this.readings.create({ serialNumber: serial, kilograms: kg, readAt });",
+            "startLine": 119
+          }
+        ],
+        "name": "Record weight reading",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Flags a possible swarm when the hive's weight drops by more than a threshold within a time window. A drop is ignored if an inspection happened around the same time, and repeated alerts for the same drop are suppressed.",
+        "evidence": [
+          {
+            "endLine": 123,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "if (drop <= SWARM_DROP_KG) return { accepted: true, swarmSuspected: false };",
+            "startLine": 122
+          },
+          {
+            "endLine": 128,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "if (this.inspectedAround(scale.hiveId, readAt, readAt + INSPECTION_AFTER_MS)) {",
+            "startLine": 126
+          },
+          {
+            "endLine": 58,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "6aee253b835d8d0b",
+            "quote": "return at >= dropAt - INSPECTION_BEFORE_MS && at <= until;",
+            "startLine": 58
+          }
+        ],
+        "name": "Swarm detection",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Holds a swarm SMS alert for a set time and cancels it if an inspection recorded in that time explains the weight drop.",
+        "evidence": [
+          {
+            "endLine": 144,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "this.pending.set(serial, { hiveId: scale.hiveId, dropAt: readAt, timer });",
+            "startLine": 144
+          },
+          {
+            "endLine": 71,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "55a3687c5af59fcd",
+            "quote": "clearTimeout(alert.timer);",
+            "startLine": 70
+          }
+        ],
+        "name": "Delayed swarm alerting",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.7,
+        "description": "Records when the last alert was sent and texts the scale owner's phone number about a possible swarm.",
+        "evidence": [
+          {
+            "endLine": 155,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "62ce6be11750c86e",
+            "quote": "await this.sms.sendSms(",
+            "startLine": 155
+          },
+          {
+            "endLine": 153,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "62ce6be11750c86e",
+            "quote": "this.scales.save({ ...scale, lastAlertAt: readAt });",
+            "startLine": 153
+          }
+        ],
+        "name": "Send swarm SMS",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 6582,
+    "outputTokens": 2210
+  }
+}

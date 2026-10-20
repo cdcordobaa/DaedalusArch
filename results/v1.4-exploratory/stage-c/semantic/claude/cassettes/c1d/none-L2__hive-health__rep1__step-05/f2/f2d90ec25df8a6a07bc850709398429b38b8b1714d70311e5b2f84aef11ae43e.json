@@ -1,0 +1,26 @@
+{
+  "itemId": "55c79c4bdccf51e6",
+  "itemName": "InspectionRepository",
+  "key": "f2d90ec25df8a6a07bc850709398429b38b8b1714d70311e5b2f84aef11ae43e",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "rules",
+    "promptHash": "0f7a0bb680fb6ae5ae69718db5e7d9ede85c4030bb3bb8ca9c1c0fbd5d1315a3",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "f0fc4d535ca2368dc75f2c1669e4a1b8563970f49941a37b2cf4202334cf7327",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nExtract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind \"business\": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind \"input-validation\": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.\n\n## Class\nClass InspectionRepository (node 55c79c4bdccf51e6), file src/persistence/repositories.ts, lines 99-116.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nCandidate methods (proposed by the cheap proxies):\n- findByHive (node abdb07abf83bd29c, lines 113-115, logic density 1)\n\n## APG neighbourhood\nGraph statistics: 2 methods; fan-out 0; fan-in 7 (CALLS 5, CONSTRUCTOR_INJECTS 2).\n- <- CALLS Method HiveService.isFlagged (src/business/hiveService.ts)\n- <- CALLS Method HiveService.latest (src/business/hiveService.ts)\n- <- CALLS Method HiveService.listInspections (src/business/hiveService.ts)\n- <- CALLS Method HiveService.recordInspection (src/business/hiveService.ts)\n- <- CALLS Method ScaleService.inspectedAround (src/business/scaleService.ts)\n- <- CONSTRUCTOR_INJECTS Class HiveService (src/business/hiveService.ts)\n- <- CONSTRUCTOR_INJECTS Class ScaleService (src/business/scaleService.ts)\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n 99| export class InspectionRepository {\n100|   private readonly items: InspectionRecord[] = [];\n101|   private sequence = 0;\n102| \n103|   create(data: Omit<InspectionRecord, \"id\" | \"recordedAt\">): InspectionRecord {\n104|     const record: InspectionRecord = {\n105|       id: randomUUID(),\n106|       recordedAt: this.sequence++,\n107|       ...data,\n108|     };\n109|     this.items.push(record);\n110|     return record;\n111|   }\n112| \n113|   findByHive(hiveId: string): InspectionRecord[] {\n114|     return this.items.filter((i) => i.hiveId === hiveId);\n115|   }\n116| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T14:52:04.160Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "rules": []
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2753,
+    "outputTokens": 53
+  }
+}

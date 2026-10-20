@@ -1,0 +1,28 @@
+{
+  "itemId": "dd56214201210773",
+  "itemName": "Swarm detection and beekeeper alerting ~ Swarm detection and SMS alerting",
+  "key": "a9d1c09504b27a9973f15e81b9de0cdb0bf499df3de45fbb52bb04e9d81078ae",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "e6ba400a777d7a8bef957c55f592d1d19a2a134110a2ac2c4a7df625e0920e09",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Swarm detection and beekeeper alerting\nwhere: community:0\ncode:\n=====SOURCE-BEGIN\nexport class ScaleService {\nexport class TextHiveClient {\n=====SOURCE-END=====\ngraph:\n- community community:0: 7 classes (NotFoundError, TextHiveClient, ConflictError, ValidationError, UnauthorizedError, ForbiddenError, ScaleService)\n- class ScaleService (node f7e458262ae72ac4): layer domain, component business, fan-out 12, fan-in 0\n- class TextHiveClient (node 8e8d371ee25514db): layer infrastructure, component persistence, fan-out 0, fan-in 2\n\n### B\ncapability: Swarm detection and SMS alerting\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class ScaleService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 9 classes (NotFoundError, TreatmentService, ConflictError, ValidationError, HiveService, ReportService, HarvestService, ForbiddenError, ScaleService)\n- class ScaleService (node f7e458262ae72ac4): layer domain, component business, fan-out 12, fan-in 0",
+  "recordedAt": "2026-10-20T12:30:18.536Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "Both capabilities are anchored on the same class, ScaleService (node f7e458262ae72ac4), and both describe swarm detection followed by an alert. A says the alert goes to the beekeeper. A's community also contains TextHiveClient (node 8e8d371ee25514db), a persistence/infrastructure class that is probably the SMS channel, though its body isn't visible. B says the alert is sent by SMS. So the alert most likely reaches the beekeeper by SMS, and A and B describe the same capability: A names who receives it, B names the channel. The difference in scope (a community vs. the business component) doesn't change what the capability is.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1840,
+    "outputTokens": 351
+  }
+}

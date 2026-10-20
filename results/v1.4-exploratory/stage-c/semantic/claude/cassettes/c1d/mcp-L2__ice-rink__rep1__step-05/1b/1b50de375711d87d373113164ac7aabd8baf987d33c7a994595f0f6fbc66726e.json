@@ -1,0 +1,86 @@
+{
+  "itemId": "347150d64b7d1da9",
+  "itemName": "IceStateRepository",
+  "key": "1b50de375711d87d373113164ac7aabd8baf987d33c7a994595f0f6fbc66726e",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "c65fadc2c8cc7b0ded911bbcf3ff707d0f1746c1b54818c27b518f669c0035d7",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass IceStateRepository (node 347150d64b7d1da9), file src/persistence/iceStateRepository.ts, lines 2-12.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- getWarmSince (node 829046a4efb1fb02, lines 5-7, logic density 0)\n- setWarmSince (node def25b1dc5ce1f86, lines 9-11, logic density 0)\nFields: warmSince\n\n## APG neighbourhood\nGraph statistics: 2 methods; fan-out 0; fan-in 2 (CALLS 1, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method IceMonitorService.recordReading (src/business/iceMonitorService.ts)\n- <- CONSTRUCTOR_INJECTS Class IceMonitorService (src/business/iceMonitorService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- IceStateRepository: nameRole=\"repository\"\n- IceStateRepository: behaviourRole=\"coordination\"\n- IceStateRepository: ioCategories=[]\n- IceStateRepository: lcom4=1\n- IceStateRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- IceStateRepository.getWarmSince: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- IceStateRepository.setWarmSince: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Comments near the code\n- IceStateRepository: Remembers since when the ice has continuously been too warm.\n\n## Source\n=====SOURCE-BEGIN src/persistence/iceStateRepository.ts\n 2| export class IceStateRepository {\n 3|   private warmSince: number | undefined;\n 4| \n 5|   getWarmSince(): number | undefined {\n 6|     return this.warmSince;\n 7|   }\n 8| \n 9|   setWarmSince(at: number | undefined): void {\n10|     this.warmSince = at;\n11|   }\n12| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:49:43.577Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/persistence/iceStateRepository.ts",
+            "nodeId": "347150d64b7d1da9",
+            "quote": "private warmSince: number | undefined;",
+            "startLine": 3
+          }
+        ],
+        "name": "Ice Warm Period Start",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.5,
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/iceStateRepository.ts",
+            "nodeId": "347150d64b7d1da9",
+            "quote": "export class IceStateRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Ice State",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.8,
+        "description": "Keeps the state of when the ice first became continuously too warm, so readings can be compared over time. The state is kept in memory and can be read or reset.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/persistence/iceStateRepository.ts",
+            "nodeId": "347150d64b7d1da9",
+            "quote": "private warmSince: number | undefined;",
+            "startLine": 3
+          },
+          {
+            "endLine": 10,
+            "file": "src/persistence/iceStateRepository.ts",
+            "nodeId": "def25b1dc5ce1f86",
+            "quote": "this.warmSince = at;",
+            "startLine": 10
+          },
+          {
+            "endLine": 6,
+            "file": "src/persistence/iceStateRepository.ts",
+            "nodeId": "829046a4efb1fb02",
+            "quote": "return this.warmSince;",
+            "startLine": 6
+          }
+        ],
+        "name": "Store the time the ice became too warm",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2976,
+    "outputTokens": 597
+  }
+}

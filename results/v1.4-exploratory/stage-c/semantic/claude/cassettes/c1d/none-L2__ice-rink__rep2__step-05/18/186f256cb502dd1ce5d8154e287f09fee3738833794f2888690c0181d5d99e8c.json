@@ -1,0 +1,121 @@
+{
+  "itemId": "community:2",
+  "itemName": "community:2",
+  "key": "186f256cb502dd1ce5d8154e287f09fee3738833794f2888690c0181d5d99e8c",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "105c66e781b0110bec9d680435079f918b90c29340ffe9ece6b9cd31ce2d5f3f",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"2\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DropTextClient (node 0e0ffaf33c6872c8), file src/persistence/dropTextClient.ts, declaration line 6: \"export class DropTextClient implements TextGateway {\"\n  component persistence, layer infrastructure; responsibilities: Deliver text message via DropText API; Report delivery failure; Implement the text gateway port\n- TemperatureRepository (node 50b830f77ad06c02), file src/persistence/temperatureRepository.ts, declaration line 5: \"export class TemperatureRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store temperature readings; Keep readings in time order and limit history size; Provide reading history\n- PuckPayClient (node 8ce0b3f14177346a), file src/persistence/puckPayClient.ts, declaration line 15: \"export class PuckPayClient implements PuckPayGateway {\"\n  component persistence, layer infrastructure; responsibilities: Create payment checkout via PuckPay; Validate and normalise provider checkout response; Issue idempotent refunds via PuckPay\n- SessionRepository (node e3915d8f30e495a9), file src/persistence/sessionRepository.ts, declaration line 4: \"export class SessionRepository {\"\n  component persistence, layer infrastructure; responsibilities: Session storage and retrieval; Session schedule query by date range\n- IceMonitorService (node f59a45a01c2ed338), file src/business/iceMonitorService.ts, declaration line 18: \"export class IceMonitorService {\"\n  component business, layer domain; responsibilities: Detect sustained warm ice; Put next session on hold; Notify ticket holders of hold; Cancel held session with refunds; Prevent concurrent cancellation; Release held session\n\n## APG relations of the group\nGraph statistics: 5 classes; 4 relations inside the group; 7 outgoing relations to code outside it.\n- IceMonitorService -> CALLS SessionRepository\n- IceMonitorService -> CALLS TemperatureRepository\n- IceMonitorService -> CONSTRUCTOR_INJECTS SessionRepository\n- IceMonitorService -> CONSTRUCTOR_INJECTS TemperatureRepository\n\n## Comments near the code\n- DropTextClient: HTTP client for the DropText API.\n- TemperatureRepository.all: Readings in chronological order.\n- PuckPayClient: HTTP client for the PuckPay API.\n- SessionRepository.findByDateRange: Sessions whose date falls in [from, to] (YYYY-MM-DD, inclusive), in date and start order.\n- IceMonitorService: Watches ice temperature and manages sessions put on hold because the ice is too warm.\n- IceMonitorService.recordReading: Records a sensor reading; holds the next session once the ice has been warm for long enough.\n- IceMonitorService.cancel: Manager cancels a held session: every paid ticket is refunded through PuckPay.\n- IceMonitorService.release: Manager lifts the hold; ticket sales resume.\n- IceMonitorService.warmLongEnough: True when the readings end in a run of warm readings spanning at least ten minutes.\n- IceMonitorService.nextSession: The earliest session that has not started yet.",
+  "recordedAt": "2026-10-20T15:33:55.879Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Records ice temperature readings, detects when the ice has stayed too warm for long enough, and puts the next upcoming skating session on hold so ticket sales pause until a manager decides.",
+        "evidence": [
+          {
+            "endLine": 18,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "f59a45a01c2ed338",
+            "quote": "export class IceMonitorService {",
+            "startLine": 18
+          },
+          {
+            "endLine": 5,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "50b830f77ad06c02",
+            "quote": "export class TemperatureRepository {",
+            "startLine": 5
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/sessionRepository.ts",
+            "nodeId": "e3915d8f30e495a9",
+            "quote": "export class SessionRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Ice condition monitoring and session hold",
+        "realizedBy": [
+          "f59a45a01c2ed338",
+          "50b830f77ad06c02",
+          "e3915d8f30e495a9"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Lets a manager cancel a session held for poor ice, refunding every paid ticket through the payment provider, or release the hold so sales resume.",
+        "evidence": [
+          {
+            "endLine": 18,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "f59a45a01c2ed338",
+            "quote": "export class IceMonitorService {",
+            "startLine": 18
+          },
+          {
+            "endLine": 15,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "8ce0b3f14177346a",
+            "quote": "export class PuckPayClient implements PuckPayGateway {",
+            "startLine": 15
+          }
+        ],
+        "name": "Held session cancellation with ticket refunds",
+        "realizedBy": [
+          "f59a45a01c2ed338",
+          "8ce0b3f14177346a",
+          "e3915d8f30e495a9"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Informs ticket holders by text message when their session is put on hold.",
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "0e0ffaf33c6872c8",
+            "quote": "export class DropTextClient implements TextGateway {",
+            "startLine": 6
+          }
+        ],
+        "name": "Ticket holder text notification",
+        "realizedBy": [
+          "0e0ffaf33c6872c8",
+          "f59a45a01c2ed338"
+        ]
+      },
+      {
+        "confidence": 0.55,
+        "description": "Creates payment checkouts with the external payment provider for ticket purchases.",
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "8ce0b3f14177346a",
+            "quote": "export class PuckPayClient implements PuckPayGateway {",
+            "startLine": 15
+          }
+        ],
+        "name": "Online payment checkout",
+        "realizedBy": [
+          "8ce0b3f14177346a"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2842,
+    "outputTokens": 1524
+  }
+}

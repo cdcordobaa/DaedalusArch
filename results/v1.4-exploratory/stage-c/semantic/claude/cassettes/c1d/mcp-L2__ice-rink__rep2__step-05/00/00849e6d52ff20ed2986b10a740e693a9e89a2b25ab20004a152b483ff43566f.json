@@ -1,0 +1,250 @@
+{
+  "itemId": "a663bd12cbc0090c",
+  "itemName": "ReportService",
+  "key": "00849e6d52ff20ed2986b10a740e693a9e89a2b25ab20004a152b483ff43566f",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "3ebb5b810628da81edd4749de4f5ea45a8f30e1fbeef1803e6eba32004219b1a",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, lines 58-126.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- weekly (node 88bb95ef057181a7, lines 66-125, logic density 43)\nFields: sessions, bookings, now\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 4 (CALLS 2, CONSTRUCTOR_INJECTS 2); fan-in 0.\n- -> CALLS Method BookingRepository.findBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method SessionRepository.findBetween (src/persistence/sessionRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class BookingRepository (src/persistence/bookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class SessionRepository (src/persistence/sessionRepository.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ReportService: nameRole=\"service\"\n- ReportService: behaviourRole=\"business-logic\"\n- ReportService: ioCategories=[]\n- ReportService: lcom4=1\n- ReportService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- ReportService.weekly: logicDensity={\"branches\":14,\"comparisons\":8,\"arithmetic\":19,\"validationThrows\":2,\"density\":43}\n\n## Comments near the code\n- ReportService: Aggregates sales figures per session; one pass over the bookings of the sessions in range.\n- ReportService.weekly: Report for the 7 days starting at weekStart, or for an explicit from/to range.\n\n## Source\n=====SOURCE-BEGIN src/business/reportService.ts\n 58| export class ReportService {\n 59|   constructor(\n 60|     private readonly sessions: SessionRepository,\n 61|     private readonly bookings: BookingRepository,\n 62|     private readonly now: () => number = Date.now,\n 63|   ) {}\n 64| \n 65|   /** Report for the 7 days starting at weekStart, or for an explicit from/to range. */\n 66|   weekly(query: { weekStart?: unknown; from?: unknown; to?: unknown }): WeeklyReport {\n 67|     let from: string;\n 68|     let to: string;\n 69|     if (query.from !== undefined || query.to !== undefined) {\n 70|       from = parseDate(query.from, \"from\");\n 71|       to = parseDate(query.to, \"to\");\n 72|     } else if (query.weekStart !== undefined) {\n 73|       from = parseDate(query.weekStart, \"weekStart\");\n 74|       to = addDays(from, 6);\n 75|     } else {\n 76|       // default: the last complete Monday-to-Sunday week\n 77|       const today = new Date(this.now()).toISOString().slice(0, 10);\n 78|       const dow = (new Date(Date.parse(today)).getUTCDay() + 6) % 7; // Monday = 0\n 79|       from = addDays(today, -dow - 7);\n 80|       to = addDays(from, 6);\n 81|     }\n 82|     if (to < from) throw new DomainError(400, \"to must not be before from\");\n 83|     if ((Date.parse(to) - Date.parse(from)) / DAY_MS > MAX_RANGE_DAYS)\n 84|       throw new DomainError(400, `range must not exceed ${MAX_RANGE_DAYS} days`);\n 85| \n 86|     const totals: WeeklyReport[\"totals\"] = {\n 87|       sessions: 0, ticketsSold: 0, membersAdmitted: 0, occupancy: 0,\n 88|       hireIncomeCentsBySize: {}, refundedBookings: 0, refundedCents: 0,\n 89|       sessionsOnHold: 0, sessionsCancelled: 0,\n 90|     };\n 91|     let totalCapacity = 0;\n 92|     const rows: SessionReportRow[] = [];\n 93|     for (const s of this.sessions.findBetween(from, to)) {\n 94|       const row: SessionReportRow = {\n 95|         sessionId: s.id, date: s.date, start: s.start, end: s.end, status: s.status,\n 96|         capacity: s.capacity, ticketsSold: 0, membersAdmitted: 0, occupancy: 0,\n 97|         hireIncomeCentsBySize: {}, refundedBookings: 0, refundedCents: 0,\n 98|       };\n 99|       for (const b of this.bookings.findBySession(s.id)) {\n100|         if (b.status === \"paid\") {\n101|           if (b.membershipNumber) row.membersAdmitted += b.tickets;\n102|           else row.ticketsSold += b.tickets;\n103|           for (const [size, qty] of Object.entries(b.hire)) {\n104|             addTo(row.hireIncomeCentsBySize, size, qty * HIRE_PRICE_CENTS);\n105|             addTo(totals.hireIncomeCentsBySize, size, qty * HIRE_PRICE_CENTS);\n106|           }\n107|         } else if (b.status === \"refunded\") {\n108|           row.refundedBookings++;\n109|           row.refundedCents += b.amountCents;\n110|         }\n111|       }\n112|       row.occupancy = s.capacity > 0 ? (row.ticketsSold + row.membersAdmitted) / s.capacity : 0;\n113|       rows.push(row);\n114|       totals.sessions++;\n115|       totals.ticketsSold += row.ticketsSold;\n116|       totals.membersAdmitted += row.membersAdmitted;\n117|       totals.refundedBookings += row.refundedBookings;\n118|       totals.refundedCents += row.refundedCents;\n119|       totalCapacity += s.capacity;\n120|       if (s.status === \"on-hold\") totals.sessionsOnHold++;\n121|       if (s.status === \"cancelled\") totals.sessionsCancelled++;\n122|     }\n123|     totals.occupancy = totalCapacity > 0 ? (totals.ticketsSold + totals.membersAdmitted) / totalCapacity : 0;\n124|     return { from, to, sessions: rows, totals };\n125|   }\n126| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:06:27.709Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 124,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "return { from, to, sessions: rows, totals };",
+            "startLine": 124
+          }
+        ],
+        "name": "Weekly Sales Report",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 95,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "sessionId: s.id, date: s.date, start: s.start, end: s.end, status: s.status,",
+            "startLine": 95
+          }
+        ],
+        "name": "Session",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 100,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "if (b.status === \"paid\") {",
+            "startLine": 100
+          }
+        ],
+        "name": "Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 112,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "row.occupancy = s.capacity > 0 ? (row.ticketsSold + row.membersAdmitted) / s.capacity : 0;",
+            "startLine": 112
+          }
+        ],
+        "name": "Occupancy",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.65,
+        "evidence": [
+          {
+            "endLine": 103,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "for (const [size, qty] of Object.entries(b.hire)) {",
+            "startLine": 103
+          }
+        ],
+        "name": "Equipment Hire",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 107,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "} else if (b.status === \"refunded\") {",
+            "startLine": 107
+          }
+        ],
+        "name": "Refund",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.55,
+        "evidence": [
+          {
+            "endLine": 101,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "if (b.membershipNumber) row.membersAdmitted += b.tickets;",
+            "startLine": 101
+          }
+        ],
+        "name": "Membership",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 82,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "if (to < from) throw new DomainError(400, \"to must not be before from\");",
+            "startLine": 82
+          }
+        ],
+        "name": "Reporting Period",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Works out the report date range. It uses an explicit from/to range, a week start, or by default the last complete Monday-to-Sunday week. It rejects ranges that end before they start or that exceed the maximum allowed length.",
+        "evidence": [
+          {
+            "endLine": 79,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "from = addDays(today, -dow - 7);",
+            "startLine": 79
+          },
+          {
+            "endLine": 82,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "if (to < from) throw new DomainError(400, \"to must not be before from\");",
+            "startLine": 82
+          },
+          {
+            "endLine": 84,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "throw new DomainError(400, `range must not exceed ${MAX_RANGE_DAYS} days`);",
+            "startLine": 84
+          }
+        ],
+        "name": "Resolve and validate the reporting period",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "For each session in the range, counts tickets sold and members admitted from paid bookings, adds up equipment hire income by size, records refunds, and calculates occupancy against capacity.",
+        "evidence": [
+          {
+            "endLine": 101,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "if (b.membershipNumber) row.membersAdmitted += b.tickets;",
+            "startLine": 101
+          },
+          {
+            "endLine": 104,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "addTo(row.hireIncomeCentsBySize, size, qty * HIRE_PRICE_CENTS);",
+            "startLine": 104
+          },
+          {
+            "endLine": 109,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "row.refundedCents += b.amountCents;",
+            "startLine": 109
+          },
+          {
+            "endLine": 112,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "row.occupancy = s.capacity > 0 ? (row.ticketsSold + row.membersAdmitted) / s.capacity : 0;",
+            "startLine": 112
+          }
+        ],
+        "name": "Aggregate per-session sales figures",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Rolls the session rows up into totals for the whole period: tickets, members, refunds, sessions on hold or cancelled, and overall occupancy.",
+        "evidence": [
+          {
+            "endLine": 120,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "if (s.status === \"on-hold\") totals.sessionsOnHold++;",
+            "startLine": 120
+          },
+          {
+            "endLine": 123,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "totals.occupancy = totalCapacity > 0 ? (totals.ticketsSold + totals.membersAdmitted) / totalCapacity : 0;",
+            "startLine": 123
+          }
+        ],
+        "name": "Compute report-wide totals",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.6,
+        "description": "Runs the report use case: loads the sessions in the range and their bookings from the repositories, then builds and returns the report.",
+        "evidence": [
+          {
+            "endLine": 93,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "for (const s of this.sessions.findBetween(from, to)) {",
+            "startLine": 93
+          },
+          {
+            "endLine": 99,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "for (const b of this.bookings.findBySession(s.id)) {",
+            "startLine": 99
+          }
+        ],
+        "name": "Orchestrate weekly report generation",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4393,
+    "outputTokens": 2291
+  }
+}

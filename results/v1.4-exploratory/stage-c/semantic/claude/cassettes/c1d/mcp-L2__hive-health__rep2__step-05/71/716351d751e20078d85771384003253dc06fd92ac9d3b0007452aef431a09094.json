@@ -1,0 +1,109 @@
+{
+  "itemId": "4bbae8839219163c",
+  "itemName": "TextHiveSmsGateway",
+  "key": "716351d751e20078d85771384003253dc06fd92ac9d3b0007452aef431a09094",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "3134e528dbce9742ff3040ffb8d03ce7c62b1d3814f681d81cfee5666a486044",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TextHiveSmsGateway (node 4bbae8839219163c), file src/persistence/smsGateway.ts, lines 5-23.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- send (node d620c834b60a8049, lines 11-22, logic density 3)\nFields: url, apiKey\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 1 (IMPLEMENTS 1); fan-in 0.\n- -> IMPLEMENTS Interface SmsGateway (src/persistence/smsGateway.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TextHiveSmsGateway: nameRole=\"adapter\"\n- TextHiveSmsGateway: behaviourRole=\"adapter\"\n- TextHiveSmsGateway: ioCategories=[\"http-client\"]\n- TextHiveSmsGateway: lcom4=1\n- TextHiveSmsGateway: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[\"http-client\"],\"componentDependencies\":[]}\n- TextHiveSmsGateway.send: logicDensity={\"branches\":2,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":3}\nFlags:\n- logic-density/adapter-logic-density: adapter method TextHiveSmsGateway.send: 2 branches, 0 comparisons, 0 arithmetic, 1 validation throws\n\n## Source\n=====SOURCE-BEGIN src/persistence/smsGateway.ts\n 5| export class TextHiveSmsGateway implements SmsGateway {\n 6|   constructor(\n 7|     private readonly url: string = process.env.TEXTHIVE_URL ?? \"https://api.texthive.example/v1/messages\",\n 8|     private readonly apiKey: string | undefined = process.env.TEXTHIVE_API_KEY,\n 9|   ) {}\n10| \n11|   async send(phoneNumber: string, message: string): Promise<void> {\n12|     const headers: Record<string, string> = { \"content-type\": \"application/json\" };\n13|     if (this.apiKey) headers.authorization = `Bearer ${this.apiKey}`;\n14|     const response = await fetch(this.url, {\n15|       method: \"POST\",\n16|       headers,\n17|       body: JSON.stringify({ phoneNumber, message }),\n18|     });\n19|     if (!response.ok) {\n20|       throw new Error(`TextHive responded with status ${response.status}`);\n21|     }\n22|   }\n23| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:33:07.509Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 11,
+            "file": "src/persistence/smsGateway.ts",
+            "nodeId": "d620c834b60a8049",
+            "quote": "async send(phoneNumber: string, message: string): Promise<void> {",
+            "startLine": 11
+          }
+        ],
+        "name": "SMS Notification",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 17,
+            "file": "src/persistence/smsGateway.ts",
+            "nodeId": "d620c834b60a8049",
+            "quote": "body: JSON.stringify({ phoneNumber, message }),",
+            "startLine": 17
+          }
+        ],
+        "name": "Phone Number",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.92,
+        "description": "Sends a text message to a phone number by POSTing a JSON payload to the TextHive HTTP API. It adds bearer authentication when an API key is configured.",
+        "evidence": [
+          {
+            "endLine": 18,
+            "file": "src/persistence/smsGateway.ts",
+            "nodeId": "d620c834b60a8049",
+            "quote": "const response = await fetch(this.url, {",
+            "startLine": 14
+          },
+          {
+            "endLine": 13,
+            "file": "src/persistence/smsGateway.ts",
+            "nodeId": "d620c834b60a8049",
+            "quote": "if (this.apiKey) headers.authorization = `Bearer ${this.apiKey}`;",
+            "startLine": 13
+          }
+        ],
+        "name": "Deliver SMS messages via TextHive",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Turns a non-successful HTTP response from TextHive into an error, so callers find out the message was not delivered.",
+        "evidence": [
+          {
+            "endLine": 20,
+            "file": "src/persistence/smsGateway.ts",
+            "nodeId": "d620c834b60a8049",
+            "quote": "throw new Error(`TextHive responded with status ${response.status}`);",
+            "startLine": 20
+          }
+        ],
+        "name": "Report SMS provider failures",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Reads the TextHive endpoint URL and API key from environment variables, and falls back to a default URL if none is set.",
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/persistence/smsGateway.ts",
+            "nodeId": "4bbae8839219163c",
+            "quote": "private readonly url: string = process.env.TEXTHIVE_URL ?? \"https://api.texthive.example/v1/messages\",",
+            "startLine": 7
+          }
+        ],
+        "name": "Configure SMS provider endpoint and credentials",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3096,
+    "outputTokens": 923
+  }
+}

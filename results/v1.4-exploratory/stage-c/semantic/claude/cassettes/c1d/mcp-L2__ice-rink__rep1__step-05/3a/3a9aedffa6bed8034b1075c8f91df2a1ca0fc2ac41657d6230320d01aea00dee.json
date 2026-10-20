@@ -1,0 +1,28 @@
+{
+  "itemId": "2fc69e6e26b515d3",
+  "itemName": "Hourly Rate ~ Club Hourly Rate",
+  "key": "3a9aedffa6bed8034b1075c8f91df2a1ca0fc2ac41657d6230320d01aea00dee",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "a3043f99fce957f07865cc9874cd409206332aa1fd943dd8b1185647ff814ed7",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Hourly Rate\nwhere: ClubService (uses), src/business/clubService.ts, component business\ncode:\n=====SOURCE-BEGIN\nsetRate(rateCentsPerHour: number): { rateCentsPerHour: number } {\n=====SOURCE-END=====\ngraph:\n- class ClubService (node 2e2e749b26fb57a2): layer domain, component business, fan-out 10, fan-in 0\n- -> CALLS Method ClubBookingRepository.create\n- -> CALLS Method ClubBookingRepository.getRate\n- -> CALLS Method ClubBookingRepository.list\n- -> CALLS Method ClubBookingRepository.listByDate\n- -> CALLS Method ClubBookingRepository.listByMonth\n- -> CALLS Method ClubBookingRepository.setRate\n- -> CALLS Method MemberRepository.add\n- -> CALLS Method MemberRepository.list\n\n### B\nconcept: Club Hourly Rate\nwhere: ClubBookingRepository (uses), src/persistence/clubBookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nreturn this.rateCentsPerHour;\n=====SOURCE-END=====\ngraph:\n- class ClubBookingRepository (node 440da90bcde7901a): layer infrastructure, component persistence, fan-out 0, fan-in 8\n- <- CALLS Method ClubService.book\n- <- CALLS Method ClubService.getRate\n- <- CALLS Method ClubService.invoice\n- <- CALLS Method ClubService.list\n- <- CALLS Method ClubService.setRate\n- <- CALLS Method RinkService.effectiveCapacity\n- <- CONSTRUCTOR_INJECTS Class ClubService\n- <- CONSTRUCTOR_INJECTS Class RinkService",
+  "recordedAt": "2026-10-20T12:57:46.521Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.9,
+    "rationale": "A and B are the same concept: the club's hourly rate, stored in cents per hour. In A, ClubService.setRate takes the rate as `rateCentsPerHour: number`. B is ClubBookingRepository's `return this.rateCentsPerHour;`. The graph shows ClubService calling ClubBookingRepository.setRate and ClubBookingRepository.getRate. So the service sets and reads the very value the repository stores. The two are just the business layer and the persistence layer handling one rate.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2099,
+    "outputTokens": 261
+  }
+}
