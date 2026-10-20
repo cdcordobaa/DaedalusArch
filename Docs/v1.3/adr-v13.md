@@ -4,7 +4,7 @@ These are development-cycle decisions for v1.3. They do not change Study 1 (v1.2
 
 ## ADR-V13-01: Record both literal and resolved edges for re-exports (barrels)
 
-**Date**: 2026-10-15. **Status**: Accepted (author: "yes A").
+**Date**: 2026-10-15. **Status**: Accepted (author decision: option A).
 
 **Context.** The graph-fidelity harness (PR #81, `Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md`) and the DDD unit (PR #83, probe E1) found the same defect independently. When a file imports a name through a re-export file (a barrel), the extractor routes the IMPORTS edge to the file that declares the name and drops the edge to the re-export file. Verified on source: in `opus/order-fulfilment/full-aac/run-1`, `infrastructure/persistence/InMemoryOrderRepository.ts` imports `../../application/ports/persistence`, which only re-exports `domain/` types, and the graph records only infrastructure → domain. This can cause false positives (for example, a controller importing an application barrel appears to import a domain entity) and false negatives (a dependency on the barrel's layer is invisible).
 
@@ -27,7 +27,7 @@ These are development-cycle decisions for v1.3. They do not change Study 1 (v1.2
 
 ## ADR-V13-02: FF-P06 domain-state-purity applies only to styles with an isolated domain
 
-**Date**: 2026-10-15. **Status**: Accepted under the author's delegation (DELEG2, 2026-10-20; author: "i really dont want signing anymore"). Accepted under delegation, not signed: the author answered Q1 A, "sign ADR-V13-02 as drafted" (decision desk, 2026-10-19), and delegated the remaining signatures to the coordinator (`ops/decisions.md` DELEG2). The Q13 wording correction below was made before the move. Implemented on `v1.3-fixes` as a v1.3 style-applicability rule (`V13_COMPILE_OPTIONS.styleApplicability`); the v1.2E compile is unchanged. Written before the reference validation was rerun with the change.
+**Date**: 2026-10-15. **Status**: Accepted under the author's delegation (DELEG2, 2026-10-20). Accepted under delegation, not signed: the author answered Q1 A, "sign ADR-V13-02 as drafted" (decision desk, 2026-10-19), and delegated the remaining signatures to the coordinator (`ops/decisions.md` DELEG2). The Q13 wording correction below was made before the move. Implemented on `v1.3-fixes` as a v1.3 style-applicability rule (`V13_COMPILE_OPTIONS.styleApplicability`); the v1.2E compile is unchanged. Written before the reference validation was rerun with the change.
 
 This is a development-cycle decision for v1.3. It does not change Study 1 (v1.2E, frozen), the sealed tier table (`Docs/v1.3/rule-tiers.md`) or any manifest.
 
@@ -82,7 +82,7 @@ The NestJS bullet under "The construct" used to call the NestJS preset "a Clean 
 
 ## ADR-V13-03: Construct decisions Q1–Q25
 
-**Date**: 2026-10-19 (draft written 2026-10-20 from the signed answers; accepted 2026-10-20). **Status**: Accepted under the author's delegation (DELEG2, 2026-10-20; author: "i really dont want signing anymore"). Accepted under delegation, not signed: the construct **answers** are the author's (decision desk, 2026-10-19; Q10 D delegated, §Q10), and the author delegated this ADR's acceptance to the coordinator once the Q10 = D re-run was merged (`ops/decisions.md` DELEG2; PR #305 merged at `b86ffefb`). The fresh checks ran first, as the U6 plan requires (Steps 10, 11, 11b). The tier reason strings in `src/construct-switches/tiers.ts` read "accepted under delegation DELEG2 2026-10-20" instead of "unsigned" (freeze-check F5).
+**Date**: 2026-10-19 (draft written 2026-10-20 from the signed answers; accepted 2026-10-20). **Status**: Accepted under the author's delegation (DELEG2, 2026-10-20). Accepted under delegation, not signed: the construct **answers** are the author's (decision desk, 2026-10-19; Q10 D delegated, §Q10), and the author delegated this ADR's acceptance to the coordinator once the Q10 = D re-run was merged (`ops/decisions.md` DELEG2; PR #305 merged at `b86ffefb`). The fresh checks ran first, as the U6 plan requires (Steps 10, 11, 11b). The tier reason strings in `src/construct-switches/tiers.ts` read "accepted under delegation DELEG2 2026-10-20" instead of "unsigned" (freeze-check F5).
 
 This is a development-cycle decision for v1.3. It does not change Study 1 (v1.2E, frozen), the sealed tier table (`Docs/v1.3/rule-tiers.md`), the presets, the frozen template text or any manifest. Under `--scoring v1.2e` no switch applies.
 
@@ -184,7 +184,7 @@ Delegated to the coordinator 2026-10-19 (recommended answer: as drafted on `ops/
 
 **Sources.** [SRS: Layered] states no purity rule (P1). Fowler (2002) ch. 10, Active Record, puts persistence in domain objects. Fowler (2002) ch. 1: the domain should not depend on the presentation (recalled; page to be checked before signing).
 
-**Decision: D (2026-10-20; was C, provisional until the G0.9 Q10 check).** FF-P01 `domain-purity` is disabled for `layered` (P1), and a package import is outside what the layered rules check. The G0.9 Q10 criterion was met (2 new FF-S01 `express` rows on the external layered set judged incorrect by the C3 procedure, not also reported by FF-S01), so Q10 moved from C to D, the one fallback the criterion allows. Delegated to the coordinator (the author asked for no more decisions): a pre-dated criterion is applied as written; overriding it on a suspected checker defect would move the goalposts after seeing data.
+**Decision: D (2026-10-20; was C, provisional until the G0.9 Q10 check).** FF-P01 `domain-purity` is disabled for `layered` (P1), and a package import is outside what the layered rules check. The G0.9 Q10 criterion was met (2 new FF-S01 `express` rows on the external layered set judged incorrect by the C3 procedure, not also reported by FF-S01), so Q10 moved from C to D, the one fallback the criterion allows. Decided by the coordinator under the author's standing delegation for gate-level and protocol calls: a pre-dated criterion is applied as written; overriding it on a suspected checker defect would move the goalposts after seeing data.
 
 **Limitation (reported, not acted on).** The C3 checker's reason was "the statement(s) at that line do not reach express (literal view)", and the same imports were labelled correct as FF-P01 rows. The checker appears not to handle a package target for a direction rule, so the refutation may be a checker artefact. The recommendation itself said that, with no declared package-to-layer mapping, C reduces to D; D is that reduction without the new mechanism.
 
@@ -210,7 +210,7 @@ Recorded in `Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md` §2 (2026-10-20,
 
 ### Acceptance (under delegation)
 
-Accepted 2026-10-20 by the coordinator under the author's delegation (`ops/decisions.md` DELEG2; author: "i really dont want signing anymore"). No signature was made or invented. The Q13 action item is resolved by the corrected NestJS wording in ADR-V13-02 (its "Note: factual correction"); FF-P06 and FF-P07 are read on the preset's own order (ADR-V14-02 Q-C). Draft source: `Docs/v1.3/adr-v13-03-draft.md` (kept for history).
+Accepted 2026-10-20 by the coordinator under the author's standing delegation for gate-level and protocol calls (`ops/decisions.md` DELEG2). No signature was made or invented. The Q13 action item is resolved by the corrected NestJS wording in ADR-V13-02 (its "Note: factual correction"); FF-P06 and FF-P07 are read on the preset's own order (ADR-V14-02 Q-C). Draft source: `Docs/v1.3/adr-v13-03-draft.md` (kept for history).
 
 ## ADR-V13-N4: Fragmentation inside one declared context; the A2 facts contract v1; ontology prompt v0.2; case-06 retired
 

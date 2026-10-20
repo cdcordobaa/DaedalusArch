@@ -276,7 +276,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 
 ### S13. Explicit author decision on every sealed or registered artefact
 
-- **Check.** Every sealing, enlargement, registration and go decision has an audit entry whose user input is the author's own words, not "(none; option A taken under 'max progress')", with timestamps taken from the commit.
+- **Check.** Every sealing, enlargement, registration and go decision has an audit entry whose user input records the author's own decision, not an entry with no user input taken under a general delegation, with timestamps taken from the commit.
 - **Why.** The hold-out was enlarged by the AI "without an explicit author decision" (`holdout-prespec.md:23`; `sealed-hashes.md:30`); audit timestamps do not match commits (`sealed-hashes.md:32`, and out-of-order entries such as `audit.md:1185`).
 - **Verify.** `git log` of the gate, prespec and pre-registration commits; matching audit entries.
 - **Pass.** Every such artefact carries an author decision dated before use.

@@ -235,7 +235,7 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 
 ### V13-TV-I2: Hold-out enlarged after tuning; hashes recorded late
 
-- **Description.** The 62-case hold-out was enlarged to 207 cases on 2026-10-15. That was after the after-fixes development measurement and after `construct-decisions.md` listed the contested constructs. The enlarging agent had access to the development results. The enlargement was done under the "max progress" delegation, without an explicit author decision. Directory hashes were recorded at 20:38Z, after the re-seal. Only `out.sha256` matches a logged value. The original 62 cases cannot be re-verified without opening the directory.
+- **Description.** The 62-case hold-out was enlarged to 207 cases on 2026-10-15. That was after the after-fixes development measurement and after `construct-decisions.md` listed the contested constructs. The enlarging agent had access to the development results. The enlargement was done under the AI's standing delegation of 2026-10-14, without an explicit author decision. Directory hashes were recorded at 20:38Z, after the re-seal. Only `out.sha256` matches a logged value. The original 62 cases cannot be re-verified without opening the directory.
 - **Evidence.**
   - `Docs/v1.3/sealed-hashes.md:11-32`
   - `Docs/v1.3/holdout-prespec.md:23`
@@ -537,7 +537,7 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
   - **Rule and preset author** (with AI agents);
   - **Adjudicator** of every author/blind/tool disagreement (`validation-protocol.md:17`);
   - **Rater**: the author audit, and secondary rater in the human protocol;
-  - **Decider**: answers the 25 construct questions and approves the ADRs (ADR-V13-01 "author: 'yes A'"; ADR-V13-02 "Draft, for the author");
+  - **Decider**: answers the 25 construct questions and approves the ADRs (ADR-V13-01 accepted by the author, option A; ADR-V13-02 "Draft, for the author");
   - **Classifier** of hold-out defects (`holdout-prespec.md:89`).
 
   The independent second rater, the primary human reference, is not yet named. Whoever it is must meet the protocol's own qualification ("no part in … writing the thesis", `human-labelling-protocol.md:52`).

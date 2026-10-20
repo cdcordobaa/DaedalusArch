@@ -1,6 +1,6 @@
 # U3 Evaluation, Scoring and Report — Business Rules (v1.2E)
 
-> **Unit**: U3. **Date**: 2026-10-08. **Status**: designed under the author's standing approval; the plan's escalation E-1 is resolved by ADR-017 item 5 (author, "accept all").
+> **Unit**: U3. **Date**: 2026-10-08. **Status**: designed under the author's standing approval; the plan's escalation E-1 is resolved by ADR-017 item 5 (author: all recommendations accepted).
 > **Binding inputs**: U3 plan Q1–Q11 (all answered A), ADR-015/016/017, requirements (amended 2026-10-08), U1 `BR-U1-*`, U2 `BR-U2-*`, U1/U2 code-generation plans (exported contracts), lane-2 clarifications, U0 code summary, `tests/golden/CHANGES.md`.
 > **Rule format**: every rule has an id `BR-U3-nn`, its requirement or decision source, and a testable acceptance check. "Unit" = jest unit test; "Gated" = `npm run test:golden` container test (`resolveGoldenEnv`); "Static" = test over source text or constants; "Process" = checked by a gate or a recorded step.
 > **Groups**: EVAL = BR-U3-01..15 (C6, C5); TPL = 20..25 (C4); SCO = 30..39 (C8 scoring); MET = 40..45 (universal metrics); REP = 50..66 (report, S1, cross-unit contracts); FRZ = 70; CLI = 80..85 (C9, C13); GOLD = 90..93 (snapshot protocol).
