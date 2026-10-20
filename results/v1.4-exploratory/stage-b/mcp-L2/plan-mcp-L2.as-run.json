@@ -1,0 +1,62 @@
+{
+  "description": "Exploratory study Stage B TEMPLATE (amendment 1): cell mcp@L2 (arm daedalus-mcp, the spec-only MCP tools, evaluate_project denied), replicates 1 and 2, branching at step 2 from each block's none@L2 step-1 tree (sharedStart, as plan-none-L3), steps 2-5, Layered tasks ice-rink, youth-league, hive-health, claude-sonnet-5-5 only. CLI pin ON (2.1.304); per-run HOME isolation OFF, as in Stage A. The daedalus paths are placeholders. Not run; README.md in this folder.",
+  "tasksFile": "experiments/exploratory-study/stage-a/tasks.json",
+  "adapters": [
+    {
+      "adapterId": "claude-code-cli",
+      "modelId": "claude-sonnet-5-5",
+      "cliVersion": "2.1.304"
+    }
+  ],
+  "arms": [
+    "daedalus-mcp"
+  ],
+  "runs": 2,
+  "orderSeed": 20261019,
+  "outRoot": "<local>",
+  "binary": "<local>",
+  "harnessRoot": "<local>",
+  "allowBash": true,
+  "timeoutMs": 1200000,
+  "engine": "cypher-interp",
+  "taskProfiles": {
+    "ice-rink": {
+      "style": "layered",
+      "specMode": "static",
+      "evaluatorSpec": "presets/layered.yaml"
+    },
+    "youth-league": {
+      "style": "layered",
+      "specMode": "static",
+      "evaluatorSpec": "presets/layered.yaml"
+    },
+    "hive-health": {
+      "style": "layered",
+      "specMode": "static",
+      "evaluatorSpec": "presets/layered.yaml"
+    }
+  },
+  "daedalus": {
+    "nodeBinary": "<shared>/daedalus-exploratory/daedalus-build/2c1d5576/node",
+    "serverEntry": "<shared>/daedalus-exploratory/daedalus-build/2c1d5576/dist/mcp-server/main.js",
+    "specPath": "<shared>/daedalus-exploratory/daedalus-build/2c1d5576/presets/layered.yaml"
+  },
+  "frame": {
+    "specRung": "L2",
+    "attention": true
+  },
+  "sharedStart": {
+    "fromOutRoot": [
+      "<local>",
+      "<local>"
+    ],
+    "fromCell": "none@L2",
+    "step": 1
+  },
+  "callBudget": {
+    "runs": 6,
+    "stepTurns": 24,
+    "maxRepairTurns": 0,
+    "maxCalls": 24
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/ice-rink/daedalus-mcp/run-1",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "ice-rink",
+    "arm": "daedalus-mcp",
+    "runIndex": 1
+  },
+  "stepIndex": 4,
+  "stepId": "weekly-report",
+  "startedAt": "2026-10-20T08:19:47.158Z",
+  "finishedAt": "2026-10-20T08:21:01.888Z",
+  "turns": [
+    {
+      "turnId": "step-05",
+      "kind": "step",
+      "promptSha256": "9990af10ab67d066bc196c64f3423b25932215d97b66b1a81789d917c280070c",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.2883907,
+          "inputTokens": 14,
+          "outputTokens": 13261,
+          "cacheReadTokens": 152727,
+          "cacheCreationTokens": 35120,
+          "numTurns": 27,
+          "durationMs": 72766
+        },
+        "wallMs": 73838,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T08:19:47.159Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-exploratory/h-mcp/bin/tsc --noEmit --incremental false -p <shared>/daedalus-exploratory/h-mcp/runs/claude-code-cli/claude-sonnet-5-5/ice-rink/daedalus-mcp/run-1/tsconfig.json)",
+          "mcp__daedalus-arch__get_architecture_spec",
+          "mcp__daedalus-arch__which_layer",
+          "mcp__daedalus-arch__check_import",
+          "mcp__daedalus-arch__explain_violation",
+          "mcp__daedalus-arch__check_file",
+          "mcp__daedalus-arch__check_diff",
+          "mcp__daedalus-arch__suggest_placement",
+          "mcp__daedalus-arch__infer_spec",
+          "mcp__daedalus-arch__explain_finding",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "mcp__daedalus-arch__evaluate_project",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config",
+          "--mcp-config",
+          "<shared>/daedalus-exploratory/h-mcp/runs/claude-code-cli/claude-sonnet-5-5/ice-rink/daedalus-mcp/run-1/mcp-daedalus-mcp.json"
+        ],
+        "envelopePath": "envelope-step-05.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "e533a38e8d0a526d5614fbb866f57b6f0291638a",
+        "sourceFiles": [
+          "business/bookingService.ts",
+          "business/clubBookingService.ts",
+          "business/errors.ts",
+          "business/iceMonitorService.ts",
+          "business/reportService.ts",
+          "business/services.ts",
+          "business/sessionService.ts",
+          "persistence/bookingRepository.ts",
+          "persistence/clubBookingRepository.ts",
+          "persistence/dropTextClient.ts",
+          "persistence/hireStockRepository.ts",
+          "persistence/models.ts",
+          "persistence/puckPayClient.ts",
+          "persistence/sessionRepository.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 16,
+        "loc": 969,
+        "diff": {
+          "added": 1,
+          "modified": 5,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.838,
+          "blockingAhs": 1,
+          "verdict": "pass",
+          "violationCount": 21,
+          "blockingViolationCount": 0,
+          "advisoryViolationCount": 21,
+          "blockingByRule": {},
+          "advisoryByRule": {
+            "FF-C02": 1,
+            "FF-C03": 3,
+            "FF-CV03": 1,
+            "FF-CV05": 16
+          },
+          "blockingFindings": [],
+          "durationMs": 9,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "process": {
+    "schema": "loop-process/v1",
+    "logs": [
+      "calls/step-05.jsonl"
+    ],
+    "logFound": true,
+    "calls": 1,
+    "errors": 0,
+    "callsByTool": {
+      "get_architecture_spec": 1
+    },
+    "firstCallAt": "2026-10-20T08:19:49.652Z",
+    "firstCallBeforeFirstWrite": true,
+    "firstWriteEvidence": "server-fingerprint",
+    "latencyMs": {
+      "p50": 23,
+      "p95": 23
+    }
+  },
+  "finalCommit": "e533a38e8d0a526d5614fbb866f57b6f0291638a",
+  "cost": {
+    "costUsd": 0.2883907,
+    "inputTokens": 14,
+    "outputTokens": 13261,
+    "wallMs": 73838
+  }
+}

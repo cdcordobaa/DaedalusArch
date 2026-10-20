@@ -2604,6 +2604,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Exploratory study Stage B — mcp@L2 run
+**Timestamp**: 2026-10-20T08:32:30Z
+**User Input**: "(standing) Keep steady progress overnight; run the approved Stage B cells."
+**AI Response**: "Rebuilt the MCP server at 2c1d5576 (the prepared build predated U6), dry-ran mcp@L2 (6/6), ran it live (24 turns). Tools were used in every run. Preview mean D: L2 1.50, L3 0.67, MCP 0.50; cells to be re-scored on one construct at the freeze."
+**Context**: CONSTRUCTION — exploratory study Stage B (approved counts)
 ## v1.3/v1.4 instrument freeze and the hold-out (coordinator, under DELEG2)
 **Timestamp**: 2026-10-20T08:24:16Z
 **User Input**: "Coordinator brief (acting under the author's delegation DELEG2/GO-2B): accept ADR-V13-03 under delegation, record the MEAN-01 sample hash with shasum only, add the V6 pointers; run every freeze-check item to OK including the F8 record run, ue-score --blind and the engine cross-check; write the Study 2 tunables manifest; tag the freeze after the generator-args PR merges; run the sealed hold-out exactly once, blind, on one capped Neo4j, and report its figures as computed."
