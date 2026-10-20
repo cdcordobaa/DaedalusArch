@@ -2701,3 +2701,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, pre-registration before dating; zero model calls in this step
 
 ---
+
+## Study 2b — pre-registration REGISTERED (re-check 2 GO)
+**Timestamp**: 2026-10-20T12:00:34Z
+**User Input**: "(coordinator) If the re-check returns GO, date the pre-registration with its UTC time and record its sha256; merge PR #316 and #319 once Build & Test is green."
+**AI Response**: "Fable re-check 2 (semantic secondary and applied notes) returned GO; its non-blocking notes applied (sign of T in the D_sem reading, D12 wording, C1d per-snapshot budget). Dated the pre-registration REGISTERED 2026-10-20T12:00:34Z; sha256 bb889119f66c374dd8579b7590dc96a9a5b64aa11215c3c6bf91f6cf7c2380f9 in Docs/v1.4/study2b-preregistration.registered.sha256. No 2b call made."
+**Context**: v1.4 Study 2b, drift record order step: pre-registration dated, before the gate and the run
+
+---

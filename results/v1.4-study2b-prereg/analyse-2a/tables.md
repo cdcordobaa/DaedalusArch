@@ -90,7 +90,7 @@ Holm over {H1, H2, H3} at FWER 0.05. MC and exact decisions agree.
 
 - **Item 6 (mechanism):** tool use in 24/24 mcp@L2 steps (1.00), a check_* call in 11 (0.46); bar 0.80 → pass.
 - Item 1 (acceptance): no acceptance file given.
-- **Item 7 (concentration):** 100 % of counted identities are FF-S03: the claim is scoped to that family (composition-root wiring, G12). Without the dominant family: {"decisions":{"H1":{"reject":false,"predictedSign":false,"supportedUnderThisOutcome":false},"H2":{"reject":false,"predictedSign":false,"supportedUnderThisOutcome":false},"H3":{"reject":false,"predictedSign":null,"supportedUnderThisOutcome":null}},"exactP":{"H1":1,"H2":1,"H3":1},"dbar":{"H1":0,"H2":0,"H3":0}}.
+- **Item 7 (concentration):** 100 % of counted identities are FF-S03: the claim is scoped to that family (composition-root wiring, G12). Without the dominant family: {"decisions":{"H1":{"reject":false,"predictedSign":false,"supportedUnderThisOutcome":false,"sign":0},"H2":{"reject":false,"predictedSign":false,"supportedUnderThisOutcome":false,"sign":0},"H3":{"reject":false,"predictedSign":null,"supportedUnderThisOutcome":null,"sign":0}},"exactP":{"H1":1,"H2":1,"H3":1},"dbar":{"H1":0,"H2":0,"H3":0}}.
 - Items 2–5 come from their own tools (size and coverage: `snapshot-coverage.ts`; literal view: the literal re-score; moved-only: the blind read).
 
 ## 8. 2a report §3 reproduction (seed 20261019, task-clustered bootstrap)

@@ -99,9 +99,12 @@ describe('the D_sem reading (DELEG11)', () => {
     const r = CONTRASTS.map((c) => analyseContrast(A2, c, { draws: 500, resamples: 50 }));
     const d = familyDecision(r);
     expect(semanticReading(d, d).H1?.reading).toMatch(/survives/);
-    const flipped: FamilyDecision = { ...d, decisions: { ...d.decisions, H1: { reject: true, predictedSign: true, supportedUnderThisOutcome: true } } };
+    const flipped: FamilyDecision = { ...d, decisions: { ...d.decisions, H1: { reject: true, predictedSign: true, supportedUnderThisOutcome: true, sign: 1 } } };
     expect(semanticReading(d, flipped).H1?.reading).toMatch(/depends on the semantic layer/);
     expect(semanticReading(d, null).H1?.survives).toBeNull();
+    const h3a: FamilyDecision = { ...d, decisions: { ...d.decisions, H3: { reject: true, predictedSign: null, supportedUnderThisOutcome: null, sign: 1 } } };
+    const h3b: FamilyDecision = { ...d, decisions: { ...d.decisions, H3: { reject: true, predictedSign: null, supportedUnderThisOutcome: null, sign: -1 } } };
+    expect(semanticReading(h3a, h3b).H3?.survives).toBe(false);
   });
 });
 

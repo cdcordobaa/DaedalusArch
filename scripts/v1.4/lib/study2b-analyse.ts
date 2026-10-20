@@ -235,7 +235,7 @@ export interface FamilyDecision {
   /** True when the MC and the exact Holm decisions differ for some contrast: the exact ones then govern. */
   readonly disagree: boolean;
   readonly governing: 'mc' | 'exact';
-  readonly decisions: Readonly<Record<string, { readonly reject: boolean; readonly predictedSign: boolean | null; readonly supportedUnderThisOutcome: boolean | null }>>;
+  readonly decisions: Readonly<Record<string, { readonly reject: boolean; readonly predictedSign: boolean | null; readonly supportedUnderThisOutcome: boolean | null; readonly sign?: number }>>;
 }
 
 /** Holm over the surviving family on MC and on exact p; H1/H2 "supported under this outcome" = rejected and T > 0. */
@@ -245,12 +245,12 @@ export function familyDecision(results: readonly ContrastResult[], family: reado
   const holmExact = holmDecisions(inFam.map((r) => ({ id: r.id, p: r.exactP })), fwer);
   const disagree = holmMc.some((h) => holmExact.find((e) => e.id === h.id)?.reject !== h.reject);
   const gov = disagree ? holmExact : holmMc;
-  const decisions: Record<string, { reject: boolean; predictedSign: boolean | null; supportedUnderThisOutcome: boolean | null }> = {};
+  const decisions: Record<string, { reject: boolean; predictedSign: boolean | null; supportedUnderThisOutcome: boolean | null; sign: number }> = {};
   for (const r of inFam) {
     const c = CONTRASTS.find((x) => x.id === r.id);
     const reject = gov.find((h) => h.id === r.id)?.reject ?? false;
     const predictedSign = c?.predictsPositive === true ? r.T > 0 : null;
-    decisions[r.id] = { reject, predictedSign, supportedUnderThisOutcome: c?.predictsPositive === true ? reject && r.T > 0 : null };
+    decisions[r.id] = { reject, predictedSign, supportedUnderThisOutcome: c?.predictsPositive === true ? reject && r.T > 0 : null, sign: Math.sign(r.T) };
   }
   return { family, holmMc, holmExact, disagree, governing: disagree ? 'exact' : 'mc', decisions };
 }
@@ -286,7 +286,8 @@ export function semanticReading(d: FamilyDecision, sem: FamilyDecision | null): 
     const b = sem?.decisions[id];
     if (a === undefined) continue;
     if (sem === null || b === undefined) { out[id] = { survives: null, reading: 'D_sem not available (semantic layer not run, or configuration pending)' }; continue; }
-    const agree = a.reject === b.reject && (!a.reject || a.predictedSign === b.predictedSign);
+    // The sign of T is compared for a rejection, so an H3 rejection in the other direction does not "survive" (re-check 2).
+    const agree = a.reject === b.reject && (!a.reject || (a.sign ?? 0) === (b.sign ?? 0));
     out[id] = { survives: agree, reading: agree ? 'the symbolic conclusion survives semantic interpretation' : 'conclusion depends on the semantic layer' };
   }
   return out;
