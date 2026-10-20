@@ -8,12 +8,13 @@ The pre-registration says that an OSF deposit under embargo, carrying the regist
 |---|---|---|
 | `study2b-preregistration.md` | The pre-registration as registered (2026-10-20T12:36:37Z); byte copy of `Docs/v1.4/study2b-preregistration.md` | see `SHA256SUMS` |
 | `study2b-preregistration.registered.sha256` | The registered hash of that file (copy of `Docs/v1.4/study2b-preregistration.registered.sha256`; its path column names the file's place in the repository) | see `SHA256SUMS` |
-| `study2b-preregistration-addendum-1.md` | Addendum 1 (deviations DA1–DA7, dated before any 2b call, readiness gate) | see `SHA256SUMS` |
+| `study2b-preregistration-addendum-1.md` | Addendum 1 (deviations DA1–DA7, dated before any 2b call, readiness gate; DA8, the D_sem provenance classifier, added 2026-10-20T17:21:31Z, also before any 2b call) | see `SHA256SUMS` |
+| `scripts/v1.4/dsem-provenance.ts`, `scripts/v1.4/lib/dsem-provenance.ts` | The D_sem provenance classifier and D_sem writer (§4 "Semantic layer", DA8; sha256 also in `Docs/v1.4/study2b-registered-artefacts.sha256`) | see `SHA256SUMS` |
 | `scripts/v1.4/study2b-analyse.ts` | The registered analysis script (pre-registration §4, D9; sha256 in P8) | see `SHA256SUMS` |
 | `scripts/v1.4/lib/study2b-analyse.ts`, `scripts/v1.4/lib/study2b-power.ts` | Its helpers, including `exactSignFlipP` (sha256 in P8) | see `SHA256SUMS` |
 | `SHA256SUMS` | sha256 of every file above, relative to this folder | — |
 
-The hashes in `SHA256SUMS` equal the ones in P8 and in `Docs/v1.4/study2b-preregistration.registered.sha256`; CI checks the originals on `main` (step "Study 2b registered-artefact hash gate").
+The hashes in `SHA256SUMS` equal the ones in P8, in `Docs/v1.4/study2b-preregistration.registered.sha256` and (for the classifier) in `Docs/v1.4/study2b-registered-artefacts.sha256`; CI checks the originals on `main` (step "Study 2b registered-artefact hash gate").
 
 ## Steps for the author
 
