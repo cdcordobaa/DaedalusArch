@@ -1,0 +1,138 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/youth-league/none/run-0",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "youth-league",
+    "arm": "none",
+    "runIndex": 0
+  },
+  "stepIndex": 0,
+  "stepId": "teams-fixtures",
+  "startedAt": "2026-10-20T03:03:31.915Z",
+  "finishedAt": "2026-10-20T03:04:47.920Z",
+  "turns": [
+    {
+      "turnId": "step-01",
+      "kind": "step",
+      "promptSha256": "9a9c3d0edda5d220e9f13b17299c4ef7980c155ff470cdf297a8525d3782140c",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.2116364,
+          "inputTokens": 16,
+          "outputTokens": 13648,
+          "cacheReadTokens": 82564,
+          "cacheCreationTokens": 16717,
+          "numTurns": 18,
+          "durationMs": 74061
+        },
+        "wallMs": 75159,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T03:03:31.916Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-exploratory/h/bin/tsc --noEmit --incremental false -p <shared>/daedalus-exploratory/h/runs/claude-code-cli/claude-sonnet-5-5/youth-league/none/run-0/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-01.json",
+        "permissionDenials": 3
+      },
+      "snapshot": {
+        "commit": "4c56d906b1c1b5f8fb811b01551aebfdda4046b3",
+        "sourceFiles": [
+          "business/ageGroup.ts",
+          "business/errors.ts",
+          "business/fixtureService.ts",
+          "business/playerService.ts",
+          "business/teamService.ts",
+          "business/validation.ts",
+          "persistence/memoryRepository.ts",
+          "persistence/models.ts",
+          "persistence/repositories.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 11,
+        "loc": 304,
+        "diff": {
+          "added": 11,
+          "modified": 0,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.827,
+          "blockingAhs": 0.821,
+          "verdict": "fail",
+          "violationCount": 16,
+          "blockingViolationCount": 1,
+          "advisoryViolationCount": 15,
+          "blockingByRule": {
+            "FF-S03": 1
+          },
+          "advisoryByRule": {
+            "FF-C03": 4,
+            "FF-CV05": 11
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-f06d7ae883970eaa",
+              "filePath": "src/presentation/app.ts",
+              "line": 6,
+              "target": "src/persistence/repositories.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+            }
+          ],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "finalCommit": "4c56d906b1c1b5f8fb811b01551aebfdda4046b3",
+  "cost": {
+    "costUsd": 0.2116364,
+    "inputTokens": 16,
+    "outputTokens": 13648,
+    "wallMs": 75159
+  }
+}

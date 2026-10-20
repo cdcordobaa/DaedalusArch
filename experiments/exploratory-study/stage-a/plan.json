@@ -1,0 +1,49 @@
+{
+ "description": "Exploratory study Stage A (amendment 1): none@L2, replicate 1, Layered tasks ice-rink, youth-league, hive-health, claude-sonnet-5-5 only, k = 5. CLI pin ON; per-run HOME isolation OFF (S3: the macOS keychain login is not reachable under an empty HOME, 2026-10-19); E1 environment plus --safe-mode; Claude CLI 2.1.304 under the D1 exploratory allowance. Run before the freeze; every number is re-scored at the freeze tag.",
+ "tasksFile": "experiments/exploratory-study/stage-a/tasks.json",
+ "adapters": [
+  {
+   "adapterId": "claude-code-cli",
+   "modelId": "claude-sonnet-5-5",
+   "cliVersion": "2.1.304"
+  }
+ ],
+ "arms": [
+  "none"
+ ],
+ "runs": 1,
+ "orderSeed": 20261019,
+ "outRoot": "<local>",
+ "binary": "<local>",
+ "harnessRoot": "<local>",
+ "allowBash": true,
+ "timeoutMs": 1200000,
+ "engine": "cypher-interp",
+ "taskProfiles": {
+  "ice-rink": {
+   "style": "layered",
+   "specMode": "static",
+   "evaluatorSpec": "presets/layered.yaml"
+  },
+  "youth-league": {
+   "style": "layered",
+   "specMode": "static",
+   "evaluatorSpec": "presets/layered.yaml"
+  },
+  "hive-health": {
+   "style": "layered",
+   "specMode": "static",
+   "evaluatorSpec": "presets/layered.yaml"
+  }
+ },
+ "frame": {
+  "specRung": "L2",
+  "attention": true
+ },
+ "callBudget": {
+  "runs": 3,
+  "stepTurns": 15,
+  "maxRepairTurns": 0,
+  "maxCalls": 15
+ }
+}

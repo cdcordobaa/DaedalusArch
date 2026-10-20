@@ -268,4 +268,6 @@ A Fable consistency check of this text against REV-05 and those decisions found 
 
 ## Changelog
 - 2026-10-19: Amendment 1 (Layered only, Claude only, Stage A before the freeze with a provisional stop, DDD deferred, counts halved). The confirmatory task hashes are added here before Stage A.
+- 2026-10-19: **Stage A environment, declared change.** The first live Stage A attempt (0 model calls: every turn returned "Not logged in" in 41 ms with 0 tokens) showed that the generator's per-run HOME isolation cannot authenticate on macOS, because the CLI's keychain login is only reachable under the real HOME. This is gate S3, never exercised live before (`Docs/v1.3/loop-isolation.md` §4). Stage A therefore runs with the CLI pin on and per-run HOME isolation off: the E1 environment the loop pilot and Study 1 used, with every turn under `--safe-mode` (no CLAUDE.md, skills, plugins, hooks or MCP). S3 is fixed before Stage B.
+- 2026-10-19: the 4 Layered confirmatory tasks were sealed before Stage A. tasks.json sha256 6ac2107916d40b2b8b261613828211f71f39f9581927a6a7286c629ce444c5fc; manifest sha256 e680aeb06e8c0297c158aa87241bb66e6ba2638ff77e4b1e3bd6c02e02b3abbf; domain examiner GO (`Docs/v1.4/confirmatory-tasks-seal.md`).
 - 2026-10-19: first version (EXP, EXPT, SEM; REV-05 §3, §5, §6 items 1, 2 and 7).

@@ -2502,7 +2502,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 ## v1.4 research ops: Gemini S4 on agy 1.4.2 fails; exploratory generator is Claude only
 **Timestamp**: 2026-10-20T02:12:15Z
 **User Input**: "Give it the last mile" (the one-hour, zero-call timebox on agy 1.4.2 permissions, then S4 within the 30-call approval)
-**AI Response**: "Run 1: G0 failed on a check-order artifact plus ~/.agents (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
+**AI Response**: "Run 1: G0 failed on a check-order artifact plus an .agents folder in the home folder (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
 **Context**: v1.4 instrument track, TRUST-01 L9; 24 Gemini calls
 
 ---
@@ -2513,4 +2513,18 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Cloned the 12 DDD entries of results/v1.3-external*/selection.json and the 3 hex/DDD operator-run DDD bases at their pinned SHAs (scratch only), plus the DDD reference project and the two kept relief-volunteers agent trees. New scripts/v1.4/ddd-beta-capability.ts with helpers scripts/v1.4/lib/ddd-beta.ts and their unit tests: CLI census (post-seal off/on), concept map, grain census, rule preconditions, fixtures, seeded recall (U5a + hex/DDD operators, MO-H07 extended to ddd for post-seal FF-S02). Result: 548/548 seeded DDD keys detected; 46 twin false fires, all correct findings from twins that are not legal under DDD (37 U5a cross-context, 9 barrel cycles), 0 instrument false fires. Beta-ready (adjudicated): FF-DS01, DS02, DT01, DT03, DT04, S01, S02; not: FF-DT02 (2 real repos), FF-P07 (no operator). FF-DT01/02/03 have no precondition on either agent tree (inner entities and value shapes inside the root file, often as interfaces/type aliases); §C estimates a declaration-grain version at ~5-7 days plus a post-seal ADR. Report Docs/DiagnosticRuns/v1.4-ddd-beta-capability-2026-10-19.md."
 **Context**: v1.4 instrument track, DDD-BETA capability study; no decisions taken (D5 follow-up, Q15/Q17-Q19, aggregate declaration stay with the author); no sealed path read, MEAN-01 sample not opened, no Neo4j started
 
+---
+
+## v1.4 research ops: confirmatory Layered tasks sealed
+**Timestamp**: 2026-10-20T02:30:35Z
+**User Input**: "Let's do the confirmatory tasks; send an external examiner" (the author started the examiner session)
+**AI Response**: "The blind writer (separate session, no transcript) sealed 4 Layered tasks × 5 steps, 20 acceptance tests, hint audit 0 FAIL / 8 WARN. The author's examiner session returned GO, no overlap, high confidence. Hashes recorded in Docs/v1.4/confirmatory-tasks-seal.md and the registration changelog. The coordinator never saw the content."
+**Context**: v1.4 Study 2, EXPT / V10c / gate S14; writer calls not counted against the study
+---
+
+## v1.4 Study: exploratory Stage A run
+**Timestamp**: 2026-10-20T03:14:46Z
+**User Input**: "Yes, reuse the research config, go with Stage A"
+**AI Response**: "Stage A ran at 5bfe36e3: Layered x3, none@L2, Claude Sonnet, 15 turns, 3/3 complete. Mean D 1.33, Y1>=1 in 3/3, all FF-S03. The stop check does not trigger, so Layered continues (provisional until the freeze re-score). Two earlier attempts made 0 model calls: an absolute-binary-path error, then 'Not logged in' under the per-run HOME (the S3 keychain finding; that isolation is off for Stage A, declared)."
+**Context**: exploratory study Stage A; 15 Claude generator turns
 ---
