@@ -237,6 +237,7 @@
   - Steps 10–11 ran on cypher-interp with clones at their pinned SHAs and no install.
   - Q5, Q6 and Q12: no G0.9 criterion met.
   - **Q10: the criterion is met as written.** The 2 new FF-S01 `express` rows were judged incorrect by the C3 checker, which appears not to handle package targets. This is reported to the author; Q10 stays at the signed, provisional C.
+  - **Q10 → D (2026-10-20, Step 11 D outcome).** Delegated to the coordinator, criterion applied as written. Re-applied once (Step 6), Step 9 preview repeated once, and the development re-run repeated once on one capped Neo4j 5.26.24 with APOC into `results/v1.3-reference/after-construct-answers-u6-dev-q10d/` (zero model calls). Reported as a second run in the run note, section "Q10 → D"; the first run's figures are unchanged.
 - Step 11b is open: the author signs ADR-V13-03.
 - Steps 12–13 deviate, at the routine's direction. One development re-run was made on Neo4j 5.26.24 into `results/v1.3-reference/after-construct-answers-u6-dev/`, not `DEV_RERUN_DIR`, and scored `--as-run` without `ue-score.ts --blind` (sealed). The F8 record run stays with the author (G0.6 = A).
 - Step 14 is done (see the run note). Steps 15–16 are covered by the run note and `code/summary.md`. Step 17 is the PR.

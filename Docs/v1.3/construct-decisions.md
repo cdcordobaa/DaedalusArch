@@ -384,7 +384,7 @@ import { Entity } from 'typeorm';
 @Entity('orders')
 ```
 
-[Answer]: C (signed 2026-10-19 by the author via the decision desk)
+[Answer]: D (signed C 2026-10-19 by the author via the decision desk, provisional until the G0.9 Q10 check; the criterion was met, so D was delegated to the coordinator 2026-10-20, criterion applied as written. Limitation: the C3 checker may not handle a package target, see ADR-V13-03 §Q10)
 
 ---
 

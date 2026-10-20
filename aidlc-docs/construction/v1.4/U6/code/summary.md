@@ -48,3 +48,9 @@ Run note: `Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md`. Zero model calls.
 - **11b (sign):** the author's step.
 - **13, record run and `ue-score.ts --blind`:** the author's step (G0.6 = A; `--blind` reads the sealed folder).
 - **13, engine cross-check:** it follows the record run.
+
+## Q10 → D (2026-10-20)
+
+- The G0.9 Q10 criterion was met, and the move to D was delegated to the coordinator (criterion applied as written).
+- `Docs/v1.3/construct-answers.json` Q10 = D; re-applied once with `apply-construct-answers.ts`; Step 9 preview and the development re-run repeated once each (second run: `results/v1.3-reference/after-construct-answers-u6-dev-q10d/`).
+- Tests: the Step 7 chosen-set case in `interactions.test.ts` now expects Q10 D (no `express` row), and it keeps a Q10 C mechanism check; `cli-validate` comments updated (counts unchanged).

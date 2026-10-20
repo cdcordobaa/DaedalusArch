@@ -23,9 +23,9 @@ This is a development-cycle decision for v1.3. It does not change Study 1 (v1.2E
 | Q2 | A | Q7 | A | Q12 | B | Q17 | A | Q22 | B |
 | Q3 | C | Q8 | B | Q13 | B | Q18 | B | Q23 | B |
 | Q4 | A | Q9 | A | Q14 | C | Q19 | A | Q24 | A |
-| Q5 | C | Q10 | C | Q15 | B | Q20 | A | Q25 | B |
+| Q5 | C | Q10 | D | Q15 | B | Q20 | A | Q25 | B |
 
-Every answer: signed 2026-10-19 by the author via the decision desk.
+Every answer: signed 2026-10-19 by the author via the decision desk. Exception: Q10 was signed C (provisional until the G0.9 Q10 check); the criterion was met, and on 2026-10-20 the move to D was delegated to the coordinator, criterion applied as written (§Q10).
 
 ## Sign-off lines printed by `apply-construct-answers.ts --dry-run` (U6 plan Step 6)
 
@@ -39,8 +39,7 @@ ADR-V13-03 "construct decisions" entries:
 - Q5 C [rule]: adapter → adapter edges are FF-S01 findings in hexagonal and ddd (P2: FF-S03 drops them). §Q5 below.
 - Q6 B [rule]: hexagonal FF-S04 binds the application core (domain + application layers). §Q6 below.
 - Q8 B [policy]: N/A-half policy (with Q14): sealed tier kept, FLOWS_TO half N/A, recall unestimated.
-- Q10 C [applicability]: FF-P01 not applicable to layered (P1). §Q10 below.
-- Q10 C [rule]: FF-S01 reads a declared package-to-layer mapping. §Q10 below.
+- Q10 D [applicability]: FF-P01 not applicable to layered (P1). §Q10 below. (Re-applied 2026-10-20; the first apply printed Q10 C [applicability] and Q10 C [rule]: FF-S01 reads a declared package-to-layer mapping.)
 - Q12 B [rule]: FF-S03 reports only downward edges that pass over a layer. §Q12 below.
 - Q13 B [rule]: FF-P04 follows the declared layer order.
 - Q14 C [note]: the N/A half is covered by the member facts.
@@ -57,7 +56,7 @@ Action items:
 
 Delegated to the coordinator 2026-10-19 (recommended answer). The registered scorers (`scripts/v1.3/lib/reference-model.ts`, `scripts/v1.3/ue-score.ts`, `scripts/v1.3/lib/holdout-score.ts`) are **not** changed, and the registered figures are reported as computed. So:
 - Q5 is C, not D: FF-S01 is the blind reader's own id for these edges, so the blocking gain is scored natively. No FF-S05 row is needed in `blind-rule-mapping.json`.
-- Under Q10 C, FF-P01 stays in the layered scope of the committed descriptor, so the author-manifest FF-P01 rows in layered are misses in the author view. This is reported, not fixed.
+- Under Q10 D (as under C), FF-P01 stays in the layered scope of the committed descriptor, so the author-manifest FF-P01 rows in layered are misses in the author view. This is reported, not fixed.
 - No scoring deviation enters the G14 list.
 
 ## Refutation criteria (G0.9), dated 2026-10-19, before any fresh check ran
@@ -97,17 +96,19 @@ Delegated to the coordinator 2026-10-19 (recommended answer: as drafted on `ops/
 
 **Implementation (exists).** `src/construct-switches/rows.ts` `q6ApplicationCore`.
 
-## §Q10: FF-P01 is not applicable to layered; packages reach FF-S01 through a declared mapping
+## §Q10: FF-P01 is not applicable to layered, with no replacement
 
 **Context.** Layered v07 has a `typeorm` decorator on a business model; v08 has a business service typed on `express`.
 
 **Sources.** [SRS: Layered] states no purity rule (P1). Fowler (2002) ch. 10, Active Record, puts persistence in domain objects. Fowler (2002) ch. 1: the domain should not depend on the presentation (recalled; page to be checked before signing).
 
-**Decision: C (provisional until the G0.9 Q10 check; D is the only fallback).** FF-P01 `domain-purity` is disabled for `layered` (P1). A declared mapping `CONSTRUCT_PACKAGE_LAYERS.layered = { express, koa, fastify → presentation }` makes an import of a mapped package from a lower layer an FF-S01 row. **The mapping is frozen as written before any re-run.** No package is added after seeing a result.
+**Decision: D (2026-10-20; was C, provisional until the G0.9 Q10 check).** FF-P01 `domain-purity` is disabled for `layered` (P1), and a package import is outside what the layered rules check. The G0.9 Q10 criterion was met (2 new FF-S01 `express` rows on the external layered set judged incorrect by the C3 procedure, not also reported by FF-S01), so Q10 moved from C to D, the one fallback the criterion allows. Delegated to the coordinator (the author asked for no more decisions): a pre-dated criterion is applied as written; overriding it on a suspected checker defect would move the goalposts after seeing data.
 
-**Risk.** Only `express` is exercised on the development set; the mapping is the most fit-prone item in this ADR.
+**Limitation (reported, not acted on).** The C3 checker's reason was "the statement(s) at that line do not reach express (literal view)", and the same imports were labelled correct as FF-P01 rows. The checker appears not to handle a package target for a direction rule, so the refutation may be a checker artefact. The recommendation itself said that, with no declared package-to-layer mapping, C reduces to D; D is that reduction without the new mechanism.
 
-**Implementation (exists).** `src/construct-switches/compile.ts`, `rows.ts` `q10PackageLayers`, `overlays.ts` `CONSTRUCT_PACKAGE_LAYERS`.
+**Consequence.** Layered v08 (`express` in a business service) is no longer reported. Development set (second run): layered blind blocking recall 7/10 (C: 8/10), adjudicated 7/8 (C: 8/8). See the run note, section "Q10 → D".
+
+**Implementation (exists).** `src/construct-switches/compile.ts` (C or D disables FF-P01 in layered). The C mapping (`rows.ts` `q10PackageLayers`, `overlays.ts` `CONSTRUCT_PACKAGE_LAYERS`) stays in code but is not in force.
 
 ## §Q12: in layered, FF-S03 reports only downward edges that pass over a layer
 
@@ -123,7 +124,7 @@ Recorded in `Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md` §2 (2026-10-20,
 - **Q5 C: not met.** MO-H03 seeds 10/10 detected; twins 0/6. On the real hex/ddd projects, 14 adapter-pair rows move to FF-S01, and all 14 are correct by the C3 checker.
 - **Q6 B: not met.** MO-H02 seeds 10/10 detected with FF-S04 in the key; twins 0/6. On real code, all 23 new FF-S04 rows are on edges FF-S01 already reports, so no new edge.
 - **Q12 B: not met.** 11 adjacent-upward FF-S03 rows were removed, and all 11 are still reported by FF-S01.
-- **Q10 C: met, read as written.** The 2 new FF-S01 `express` rows were judged incorrect by the C3 checker ("the statement(s) at that line do not reach express (literal view)"), and no other FF-S01 row covers them. The checker appears not to handle a package target for a direction rule; the same imports are labelled correct as FF-P01 rows. Per plan Step 11 this goes to the author before Q10 is final. **The author decides: D, as the criterion reads, or C, if the verdict is a checker artefact.** Until then Q10 stays at the signed, provisional C.
+- **Q10 C: met, read as written.** The 2 new FF-S01 `express` rows were judged incorrect by the C3 checker ("the statement(s) at that line do not reach express (literal view)"), and no other FF-S01 row covers them. The checker appears not to handle a package target for a direction rule; the same imports are labelled correct as FF-P01 rows. Reported per plan Step 11. **Applied as written on 2026-10-20 (delegated to the coordinator): Q10 = D.** The suspected checker defect is a limitation (§Q10).
 
 ## Sign-off
 
