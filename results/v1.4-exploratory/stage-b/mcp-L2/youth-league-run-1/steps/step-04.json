@@ -1,0 +1,199 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/youth-league/daedalus-mcp/run-1",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "youth-league",
+    "arm": "daedalus-mcp",
+    "runIndex": 1
+  },
+  "stepIndex": 3,
+  "stepId": "tables",
+  "startedAt": "2026-10-20T08:23:43.512Z",
+  "finishedAt": "2026-10-20T08:24:40.409Z",
+  "turns": [
+    {
+      "turnId": "step-04",
+      "kind": "step",
+      "promptSha256": "4d8a80c969fb4ce35e4d793e16f355c62c247eb2a466916cec51a5f5b4041009",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.1637346,
+          "inputTokens": 16,
+          "outputTokens": 6181,
+          "cacheReadTokens": 166886,
+          "cacheCreationTokens": 21301,
+          "numTurns": 18,
+          "durationMs": 54650
+        },
+        "wallMs": 55743,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T08:23:43.513Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-exploratory/h-mcp/bin/tsc --noEmit --incremental false -p <shared>/daedalus-exploratory/h-mcp/runs/claude-code-cli/claude-sonnet-5-5/youth-league/daedalus-mcp/run-1/tsconfig.json)",
+          "mcp__daedalus-arch__get_architecture_spec",
+          "mcp__daedalus-arch__which_layer",
+          "mcp__daedalus-arch__check_import",
+          "mcp__daedalus-arch__explain_violation",
+          "mcp__daedalus-arch__check_file",
+          "mcp__daedalus-arch__check_diff",
+          "mcp__daedalus-arch__suggest_placement",
+          "mcp__daedalus-arch__infer_spec",
+          "mcp__daedalus-arch__explain_finding",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "mcp__daedalus-arch__evaluate_project",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config",
+          "--mcp-config",
+          "<shared>/daedalus-exploratory/h-mcp/runs/claude-code-cli/claude-sonnet-5-5/youth-league/daedalus-mcp/run-1/mcp-daedalus-mcp.json"
+        ],
+        "envelopePath": "envelope-step-04.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "2a630751b7caa81935cfc2118be021be486c1c8a",
+        "sourceFiles": [
+          "business/ageGroup.ts",
+          "business/errors.ts",
+          "business/fixtureService.ts",
+          "business/leagueTableService.ts",
+          "business/playerService.ts",
+          "business/refereeService.ts",
+          "business/teamService.ts",
+          "business/validation.ts",
+          "business/weatherRiskService.ts",
+          "persistence/mailProvider.ts",
+          "persistence/memoryStore.ts",
+          "persistence/models.ts",
+          "persistence/repositories.ts",
+          "persistence/weatherClient.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 16,
+        "loc": 640,
+        "diff": {
+          "added": 1,
+          "modified": 2,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.753,
+          "blockingAhs": 0.667,
+          "verdict": "fail",
+          "violationCount": 23,
+          "blockingViolationCount": 3,
+          "advisoryViolationCount": 20,
+          "blockingByRule": {
+            "FF-S03": 3
+          },
+          "advisoryByRule": {
+            "FF-C03": 4,
+            "FF-CV05": 16
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-9c4664f63b06b29e",
+              "filePath": "src/presentation/app.ts",
+              "line": 9,
+              "target": "src/persistence/mailProvider.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/mailProvider.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-f4f085a6b98c79c2",
+              "filePath": "src/presentation/app.ts",
+              "line": 11,
+              "target": "src/persistence/repositories.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-6b3035486359e8a6",
+              "filePath": "src/presentation/app.ts",
+              "line": 10,
+              "target": "src/persistence/weatherClient.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/weatherClient.ts (persistence)"
+            }
+          ],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "process": {
+    "schema": "loop-process/v1",
+    "logs": [
+      "calls/step-04.jsonl"
+    ],
+    "logFound": true,
+    "calls": 2,
+    "errors": 0,
+    "callsByTool": {
+      "check_import": 1,
+      "get_architecture_spec": 1
+    },
+    "firstCallAt": "2026-10-20T08:23:46.524Z",
+    "firstCallBeforeFirstWrite": true,
+    "firstWriteEvidence": "server-fingerprint",
+    "latencyMs": {
+      "p50": 8,
+      "p95": 22
+    }
+  },
+  "finalCommit": "2a630751b7caa81935cfc2118be021be486c1c8a",
+  "cost": {
+    "costUsd": 0.1637346,
+    "inputTokens": 16,
+    "outputTokens": 6181,
+    "wallMs": 55743
+  }
+}

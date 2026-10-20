@@ -1,0 +1,160 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/hive-health/daedalus-mcp/run-1",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "hive-health",
+    "arm": "daedalus-mcp",
+    "runIndex": 1
+  },
+  "stepIndex": 2,
+  "stepId": "treatments-harvests",
+  "startedAt": "2026-10-20T08:28:18.651Z",
+  "finishedAt": "2026-10-20T08:29:27.991Z",
+  "turns": [
+    {
+      "turnId": "step-03",
+      "kind": "step",
+      "promptSha256": "9285e63f4a5e0bb08d5dad2fb0e8138f8f3fca9ad95e88bf0fadda52537afdbd",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.2300742,
+          "inputTokens": 18,
+          "outputTokens": 10381,
+          "cacheReadTokens": 210682,
+          "cacheCreationTokens": 26290,
+          "numTurns": 25,
+          "durationMs": 67570
+        },
+        "wallMs": 68679,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T08:28:18.652Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-exploratory/h-mcp/bin/tsc --noEmit --incremental false -p <shared>/daedalus-exploratory/h-mcp/runs/claude-code-cli/claude-sonnet-5-5/hive-health/daedalus-mcp/run-1/tsconfig.json)",
+          "mcp__daedalus-arch__get_architecture_spec",
+          "mcp__daedalus-arch__which_layer",
+          "mcp__daedalus-arch__check_import",
+          "mcp__daedalus-arch__explain_violation",
+          "mcp__daedalus-arch__check_file",
+          "mcp__daedalus-arch__check_diff",
+          "mcp__daedalus-arch__suggest_placement",
+          "mcp__daedalus-arch__infer_spec",
+          "mcp__daedalus-arch__explain_finding",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "mcp__daedalus-arch__evaluate_project",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config",
+          "--mcp-config",
+          "<shared>/daedalus-exploratory/h-mcp/runs/claude-code-cli/claude-sonnet-5-5/hive-health/daedalus-mcp/run-1/mcp-daedalus-mcp.json"
+        ],
+        "envelopePath": "envelope-step-03.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "00714253fa0c4ef644848b97d3a0dd3121023555",
+        "sourceFiles": [
+          "business/container.ts",
+          "business/errors.ts",
+          "business/scaleService.ts",
+          "business/services.ts",
+          "business/treatmentService.ts",
+          "persistence/models.ts",
+          "persistence/repositories.ts",
+          "persistence/smsGateway.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 10,
+        "loc": 715,
+        "diff": {
+          "added": 1,
+          "modified": 6,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.871,
+          "blockingAhs": 1,
+          "verdict": "pass",
+          "violationCount": 13,
+          "blockingViolationCount": 0,
+          "advisoryViolationCount": 13,
+          "blockingByRule": {},
+          "advisoryByRule": {
+            "FF-C03": 2,
+            "FF-CV05": 10,
+            "FF-SO01": 1
+          },
+          "blockingFindings": [],
+          "durationMs": 2,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "process": {
+    "schema": "loop-process/v1",
+    "logs": [
+      "calls/step-03.jsonl"
+    ],
+    "logFound": true,
+    "calls": 1,
+    "errors": 0,
+    "callsByTool": {
+      "get_architecture_spec": 1
+    },
+    "firstCallAt": "2026-10-20T08:28:21.536Z",
+    "firstCallBeforeFirstWrite": true,
+    "firstWriteEvidence": "server-fingerprint",
+    "latencyMs": {
+      "p50": 38,
+      "p95": 38
+    }
+  },
+  "finalCommit": "00714253fa0c4ef644848b97d3a0dd3121023555",
+  "cost": {
+    "costUsd": 0.2300742,
+    "inputTokens": 18,
+    "outputTokens": 10381,
+    "wallMs": 68679
+  }
+}
