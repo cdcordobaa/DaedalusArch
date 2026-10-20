@@ -58,3 +58,10 @@ Recorded by the coordinator under the author's delegation (`ops/decisions.md` DE
 | results/v1.3-freeze/manifest.json (byte-identity manifest) | ce5f3298644fbb0f6cdc3337347e30cd74e0e808b4b542f7b7ffb901364787ea | Recomputed and compared by freeze-check.ts. |
 | Docs/v1.3/construct-answers.json (construct answers) | c0c70b2802c8965c3c4593fce8b329a11ce724342e2322caf53cc5ac67782e25 | The author's 25 answers (Q10 D under delegation). |
 | Docs/v1.3/study2-tunables.json (Study 2 frozen tunables) | a3e8307d4b5cd0b3f844d167e443bafc838bce49b86907e53d07e3cc3bb983dd | Written at X; verified by CI (`study2-tunables.ts verify`). |
+
+## Hold-out prespec addendum (2026-10-20, before the hold-out run)
+
+| Artefact | sha256 | Note |
+|---|---|---|
+| Docs/v1.3/holdout-prespec-addendum-2026-10-20.md | f1948c05ec90b558693162dc62348f91cdde60575f53c41d8615a8b49633ec53 | Addendum 1 (DELEG4): path-only blind adapter. Recorded before the run. |
+| Docs/v1.3/holdout-prespec-addendum-2-2026-10-20.md | f901beea0667507abc4fc988b2451e0d93dfc394df9cb0f15b406a000c06b0d3 | Addendum 2 (DELEG5): patch-header-only repair and fallback F-RF. Recorded before attempt 2. |
