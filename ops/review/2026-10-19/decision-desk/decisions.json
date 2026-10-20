@@ -1,0 +1,1044 @@
+{
+  "generated": "2026-10-20T00:38:06Z",
+  "groups": [
+    {
+      "id": "principles",
+      "title": "Three ground rules",
+      "intro": "These three rules decide many of the questions below at once. Sign them first, because every later answer is checked against them before the freeze.",
+      "items": [
+        {
+          "id": "P1",
+          "star": false,
+          "title": "Silent sources mean the rule does not apply",
+          "question": "If the books for a style say nothing about a constraint, should the tool skip that rule for that style?",
+          "context": "Some rules come from one style's books and are copied to the others by default. Example: 'the domain must not import a framework' is a Clean rule, and the Layered books never state it. P1 says such a rule is switched off in Layered, and no Layered-only substitute is made up.",
+          "options": [
+            { "key": "A", "label": "Yes, confirm P1", "effect": "Decides Q1 and Q10. Rules a style's books never state are not applied to that style." },
+            { "key": "B", "label": "No, keep rules on by default", "effect": "Every rule applies to every style unless a source forbids it. Q1 and Q10 must be argued one by one." }
+          ],
+          "recommended": "A",
+          "why": "It is your own principle in another form: a rule must come from the style's sources (ops/decisions.md, U6). A rule kept 'by default' has no source.",
+          "risk": "low",
+          "risk_note": "Read strictly, P1 would also say no to Q16 (cycles in DDD); Q16 rests on ADP being general, not on P1.",
+          "source": "Docs/v1.3/construct-decisions.md:23"
+        },
+        {
+          "id": "P2",
+          "star": false,
+          "title": "One import edge, one rule",
+          "question": "Should each bad import be reported under only the rule it actually breaks, not twice under two rules?",
+          "context": "An import edge is one line like 'a file in persistence/ imports from business/'. Without P2 the same line can show up as a direction error and again as a cycle or a layer skip. P2 picks one owner per edge.",
+          "options": [
+            { "key": "A", "label": "Yes, confirm P2", "effect": "Decides Q4, Q7, Q11, Q12 and Q20. Fewer duplicate findings. One declared exception remains: under Q6 B an application-to-adapter edge is reported by two rules." },
+            { "key": "B", "label": "No, allow double reports", "effect": "The same edge can count under several rules, so counts grow and Q4, Q7, Q12 and Q20 must be argued again." }
+          ],
+          "recommended": "A",
+          "why": "The sources each state one constraint per clause (for example Fowler and POSA state 'no upward use' and 'no skipping' as two separate clauses), so one edge breaks one clause.",
+          "risk": "low",
+          "risk_note": "Q6 B breaks P2 on purpose; the ADR must write that exception down.",
+          "source": "Docs/v1.3/construct-decisions.md:24"
+        },
+        {
+          "id": "PREC",
+          "star": true,
+          "title": "The source beats the sealed wording",
+          "question": "When a book says one thing and the sealed rule text says another, should the book win, through a declared ADR?",
+          "context": "The sealed files were frozen before the source check of 2026-10-16. That check found three places where the sealed text and the books disagree: the DDD anti-corruption layer (Q18), the DDD 'every file in a context' rule (Q15) and domain-event placement (Q21). This item says which side wins.",
+          "options": [
+            { "key": "A", "label": "Source wins, by a declared ADR", "effect": "Q15, Q18 and Q21 follow the books. Each change is one more declared post-seal deviation, listed with the others." },
+            { "key": "B", "label": "Sealed text wins", "effect": "Q15, Q18 and Q21 keep the sealed defaults. The thesis must say these three rules differ from Evans." }
+          ],
+          "recommended": "A",
+          "why": "This is your stated principle (ops/decisions.md:23), and construct-decisions already says 'the source wins' over a rule's wording (Precedence, :26).",
+          "risk": "medium",
+          "risk_note": "Each source-following change adds a post-seal deviation, and an examiner counts deviations as a risk of their own.",
+          "source": "Docs/v1.3/construct-decisions.md:26"
+        }
+      ]
+    },
+    {
+      "id": "construct",
+      "title": "The 25 construct answers (V1)",
+      "intro": "Each question defines what one rule means, using the style's books. The freeze check (F3) refuses to run until all 25 [Answer]: lines in Docs/v1.3/construct-decisions.md are filled in.",
+      "items": [
+        {
+          "id": "Q1",
+          "star": false,
+          "title": "Layered services may hold a data gateway",
+          "question": "In a Layered project, may a business service keep a persistence object (a gateway) as a field without a finding?",
+          "context": "FF-P06 (the domain-state-purity rule) flags domain code that holds an infrastructure object. In Layered, an OrderService holding an OrderGateway is the normal design. This fix is already in the tool; you are confirming it.",
+          "options": [
+            { "key": "A", "label": "Yes, FF-P06 does not apply in Layered", "effect": "Keeps the current tool. 53 baseline findings stay gone; the Layered clean variant passes." },
+            { "key": "B", "label": "Keep it as a warning only", "effect": "No verdict changes, but Layered gets about 53 extra warnings." },
+            { "key": "C", "label": "Back to blocking, as in v1.2E", "effect": "The Layered clean example fails again; precision falls to 8/61." }
+          ],
+          "recommended": "A",
+          "why": "Fowler (bliki, 2015) and Evans 2003 ch. 4 let the domain use the layer below, and the Layered sources state no isolated-domain rule, so P1 applies.",
+          "risk": "low",
+          "risk_note": "Already built and checked; confirming changes nothing.",
+          "source": "Docs/v1.3/construct-decisions.md:90"
+        },
+        {
+          "id": "Q2",
+          "star": false,
+          "title": "Type-only imports count as dependencies",
+          "question": "Should an 'import type' line count as a dependency, the same as a normal import?",
+          "context": "TypeScript can import a type that vanishes after compiling. Example: a domain entity with 'import type { Request } from express'. 12 findings rest only on such lines, most of them in DDD.",
+          "options": [
+            { "key": "A", "label": "Yes, count them", "effect": "No change. The 12 findings stay." },
+            { "key": "B", "label": "No, ignore type-only imports", "effect": "7 of DDD's 8 blocking findings disappear." }
+          ],
+          "recommended": "A",
+          "why": "Martin's blog says an inner circle must not even mention an outer name ('functions, classes, variables'), and an import type mentions one.",
+          "risk": "low",
+          "risk_note": "Strong verbatim source; no code change.",
+          "source": "Docs/v1.3/construct-decisions.md:118"
+        },
+        {
+          "id": "Q3",
+          "star": true,
+          "title": "File cycles inside one layer",
+          "question": "If two files in the same layer import each other, should that only be a warning, while cycles across layers still block?",
+          "context": "FF-S02 (the no-cycles rule) comes from Martin's acyclic dependencies principle. Example: domain/Loan.ts imports domain/Member.ts and Member.ts imports Loan.ts. Martin states the principle for components (units you release), not for single files.",
+          "options": [
+            { "key": "A", "label": "Every file cycle blocks", "effect": "No change; 4 in-layer cycles keep failing their projects." },
+            { "key": "B", "label": "Only cycles across layers or modules count", "effect": "The 4 in-layer cycles disappear completely." },
+            { "key": "C", "label": "In-layer cycles become warnings", "effect": "The 4 rows move to advisory; cross-layer cycles still block. Needs a tier ADR." }
+          ],
+          "recommended": "C",
+          "why": "Martin (Clean Architecture ch. 12 and ch. 14, p. 112) defines ADP over components, so a file cycle inside one layer is only a stand-in for it, and a stand-in is advisory by the tier rules.",
+          "risk": "medium",
+          "risk_note": "It changes the rule's unit after the seal, so the thesis must state the unit; MEAN-01 R4 uses the same reading.",
+          "source": "Docs/v1.3/construct-decisions.md:149"
+        },
+        {
+          "id": "Q4",
+          "star": false,
+          "title": "Layer cycles without a file cycle",
+          "question": "If one upward import makes two layers depend on each other, but no files form a loop, should that also count as a cycle?",
+          "context": "Example: domain/Loan.ts imports application/ports/Clock.ts. Since application already depends on domain, the layers now point both ways. FF-S01 (the direction rule) already reports that upward import.",
+          "options": [
+            { "key": "A", "label": "No, the direction finding is enough", "effect": "No change. Adjudication rows #1 to #4 leave the reference." },
+            { "key": "B", "label": "Yes, also compute cycles between layers", "effect": "Recovers rows #1 to #4, but adds 11 more blocking rows the blind key does not list either." }
+          ],
+          "recommended": "A",
+          "why": "Martin does not treat a layer as an ADP component, so the layer cycle adds no fact beyond the upward edge FF-S01 already reports (P2).",
+          "risk": "low",
+          "risk_note": "Matches the source; the blind key disagrees on 4 rows, which the adjudication sheet handles.",
+          "source": "Docs/v1.3/construct-decisions.md:179"
+        },
+        {
+          "id": "Q5",
+          "star": true,
+          "title": "Adapter importing another adapter",
+          "question": "In Hexagonal and DDD, should a web controller that directly imports a database adapter fail the check, and under which rule?",
+          "context": "Example: adapters/inbound/http/RoomController.ts imports adapters/outbound/persistence/InMemoryRoomRepository.ts, skipping the application. Today it is only FF-S03 (the layer-skip warning). Cockburn never writes 'adapters must not talk', and his own sample wires one adapter to another, so blocking is an inference from 'actors talk to the application through ports'.",
+          "options": [
+            { "key": "A", "label": "Keep as a warning (sealed default)", "effect": "No change; the 2 planted adapter defects in hex and the ddd api-to-infrastructure row do not fail." },
+            { "key": "B", "label": "Make FF-S03 blocking in hex and ddd", "effect": "Same counts as C/D, but FF-S03 then means two different things." },
+            { "key": "C", "label": "Report it under FF-S01, blocking", "effect": "The edge breaks the spec's declared allowed dependencies, so the direction rule reports it. Scored natively by the existing scorers; hex +2, ddd +1 blocking." },
+            { "key": "D", "label": "New rule id FF-S05, blocking", "effect": "Cleanest naming, but the registered scorers do not know FF-S05, so it shows no gain unless the scorers are changed too (G0.8 a), which is one more deviation." }
+          ],
+          "recommended": "C",
+          "why": "The sealed Hexagonal source row says each actor talks to the application through a port, and the spec does not allow inbound-to-outbound edges, so FF-S01 is the spec-derived owner. The source check (rule-source-verification, Q5) says to label it 'stricter than Cockburn' and exempt wiring code, which the composition-layer exclusion already does. The sheet's default is D; C gives the same construct without a scorer change.",
+          "risk": "high",
+          "risk_note": "An inference, not a quotation, and every real hex/ddd repo with adapter-to-adapter imports gains blocking findings; the MO-H03 fresh check (G0.9) can withdraw it.",
+          "source": "Docs/v1.3/construct-decisions.md:205"
+        },
+        {
+          "id": "Q6",
+          "star": true,
+          "title": "Is the application layer inside the hexagon",
+          "question": "In Hexagonal, should an application service that imports an adapter break core isolation, just like a domain file would?",
+          "context": "FF-S04 (the core-isolation rule) today guards only domain/. Example: application/services/CancelBookingService.ts imports adapters/inbound/http/HttpTypes. The phrase 'application core' that the old text quoted is not in Cockburn; his hexagon is the whole application with no inner split.",
+          "options": [
+            { "key": "A", "label": "No, the core is domain only", "effect": "No change." },
+            { "key": "B", "label": "Yes, core = domain + application", "effect": "Adds FF-S04 on 2 hex rows (FF-S01 already blocks them, so no new edge is found), and drops the agreed hex v02 FF-S04 row (see N1). Two rules then own app-to-adapter edges." }
+          ],
+          "recommended": "B",
+          "why": "Cockburn's 'Intent' and 'Nature of the Solution' describe the hexagon as the application itself, not split into domain and application; the substance favours B even without the wrong quotation.",
+          "risk": "medium",
+          "risk_note": "It only relabels edges FF-S01 already blocks, and it breaks P2 on purpose; the ADR must name both FF-S01 and FF-S04 as owners.",
+          "source": "Docs/v1.3/construct-decisions.md:236"
+        },
+        {
+          "id": "Q7",
+          "star": false,
+          "title": "Using a concrete adapter breaks the port rule",
+          "question": "Should code that uses a concrete repository class (instead of its interface) also count as breaking the port-adapter placement rule?",
+          "context": "FF-P03 (the port-placement rule) checks where an interface and its implementation live. Example: FindAvailableRoomsService takes an InMemoryRoomRepository instead of a RoomRepository port. The direction rule and FF-P02 (the dependency-inversion rule) already report this.",
+          "options": [
+            { "key": "A", "label": "No, other rules already own it", "effect": "No change. Adjudication rows #7, #10, #13 leave the reference." },
+            { "key": "B", "label": "Yes, also report FF-P03", "effect": "+3 rows found, but +4 blocking false alarms." }
+          ],
+          "recommended": "A",
+          "why": "Martin ch. 22-23 and Cockburn describe where the implementer lives; Martin ch. 11 (DIP) covers the user of a concrete class, and that is FF-P02's job (P2).",
+          "risk": "low",
+          "risk_note": "Well supported; the wording 'sources silent on consumers' should be corrected in the ADR.",
+          "source": "Docs/v1.3/construct-decisions.md:262"
+        },
+        {
+          "id": "Q8",
+          "star": false,
+          "title": "Objects created in a field initializer",
+          "question": "When a domain class creates an infrastructure object in a field ('private clock = new SystemClock()'), should that half of the rule be reported as not measured, as the sealed text says?",
+          "context": "FF-P06 (the domain-state rule) has two halves: objects passed in the constructor, and objects created in fields. The tool barely records the second kind of fact. All 3 detections come from that thin half.",
+          "options": [
+            { "key": "A", "label": "Score them as blocking", "effect": "Contradicts the sealed note; needs an ADR. Keeps 3 blocking rows." },
+            { "key": "B", "label": "Report that half as N/A", "effect": "The 3 rows are listed as 'recall unestimated', not scored. The constructor half still blocks." }
+          ],
+          "recommended": "B",
+          "why": "The sealed tier text says only the constructor half is valid and the other half is reported N/A; the source supplement records FF-P06 as 'blocking, constructor half only'. Source and sealed text agree here.",
+          "risk": "low",
+          "risk_note": "Every U6 figure already assumes B; the owning unit must confirm it.",
+          "source": "Docs/v1.3/construct-decisions.md:296"
+        },
+        {
+          "id": "Q9",
+          "star": false,
+          "title": "Repository missing its 'implements' clause",
+          "question": "If a repository class drops 'implements LoanRepository' but still fits the interface, should the port-placement rule flag it?",
+          "context": "TypeScript accepts any class with the right shape. Example: 'export class InMemoryLoanRepository {' with no implements. FF-P03 flags it today; FF-P02 does not.",
+          "options": [
+            { "key": "A", "label": "FF-P03 yes, FF-P02 no", "effect": "No change." },
+            { "key": "B", "label": "Both rules flag it", "effect": "Blocking counts unchanged; 4 more warnings." },
+            { "key": "C", "label": "Neither, shape match is enough", "effect": "3 blocking rows disappear in clean, nestjs and hex." }
+          ],
+          "recommended": "A",
+          "why": "Martin's inversion (ch. 11 and 22) is a source-code dependency from the implementation to the interface, and without 'implements' that dependency is absent.",
+          "risk": "low",
+          "risk_note": "No code change.",
+          "source": "Docs/v1.3/construct-decisions.md:323"
+        },
+        {
+          "id": "Q10",
+          "star": true,
+          "title": "Framework imports in Layered business code",
+          "question": "In a Layered project, should the domain-purity rule be switched off, with only web-framework imports caught as an upward dependency?",
+          "context": "FF-P01 (the domain-purity rule) forbids framework imports in the domain. Example: business/model/Order.ts uses the typeorm @Entity decorator, and business/services/OrderService.ts imports express. Fowler's Layered style lets business code use persistence (Active Record), but business code must not depend on the presentation layer above it.",
+          "options": [
+            { "key": "A", "label": "Purity applies to every framework", "effect": "No change; typeorm and express both fail." },
+            { "key": "B", "label": "Purity for web frameworks only", "effect": "Invents a Layered-only package list no source states." },
+            { "key": "C", "label": "Purity off; express etc. mapped to presentation", "effect": "typeorm is allowed; express becomes an FF-S01 upward-direction finding through a fixed package-to-layer list (express, koa, fastify). A new mechanism." },
+            { "key": "D", "label": "Purity off, no replacement", "effect": "Both typeorm and express are allowed in Layered business code; loses one blind row (#5)." }
+          ],
+          "recommended": "C",
+          "why": "P1 (no purity row for Layered; Fowler's Active Record) switches FF-P01 off, and Fowler PoEAA ch. 1 says the domain 'should never be dependent on the presentation' (recalled, check the page), which makes the express case a direction fact.",
+          "risk": "high",
+          "risk_note": "The package-to-layer list is the most fit-prone item in U6 and is close to a hand-written rule; G0.9 sends it to D if the external-repo check finds a wrong row.",
+          "source": "Docs/v1.3/construct-decisions.md:351"
+        },
+        {
+          "id": "Q11",
+          "star": false,
+          "title": "Domain must not import application code",
+          "question": "In Hexagonal and DDD, should a domain file that imports from the application layer still be a violation?",
+          "context": "Example: ordering/domain/customer/Customer.ts imports PlaceOrderCommand from ../../application. Both specs split domain from application.",
+          "options": [
+            { "key": "A", "label": "Yes, forbidden by FF-S01", "effect": "No change; FF-S04 stays out of DDD." },
+            { "key": "B", "label": "No, the core is one unit", "effect": "1 hex and 1 ddd blocking row disappear." }
+          ],
+          "recommended": "A",
+          "why": "Evans (DDD Reference 2015 and the 2003 book) and Martin both put the domain below the application layer.",
+          "risk": "low",
+          "risk_note": "Verbatim support; no code change.",
+          "source": "Docs/v1.3/construct-decisions.md:386"
+        },
+        {
+          "id": "Q12",
+          "star": false,
+          "title": "Upward import is not a layer skip",
+          "question": "In Layered, should an upward import between neighbouring layers be reported only as a direction error, not also as a 'skipped layer'?",
+          "context": "Example: persistence/ProductGateway.ts imports business/model/Money. It goes up, but skips nothing. Today it is reported twice, as FF-S01 and FF-S03 (the layer-skip rule).",
+          "options": [
+            { "key": "A", "label": "Report both rules", "effect": "No change; 2 duplicate rows stay." },
+            { "key": "B", "label": "FF-S03 only for downward skips", "effect": "2 Layered false alarms go away; the direction finding stays." }
+          ],
+          "recommended": "B",
+          "why": "Fowler and POSA state two clauses ('lower layers do not use upper ones'; strict layering 'also forbids skipping'), and an upward edge breaks only the first (P2).",
+          "risk": "low",
+          "risk_note": "It can only remove rows; G0.9 checks that no real violation is lost.",
+          "source": "Docs/v1.3/construct-decisions.md:411"
+        },
+        {
+          "id": "Q13",
+          "star": true,
+          "title": "NestJS services may import repositories",
+          "question": "In NestJS, should a service that imports a repository class be allowed, as the NestJS preset's layer order says?",
+          "context": "The NestJS preset declares Controller -> Service -> Repository. ADR-V13-02 wrongly calls it 'Clean layering'. Example: registrations.service.ts imports InMemoryRegistrationRepository.",
+          "options": [
+            { "key": "A", "label": "Preset order; leave FF-P04 as is", "effect": "No blocking change; an advisory rule keeps contradicting the order." },
+            { "key": "B", "label": "Preset order; FF-P04 follows it", "effect": "Same blocking counts; one advisory false alarm goes; fix the ADR-V13-02 wording." },
+            { "key": "C", "label": "Clean order, infrastructure outermost", "effect": "Recovers row #6 but loses an agreed nestjs v02 row; needs Q25 B or precision collapses." }
+          ],
+          "recommended": "B",
+          "why": "The preset states the order, and the NestJS docs' own TypeORM example injects a repository into a service. Before sealing, fix ADR-V13-02's 'Clean layering' claim and re-check that FF-P06 and FF-P07 in nestjs still hold on the preset's own order.",
+          "risk": "medium",
+          "risk_note": "Fixing ADR-V13-02 removes the 'Clean reading' that FF-P06, FF-S04 and FF-P07 use to block in nestjs; those must be re-argued from the preset order.",
+          "source": "Docs/v1.3/construct-decisions.md:437"
+        },
+        {
+          "id": "Q14",
+          "star": false,
+          "title": "Value objects must be immutable",
+          "question": "Should the value-object immutability rule keep blocking, now that the tool also reads readonly fields and setters?",
+          "context": "FF-DT03 (the immutable-value-object rule). Example: Quantity.ts has 'set value(v) { this.current = v; }'. The extractor used to miss accessors; member facts have since been added (the after-member-facts run).",
+          "options": [
+            { "key": "A", "label": "Blocking; unseen half reported N/A", "effect": "g01 is listed as 'not measured' rather than a miss." },
+            { "key": "B", "label": "Warning until the facts exist", "effect": "Rule stops failing verdicts." },
+            { "key": "C", "label": "Blocking, with member facts in the extractor", "effect": "g01 becomes a hit; ddd 10/10. No tier ADR needed, only a note." }
+          ],
+          "recommended": "C",
+          "why": "Evans (DDD Reference p. 12) says 'Treat the value object as immutable' without exception; use A for any part the extractor still cannot see. Note Evans 2003's performance exception in the thesis.",
+          "risk": "low",
+          "risk_note": "Sheet default is 'A, becoming C'; choose C only if the member facts are merged on main.",
+          "source": "Docs/v1.3/construct-decisions.md:473"
+        },
+        {
+          "id": "Q15",
+          "star": true,
+          "title": "Every DDD file inside a context",
+          "question": "Should a DDD file that sits outside every bounded context (like src/utils/formatCurrency.ts) be only a warning, not a failure?",
+          "context": "FF-DS01 (the every-file-in-a-context rule) has no row in the sealed tier table; its blocking tier came from early DDD notes. Evans says contexts need explicit boundaries and shared model code must be designated, but never that every file must belong to a context.",
+          "options": [
+            { "key": "A", "label": "Keep blocking, decide later (sheet default)", "effect": "A rule with no sealed tier row can fail a verdict; must be reported apart in the hold-out (prespec line 59)." },
+            { "key": "B", "label": "Warning, with its own tier row by ADR", "effect": "ddd v07 stops failing; FF-DS02 still blocks any cross-context import." }
+          ],
+          "recommended": "B",
+          "why": "Source and default disagree: the source check calls FF-DS01 'the weakest blocking rule' because Evans (DDD Reference pp. 2, 31) never says every file belongs to a context, so the rule is a project convention, which the tier rules make advisory. By PREC, the source wins.",
+          "risk": "medium",
+          "risk_note": "It is one more ADR, and 'defer' would leave an unsourced blocking rule in force at the freeze.",
+          "source": "Docs/v1.3/construct-decisions.md:501"
+        },
+        {
+          "id": "Q16",
+          "star": false,
+          "title": "DDD projects get the no-cycles rule",
+          "question": "Should DDD projects also be checked for import cycles, like Clean and Layered ones?",
+          "context": "Example: PlaceOrder -> CustomerRepository -> Customer -> PlaceOrder is a real three-file loop in ddd v09 that nothing reported. ADR-V14-01 already added FF-S02 to DDD; this records the answer.",
+          "options": [
+            { "key": "A", "label": "No cycle rule for DDD", "effect": "Contradicts ADR-V14-01, which is already built." },
+            { "key": "B", "label": "Yes, add FF-S02, blocking", "effect": "Records what ADR-V14-01 did; one development run, no second tuning loop." }
+          ],
+          "recommended": "B",
+          "why": "Martin states ADP for components in general (Clean Architecture Part IV, ch. 14), not for one style.",
+          "risk": "low",
+          "risk_note": "Settled in substance by ADR-V14-01; only the answer line is missing.",
+          "source": "Docs/v1.3/construct-decisions.md:528"
+        },
+        {
+          "id": "Q17",
+          "star": false,
+          "title": "Importing through a context's index file",
+          "question": "If one context imports another context's code through that context's index.ts, should that count as using its public API?",
+          "context": "Example: billing imports GetOrderSummary from ordering/index.ts (allowed) versus straight from ordering/application/GetOrderSummary.ts (flagged). The index file is the context's declared public face.",
+          "options": [
+            { "key": "A", "label": "Yes, the index is the public API", "effect": "No change." },
+            { "key": "B", "label": "No, judge the real target file", "effect": "g02 becomes a violation too." },
+            { "key": "C", "label": "Yes, plus a warning for exposed services", "effect": "Same blocking counts; one new advisory rule." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent on re-exports (Evans's Open Host Service is just 'a protocol... as a set of services'), so the context's own declaration decides.",
+          "risk": "low",
+          "risk_note": "Already the tool's behaviour.",
+          "source": "Docs/v1.3/construct-decisions.md:552"
+        },
+        {
+          "id": "Q18",
+          "star": true,
+          "title": "Anti-corruption layer reaching upstream internals",
+          "question": "Should a DDD translation layer (ACL) be forced to use the other context's public API, instead of importing its internal files?",
+          "context": "An anti-corruption layer translates another context's model. Example: billing/acl/OrderingAcl.ts imports ordering/domain/order/value-objects/OrderId.js, an internal file. The sealed rule text exempts ACL folders; Evans says the ACL talks to the other system 'through its existing interface'.",
+          "options": [
+            { "key": "A", "label": "Exempt the ACL (sealed default)", "effect": "No change; n01 stays clean. The thesis must say the rule is broader than Evans." },
+            { "key": "B", "label": "ACL must use the public API", "effect": "n01 becomes a blocking FF-DS02 finding; ddd 9/9." }
+          ],
+          "recommended": "B",
+          "why": "Sealed default and source disagree: Evans (DDD Reference 2015, p. 34) says the ACL 'talks to the other system through its existing interface'. By your principle the source wins, so B.",
+          "risk": "medium",
+          "risk_note": "Changes a sealed rule's wording after seeing the data, so it needs an ADR that cites p. 34 as the reason.",
+          "source": "Docs/v1.3/construct-decisions.md:579"
+        },
+        {
+          "id": "Q19",
+          "star": false,
+          "title": "Any import of an aggregate's inner entity",
+          "question": "Should any outside import of an aggregate's inner entity count, even though Evans allows short-lived use?",
+          "context": "FF-DT01 (the aggregate-boundary rule). Example: an application file imports OrderLine instead of going through the Order root. An import cannot show whether the reference is kept or only used briefly.",
+          "options": [
+            { "key": "A", "label": "Yes, labelled 'stricter than Evans'", "effect": "No change; the thesis states the stricter reading." },
+            { "key": "B", "label": "Only references that are kept", "effect": "The tool cannot check this, so the ddd v01 row disappears." }
+          ],
+          "recommended": "A",
+          "why": "Evans (DDD Reference p. 16) allows transient references, so A is a declared stricter reading; B is the source as written but cannot be checked from imports.",
+          "risk": "low",
+          "risk_note": "Strictly the source favours B; A survives only because it is labelled and unimplementable otherwise.",
+          "source": "Docs/v1.3/construct-decisions.md:604"
+        },
+        {
+          "id": "Q20",
+          "star": false,
+          "title": "Framework reached through one extra hop",
+          "question": "Should the domain-purity rule look only at direct framework imports, not frameworks reached through another file?",
+          "context": "Example: domain/registration-policy.ts imports a repository file, and that file imports @nestjs/common. The direction rules already report the domain-to-repository import.",
+          "options": [
+            { "key": "A", "label": "Direct imports only", "effect": "No change; adjudication row #8 leaves the reference." },
+            { "key": "B", "label": "Count indirect imports too", "effect": "Recovers nothing here and adds 14 blocking false alarms." }
+          ],
+          "recommended": "A",
+          "why": "Martin and Evans are silent on indirect dependencies, and the indirect part is already a direction fault owned by FF-S01 and FF-S04 (P2).",
+          "risk": "low",
+          "risk_note": "No code change.",
+          "source": "Docs/v1.3/construct-decisions.md:629"
+        },
+        {
+          "id": "Q21",
+          "star": true,
+          "title": "Domain events must live in the domain",
+          "question": "Should a domain-event class placed outside the domain layer fail the check, not just warn?",
+          "context": "FF-DT05 (the event-placement rule). Example: billing/application/InvoiceIssued.ts implements DomainEvent but sits in application/. The sealed table calls this a guideline, but Evans's 2015 Reference says an event is part of the domain model and domain code lives in one layer.",
+          "options": [
+            { "key": "A", "label": "Warning, as sealed", "effect": "No change. The reason 'no source states it' must be corrected." },
+            { "key": "B", "label": "Blocking, by ADR", "effect": "ddd v05 fails on this rule too (both keys already list the row)." }
+          ],
+          "recommended": "B",
+          "why": "Sealed default and source disagree: Evans (DDD Reference p. 13) 'Represent each event as a domain object' and p. 10 'Concentrate all the code related to the domain model in one layer'. By PREC the source wins.",
+          "risk": "medium",
+          "risk_note": "It is a two-step inference, and the rule cannot tell a domain event from a system event that wrongly implements the declared type; A stays defensible if you reject PREC.",
+          "source": "Docs/v1.3/construct-decisions.md:655"
+        },
+        {
+          "id": "Q22",
+          "star": false,
+          "title": "Injecting a sibling service in NestJS",
+          "question": "Should the dependency-inversion warning ignore a NestJS service that injects another service of the same layer?",
+          "context": "FF-P02 (the dependency-inversion warning) counts injected concrete classes. Example: RegistrationsService injects WorkshopsService. NestJS docs show this as standard practice. The rule is advisory only.",
+          "options": [
+            { "key": "A", "label": "Count every injected class", "effect": "No change; one advisory false alarm stays." },
+            { "key": "B", "label": "Count only other layers", "effect": "The near-miss false alarm goes; thesis says FF-P02 is DIP across layers only." }
+          ],
+          "recommended": "B",
+          "why": "The NestJS docs ('Providers') show same-layer injection as the style's norm; this is stated as a narrowing of Martin's general DIP (ch. 11), which is not boundary-scoped.",
+          "risk": "low",
+          "risk_note": "Advisory only, but it narrows Martin after a false alarm, so the thesis must call it a narrowing.",
+          "source": "Docs/v1.3/construct-decisions.md:681"
+        },
+        {
+          "id": "Q23",
+          "star": false,
+          "title": "What counts as an entity",
+          "question": "Should the tool treat a class as an entity because it lives in the declared entity folder, rather than because its name ends in 'Entity'?",
+          "context": "FF-P05 (an advisory entity rule). Example: domain/entities/Loan.ts is an entity but has no 'Entity' suffix, so the tool misses it today.",
+          "options": [
+            { "key": "A", "label": "By name suffix", "effect": "No change; two advisory rows stay missed." },
+            { "key": "B", "label": "By the declared layer or folder", "effect": "Two advisory rows are found; template change." }
+          ],
+          "recommended": "B",
+          "why": "Sources silent → the spec decides, and the spec declares entities by folder (domain/entities/**).",
+          "risk": "low",
+          "risk_note": "Advisory only.",
+          "source": "Docs/v1.3/construct-decisions.md:707"
+        },
+        {
+          "id": "Q24",
+          "star": false,
+          "title": "Controllers using domain types directly",
+          "question": "Should it be allowed for an outer adapter to use an inner domain type directly, skipping the use-case layer?",
+          "context": "Example: RoomController calls DateRange.parse from domain/model. The dependency points inward, which the styles allow.",
+          "options": [
+            { "key": "A", "label": "Not a finding", "effect": "No change; 5 advisory or unscored rows stay out." },
+            { "key": "B", "label": "Advisory FF-S03 finding", "effect": "Adds a few advisory rows in hex and clean." }
+          ],
+          "recommended": "A",
+          "why": "Martin's circles constrain direction only, and the sealed FF-S03 reason says inward skipping is allowed outside Layered.",
+          "risk": "low",
+          "risk_note": "No blocking effect.",
+          "source": "Docs/v1.3/construct-decisions.md:733"
+        },
+        {
+          "id": "Q25",
+          "star": false,
+          "title": "Declare roles for wiring and stray files",
+          "question": "Should the presets say outright how the tool treats files like main.ts, NestJS module files and test containers?",
+          "context": "Wiring files (composition roots) import everything by design. Today they stay silent only because no folder pattern happens to match them. A future project could trigger them by accident.",
+          "options": [
+            { "key": "A", "label": "Leave as is", "effect": "No change now; behaviour stays an accident of the folder patterns." },
+            { "key": "B", "label": "Declare them in the presets", "effect": "A 'composition-root' role exempt from layer rules; folder beats file name. One development run, no second tuning." }
+          ],
+          "recommended": "B",
+          "why": "Sources mostly silent (Martin ch. 26 'Main' treats the wiring component as outside the layers), so the spec should state the behaviour rather than leave it to chance.",
+          "risk": "medium",
+          "risk_note": "A preset change after scoring; anything surprising in its one run goes into an ADR, not code.",
+          "source": "Docs/v1.3/construct-decisions.md:765"
+        }
+      ]
+    },
+    {
+      "id": "adr",
+      "title": "Two new rules added after the seal (ADR-V14-01 and -02)",
+      "intro": "Two rules were added after the inputs were frozen: cycle checking for DDD, and FF-P07 (no web framework in application code). Their open parts are marked Proposed and only count in the hold-out if signed before the freeze.",
+      "items": [
+        {
+          "id": "Q-A",
+          "star": false,
+          "title": "How the DDD cycle rule is added",
+          "question": "Should the DDD cycle rule be added by a switch that runs only in the new v1.3 scoring mode, leaving the frozen DDD preset file untouched?",
+          "context": "The DDD preset file is hashed in the sealed inputs, so editing it would break the seal. The overlay adds FF-S02 at compile time instead, and old saved results keep their old scores.",
+          "options": [
+            { "key": "A", "label": "Overlay, v1.3 mode only", "effect": "Every new DDD run is scored with cycles; frozen files and old figures stay the same." },
+            { "key": "B", "label": "Edit presets/ddd.yaml", "effect": "Simpler to read, but changes a sealed file's hash." }
+          ],
+          "recommended": "A",
+          "why": "The sealed FF-S02 tier row ('acyclic dependencies principle; a structural fact') has no style exception, and Martin's ADP is general; the overlay changes membership only.",
+          "risk": "low",
+          "risk_note": "Already built and tested; Q3's answer will also split DDD cycles.",
+          "source": "Docs/v1.4/adr-v14.md:20"
+        },
+        {
+          "id": "Q-B",
+          "star": false,
+          "title": "Which packages application code must avoid",
+          "question": "Should FF-P07 forbid only HTTP server packages (express, fastify, koa, hapi, restify, Nest platform packages) in application code?",
+          "context": "FF-P07 (the application-purity rule) flags a use case that imports the web framework, e.g. 'import { Request } from express' in application/. @nestjs/common, ORMs, DI and validation libraries stay allowed, because every NestJS service needs @Injectable.",
+          "options": [
+            { "key": "A", "label": "HTTP delivery packages only", "effect": "The planted framework-leak seeds are caught; NestJS services stay clean." },
+            { "key": "B", "label": "Every declared framework", "effect": "Fires on every NestJS application service (13 fixture files)." }
+          ],
+          "recommended": "A",
+          "why": "Martin (Clean Architecture ch. 21) says 'the Web is a delivery mechanism' and Cockburn says the use case does not know the delivery mechanism; Martin's broader 'frameworks are details' (ch. 32) is qualified by Martin himself.",
+          "risk": "medium",
+          "risk_note": "The list was narrowed after counting fixture matches, and the seeds plant express, so catching them proves nothing on its own.",
+          "source": "Docs/v1.4/adr-v14.md:64"
+        },
+        {
+          "id": "Q-C",
+          "star": true,
+          "title": "FF-P07 blocks in four styles",
+          "question": "Should a web-framework import in application code fail the check in Clean, Hexagonal, NestJS and DDD?",
+          "context": "Example: application/PlaceOrder.ts imports express. Layered is left out because its business layer is already covered by FF-P01. If signed before the freeze, FF-P07 enters the hold-out's main measures M1 to M6.",
+          "options": [
+            { "key": "A", "label": "Blocking in all four", "effect": "The 12 framework-leak seeds become rule hits; it enters the hold-out; M2 may drop because blind manifests do not expect it." },
+            { "key": "B", "label": "Blocking in Clean and Hex only", "effect": "Advisory in NestJS and DDD, whose own sources say less." },
+            { "key": "C", "label": "Leave unsigned", "effect": "FF-P07 is reported apart from the hold-out (prespec line 59)." }
+          ],
+          "recommended": "A",
+          "why": "Martin ch. 21-22 and Cockburn 2005 for Clean and Hex; Evans's layered architecture puts the UI above the application layer for DDD; for NestJS, after Q13 fixes ADR-V13-02, argue it from the preset's own order (service below controller), not from the 'Clean reading'.",
+          "risk": "high",
+          "risk_note": "It is a new blocking rule after the seal that changes hold-out figures, and its NestJS reason currently rests on the 'Clean reading' that Q13 removes.",
+          "source": "Docs/v1.4/adr-v14.md:68"
+        },
+        {
+          "id": "Q-D",
+          "star": false,
+          "title": "No quick-check copy of FF-P07",
+          "question": "Should the fast MCP file checks list FF-P07 as 'not checked' rather than get a second, TypeScript version of the rule?",
+          "context": "The MCP tools check single files fast. The rule is written once, in Cypher (the graph query language). A TypeScript copy would be a second definition that could drift apart.",
+          "options": [
+            { "key": "A", "label": "Cypher only; list as not checked", "effect": "The mcp@L2 arm's fast tools do not check FF-P07, while the drift score does." },
+            { "key": "B", "label": "Add a TypeScript copy", "effect": "Fast tools check it, but there are two rule definitions." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → your standing rule that Cypher text is the only rule definition (2026-10-15).",
+          "risk": "low",
+          "risk_note": "The gap between what the agent sees and what is scored must be stated in the study.",
+          "source": "Docs/v1.4/adr-v14.md:77"
+        },
+        {
+          "id": "Q-E",
+          "star": false,
+          "title": "Do the new rules count in the hold-out",
+          "question": "If Q-C is signed before the freeze, should FF-P07 and the DDD cycle rule count in the hold-out's main measures?",
+          "context": "The hold-out pre-registration allows tier ADRs merged at the freeze, and keeps undecided rules apart (line 59). Its blind answer keys were written from the sealed sources, so they do not expect FF-P07 rows.",
+          "options": [
+            { "key": "A", "label": "Enter M1-M6 if signed in time", "effect": "Sealed-scope figures are reported next to them; M2 per style may drop." },
+            { "key": "B", "label": "Always report them apart", "effect": "Main hold-out figures stay on the sealed rule set only." }
+          ],
+          "recommended": "A",
+          "why": "The hold-out pre-registration (holdout-prespec line 13) scores with the tier ADRs merged at the freeze commit, so a signed rule belongs in.",
+          "risk": "medium",
+          "risk_note": "Mixing post-seal rules into the main measures can lower them, and both scopes must be shown.",
+          "source": "Docs/v1.4/adr-v14.md:89"
+        }
+      ]
+    },
+    {
+      "id": "adjudication",
+      "title": "The 9 rows where the blind reader disagrees",
+      "intro": "On these rows the independent blind reader expected a failure that the tool and your own answer key do not. Your verdict sets the development reference used for the recall target, so it must be signed before the freeze; it never touches the hold-out.",
+      "items": [
+        {
+          "id": "ADJ-1",
+          "star": false,
+          "title": "Clean v01: layer cycle without file loop",
+          "question": "Should this row, a domain file importing an application port, stay out of the 'cycle' count?",
+          "context": "domain/entities/Loan.ts imports application/ports/Clock.ts. The upward import is already a blocking direction finding. The blind reader also called it a cycle between layers. Rows #1-#4 must get the same verdict.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "Needs Q4 B (+11 rows elsewhere), or stays a permanent declared miss." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged in the report." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q4 A: Martin does not treat a layer as an ADP component, and the edge is already reported (P2).",
+          "risk": "low",
+          "risk_note": "The adjudicated figure is not an independent recall estimate; V4 uses the blind figure.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:49"
+        },
+        {
+          "id": "ADJ-2",
+          "star": false,
+          "title": "Clean v09: layer cycle without file loop",
+          "question": "Should this row, an application DTO importing an HTTP type, stay out of the 'cycle' count?",
+          "context": "application/dto/LoanDto.ts imports infrastructure/http/HttpTypes.ts. Already a blocking direction finding; no file loop exists.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "Needs Q4 B, or stays a permanent declared miss." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q4 A (Martin ch. 14: ADP is over components; P2).",
+          "risk": "low",
+          "risk_note": "Same verdict as #1, #3, #4 unless you write a row-specific reason.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:50"
+        },
+        {
+          "id": "ADJ-3",
+          "star": false,
+          "title": "Layered v01: layer cycle without file loop",
+          "question": "Should this row, a persistence gateway importing a business type, stay out of the 'cycle' count?",
+          "context": "persistence/ProductGateway.ts imports business/model/Money.ts. Already a blocking direction finding; no file loop exists.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "Needs Q4 B, or stays a permanent declared miss." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q4 A; scoping Q4 B to Layered only would be a tweak with no source.",
+          "risk": "low",
+          "risk_note": "Layered is a confirmatory style, so this row affects its 0.90 bar against the blind figure.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:51"
+        },
+        {
+          "id": "ADJ-4",
+          "star": false,
+          "title": "Layered v02: layer cycle without file loop",
+          "question": "Should this row, a business service importing a view, stay out of the 'cycle' count?",
+          "context": "business/services/OrderService.ts imports presentation/views/OrderView.ts. Already a blocking direction finding; no file loop exists.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "Needs Q4 B, or stays a permanent declared miss." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q4 A (P2).",
+          "risk": "low",
+          "risk_note": "Same group as #1-#3.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:52"
+        },
+        {
+          "id": "ADJ-6",
+          "star": false,
+          "title": "NestJS v07: service imports repository",
+          "question": "Should a NestJS service importing a concrete repository be judged allowed, as the preset's layer order says?",
+          "context": "registrations.service.ts imports in-memory-registration.repository.ts. The preset says Controller -> Service -> Repository, so the edge is allowed; only an advisory DIP warning applies.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "Needs Q13 C + Q25 B: net +1 and -1, since an agreed nestjs v02 row becomes a miss." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q13 B: the preset states the order, and the NestJS docs' TypeORM example injects a repository into a service.",
+          "risk": "low",
+          "risk_note": "No single layer order makes both blind nestjs rows violations.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:80"
+        },
+        {
+          "id": "ADJ-7",
+          "star": false,
+          "title": "NestJS v07: concrete repository, port rule",
+          "question": "Should injecting the concrete repository stay out of the port-placement rule, since other rules own it?",
+          "context": "Same file as #6. The blind reader called it FF-P03 (port placement). The service is a user of the class, not its implementer. Rows #7, #10, #13 share Q7.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "Needs Q7 B: +3 hits but +4 blocking false alarms." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q7 A: Martin ch. 11 (DIP) covers users of concrete classes, and that is FF-P02's job (P2).",
+          "risk": "low",
+          "risk_note": "Same verdict as #10 and #13 unless you write a reason.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:70"
+        },
+        {
+          "id": "ADJ-8",
+          "star": false,
+          "title": "NestJS v10: framework reached indirectly",
+          "question": "Should a domain policy that reaches @nestjs/common only through a repository file stay out of the purity rule?",
+          "context": "domain/registration-policy.ts imports a repository, which imports @nestjs/common. FF-S01 and FF-S04 already block this edge, and @nestjs/common is not on the preset's forbidden list.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "No switch recovers it; Q20 B adds 14 false alarms. A permanent declared miss." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q20 A: Martin and Evans are silent on indirect dependencies, and adding @nestjs/common to the list would be a tweak.",
+          "risk": "low",
+          "risk_note": "None beyond the general adjudication caveat.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:99"
+        },
+        {
+          "id": "ADJ-10",
+          "star": false,
+          "title": "Hex v03: use case takes concrete adapter",
+          "question": "Should a use case that takes a concrete repository stay out of the port-placement rule?",
+          "context": "application/services/FindAvailableRoomsService.ts imports InMemoryRoomRepository. FF-S01 already blocks it (and FF-S04 under Q6 B). The blind package had no ports/out/ folder, so the blind reader could not see the ports.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "Needs Q7 B, as #7." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q7 A (Cockburn and Martin ch. 22-23 describe the implementer; P2).",
+          "risk": "low",
+          "risk_note": "The missing ports/out/ folder weakens the blind reading but is a reason only you can apply per row.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:71"
+        },
+        {
+          "id": "ADJ-13",
+          "star": false,
+          "title": "Hex v05: controller reads database adapter",
+          "question": "Should the controller-imports-repository edge stay out of the port-placement rule, given it is caught as adapter-to-adapter?",
+          "context": "adapters/inbound/http/RoomController.ts imports adapters/outbound/persistence/InMemoryRoomRepository.ts. Under Q5 C or D it already blocks under its own rule.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "The row leaves the adjudicated reference." },
+            { "key": "blind", "label": "Blind is right", "effect": "Needs Q7 B, as #7." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q7 A and P2: the edge is owned by the Q5 rule.",
+          "risk": "low",
+          "risk_note": "Same ports/out/ caveat as #10.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:72"
+        },
+        {
+          "id": "N1",
+          "star": false,
+          "title": "Hex v02 core-isolation row, if Q6=B",
+          "question": "If you chose Q6 B, should the hex v02 domain-to-application-port row stop counting as a core-isolation breach?",
+          "context": "Only needed if Q6 = B. Under B the application is inside the core, so a domain file importing an application port no longer leaves the core. FF-S01 still reports it (Q11 A). Both answer keys listed it, so manifests are not edited; only the adjudicated view changes.",
+          "options": [
+            { "key": "spec", "label": "Spec is right", "effect": "Removed from the adjudicated view; hex 15/15." },
+            { "key": "blind", "label": "Keep it", "effect": "Keeps the miss Q6 B causes; hex 15/16." },
+            { "key": "undecided", "label": "Undecided", "effect": "Stays expected and is flagged." }
+          ],
+          "recommended": "spec",
+          "why": "Follows Q6 B (Cockburn's hexagon is the whole application, no inner split) and Q11 A.",
+          "risk": "low",
+          "risk_note": "Skip this row entirely if Q6 = A.",
+          "source": "aidlc-docs/construction/v1.4/U6/functional-design/adjudication-sheet.md:114"
+        }
+      ]
+    },
+    {
+      "id": "gate0",
+      "title": "U6 Gate 0: process decisions for the recall fixes",
+      "intro": "U6 applies the four rule fixes (Q5, Q6, Q10, Q12) and cannot start until these are ticked. G0.2, G0.3 and G0.4 are covered by the groups above; the refutation criteria must be dated before U6's fresh checks run, or the fixes read as tuned to the misses.",
+      "items": [
+        {
+          "id": "G0.1",
+          "star": false,
+          "title": "Confirm the decision sheet as written",
+          "question": "Do you confirm that D1 means 'decision sheet as written, no changes', so U6 can proceed on it?",
+          "context": "D1 was first 'confirm with changes', then settled on 2026-10-18 as 'confirm as written'. The plan item asks you to re-read it and check the plan against it.",
+          "options": [
+            { "key": "A", "label": "Yes, as written", "effect": "G0.1 is ticked; no plan change." },
+            { "key": "B", "label": "No, I have changes", "effect": "U6 waits for the changes to be written in ops/decisions.md." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → your own record, ops/decisions.md:34, already says 'as written, with no changes'.",
+          "risk": "low",
+          "risk_note": "Formal tick only.",
+          "source": "aidlc-docs/construction/v1.4/U6/plan.md:32"
+        },
+        {
+          "id": "G0.5",
+          "star": false,
+          "title": "Download external repos for checks",
+          "question": "May the agent download the 5 external Layered repos and the real Hex/DDD projects (install with --ignore-scripts) for the fresh checks?",
+          "context": "The Q5, Q10 and Q12 checks need real code that is not in the repo. It is a network step, with no model calls. Without it, those checks are skipped and noted.",
+          "options": [
+            { "key": "A", "label": "Approve, pinned commits, no scripts", "effect": "The fresh checks run, so G0.9 can actually withdraw a fix." },
+            { "key": "B", "label": "Skip and note", "effect": "Q10 stays provisional; the thesis says the fixes were not checked on real code." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → without the checks, the refutation criteria (G0.9) cannot fire, which weakens the 'not tuned to the misses' claim.",
+          "risk": "low",
+          "risk_note": "Public code at pinned commits, installed without running scripts.",
+          "source": "aidlc-docs/construction/v1.4/U6/plan.md:43"
+        },
+        {
+          "id": "G0.6",
+          "star": false,
+          "title": "Who runs the Neo4j re-run",
+          "question": "Will you run the one Neo4j development re-run and the blind scoring yourself, since agents may not open the sealed folder?",
+          "context": "Freeze runbook step 3 is the only development run of the cycle. The blind scoring step reads daedalus-sealed/, which agents are forbidden to open.",
+          "options": [
+            { "key": "A", "label": "I run both (author)", "effect": "The record run happens once, after all 25 answers are applied." },
+            { "key": "B", "label": "Name another person", "effect": "That person needs sealed-folder access and the runbook." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → the runbook and U6 plan already make these author-run steps.",
+          "risk": "low",
+          "risk_note": "Time cost on your side.",
+          "source": "aidlc-docs/construction/v1.4/U6/plan.md:44"
+        },
+        {
+          "id": "G0.7",
+          "star": false,
+          "title": "One ADR or four",
+          "question": "Should the construct answers be recorded as one ADR (ADR-V13-03, one section per question) and entered now in the single deviation list?",
+          "context": "Each tier or rule change needs an ADR with a construct reason. The code's TODO comments already point to ADR-V13-03. The deviation list (G14) is the one dated list the director sees.",
+          "options": [
+            { "key": "A", "label": "One ADR-V13-03, listed now", "effect": "Matches the code and the freeze check; one place to read." },
+            { "key": "B", "label": "Four separate ADRs", "effect": "Code comments and freeze check must be updated." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → construct-decisions 'After answering' (:800) already proposes ADR-V13-03.",
+          "risk": "low",
+          "risk_note": "Pure bookkeeping.",
+          "source": "aidlc-docs/construction/v1.4/U6/plan.md:45"
+        },
+        {
+          "id": "G0.8",
+          "star": true,
+          "title": "Change the scorers or not",
+          "question": "Should the registered scoring scripts stay unchanged, so the results are reported exactly as they compute them?",
+          "context": "The fix figures exist only in an offline re-score. The registered scorers (ue-score, hold-out score) do not read the construct answers. This choice decides Q5: without scorer changes, only Q5 C shows its gain.",
+          "options": [
+            { "key": "a", "label": "Make scorers read the answers", "effect": "Q5 D can score; costs one more declared scoring deviation and a new approved unit before the record run." },
+            { "key": "b", "label": "No scorer change", "effect": "Registered figures are reported as computed; Q5 C is the answer; Q10 leaves some author-key FF-P01 rows as misses." }
+          ],
+          "recommended": "b",
+          "why": "Sources silent → fewer post-seal deviations, and the hold-out keeps its registered scoring procedure.",
+          "risk": "medium",
+          "risk_note": "Under (b) the author-view figure for Layered looks worse, because the author key still lists FF-P01 rows.",
+          "source": "aidlc-docs/construction/v1.4/U6/plan.md:46"
+        },
+        {
+          "id": "G0.9-Q5",
+          "star": true,
+          "title": "When to withdraw the adapter rule",
+          "question": "Do you agree to withdraw Q5 (back to A) if any planted adapter defect is missed, any clean twin fails, or any real-code row is judged wrong and not also caught by FF-S01?",
+          "context": "MO-H03 seeds are planted 'controller imports database adapter' defects; twins are look-alike clean copies. The real-code rows come from the actual hex/ddd projects and are read by the C3 correctness procedure. This must be signed and dated before the check runs.",
+          "options": [
+            { "key": "A", "label": "Sign as drafted", "effect": "A failed check sends Q5 back to A; nothing else may change." },
+            { "key": "B", "label": "Amend the criterion", "effect": "Write the new result that withdraws it, before the check." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → U6 design guard 6 drafts these defaults so the fix can be refuted, which is what answers 'tuned to the misses' (REV-05).",
+          "risk": "low",
+          "risk_note": "MO-H03 is a hexagonal operator only, so ddd has no seeded check; the run notes must say so.",
+          "source": "ops/notes/signing-sheet-2026-10-19.md:107"
+        },
+        {
+          "id": "G0.9-Q6",
+          "star": true,
+          "title": "When to withdraw the hexagon-core change",
+          "question": "Do you agree to withdraw Q6 B (back to A) if any planted 'use case uses concrete adapter' defect is missed, or any clean twin fails?",
+          "context": "MO-H02 seeds plant a use case that takes a concrete outbound adapter. The check expects FF-S04 on every seed and nothing on the twins.",
+          "options": [
+            { "key": "A", "label": "Sign as drafted", "effect": "A failed check sends Q6 back to A." },
+            { "key": "B", "label": "Amend the criterion", "effect": "Write the new result that withdraws it, before the check." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → U6 design guard 6 default.",
+          "risk": "low",
+          "risk_note": "Q6 B finds no new edge, so this check tests relabelling, not detection.",
+          "source": "ops/notes/signing-sheet-2026-10-19.md:108"
+        },
+        {
+          "id": "G0.9-Q10",
+          "star": true,
+          "title": "When the Layered mapping falls back",
+          "question": "Do you agree that Q10 moves from C to D if any purity or new package-direction row on the 5 external Layered repos is judged wrong and not also caught by FF-S01?",
+          "context": "The external repos have real FF-P01 rows that disappear under C, and C adds package-direction rows for express, koa and fastify. Each listed row is read by the C3 correctness procedure.",
+          "options": [
+            { "key": "A", "label": "Sign as drafted", "effect": "A failed check sends Q10 to D (no mapping)." },
+            { "key": "B", "label": "Amend the criterion", "effect": "Write the new result before the check." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → U6 design guard 6; it guards the highest-risk item (the hand-written package list).",
+          "risk": "low",
+          "risk_note": "If G0.5 is skipped this criterion never fires, and Q10 C stays untested.",
+          "source": "ops/notes/signing-sheet-2026-10-19.md:109"
+        },
+        {
+          "id": "G0.9-Q12",
+          "star": true,
+          "title": "When to withdraw the upward-skip fix",
+          "question": "Do you agree to withdraw Q12 B if any upward edge it stops reporting on the 5 external repos is not caught by FF-S01 either?",
+          "context": "Q12 B only removes FF-S03 rows on neighbouring upward imports. The risk is losing a real violation that no other rule reports.",
+          "options": [
+            { "key": "A", "label": "Sign as drafted", "effect": "A failed check sends Q12 back to A." },
+            { "key": "B", "label": "Amend the criterion", "effect": "Write the new result before the check." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → U6 design guard 6 default.",
+          "risk": "low",
+          "risk_note": "Q12 B is low risk by construction, so this check should pass.",
+          "source": "ops/notes/signing-sheet-2026-10-19.md:110"
+        },
+        {
+          "id": "G0.10",
+          "star": false,
+          "title": "When the answers commit lands",
+          "question": "Should the commit that applies the answers land only after other units' development runs, or with each run note recording the switch-block hash?",
+          "context": "Once the answers are applied, every v1.3 evaluate, loop run and architect report runs under them. Another unit's half-finished development run would silently change.",
+          "options": [
+            { "key": "A", "label": "After other units' runs", "effect": "No figure changes mid-run; U6 may wait." },
+            { "key": "B", "label": "Land now; record the hash", "effect": "Faster, but every run note must state which answers it ran under." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → the one-development-run rule (freeze runbook step 3) favours a single, sequenced switch.",
+          "risk": "low",
+          "risk_note": "Only an ordering choice; v1.2E is unaffected either way.",
+          "source": "aidlc-docs/construction/v1.4/U6/plan.md:48"
+        }
+      ]
+    },
+    {
+      "id": "mean01",
+      "title": "MEAN-01 sign-off: meaning labels",
+      "intro": "MEAN-01 asks whether correct findings matter to a real reviewer. Its rules become binding on the day you sign, and that date must be before the first label, or the labels can be called fitted afterwards.",
+      "items": [
+        {
+          "id": "L4",
+          "star": false,
+          "title": "Record the 'meaningful' definition",
+          "question": "Do you record that 'meaningful' means 'a competent developer of that style would ask for this to change in review'?",
+          "context": "Already settled on 2026-10-18 as the practitioner reading (field A). Field B (style fidelity) is still collected beside it. This only writes it into §12.",
+          "options": [
+            { "key": "A", "label": "A, practitioner", "effect": "Field A is primary; the kappa gate runs on A." },
+            { "key": "B", "label": "B, style fidelity", "effect": "Reverses the 2026-10-18 decision." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → your decision of 2026-10-18 (ops/decisions.md:35).",
+          "risk": "low",
+          "risk_note": "Recording only.",
+          "source": "ops/notes/mean-01-codebook-and-sample.md:33"
+        },
+        {
+          "id": "R3",
+          "star": false,
+          "title": "Test code breaks no style principle",
+          "question": "Should findings in test, mock or fixture code always get 'no' for style fidelity?",
+          "context": "Style books describe production structure, not tests. Example: a test file importing a database adapter. The rater still answers field A as a reviewer would.",
+          "options": [
+            { "key": "A", "label": "Accept R3", "effect": "4 test-path items get B = no." },
+            { "key": "B", "label": "Reject R3", "effect": "Raters judge test code on its own." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent on test code → P1 (codebook R1): no stated constraint means B = no.",
+          "risk": "low",
+          "risk_note": "Affects field B only.",
+          "source": "ops/notes/mean-01-codebook-and-sample.md:50"
+        },
+        {
+          "id": "R4",
+          "star": false,
+          "title": "Cycles matter only across boundaries",
+          "question": "Should a cycle count as breaking a style principle only when it crosses a named boundary (two layers, modules or contexts)?",
+          "context": "Same idea as Q3. Example: two files in one layer importing each other gets B = no. If rejected, calibration item C4's worked answer changes to B = yes.",
+          "options": [
+            { "key": "A", "label": "Accept R4", "effect": "Settles Q3 for field B only; in-layer cycles get B = no." },
+            { "key": "B", "label": "Reject R4", "effect": "Any cycle can get B = yes; C4 must be rewritten before labelling." }
+          ],
+          "recommended": "A",
+          "why": "Martin (Clean Architecture ch. 12 and 14) states ADP for components, which is the same reason as Q3 C; keep the two consistent.",
+          "risk": "medium",
+          "risk_note": "Likely to be contested afterwards, so it must be signed now with the codebook.",
+          "source": "ops/notes/mean-01-codebook-and-sample.md:51"
+        },
+        {
+          "id": "R5",
+          "star": false,
+          "title": "Judge the file's real role",
+          "question": "If a file is mapped to the wrong layer, should the rater judge it by what it really does and mark it 'M'?",
+          "context": "Example: a wiring file mapped to the domain layer by a folder pattern. Code M lets the analysis run with and without such mapping artefacts.",
+          "options": [
+            { "key": "A", "label": "Accept R5", "effect": "Mapping errors are coded M and analysed separately." },
+            { "key": "B", "label": "Reject R5", "effect": "Raters judge the file as mapped, even if wrong." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → judging the real role keeps a spec-mapping error from passing as a meaning result.",
+          "risk": "low",
+          "risk_note": "None noted.",
+          "source": "ops/notes/mean-01-codebook-and-sample.md:52"
+        },
+        {
+          "id": "KAPPA-DATE",
+          "star": false,
+          "title": "Date the agreement statistic",
+          "question": "Will you date the kappa definition (pass if kappa is at least 0.60 on field A, n = 60) today, before any label exists?",
+          "context": "Kappa measures agreement between the rater and you. Dating it before the first label is what closes gate V6. After the date it is binding, with no second chance.",
+          "options": [
+            { "key": "A", "label": "Date it on signing", "effect": "Binding from that date; V6 can close once the pointers exist." },
+            { "key": "B", "label": "Wait", "effect": "No labelling may start until it is dated." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → MEAN-01 §4 and gate V6 require the date before the first label.",
+          "risk": "low",
+          "risk_note": "Must be earlier than the first label commit.",
+          "source": "ops/notes/mean-01-codebook-and-sample.md:67"
+        },
+        {
+          "id": "SAMPLE-HASH",
+          "star": false,
+          "title": "Freeze the 60-item sample",
+          "question": "Will you compute and record the sample's full sha256 yourself, without the agent opening the sample?",
+          "context": "Run 'shasum -a 256' on the sample file. The expected prefix is d4697ec5377d6fdc. After that the sample is frozen.",
+          "options": [
+            { "key": "A", "label": "Record the hash now", "effect": "The sample freezes; any later change is visible." },
+            { "key": "B", "label": "Not yet", "effect": "The sample is not frozen; labelling cannot start." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → MEAN-01 §6 freezes the sample at sign-off.",
+          "risk": "low",
+          "risk_note": "If the prefix does not match, stop and ask.",
+          "source": "ops/notes/mean-01-codebook-and-sample.md:155"
+        },
+        {
+          "id": "V6-PTR",
+          "star": false,
+          "title": "Add pointers in three frozen docs",
+          "question": "Will you add one line each to validation-protocol §3, labelling §6 and human-labelling-protocol §6 pointing to the MEAN-01 kappa definition?",
+          "context": "Gate V6 needs one kappa definition that the older documents point to. Those documents are frozen, so the edit is yours, not an agent's.",
+          "options": [
+            { "key": "A", "label": "Add the three lines", "effect": "V6 can turn green." },
+            { "key": "B", "label": "Leave them", "effect": "V6 stays red." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → MEAN-01 blocker B4.",
+          "risk": "low",
+          "risk_note": "A one-line pointer, but it touches frozen files, so date it.",
+          "source": "ops/notes/mean-01-codebook-and-sample.md:300"
+        },
+        {
+          "id": "FIELD-A-DATE",
+          "star": false,
+          "title": "Deadline for practitioner labels",
+          "question": "Do you accept 2026-11-30 as the date by which field A labels are done, before chapters 7 to 9?",
+          "context": "Proposed in MEAN-02 §0 (on branch v14/c4-mean02-design, not yet on main). If the date is missed, the thesis says field A is unmeasured.",
+          "options": [
+            { "key": "A", "label": "Accept 2026-11-30", "effect": "Labelling is booked before the chapters." },
+            { "key": "B", "label": "Set another date", "effect": "Write it in; chapters wait or say 'unmeasured'." }
+          ],
+          "recommended": "A",
+          "why": "Sources silent → it is a scheduling choice from MEAN-02 §0.",
+          "risk": "medium",
+          "risk_note": "Depends on a qualified rater being booked (MEAN-01 blocker B2), which is still open.",
+          "source": "ops/notes/signing-sheet-2026-10-19.md:99"
+        }
+      ]
+    }
+  ]
+}
