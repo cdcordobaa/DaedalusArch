@@ -24,7 +24,7 @@
 
 | Setting | Value |
 |---|---|
-| Generator | `claude-code-cli`, `claude-sonnet-5-5`, `cliVersion` **2.1.304** (the version installed, auto-update off). The live plan probes `claude --version` and stops on a mismatch (`LOOP_CLI_VERSION_MISMATCH`). Record `claude --version` in the run log |
+| Generator | `claude-code-cli`, `claude-sonnet-5-5`, `cliVersion` **2.1.304** (the version installed, auto-update off). The live plan probes `claude --version` and stops on a mismatch (`LOOP_CLI_VERSION_MISMATCH`). Record `claude --version` in the run log. The freeze did not re-pin the Claude CLI (D1; rehearsal finding F4), so the pre-registration states this pin |
 | Generator argv | the freeze tag's `buildGeneratorArgs`: `--setting-sources ""`, `--settings {autoMemoryEnabled:false, disableAllHooks:true}`, `--disable-slash-commands`, `--strict-mcp-config` (DELEG3; PR #311, merged at `2c1d5576`, inside the tag) |
 | Isolation | per-run HOME isolation **off**, as declared for 2a (no `generatorIsolation` block; S3) |
 | MCP (`mcp@L2` only) | the server built at the freeze tag (§2), started with `--confine`, outside every cwd; only `daedalus-arch` through `--strict-mcp-config`; the spec-only tools allowed by exact name; `evaluate_project` denied (`--disallowedTools`) |
@@ -91,7 +91,7 @@ Read only the lines it prints. They must be:
 - `tasks with acceptance.startCommand: 4 of 4` (see the rehearsal report, finding F2: the skeleton `package.json` has no `start` script and must stay byte-identical, so without a task `startCommand` every acceptance record is `no-start-command`);
 - three plans with `maxCalls` 20R, 16R and 16R, and `total maxCalls 52R`; exit 0.
 
-Any other line is a red gate item: STOP and tell the author. Do not open the sealed folder to look.
+Any other line is a red gate item: STOP and tell the author. Do not open the sealed folder to look. If the start-block count is below 4, D12 cannot be met as the plans stand. The ways out are listed in the rehearsal report, finding F2. Choosing one is the author's or the coordinator's decision, recorded as a dated deviation before the run.
 
 ## 4. Zero-call dry run of the real plans (no model)
 
@@ -145,7 +145,7 @@ npx tsx scripts/v1.4/mcp-telemetry.ts --out-root $S/run/mcp --out $O/mcp-telemet
 What each gives, and the check:
 - `rescore/analysis.json`: `snapshots.evaluationFailures` must be 0. `findings.byVerdict` gives the check-correct labels; the registered D counts `correct` only. `summaries.registered` is D per cell; `ratios` are against `none@L2`. `runs.json` has D, Y₁, Yₖ and the inherited-removal counts per run, in three readings. The `stopCheck` and `semanticSample` fields are 2a items and are not 2b outcomes.
 - `exposure/<cell>/exposure.json`: opportunities and violations per rule; exit 0 means every row check passed and every recorded count matched.
-- `telemetry/<cell>.json`: 0 problems. `mcp-telemetry/telemetry.json`: calls per tool, turns that used each tool, check verdicts, and `logMismatches` (must be 0).
+- `telemetry/<cell>.json`: 0 problems for `none@L2` and `none@L3`. For `mcp@L2`, exactly 2 lines per run, both `step-01` ("no process block", "call log missing"): that is the inherited step-1 record, which has no MCP turn (rehearsal finding F3). Any other line is a problem. `mcp-telemetry/telemetry.json`: calls per tool, turns that used each tool, check verdicts, and `logMismatches` (must be 0).
 - The confirmatory contrasts (H1, H2, the equivalence) are computed from `runs.json` as the pre-registration fixes them. This runbook does not compute them.
 
 Afterwards: copy the step records, call logs and score files into `results/v1.4-study2b/` with no absolute path (`npm run lint:citations`), and remove the worktree (`git -C <repo> worktree remove $W`).
