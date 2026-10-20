@@ -2643,3 +2643,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, pre-registration drafting (placeholders P1–P4); zero model calls; nothing under daedalus-sealed/ or the MEAN-01 sample read
 
 ---
+
+## Study 2b — DELEG7 (sample size N = 40)
+**Timestamp**: 2026-10-20T10:49:52Z
+**User Input**: "(standing GO-2B) Make red gate items green where realistic."
+**AI Response**: "D3 power was red: with Claude only, the registered power rule demoted H1 and H2 at 16 blocks. Ran the registered pilotPower and the draft's resampling step on an extended grid (zero calls). Both pass at N = 40 (H1 0.91/0.98/0.99 and 0.879 at half size; H2 0.90/0.98/0.99 and 1.000). Set N = 40, r = 10, 520 turns, cap 780; recorded as DELEG7; pre-registration P11 closed."
+**Context**: Study 2b pre-registration, before dating
+
+---

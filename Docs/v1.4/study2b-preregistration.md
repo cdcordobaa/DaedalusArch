@@ -158,7 +158,24 @@ The Monte Carlo SE at 0.80 with 2,000 simulations is about 0.009. H2's 0.805 at 
 | H2 | 0.50 | 14.0 | 0.34 / 0.52 / 0.60 → demote | 20 (0.805) | **demoted to secondary by step 2.** Step 3 alone would keep it at N = 20 (see below) |
 | H3 | 0.50 | 14.0 | — | — | Holm family, not powered; power at N = 20 is 0.030 (2a size) and 0.015 (half size) |
 
-**N = 20, from the step 3 rule, set by H2 alone. r = 5; turns = 13 × 20 = 260; turn cap = 1.5 × 260 = 390.**
+**Resolved by DELEG7 (2026-10-20, before dating; `ops/decisions.md`): N = 40, r = 10; turns = 13 × 40 = 520; turn cap = 1.5 × 520 = 780.**
+
+- **Why the grid was extended.** The registered design had 32 blocks over two generators (4 tasks × 4 replicates × 2). With Claude only (§2, Gemini), the registered script's default grid gives 16 blocks, and both contrasts fail. The grid of both steps is therefore extended to the smallest Claude-only N at which **both** step 2 (registered, binding) and step 3 (half size) reach 0.80 for H1 and H2. No test, α, Holm rule, power bar or θ band changed.
+- **Step 2,** the registered `pilotPower` (same inputs, seed 20261018, 2,000 simulations; θ 1 / 4 / ∞):
+
+  | Blocks | H1 | H2 | Keep |
+  |---|---|---|---|
+  | 16 | 0.34 / 0.53 / 0.61 | 0.34 / 0.52 / 0.60 | no |
+  | 24 | 0.62 / 0.83 / 0.89 | 0.64 / 0.82 / 0.88 | no |
+  | 32 | 0.78 / 0.93 / 0.97 | 0.79 / 0.93 / 0.97 | no |
+  | **40** | **0.91 / 0.98 / 0.99** | **0.90 / 0.98 / 0.99** | **yes** |
+- **Step 3,** `resamplePower` (seed 20261021, 2,000 simulations, α′ 0.0167):
+
+  | Contrast | N = 32, 2a size / half | N = 40, 2a size / half |
+  |---|---|---|
+  | H1 | 0.936 / 0.746 | 0.986 / **0.879** |
+  | H2 | 1.000 / 0.993 | 1.000 / **1.000** |
+- **H1 and H2 stay confirmatory at N = 40.** H3 is in the Holm family and not powered.
 
 **What §3 gives, read as written. The coordinator decides this before dating, and it is not decided here.**
 1. **Steps 2 and 3 disagree on H2.** Step 2 demotes "a contrast with power below 0.80 for any θ of the band", and step 4 says "a contrast is never kept confirmatory below 0.80". Read literally, H2 fails step 2, so **both directional contrasts are demoted**. The Holm family would then hold H3 only, and H3 is not powered.
@@ -291,7 +308,7 @@ If either part fails or cannot be run, 2b is reported under the drift record's f
 | S15 no model labeller | AMBER | Met | — |
 | D1 pilot | RED | **Deviation**: 2a stands in for the pilot (§8) | — |
 | D2 no banned term; frames identical | AMBER | Sealed hint audit 0 FAIL (seal record) | — |
-| D3 power ≥ 0.80 | RED | §3, **P3 filled**. The registered script (step 2) gives 0.34–0.61 for H1 and H2 at 16 blocks, so both are demoted. Resampling (step 3) reaches 0.805 for H2 only, at N = 20. Not green: the step 2 / step 3 reading is open (P11) | — |
+| D3 power ≥ 0.80 | GREEN (at N = 40) | §3, P3 and DELEG7: at N = 40 both step 2 (0.90–0.99) and step 3 at half size (H1 0.879, H2 1.000) clear 0.80 for H1 and H2 | DELEG7 |
 | D4 cost and budget | AMBER | 2a cost on file; budget = §3 step 4 | — |
 | D5 MCP latency live | AMBER | 2a `mcp@L2` live; not measured against the bar | — |
 | D6 telemetry checker; call log outside cwd | RED | 2a call logs exist outside the cwd; checker not re-taken | — |
@@ -357,11 +374,12 @@ If either part fails or cannot be run, 2b is reported under the drift record's f
 | P8 | Registration date, OSF id, embargo, go commit, run commit, this file's sha256 | open | the coordinator, at registration (§9 step 5) |
 | P9 | Gemini extension: model id, agy pin, S4 result, date | open | the coordinator, before the extension's first call (after about 2026-10-25) |
 | P10 | Fable review reference and responses | open | the Fable review, §9 step 3, before dating |
-| P11 | The P3 reading: steps 2 and 3 disagree on H2. Either both H1 and H2 are demoted (literal reading; 2b is then exploratory under the fallback), or a dated deviation (§8) says which step governs. Also step 4's budget and date check for 260 turns | open | the coordinator or the author, as a dated decision, before dating and before the Fable review closes |
+| P11 | The P3 reading | **closed by DELEG7**: N = 40, chosen as the smallest Claude-only N where step 2 and step 3 both pass; H1 and H2 confirmatory | — |
 
 Seeds fixed now: sign-flip and bootstrap `20261021`; the power script `20261018` (its registered seed).
 
 ## Changelog
+- 2026-10-20: **DELEG7.** P11 closed: grid extended to N = 40 (r = 10, 520 turns, cap 780), where both power steps pass for H1 and H2. The table is in §3. Still DRAFT and not dated; the Fable review follows.
 - 2026-10-20: first draft (DRAFT, not registered). Zero model calls.
 - 2026-10-20: P1–P4 filled from 2a Stage C at the freeze tag (zero model calls).
   - **What ran.** Step 2 ran through the registered script; step 3 through the new `scripts/v1.4/study2b-power.ts`, with a test. Results are in `results/v1.4-study2b-power/`.
