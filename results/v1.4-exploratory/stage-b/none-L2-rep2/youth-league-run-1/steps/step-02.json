@@ -1,0 +1,162 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/youth-league/none/run-1",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "youth-league",
+    "arm": "none",
+    "runIndex": 1
+  },
+  "stepIndex": 1,
+  "stepId": "weather",
+  "startedAt": "2026-10-20T04:34:17.812Z",
+  "finishedAt": "2026-10-20T04:35:41.155Z",
+  "turns": [
+    {
+      "turnId": "step-02",
+      "kind": "step",
+      "promptSha256": "1956f3c2fe835f55be87e155822a4641cadf9a8fa2026e4b547dd75b8ca91159",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.23387369999999996,
+          "inputTokens": 16,
+          "outputTokens": 14018,
+          "cacheReadTokens": 101577,
+          "cacheCreationTokens": 20876,
+          "numTurns": 25,
+          "durationMs": 81720
+        },
+        "wallMs": 82639,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T04:34:17.813Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-exploratory/h-r2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-exploratory/h-r2/runs/claude-code-cli/claude-sonnet-5-5/youth-league/none/run-1/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-02.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "bca606d1231e4d123172d12f16565a027545b314",
+        "sourceFiles": [
+          "business/ageGroup.ts",
+          "business/errors.ts",
+          "business/fixtureService.ts",
+          "business/pitchService.ts",
+          "business/playerService.ts",
+          "business/teamService.ts",
+          "business/validation.ts",
+          "business/weatherCheckService.ts",
+          "persistence/fakeMailProvider.ts",
+          "persistence/memoryStore.ts",
+          "persistence/models.ts",
+          "persistence/repositories.ts",
+          "persistence/weatherNowClient.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 15,
+        "loc": 482,
+        "diff": {
+          "added": 4,
+          "modified": 4,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.827,
+          "blockingAhs": 0.821,
+          "verdict": "fail",
+          "violationCount": 22,
+          "blockingViolationCount": 3,
+          "advisoryViolationCount": 19,
+          "blockingByRule": {
+            "FF-S03": 3
+          },
+          "advisoryByRule": {
+            "FF-C03": 4,
+            "FF-CV05": 15
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-d562e0de5ee8f231",
+              "filePath": "src/presentation/app.ts",
+              "line": 8,
+              "target": "src/persistence/fakeMailProvider.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/fakeMailProvider.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-c58f228c6ebfbefb",
+              "filePath": "src/presentation/app.ts",
+              "line": 9,
+              "target": "src/persistence/repositories.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-cabe908e6c97641b",
+              "filePath": "src/presentation/app.ts",
+              "line": 16,
+              "target": "src/persistence/weatherNowClient.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/weatherNowClient.ts (persistence)"
+            }
+          ],
+          "durationMs": 2,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "finalCommit": "bca606d1231e4d123172d12f16565a027545b314",
+  "cost": {
+    "costUsd": 0.23387369999999996,
+    "inputTokens": 16,
+    "outputTokens": 14018,
+    "wallMs": 82639
+  }
+}
