@@ -161,5 +161,5 @@ Part of [the claims ledger](../claims-ledger.md); the legend and the conflicts a
 
 | id | statement | numbers | source | type | set | status | replication | quantity | verified against | notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| C5575 | model sample for a step; it should be 0 in a registered run, or reported per arm. | `it should be 0 in a registered run` | `Docs/v1.3/study2-outline-v2.md:367` | reliability | none | exploratory | — | study2 harness: redraws per registered run | self (primary) | protocol parameter |
-| C5576 | gateStepsWithoutEvaluation must stay 0; the grid fails otherwise (LOOP_GATE_NOT_APPLIED). | `must stay 0` | `Docs/v1.3/study2-outline-v2.md:371` | reliability | none | exploratory | — | study2 harness: gate steps without evaluation | self (primary) | protocol parameter; grid fails otherwise |
+| C5575 | model sample for a step; it should be 0 in a registered run, or reported per arm. | `it should be 0 in a registered run` | `Docs/v1.3/study2-outline-v2.md:369` | reliability | none | exploratory | — | study2 harness: redraws per registered run | self (primary) | protocol parameter |
+| C5576 | gateStepsWithoutEvaluation must stay 0; the grid fails otherwise (LOOP_GATE_NOT_APPLIED). | `must stay 0` | `Docs/v1.3/study2-outline-v2.md:373` | reliability | none | exploratory | — | study2 harness: gate steps without evaluation | self (primary) | protocol parameter; grid fails otherwise |

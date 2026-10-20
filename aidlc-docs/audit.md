@@ -2717,3 +2717,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, pre-registration, before merge
 
 ---
+
+## v1.3 hold-out attempt 3 (DELEG-H3): attempt-1 layout + scripted header repair; live run aborted
+**Timestamp**: 2026-10-20T11:32:03Z
+**User Input**: "Coordinator, under GO-2B: record DELEG-H3 and addendum 3 (with its own hash row) before acting. Attempt 3, one try only: attempt 1's path-only layout plus attempt 2's header-only repair, the layout and repair done without a model where possible; verify by script; structure check at the tag on 4 styles; live run once if 0 problems, otherwise STOP; clean up, record, merge on green; don't touch docs/study2b-prereg."
+**AI Response**: "DELEG-H3 and addendum 3 were pushed at 11:07Z, before the attempt. Fresh copy at 1379b561 (608 files). The attempt-1 adapter session was re-run unchanged (its MAP had been deleted): 594 files, ddd incomplete. The scripted header repair rewrote 35 sections in 34 patches (8/9/6/11). Verifier: 34 of 34 hunks byte-identical, header-only, 0 other changes. Structure check: ok, 0 problems. Live run once on Neo4j 5.26.24 + APOC (11:30:25-11:30:31Z): ue-baseline-live.ts exited 2 at its first evaluate call, because the spec failed schema validation (missing spec_version, architecture, scoring, confidence_thresholds). 0 output files and no figure. Content-free record results/v1.3-holdout/run-1-aborted/abort-record.json. Fallback F-RF applies. Work dir and Neo4j removed."
+**Context**: CONSTRUCTION, v1.3/v1.4 hold-out (prespec addendum 3); live run aborted before output; 1 model session (blind adapter, attempt-1 prompt)
+
+---
+
+## SEM-01: semantic validity plan, feasibility and threats (design note)
+**Timestamp**: 2026-10-20T12:06:19Z
+**User Input**: "Investigate read-only, with zero model calls, whether the label-free semantic validity battery for C4 and C1d (seeded cases and twins, metamorphic, known groups, reliability and vendor swap, predicted convergence and divergence, consequences), D_sem as a 2b secondary, and the complementarity hypothesis can be carried out with what exists; list threats and sequencing to the Friday deadline; write ops/notes/sem-01-semantic-validity-plan.md; PR and merge on green."
+**AI Response**: "Wrote SEM-01. Verdict: feasible in stages. (a) and (d) are mostly built (C4 runner, 6+6 cases, estimator; C1d pilot ran), (e) is free, (b), (c) and complementarity need small builds or design, and (f) is MEAN-02, later. Ran only the zero-call estimator: C4 pilot 8/16, six cases 32/64 calls per vendor. Two issues before the 2b run: the registered D_sem drops every stable grounded exception claim, and in greenfield code every citable line is agent-written, so D_sem would count evasion (split it into all claims vs non-agent claims, plus an evasion count). The C4 pilot has never run. Also: Claude C1d failed its twin bar at the pilot (1/2); C4 is downstream of the symbolic finding set, so rename-to-main.ts tests the symbolic path and a blind neural arm, not C4. No frozen path is needed. The prereg branch was read, not edited."
+**Context**: v1.4 semantic validity design (SEM-01); 0 model calls, no Neo4j
+
+---
