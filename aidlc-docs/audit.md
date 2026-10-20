@@ -2696,7 +2696,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## Study 2b — re-check GO; semantic secondary added before dating (DELEG11)
 **Timestamp**: 2026-10-20T11:55:14Z
-**User Input**: "(coordinator, author's decision) Before dating, add a neuro-symbolic secondary: D_sem from C4 verdict classes with the 'survives semantic interpretation' reading, C1d on a seeded sample with the 0.75 threshold both ways, the semantic configuration as a declared swappable parameter (primary: the existing Claude CLI judge route; swap arms dated), caps stated, a DELEG row quoting the author; cover it with one more short Fable re-check, then date."
+**User Input**: "(coordinator brief; the author decided to add a neuro-symbolic secondary) Before dating, add it: D_sem from C4 verdict classes with the 'survives semantic interpretation' reading, C1d on a seeded sample with the 0.75 threshold both ways, the semantic configuration as a declared swappable parameter (primary: the existing Claude CLI judge route; swap arms dated), caps stated, a DELEG row recording the decision; cover it with one more short Fable re-check, then date."
 **AI Response**: "First Fable re-check returned GO on all 18 findings with three non-blocking notes; applied them (sign comparison only on rejection in the D/D-dagger reading; acceptance runner committed before the first 2b call; D8 parity step in runbook §6). Added pre-registration §4 'Semantic layer' (D_sem from stable grounded C4 exception claims; C4 has no non-violation class by design), C1d sample, primary configuration claude-cli / claude-opus-5-5 / judge config dir / CLI 2.1.294 with 2.1.303-2.1.304 exploratory, swap-arm agreement (not accuracy), caps (C4 4 x identities; C1d the estimator's bound), limitation 10, DELEG11, instrument-map paragraph; study2b-analyse --dsem and semanticReading with a test. Route status: both runners exist; the C4 pilot has never run."
 **Context**: v1.4 Study 2b, pre-registration before dating; zero model calls in this step
 
@@ -2705,7 +2705,15 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 ## Study 2b — pre-registration REGISTERED (re-check 2 GO)
 **Timestamp**: 2026-10-20T12:00:34Z
 **User Input**: "(coordinator) If the re-check returns GO, date the pre-registration with its UTC time and record its sha256; merge PR #316 and #319 once Build & Test is green."
-**AI Response**: "Fable re-check 2 (semantic secondary and applied notes) returned GO; its non-blocking notes applied (sign of T in the D_sem reading, D12 wording, C1d per-snapshot budget). Dated the pre-registration REGISTERED 2026-10-20T12:00:34Z; sha256 bb889119f66c374dd8579b7590dc96a9a5b64aa11215c3c6bf91f6cf7c2380f9 in Docs/v1.4/study2b-preregistration.registered.sha256. No 2b call made."
+**AI Response**: "Fable re-check 2 (semantic secondary and applied notes) returned GO; its non-blocking notes applied (sign of T in the D_sem reading, D12 wording, C1d per-snapshot budget). Dated the pre-registration REGISTERED 2026-10-20T12:00:34Z (re-dated 2026-10-20T12:13:11Z after a wording-only change, see below); its sha256 is in Docs/v1.4/study2b-preregistration.registered.sha256. No 2b call made."
 **Context**: v1.4 Study 2b, drift record order step: pre-registration dated, before the gate and the run
+
+---
+
+## Study 2b — wording correction before the deposit (public repository)
+**Timestamp**: 2026-10-20T12:13:11Z
+**User Input**: "(coordinator) The repository is public: record decisions in neutral wording, without quoting chat messages; remove any such quote added on the branch before merging."
+**AI Response**: "Removed the author quote added in DELEG11 and in pre-registration §4 'Semantic layer', replacing it with a neutral statement of the decision; re-dated the pre-registration (wording only, before any 2b call and before the OSF deposit) and recorded the new sha256. Older quotes that are already on main (decisions DELEG, DELEG2, GO-2B, DELEG3 and some earlier audit entries) were not added by this branch and are reported to the coordinator."
+**Context**: v1.4 Study 2b, pre-registration, before merge
 
 ---

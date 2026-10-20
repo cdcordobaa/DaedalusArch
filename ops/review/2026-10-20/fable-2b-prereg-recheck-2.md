@@ -29,7 +29,7 @@ Minor wording drift: §4 says the runner is committed "before the first 2b call"
 
 **(4) Timing and caps.** RESOLVED. §4 item 4: after the run, on stored snapshots, no agent re-run; calls counted from the findings by `--estimate` (0 calls) before the first semantic call; C4 cap 4 × identities (2 runs plus one retry each, matching `c4-run.ts --runs 2` default and C4-01 rule 6); C1d cap = the estimator's upper bound on the 12 snapshots, fixed before the first call, and the 2a budget of 30 explicitly dropped with the reason the 2a report §10 gives (always-made passes 28–64 exceed it); a cap stop is "report the truncation", never raised mid-run. The 2a figures cited (17 identities, 34 calls; 584 expected, 1,654 at most) match `v1.4-exploratory-report-2026-10-20.md` §10.
 
-**(5) DELEG row quoting the author.** RESOLVED. `ops/decisions.md:51`, DELEG11, quotes the author's words and restates items 1–4 and the "not run" status; the pre-registration header (line 8) names it the author's own decision, and the changelog's first entry records it as added before dating.
+**(5) DELEG row recording the decision.** RESOLVED. `ops/decisions.md:51`, DELEG11, records the author's decision and restates items 1–4 and the "not run" status; the pre-registration header (line 8) names it the author's own decision, and the changelog's first entry records it as added before dating.
 
 ## C. Consistency with the rest of the pre-registration and the repository
 
@@ -47,3 +47,5 @@ Minor wording drift: §4 says the runner is committed "before the first 2b call"
 5. **D12 wording** (section A): align the §6 gate line to "before the first 2b call".
 
 VERDICT: GO
+
+*Editorial note (coordinator, 2026-10-20): item B(5) was reworded after the re-check to drop a reference to a quoted chat message, which the branch then removed for the public repository. The verdict and the findings are unchanged.*
