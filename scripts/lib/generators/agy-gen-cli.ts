@@ -19,12 +19,18 @@
  *   `*_TOKEN` (so `GEMINI_API_KEY`) removed.
  * - one dedicated generator home per arm (never the labeller home), outside the repository, the out-root and every cwd;
  *   one lane per home (the harness rewrites the home's settings and MCP config before every turn).
+ * - CONFINEMENT (U12, after the failed S4 run of 2026-10-19), three layers:
+ *   1. the PreToolUse hook `agy-confine-hook.mjs` (matcher ".*", every tool), copied into the home with
+ *      `.gemini/config/hooks.json` and a per-turn config (work directory, the exact type-check command, the arm, the
+ *      hook log) by `writeAgyTurnFiles`: an allow-list, everything else denied, fail-closed;
+ *   2. permission rules of the seven real agy action kinds only (read_file, write_file, command, read_url,
+ *      execute_url, mcp, unsandboxed; https://antigravity.google/docs/permissions/);
+ *   3. `--sandbox` and `enableTerminalSandbox: true`.
  * - settings (`.gemini/antigravity-cli/settings.json`, harness-owned): `toolPermission: strict`,
  *   `enableTerminalSandbox: true`, `disableSlashCommands: true`, never `allowNonWorkspaceAccess: true`; the allow list
- *   is EXACTLY this run's and arm's set (UNVERIFIED rule syntax [G1, G5, G9]); the deny list holds the network,
- *   browser, sub-agent, schedule, image, workflow, inbox and plugin tools and `evaluate_project` (UNVERIFIED [G6, G8,
- *   G9]; agy 1.3.2 could not deny `search_web` for the labeller, so the enforced backstop is the tool-escape stop of
- *   `agy-gen-events.ts`).
+ *   is EXACTLY this run's and arm's set; the deny list is `read_url(*)`, `execute_url(*)`, `unsandboxed(*)` and
+ *   `mcp(*)` (none) or `mcp(daedalus-arch/evaluate_project)` (daedalus-mcp). The enforced backstops are the hook and
+ *   the tool-escape stop of `agy-gen-events.ts`.
  * - MCP (`.gemini/config/mcp_config.json`, the path the labeller checks for emptiness; UNVERIFIED that agy re-reads it
  *   per call [G0, G9]): the `none` home lists no server; the `daedalus-mcp` home lists exactly `daedalus-arch`, written
  *   per turn with `--project <cwd>` and, when on, `--call-log <path>`.
@@ -79,24 +85,218 @@ export const AGY_GEN_FILE_TOOLS: readonly string[] = Object.freeze([
   'write_to_file',
   'replace_file_content',
   'multi_replace_file_content',
+  'sed_file',
+  // agy 1.4.2 stream-json names of the same file access (S4 run of 2026-10-19: `read_file` / `write_file` steps with
+  // a `Path` parameter); the hook path-checks them like the others.
+  'read_file',
+  'write_file',
 ]);
 export const AGY_GEN_COMMAND_TOOLS: readonly string[] = Object.freeze(['run_command', 'command_status']);
 export const AGY_GEN_MCP_TOOL = 'call_mcp_tool';
 export const AGY_GEN_ANSWER_TOOLS: readonly string[] = Object.freeze(['finish']);
 
-/** Deny rules of every generator home (UNVERIFIED syntax, S4 G6, G8, G9). */
-export const AGY_GEN_DENY: readonly string[] = Object.freeze([
-  'read_url(*)',
-  'search_web(*)',
-  'browser(*)',
-  'subagent(*)',
-  'schedule(*)',
-  'generate_image(*)',
-  'workflow(*)',
-  'inbox(*)',
-  'plugin(*)',
-  ...DAEDALUS_DENIED_TOOLS.map((t) => `mcp(${DAEDALUS_MCP_SERVER}/${t})`),
-]);
+/**
+ * Deny rules of every generator home. 2026-10-19 (U12): agy permission rules have exactly seven action kinds,
+ * `read_file`, `write_file`, `command`, `read_url`, `execute_url`, `mcp`, `unsandboxed`
+ * (https://antigravity.google/docs/permissions/; https://agenticcontrolplane.com/controls/antigravity). The former
+ * entries `search_web(*)`, `browser(*)`, `subagent(*)`, `schedule(*)`, `generate_image(*)`, `workflow(*)`, `inbox(*)`
+ * and `plugin(*)` named no action and were ignored (agy 1.4.2 dropped them when it re-saved settings.json, and S4 saw
+ * `invoke_subagent` and `schedule` run). Tools no action covers (search_web, invoke_subagent, schedule, browser_*,
+ * generate_image, ...) are denied by the PreToolUse hook instead.
+ */
+export const AGY_GEN_DENY: readonly string[] = Object.freeze(['read_url(*)', 'execute_url(*)', 'unsandboxed(*)']);
+
+// ── The PreToolUse hook (layer 1) ─────────────────────────────────────────────────────────────────────────────────
+
+/** The committed hook script (repository-relative). */
+export const AGY_HOOK_SOURCE_REL = 'scripts/lib/generators/agy-confine-hook.mjs';
+/** agy's user-global hooks file (HOME = the generator home). The workspace `.agents/hooks.json` is never used. */
+export const AGY_GEN_HOOKS_REL = '.gemini/config/hooks.json';
+export const AGY_GEN_HOOK_SCRIPT_REL = '.gemini/config/daedalus-confine-hook.mjs';
+export const AGY_GEN_HOOK_CONFIG_REL = '.gemini/config/daedalus-confine-turn.json';
+export const AGY_HOOK_CONFIG_SCHEMA = 'agy-confine-turn/v1';
+/** Seconds agy waits for the hook; a timeout blocks the call. */
+export const AGY_HOOK_TIMEOUT_S = 10;
+/** Where agy 1.4.2 keeps an MCP server's tool schemas in the home (it reads them before a call; S4 G9 stream). */
+export const AGY_GEN_MCP_SCHEMA_REL = '.gemini/antigravity-cli/mcp';
+
+/** The per-turn hook config (written next to hooks.json; never shown to the model). */
+export interface AgyHookTurnConfig {
+  readonly schema: typeof AGY_HOOK_CONFIG_SCHEMA;
+  readonly arm: AgyGenArm;
+  /** The turn's work directory (realpath); null in a home no turn has configured yet (every call is blocked). */
+  readonly workDir: string | null;
+  readonly allowCommand: boolean;
+  readonly typecheckCommand: string | null;
+  /** The turn's hook log (absolute, outside the work directory); null with `workDir: null`. */
+  readonly logPath: string | null;
+  readonly mcp?: { readonly server: string; readonly allowedTools: readonly string[]; readonly deniedTools: readonly string[]; readonly schemaDir: string };
+}
+
+/** One line of the hook log. */
+export interface AgyHookLogLine {
+  readonly tool: string | null;
+  readonly decision: 'allow' | 'deny' | 'error';
+  readonly reason: string;
+  readonly stepIdx: number | null;
+}
+
+/** The repository's hook script for `repoRoot`. */
+export function agyHookSourcePath(repoRoot: string): string {
+  return path.join(repoRoot, AGY_HOOK_SOURCE_REL);
+}
+
+function shellQuote(s: string): string {
+  return `'${s.split("'").join(`'\\''`)}'`;
+}
+
+/** The hook command line of a home: the absolute node binary, the copied script, the turn config. */
+export function agyHookCommand(home: string, nodeBinary: string = process.execPath): string {
+  return [nodeBinary, path.join(home, AGY_GEN_HOOK_SCRIPT_REL), path.join(home, AGY_GEN_HOOK_CONFIG_REL)].map(shellQuote).join(' ');
+}
+
+/** The exact hooks.json of a home: one PreToolUse group, matcher ".*", the confinement hook; no other event. */
+export function agyHooksJson(home: string, nodeBinary: string = process.execPath): Record<string, unknown> {
+  return { hooks: { PreToolUse: [{ matcher: '.*', hooks: [{ type: 'command', command: agyHookCommand(home, nodeBinary), timeout: AGY_HOOK_TIMEOUT_S }] }] } };
+}
+
+/** The schema files of the allowed daedalus-arch tools in a home (the only home files the daedalus-mcp arm may read). */
+export function agyMcpSchemaFiles(home: string): readonly string[] {
+  return DAEDALUS_ARM_TOOLS.map((t) => path.join(home, AGY_GEN_MCP_SCHEMA_REL, DAEDALUS_MCP_SERVER, `${t}.json`));
+}
+
+/** The baseline turn config of a home no turn has configured: no work directory, so the hook blocks every call. */
+export function baselineHookConfig(arm: AgyGenArm, allowCommand: boolean): AgyHookTurnConfig {
+  return { schema: AGY_HOOK_CONFIG_SCHEMA, arm, workDir: null, allowCommand, typecheckCommand: null, logPath: null };
+}
+
+function sha256Of(file: string): string | null {
+  try {
+    return createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  } catch {
+    return null;
+  }
+}
+
+/** sha256 of the committed hook script (null when it is missing). */
+export function agyHookSourceSha256(hookSource: string): string | null {
+  return sha256Of(hookSource);
+}
+
+/** Writes hooks.json, the hook script (copied from `hookSource`) and the given turn config into the home. */
+export function installAgyHook(home: string, hookSource: string, config: AgyHookTurnConfig): DomainResult<void> {
+  if (!fs.existsSync(hookSource)) return DomainResult.fail([err('GEN_AGY_HOOK_MISSING', 'the committed hook script is missing')]);
+  fs.mkdirSync(path.join(home, path.dirname(AGY_GEN_HOOKS_REL)), { recursive: true, mode: 0o700 });
+  const script = path.join(home, AGY_GEN_HOOK_SCRIPT_REL);
+  fs.copyFileSync(hookSource, script);
+  fs.chmodSync(script, 0o600);
+  fs.writeFileSync(path.join(home, AGY_GEN_HOOK_CONFIG_REL), `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
+  fs.writeFileSync(path.join(home, AGY_GEN_HOOKS_REL), `${JSON.stringify(agyHooksJson(home), null, 2)}\n`, { mode: 0o600 });
+  return DomainResult.ok(undefined);
+}
+
+/** `installAgyHook` with the baseline config in both homes (what `gemini-homes.ts --create` does). */
+export function installBaselineAgyHooks(homes: Readonly<Record<AgyGenArm, string>>, repoRoot: string, allowCommand: boolean): DomainResult<void> {
+  for (const arm of ['none', 'daedalus-mcp'] as const) {
+    const r = installAgyHook(homes[arm], agyHookSourcePath(repoRoot), baselineHookConfig(arm, allowCommand));
+    if (!r.success) return r;
+  }
+  return DomainResult.ok(undefined);
+}
+
+const QUOTED_ABS =/^'(\/[^']*)'$/;
+
+function hooksJsonProblem(home: string): string | null {
+  const file = path.join(home, AGY_GEN_HOOKS_REL);
+  if (!fs.existsSync(file)) return 'hooks.json is missing';
+  let v: unknown;
+  try {
+    v = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return 'hooks.json is not valid JSON';
+  }
+  const hooks = isRecord(v) && Object.keys(v).length === 1 && isRecord(v.hooks) ? v.hooks : null;
+  const groups: unknown[] = hooks !== null && Object.keys(hooks).length === 1 && Array.isArray(hooks.PreToolUse) ? (hooks.PreToolUse as unknown[]) : [];
+  const group = groups.length === 1 && isRecord(groups[0]) ? groups[0] : null;
+  const list: unknown[] = group !== null && Array.isArray(group.hooks) ? (group.hooks as unknown[]) : [];
+  const inner = list.length === 1 && isRecord(list[0]) ? list[0] : null;
+  const command = inner !== null && typeof inner.command === 'string' ? inner.command : '';
+  const node = QUOTED_ABS.exec(command.split(' ')[0] ?? '');
+  const ok =
+    group !== null && group.matcher === '.*' && inner !== null && inner.type === 'command' && inner.timeout === AGY_HOOK_TIMEOUT_S && node !== null && command === agyHookCommand(home, node[1] ?? '');
+  return ok ? null : 'hooks.json must be exactly the confinement hook (one PreToolUse group, matcher ".*")';
+}
+
+/**
+ * The hook part of the home check (names and expected values only): hooks.json is exactly the confinement hook, the
+ * copied script has the committed script's sha256, and the turn config is valid for the arm. With `allow` (a turn's
+ * exact allow list), the config must name that turn's work directory, type-check command and MCP tools.
+ */
+export function checkAgyHook(home: string, arm: AgyGenArm, allow: readonly string[] | null, allowCommand: boolean, hookSource: string): readonly string[] {
+  const problems: string[] = [];
+  const hooksProblem = hooksJsonProblem(home);
+  if (hooksProblem !== null) problems.push(hooksProblem);
+  const want = sha256Of(hookSource);
+  const got = sha256Of(path.join(home, AGY_GEN_HOOK_SCRIPT_REL));
+  if (want === null) problems.push('the committed hook script is missing');
+  else if (got === null) problems.push('the hook script is missing from the home');
+  else if (got !== want) problems.push('the hook script differs from the committed one (sha256)');
+  const configFile = path.join(home, AGY_GEN_HOOK_CONFIG_REL);
+  if (!fs.existsSync(configFile)) return [...problems, 'the hook turn config is missing'];
+  let c: unknown;
+  try {
+    c = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+  } catch {
+    return [...problems, 'the hook turn config is not valid JSON'];
+  }
+  if (!isRecord(c) || c.schema !== AGY_HOOK_CONFIG_SCHEMA) return [...problems, `the hook turn config must have schema ${AGY_HOOK_CONFIG_SCHEMA}`];
+  if (c.arm !== arm) problems.push('the hook turn config names another arm');
+  if (c.allowCommand !== allowCommand) problems.push('the hook turn config has another allowCommand');
+  if (allow === null) return problems;
+  const real = (p: string): string => (fs.existsSync(p) ? fs.realpathSync(p) : path.resolve(p));
+  const workRule = allow.find((r) => r.startsWith('read_file(') && r.endsWith('/**)'));
+  const ruleDir = workRule === undefined ? null : workRule.slice('read_file('.length, -'/**)'.length);
+  const workDir = typeof c.workDir === 'string' ? c.workDir : null;
+  if (workDir === null || ruleDir === null || real(workDir) !== real(ruleDir)) problems.push("the hook turn config must name this turn's work directory");
+  if (typeof c.logPath !== 'string' || !path.isAbsolute(c.logPath)) problems.push('the hook turn config needs an absolute hook log path');
+  else if (workDir !== null && isInsideOrEqual(real(workDir), path.resolve(c.logPath))) problems.push('the hook log must lie outside the work directory');
+  if (allowCommand && (typeof c.typecheckCommand !== 'string' || !allow.includes(commandAllowRule(c.typecheckCommand)))) problems.push("the hook turn config must name this turn's type-check command");
+  if (!allowCommand && c.typecheckCommand !== null) problems.push('the hook turn config names a command although none is allowed');
+  if (arm === 'daedalus-mcp') {
+    const m = isRecord(c.mcp) ? c.mcp : null;
+    const tools = m !== null && Array.isArray(m.allowedTools) ? (m.allowedTools as unknown[]).map(String) : [];
+    const denied = m !== null && Array.isArray(m.deniedTools) ? (m.deniedTools as unknown[]).map(String) : [];
+    if (m?.server !== DAEDALUS_MCP_SERVER || !sameSet(tools, DAEDALUS_ARM_TOOLS) || !sameSet(denied, DAEDALUS_DENIED_TOOLS)) {
+      problems.push(`the hook turn config must allow exactly the spec-only ${DAEDALUS_MCP_SERVER} tools`);
+    }
+  } else if (c.mcp !== undefined) problems.push('the hook turn config of the none arm must name no MCP server');
+  return problems;
+}
+
+/** Reads a hook log (null when absent; an unparsable line is kept as an `error` line). */
+export function readAgyHookLog(file: string | undefined): readonly AgyHookLogLine[] | null {
+  if (file === undefined || !fs.existsSync(file)) return null;
+  const out: AgyHookLogLine[] = [];
+  const bad: AgyHookLogLine = { tool: null, decision: 'error', reason: 'unparsable hook log line', stepIdx: null };
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+    if (line.trim() === '') continue;
+    try {
+      const v: unknown = JSON.parse(line);
+      if (isRecord(v) && (v.decision === 'allow' || v.decision === 'deny' || v.decision === 'error')) {
+        out.push({ tool: typeof v.tool === 'string' ? v.tool : null, decision: v.decision, reason: typeof v.reason === 'string' ? v.reason : '', stepIdx: typeof v.stepIdx === 'number' ? v.stepIdx : null });
+      } else out.push(bad);
+    } catch {
+      out.push(bad);
+    }
+  }
+  return out;
+}
+
+/** Hook decisions by kind. */
+export function hookDecisionCounts(lines: readonly AgyHookLogLine[] | null): { readonly allow: number; readonly deny: number; readonly error: number } {
+  const l = lines ?? [];
+  return { allow: l.filter((x) => x.decision === 'allow').length, deny: l.filter((x) => x.decision === 'deny').length, error: l.filter((x) => x.decision === 'error').length };
+}
 
 /** Configuration of the Gemini arm: the shared fields (binary = the agy CLI) plus the homes and pins. */
 export interface AgyGenCliConfig extends GeneratorCliConfig {
@@ -107,6 +307,8 @@ export interface AgyGenCliConfig extends GeneratorCliConfig {
   readonly printTimeoutS: number;
   /** False: the type-check command is not allowed (the Q13 B analogue, S4 G5 fallback). */
   readonly allowCommand: boolean;
+  /** The committed PreToolUse hook script (`<repo>/scripts/lib/generators/agy-confine-hook.mjs`). */
+  readonly hookSource: string;
 }
 
 export interface AgyGenCliConfigInput {
@@ -154,6 +356,7 @@ export function createAgyGenCliConfig(input: AgyGenCliConfigInput, repoRoot: str
       cliVersion: input.cliVersion,
       printTimeoutS,
       allowCommand: input.allowCommand ?? true,
+      hookSource: agyHookSourcePath(repoRoot),
     }),
   );
 }
@@ -187,23 +390,39 @@ export interface TurnAllowInput {
 }
 
 /**
- * The exact allow list of one turn (UNVERIFIED rule syntax, S4 G1, G5, G9): reads and writes inside the cwd, the
- * run's type-check command (`typecheckCommand(harnessRoot, runId)`) when allowed, and the nine spec-only tools in
- * `daedalus-mcp`.
+ * The exact-command allow rule. 2026-10-19 (U12): `command(<text>)` is a PREFIX rule in agy 1.4.2 (the docs'
+ * `command(prefix)`), and the S4 run saw `<type-check> && touch ../chain-and.txt` and `<type-check> --tsBuildInfoFile
+ * ../x` complete under the old `command(<type-check>)` rule. The anchored regex form allows exactly the command.
+ */
+export function commandAllowRule(command: string): string {
+  return `command(regex:^${command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$)`;
+}
+
+/**
+ * The exact allow list of one turn (layer 2; the hook is layer 1): reads and writes inside the cwd, the run's exact
+ * type-check command (`typecheckCommand(harnessRoot, runId)`, anchored regex) when allowed, and the nine spec-only
+ * tools in `daedalus-mcp`.
  */
 export function expectedAllow(i: TurnAllowInput): readonly string[] {
   const cwd = path.resolve(i.cwd);
   return Object.freeze([
     `read_file(${cwd}/**)`,
     `write_file(${cwd}/**)`,
-    ...(i.allowCommand ? [`command(${typecheckCommand(i.harnessRoot, i.runId)})`] : []),
+    ...(i.allowCommand ? [commandAllowRule(typecheckCommand(i.harnessRoot, i.runId))] : []),
     ...(i.arm === 'daedalus-mcp' ? DAEDALUS_ARM_TOOLS.map((t) => `mcp(${DAEDALUS_MCP_SERVER}/${t})`) : []),
   ]);
 }
 
-/** The deny list of an arm's home. */
+/**
+ * The deny list of an arm's home: `read_url(*)`, `execute_url(*)`, `unsandboxed(*)`, then `mcp(*)` (none) or
+ * `mcp(daedalus-arch/evaluate_project)` (daedalus-mcp), and `command(*)` without allowCommand.
+ */
 export function expectedDeny(arm: AgyGenArm, allowCommand: boolean): readonly string[] {
-  return Object.freeze([...AGY_GEN_DENY, ...(arm === 'none' ? ['mcp(*)'] : []), ...(allowCommand ? [] : ['command(*)'])]);
+  return Object.freeze([
+    ...AGY_GEN_DENY,
+    ...(arm === 'none' ? ['mcp(*)'] : DAEDALUS_DENIED_TOOLS.map((t) => `mcp(${DAEDALUS_MCP_SERVER}/${t})`)),
+    ...(allowCommand ? [] : ['command(*)']),
+  ]);
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -293,8 +512,10 @@ export interface AgyGenHomeCheck {
  * world-accessible, lies outside every git repository, holds no rule, skill, plugin, agent, workflow or hook entry
  * (outside agy's builtin directory), conforming settings when present (required once `allow` is given), and the
  * arm's MCP servers: none for `none`, exactly `daedalus-arch` for `daedalus-mcp` (once a turn has written it).
+ * U12: the confinement hook is required (`checkAgyHook`): hooks.json at `.gemini/config/hooks.json` (the one hooks
+ * entry exempt from the forbidden names), the copied script with the committed sha256, and the turn config.
  */
-export function checkAgyGenHome(home: string, arm: AgyGenArm, allow: readonly string[] | null, allowCommand = true): AgyGenHomeCheck {
+export function checkAgyGenHome(home: string, arm: AgyGenArm, allow: readonly string[] | null, allowCommand: boolean, hookSource: string): AgyGenHomeCheck {
   const empty = createHash('sha256').update('').digest('hex');
   if (!fs.existsSync(home) || !fs.lstatSync(home).isDirectory()) return { problems: ['generator home does not exist'], listingSha256: empty };
   const problems: string[] = [];
@@ -302,7 +523,8 @@ export function checkAgyGenHome(home: string, arm: AgyGenArm, allow: readonly st
   if (insideGit(home)) problems.push('generator home lies inside a git repository');
   const names: string[] = [];
   walkNames(home, '', names);
-  for (const n of names.filter((x) => x.split('/').some((seg) => AGY_HOME_FORBIDDEN_NAMES.includes(seg)))) problems.push(`forbidden entry ${n}`);
+  for (const n of names.filter((x) => x !== AGY_GEN_HOOKS_REL && x.split('/').some((seg) => AGY_HOME_FORBIDDEN_NAMES.includes(seg)))) problems.push(`forbidden entry ${n}`);
+  problems.push(...checkAgyHook(home, arm, allow, allowCommand, hookSource));
   const settings = path.join(home, AGY_GEN_SETTINGS_REL);
   if (fs.existsSync(settings)) problems.push(...checkAgyGenSettings(fs.readFileSync(settings, 'utf8'), arm, allow, allowCommand));
   else if (allow !== null) problems.push('settings.json is missing');
@@ -327,14 +549,47 @@ export function checkAncestors(cwd: string): DomainResult<void> {
 export interface TurnFilesInput extends TurnAllowInput {
   readonly callLogPath?: string;
   readonly daedalus?: DaedalusServerInput;
+  /** The committed hook script (`AgyGenCliConfig.hookSource`). */
+  readonly hookSource: string;
+  /** The turn's hook log (absolute, outside the cwd); default `<H>/runs/<runId>/hooks/turn.jsonl`. */
+  readonly hookLogPath?: string;
+}
+
+/** The hook turn config of one turn (the work directory as its realpath). */
+export function hookTurnConfig(home: string, i: TurnFilesInput): DomainResult<AgyHookTurnConfig> {
+  const workDir = fs.existsSync(i.cwd) ? fs.realpathSync(i.cwd) : path.resolve(i.cwd);
+  const logPath = path.resolve(i.hookLogPath ?? path.join(i.harnessRoot, 'runs', i.runId, 'hooks', 'turn.jsonl'));
+  const logReal = path.join(fs.existsSync(path.dirname(logPath)) ? fs.realpathSync(path.dirname(logPath)) : path.dirname(logPath), path.basename(logPath));
+  if (isInsideOrEqual(workDir, logReal) || isInsideOrEqual(path.resolve(i.cwd), logPath)) {
+    return DomainResult.fail([err('GEN_AGY_HOOK_LOG_INSIDE_CWD', 'the hook log must lie outside the work directory')]);
+  }
+  const homeReal = fs.existsSync(home) ? fs.realpathSync(home) : path.resolve(home);
+  return DomainResult.ok({
+    schema: AGY_HOOK_CONFIG_SCHEMA,
+    arm: i.arm,
+    workDir,
+    allowCommand: i.allowCommand,
+    typecheckCommand: i.allowCommand ? typecheckCommand(i.harnessRoot, i.runId) : null,
+    logPath,
+    ...(i.arm === 'daedalus-mcp'
+      ? { mcp: { server: DAEDALUS_MCP_SERVER, allowedTools: [...DAEDALUS_ARM_TOOLS], deniedTools: [...DAEDALUS_DENIED_TOOLS], schemaDir: path.join(homeReal, AGY_GEN_MCP_SCHEMA_REL, DAEDALUS_MCP_SERVER) } }
+      : {}),
+  });
 }
 
 /**
- * Writes the turn's home files: the settings with this turn's exact allow list (the run's type-check rule) and, for
- * `daedalus-mcp`, the MCP config (`daedalusMcpConfig` with `--project <cwd>`, plus `--call-log` when on). No
- * credential file is read or written; other settings keys are kept.
+ * Writes the turn's home files: the confinement hook (hooks.json, the copied script, this turn's hook config), the
+ * settings with this turn's exact allow list (the run's type-check rule) and, for `daedalus-mcp`, the MCP config
+ * (`daedalusMcpConfig` with `--project <cwd>`, plus `--call-log` when on). No credential file is read or written;
+ * other settings keys are kept.
  */
-export function writeAgyTurnFiles(home: string, i: TurnFilesInput): DomainResult<{ readonly allow: readonly string[]; readonly mcpConfig: unknown }> {
+export function writeAgyTurnFiles(home: string, i: TurnFilesInput): DomainResult<{ readonly allow: readonly string[]; readonly mcpConfig: unknown; readonly hookLogPath: string }> {
+  const hookConfig = hookTurnConfig(home, i);
+  if (!hookConfig.success) return DomainResult.fail(hookConfig.errors);
+  const installed = installAgyHook(home, i.hookSource, hookConfig.data);
+  if (!installed.success) return DomainResult.fail(installed.errors);
+  const hookLogPath = hookConfig.data.logPath ?? '';
+  fs.mkdirSync(path.dirname(hookLogPath), { recursive: true });
   const settingsFile = path.join(home, AGY_GEN_SETTINGS_REL);
   let current: Record<string, unknown> = {};
   if (fs.existsSync(settingsFile)) {
@@ -350,7 +605,7 @@ export function writeAgyTurnFiles(home: string, i: TurnFilesInput): DomainResult
   delete (next as Record<string, unknown>).allowNonWorkspaceAccess;
   fs.mkdirSync(path.dirname(settingsFile), { recursive: true, mode: 0o700 });
   fs.writeFileSync(settingsFile, `${JSON.stringify(next, null, 2)}\n`, { mode: 0o600 });
-  if (i.arm !== 'daedalus-mcp') return DomainResult.ok({ allow, mcpConfig: null });
+  if (i.arm !== 'daedalus-mcp') return DomainResult.ok({ allow, mcpConfig: null, hookLogPath });
   if (i.daedalus === undefined) return DomainResult.fail([err('ARM_NOT_CONFIGURED', 'the daedalus-mcp arm needs nodeBinary, serverEntry and specPath')]);
   const base = daedalusMcpConfig(i.daedalus, { runId: i.runId, outputDir: path.resolve(i.cwd) });
   const server = base.mcpServers[DAEDALUS_MCP_SERVER];
@@ -362,5 +617,5 @@ export function writeAgyTurnFiles(home: string, i: TurnFilesInput): DomainResult
   const mcpFile = path.join(home, AGY_GEN_MCP_CONFIG_REL);
   fs.mkdirSync(path.dirname(mcpFile), { recursive: true, mode: 0o700 });
   fs.writeFileSync(mcpFile, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
-  return DomainResult.ok({ allow, mcpConfig: config });
+  return DomainResult.ok({ allow, mcpConfig: config, hookLogPath });
 }

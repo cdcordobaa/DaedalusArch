@@ -20,6 +20,8 @@
  * agy 1.4.2 prints its `result` event and then never exits: the agent ends the process on that line
  * (`stopOnLine: isAgyResultLine`), and such a run counts as exit 0 (`agyGenExitCode`).
  */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
 import { scrubDeep, scrubSecrets } from '../../../src/shared/errors/scrub.js';
@@ -182,6 +184,47 @@ export interface StopContext {
   readonly allowCommand: boolean;
   /** The run's exact type-check command. */
   readonly typecheckCommand: string;
+  /**
+   * U12: the turn's work directory. When given, a completed file-tool step with a path argument outside it is an
+   * escape (the after-the-fact twin of the hook's path check); the daedalus-mcp arm may also read `mcpSchemaFiles`.
+   */
+  readonly workDir?: string;
+  readonly mcpSchemaFiles?: readonly string[];
+}
+
+/** Absolute or relative strings under path-like keys of a tool step (the hook's `pathArgs`, simplified). */
+function stepPaths(params: Readonly<Record<string, unknown>>): string[] {
+  const out: string[] = [];
+  for (const [k, v] of Object.entries(params)) {
+    if (!/path|file|dir|uri/i.test(k) || /content|instruction|description|chunk|query|pattern|include|exclude|replacement|code/i.test(k)) continue;
+    for (const x of Array.isArray(v) ? (v as unknown[]) : [v]) if (typeof x === 'string' && x !== '') out.push(x);
+  }
+  return out;
+}
+
+function realish(p: string): string {
+  const rest: string[] = [];
+  for (let at = path.resolve(p); ; at = path.dirname(at)) {
+    try {
+      return path.join(fs.realpathSync(at), ...rest.reverse());
+    } catch {
+      if (path.dirname(at) === at) return path.resolve(p);
+      rest.push(path.basename(at));
+    }
+  }
+}
+
+function fileStepEscape(step: AgyGenToolStep, ctx: StopContext): string | null {
+  if (ctx.workDir === undefined) return null;
+  const work = realish(ctx.workDir);
+  const schema = (ctx.mcpSchemaFiles ?? []).map(realish);
+  for (const p of stepPaths(step.params)) {
+    const r = realish(path.isAbsolute(p) ? p : path.join(work, p));
+    if (ctx.arm === 'daedalus-mcp' && schema.includes(r)) continue;
+    const rel = path.relative(work, r);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) return `${step.tool} (a path outside the work directory)`;
+  }
+  return null;
 }
 
 function stringValues(o: Readonly<Record<string, unknown>>): string[] {
@@ -191,7 +234,8 @@ function stringValues(o: Readonly<Record<string, unknown>>): string[] {
 /** Why a COMPLETED tool step is outside the arm's allow list, or null when it is allowed. */
 export function escapeReason(step: AgyGenToolStep, ctx: StopContext): string | null {
   if (step.state === 'ERROR') return null;
-  if (AGY_GEN_ANSWER_TOOLS.includes(step.tool) || AGY_GEN_FILE_TOOLS.includes(step.tool)) return null;
+  if (AGY_GEN_ANSWER_TOOLS.includes(step.tool)) return null;
+  if (AGY_GEN_FILE_TOOLS.includes(step.tool)) return fileStepEscape(step, ctx);
   if (AGY_GEN_COMMAND_TOOLS.includes(step.tool)) {
     if (!ctx.allowCommand) return `${step.tool} (commands are not allowed)`;
     if (step.tool === 'command_status') return null;

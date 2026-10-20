@@ -2513,6 +2513,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2, EXPT / V10c / gate S14; writer calls not counted against the study
 ---
 
+## v1.4 instrument track: U12 Gemini hook confinement (code, not run live)
+**Timestamp**: 2026-10-20T03:12:02Z
+**User Input**: "Coordinator brief: build a PreToolUse hook allow-list for the Gemini generator on agy 1.4.2 and correct its permission rules (the S4 run failed in both arms); zero model calls; open a PR, do not merge."
+**AI Response**: "Built scripts/lib/generators/agy-confine-hook.mjs, a per-turn hook config and hooks.json written by writeAgyTurnFiles. The hook allows file tools only inside the work directory (realpath, no symlink escape), only the exact type-check command, finish, command_status after it, and the spec-only daedalus-arch tools in the mcp arm; everything else is denied; any error blocks. Permission rules now use only the seven real agy action kinds; the command rule is an anchored regex, because the S4 streams show the prefix rule let chained and extra-flag commands complete. The home check and G0 require the hook (checked before any agy command); S4 now fails a probe on hook-not-invoked; the G0 hooks-loaded sub-check records unverified (agy prints no such line). Docs, a declared-change note and unit U12 added. Zero model calls; one bare agy --version ran against the user HOME by mistake (no model call). S4 must be re-run live and pass before any Gemini coding cell."
+**Context**: v1.4 instrument track; Gemini generator confinement after the failed S4 of 2026-10-19; plan aidlc-docs/construction/v1.4/U12/plan.md
 ## v1.4 Study: exploratory Stage A run
 **Timestamp**: 2026-10-20T03:14:46Z
 **User Input**: "Yes, reuse the research config, go with Stage A"

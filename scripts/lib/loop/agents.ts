@@ -50,7 +50,7 @@ import { DEFAULT_RETRY_POLICY, realSleep, runWithRetries, systemClock } from '..
 import type { Clock, RetryPolicy, Sleeper } from '../generators/retry.js';
 import { AGY_GEN_CLI_ADAPTER_ID, CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import { isAgyResultLine, parseAgyVersion } from '../../../src/llm-critic/agy-cli-provider.js';
-import { agyGenArmOf, buildAgyGenArgs, buildAgyGenChildEnv, checkAgyGenHome, checkAncestors, writeAgyTurnFiles } from '../generators/agy-gen-cli.js';
+import { agyGenArmOf, agyMcpSchemaFiles, buildAgyGenArgs, buildAgyGenChildEnv, checkAgyGenHome, checkAncestors, writeAgyTurnFiles } from '../generators/agy-gen-cli.js';
 import type { AgyGenArm, AgyGenCliConfig } from '../generators/agy-gen-cli.js';
 import { agyGenAttemptDisposition, agyGenStop, agyGenTurnStatus, parseAgyGenRun } from '../generators/agy-gen-events.js';
 import { typecheckCommand } from '../generators/argv.js';
@@ -477,7 +477,7 @@ export class GeminiStepAgent implements StepAgent {
   /** The pre-run probe (no model call): each arm's home passes the structural check, and `agy --version` equals the pin. */
   async probe(arms: readonly AgyGenArm[] = ['none', 'daedalus-mcp']): Promise<DomainResult<{ readonly cliVersion: string }>> {
     for (const arm of arms) {
-      const home = checkAgyGenHome(this.config.homes[arm], arm, null, this.config.allowCommand);
+      const home = checkAgyGenHome(this.config.homes[arm], arm, null, this.config.allowCommand, this.config.hookSource);
       if (home.problems.length > 0) {
         return DomainResult.fail([{ code: 'GEN_AGY_HOME_FORBIDDEN', message: `the ${arm} generator home fails ${String(home.problems.length)} check(s)`, context: { problems: [...home.problems] } }]);
       }
@@ -509,22 +509,31 @@ export class GeminiStepAgent implements StepAgent {
     const ambient = checkAncestors(input.cwd);
     if (!ambient.success) return DomainResult.fail(ambient.errors);
     const daedalus = daedalusFor(this.deps, input.taskId);
+    const secrets = this.deps.knownSecrets ?? [];
+    const env = buildAgyGenChildEnv(this.deps.parentEnv ?? process.env, planned.home);
+    // Design R3: the version pin is checked before every turn (agy self-updates), not only at probe time. U12: it runs
+    // BEFORE the turn files are written, because agy 1.4.2 re-saves settings.json on exit (the PR #288 order).
+    const pin = await this.checkVersionPin(env);
+    if (!pin.success) return DomainResult.fail(pin.errors);
     const files = writeAgyTurnFiles(planned.home, {
       arm: planned.arm,
       runId: input.runId,
       harnessRoot: this.config.harnessRoot,
       cwd: input.cwd,
       allowCommand: this.config.allowCommand,
+      hookSource: this.config.hookSource,
+      hookLogPath: path.join(this.config.harnessRoot, 'runs', input.runId, 'hooks', `${input.turnId}.jsonl`),
       ...(input.callLogPath !== undefined ? { callLogPath: input.callLogPath } : {}),
       ...(daedalus !== undefined ? { daedalus } : {}),
     });
     if (!files.success) return DomainResult.fail(files.errors);
-    const secrets = this.deps.knownSecrets ?? [];
-    const env = buildAgyGenChildEnv(this.deps.parentEnv ?? process.env, planned.home);
-    const stopCtx = { arm: planned.arm, allowCommand: this.config.allowCommand, typecheckCommand: typecheckCommand(this.config.harnessRoot, input.runId) };
-    // Design R3: the version pin is checked before every turn (agy self-updates), not only at probe time.
-    const pin = await this.checkVersionPin(env);
-    if (!pin.success) return DomainResult.fail(pin.errors);
+    const stopCtx = {
+      arm: planned.arm,
+      allowCommand: this.config.allowCommand,
+      typecheckCommand: typecheckCommand(this.config.harnessRoot, input.runId),
+      workDir: input.cwd,
+      mcpSchemaFiles: agyMcpSchemaFiles(planned.home),
+    };
     // Design §3.5 (stop row): every attempt's process result is kept, so a forbidden step completed in an attempt that
     // was then retried (print timeout with no files, usage-limit pause and resume) still stops the grid.
     const seen: ProcessResult[] = [];
@@ -539,7 +548,7 @@ export class GeminiStepAgent implements StepAgent {
         stdin: planned.prompt,
         env,
         before: () => {
-          const home = checkAgyGenHome(planned.home, planned.arm, files.data.allow, this.config.allowCommand);
+          const home = checkAgyGenHome(planned.home, planned.arm, files.data.allow, this.config.allowCommand, this.config.hookSource);
           listingSha256 = home.listingSha256;
           return home.problems.length === 0
             ? DomainResult.ok(undefined)

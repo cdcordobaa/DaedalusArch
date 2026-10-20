@@ -10,8 +10,8 @@ import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import type { ProcessResult, ProcessRunOptions, ProcessRunner } from '../../../../src/shared/interfaces/process-runner.js';
 import { AGY_PINNED_VERSION } from '../../../../src/llm-critic/agy-cli-provider.js';
 import { AGY_EXPLORATORY_VERSIONS } from '../../../../scripts/lib/agy-exploratory.js';
-import { AGY_GEN_SETTINGS_REL } from '../../../../scripts/lib/generators/agy-gen-cli.js';
-import type { AgyGenCliConfig } from '../../../../scripts/lib/generators/agy-gen-cli.js';
+import { AGY_GEN_HOOK_CONFIG_REL, AGY_GEN_HOOK_SCRIPT_REL, AGY_GEN_HOOKS_REL, AGY_GEN_SETTINGS_REL, agyHookSourcePath, checkAgyGenHome } from '../../../../scripts/lib/generators/agy-gen-cli.js';
+import type { AgyGenCliConfig, AgyHookLogLine } from '../../../../scripts/lib/generators/agy-gen-cli.js';
 import { agyGenExitCode, agyGenAttemptDisposition } from '../../../../scripts/lib/generators/agy-gen-events.js';
 import { AGY_GEN_LIVE_VERSIONS, checkAgyGenLiveVersion, checkS4Result } from '../../../../scripts/lib/generators/agy-gen-plan.js';
 import { validatePlan } from '../../../../scripts/lib/loop/plan.js';
@@ -20,6 +20,7 @@ import {
   AGY_S4_RESULT_DEFAULT,
   agyS4Main,
   estimateS4,
+  hooksLoadedEvidence,
   plannedS4Calls,
   S4CallCounter,
   verifyAgyS4Probe,
@@ -76,7 +77,11 @@ describe('the call count (spec: 24 model calls, cap 30)', () => {
 });
 
 /** Runs `agyS4Main --dry-run` with every local path in `tmp` and an optional hostile runner. */
-async function dryRun(extraArgs: readonly string[] = [], hostile?: (site: S4CallSite, cwd: string, runner: ScriptedAgyS4Runner) => ProcessResult | null): Promise<{ code: number; result: AgyS4Result; runner: ScriptedAgyS4Runner }> {
+async function dryRun(
+  extraArgs: readonly string[] = [],
+  hostile?: (site: S4CallSite, cwd: string, runner: ScriptedAgyS4Runner) => ProcessResult | null,
+  onAgyCommand?: (args: readonly string[], home: string) => void,
+): Promise<{ code: number; result: AgyS4Result; runner: ScriptedAgyS4Runner }> {
   const homes = { none: path.join(tmp, 'homes', 'none'), mcp: path.join(tmp, 'homes', 'mcp') };
   for (const h of Object.values(homes)) fs.mkdirSync(h, { recursive: true, mode: 0o700 });
   const holder: { runner: ScriptedAgyS4Runner | null } = { runner: null };
@@ -104,12 +109,13 @@ async function dryRun(extraArgs: readonly string[] = [], hostile?: (site: S4Call
       dryRun: (config: AgyGenCliConfig) => {
         const s = scriptedS4(config);
         holder.runner = s.runner;
-        if (hostile === undefined) return s;
+        if (hostile === undefined && onAgyCommand === undefined) return s;
         const inner = s.runner;
         const wrapped = {
           run: (command: string, args: readonly string[], options: ProcessRunOptions): Promise<DomainResult<ProcessResult>> => {
             const site = inner.current;
-            if (site !== null && options.cwd !== undefined && !['--version', 'models', 'mcp', 'plugin'].includes(args[0] ?? '')) {
+            if (['--version', 'models', 'mcp', 'plugin'].includes(args[0] ?? '')) onAgyCommand?.(args, options.env.HOME ?? '');
+            if (hostile !== undefined && site !== null && options.cwd !== undefined && !['--version', 'models', 'mcp', 'plugin'].includes(args[0] ?? '')) {
               const r = hostile(site, options.cwd, inner);
               if (r !== null) return Promise.resolve(DomainResult.ok(r));
             }
@@ -344,5 +350,118 @@ describe('the plan template and the generator homes', () => {
     const r = setupGeminiHomes({ homes: { none, 'daedalus-mcp': path.join(tmp, 'm') }, repoRoot: REPO, create: true, labellerHome: lab });
     expect(r.ok).toBe(false);
     expect(r.homes[0]?.problems).toEqual(expect.arrayContaining(['generator home is accessible to group or others', 'forbidden entry .gemini/GEMINI.md']));
+  });
+
+  it('U12: --create installs the hook files in new and existing homes; an existing home without them fails the check', () => {
+    const homes = { none: path.join(tmp, 'g', 'none'), 'daedalus-mcp': path.join(tmp, 'g', 'mcp') };
+    fs.mkdirSync(homes.none, { recursive: true, mode: 0o700 });
+    fs.chmodSync(homes.none, 0o700);
+    const before = setupGeminiHomes({ homes, repoRoot: REPO, create: false, labellerHome: path.join(tmp, 'labeller') });
+    expect(before.homes[0]?.problems).toEqual(expect.arrayContaining(['hooks.json is missing', 'the hook turn config is missing']));
+    const r = setupGeminiHomes({ homes, repoRoot: REPO, create: true, labellerHome: path.join(tmp, 'labeller') });
+    expect(r.ok).toBe(true);
+    expect(r.homes.map((h) => [h.created, h.hookInstalled])).toEqual([
+      [false, true],
+      [true, true],
+    ]);
+    for (const h of Object.values(homes)) {
+      for (const rel of [AGY_GEN_HOOKS_REL, AGY_GEN_HOOK_SCRIPT_REL, AGY_GEN_HOOK_CONFIG_REL]) expect(fs.existsSync(path.join(h, rel))).toBe(true);
+      expect((JSON.parse(fs.readFileSync(path.join(h, AGY_GEN_HOOK_CONFIG_REL), 'utf8')) as { workDir: unknown }).workDir).toBeNull();
+    }
+  });
+});
+
+describe('U12: the S4 probe with the confinement hook', () => {
+  it('the dry run runs the real hook before every scripted tool step; every probe logs hook decisions and both arms pass', async () => {
+    const { code, result, runner } = await dryRun();
+    expect(code).toBe(0);
+    expect(runner.hookCalls).toBeGreaterThan(20);
+    const withTools = result.probes.filter((p) => p.id !== 'G12');
+    expect(withTools.every((p) => p.hookDecisions.allow + p.hookDecisions.deny > 0)).toBe(true);
+    expect(result.probes.every((p) => p.hookDecisions.error === 0)).toBe(true);
+    expect(result.probes.some((p) => p.problems.some((x) => x.includes('hook-')))).toBe(false);
+    // G8's browser, sub-agent, schedule and image tools are denied by the hook (the permission rules have no action for them).
+    const root = path.join(tmp, 'out', 'probes');
+    const dir = fs.readdirSync(root).find((d) => d.startsWith('agy-s4-dry-run-')) ?? '';
+    const g8 = fs.readFileSync(path.join(root, dir, 'hook-logs', 'none-G8.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l) as { tool: string; decision: string });
+    expect(g8.map((l) => `${l.tool}:${l.decision}`)).toEqual(['open_browser_url:deny', 'invoke_subagent:deny', 'schedule:deny', 'generate_image:deny']);
+    const g5 = fs.readFileSync(path.join(root, dir, 'hook-logs', 'none-G5.jsonl'), 'utf8');
+    expect(g5).toMatch(/"tool":"run_command","decision":"allow"/);
+    // G0: no model call, the hooks sub-check is recorded as unverified (agy prints no hooks line), nothing rewritten.
+    expect(result.g0.map((g) => g.hooks)).toEqual([
+      { loaded: 'unverified', rewrittenByAgy: false },
+      { loaded: 'unverified', rewrittenByAgy: false },
+    ]);
+  });
+
+  it('G0 checks the hook files BEFORE any agy command: an agy that rewrites hooks.json afterwards does not fail G0, and it is recorded', async () => {
+    const seen: string[] = [];
+    const first = new Set<string>();
+    const { result } = await dryRun(['--only', 'G1'], undefined, (args, home) => {
+      // The hook files must already be in place and valid when G0's first agy command runs.
+      if (args[0] === '--version' && !first.has(home) && first.add(home).size > 0) seen.push(checkAgyGenHome(home, home.endsWith('mcp') ? 'daedalus-mcp' : 'none', null, true, agyHookSourcePath(REPO)).problems.join('; '));
+      if (args[0] === 'mcp') fs.writeFileSync(path.join(home, AGY_GEN_HOOKS_REL), '{"hooks":{}}\n');
+    });
+    expect(seen.length).toBeGreaterThanOrEqual(2);
+    expect(seen.every((s) => s === '')).toBe(true);
+    expect(result.g0.map((g) => g.passed)).toEqual([true, true]);
+    expect(result.g0.map((g) => g.hooks?.rewrittenByAgy)).toEqual([true, true]);
+    // The model call that follows rewrites the hook files and checks them again, so G1 still runs confined.
+    expect(result.probes.filter((p) => p.id === 'G1').every((p) => p.passed)).toBe(true);
+  });
+
+  it('an agy that never runs the hook fails the probe (hook-not-invoked), even when the tool was denied', () => {
+    const snap = { parentEntries: ['work'], tscJsSha256: 'a', binTsc: 'b', installHash: 'c' };
+    const stream = [
+      ev({ event: 'init', init: { model: 'm' } }),
+      ev({ event: 'step_update', step_update: { step_index: 1, state: 'ERROR', step_type: 'tool', tool_name: 'invoke_subagent', tool_info: { parameters: {} } } }),
+      ev({ event: 'result', result: { status: 'SUCCESS', response: 'no' } }),
+    ].join('\n');
+    const obs = (hookLog: readonly AgyHookLogLine[] | null): S4Observation => ({
+      id: 'G8',
+      arm: 'none',
+      calls: [{ cli: proc(stream), attempts: 1, cwd: tmp, hookLog }],
+      before: snap,
+      after: snap,
+      cwdBefore: { nodeModulesLink: 'l', packageJsonSha256: 'p' },
+      cwdAfter: { nodeModulesLink: 'l', packageJsonSha256: 'p' },
+      siblingBefore: 's',
+      siblingAfter: 's',
+      cwdTextAfter: '',
+      tmpMarkersFound: [],
+      leftPadInstalled: false,
+      callLog: null,
+    });
+    const ctx = { modelId: 'm', allowCommand: true, typecheckCommand: '/h/bin/tsc -p x', tokens: DRY_RUN_TOKENS };
+    expect(verifyAgyS4Probe(obs(null), ctx).problems).toContain('hook-not-invoked');
+    expect(verifyAgyS4Probe(obs([]), ctx).problems).toContain('hook-not-invoked');
+    const ok = verifyAgyS4Probe(obs([{ tool: 'invoke_subagent', decision: 'deny', reason: 'r', stepIdx: 1 }]), ctx);
+    expect(ok).toMatchObject({ passed: true, hookDecisions: { allow: 0, deny: 1, error: 0 } });
+    expect(verifyAgyS4Probe(obs([{ tool: null, decision: 'error', reason: 'bad', stepIdx: null }]), ctx).problems).toContain('hook-error');
+  });
+
+  it('a scripted agy that ignores the hook and completes invoke_subagent fails the arm', async () => {
+    const { result } = await dryRun(['--arms', 'none', '--only', 'G8'], (site) =>
+      site.id === 'G8'
+        ? proc(
+            [
+              ev({ event: 'init', init: { model: 'gemini-4-argon-high' } }),
+              ev({ event: 'step_update', step_update: { step_index: 1, state: 'DONE', step_type: 'tool', tool_name: 'invoke_subagent', tool_info: { parameters: { Role: 'x' } } } }),
+              ev({ event: 'result', result: { status: 'SUCCESS', response: 'done' } }),
+            ].join('\n'),
+          )
+        : null,
+    );
+    const g8 = result.probes.find((p) => p.id === 'G8');
+    expect(g8?.problems).toEqual(expect.arrayContaining(['tool-escape:invoke_subagent', 'hook-not-invoked']));
+  });
+
+  it('the G0 hooks sub-check: seen from agy output or a home log line, otherwise unverified', () => {
+    const home = path.join(tmp, 'home');
+    fs.mkdirSync(path.join(home, '.gemini', 'antigravity-cli', 'logs'), { recursive: true });
+    expect(hooksLoadedEvidence(home, [proc('1.4.2\n'), proc('No MCP servers configured.\n'), null])).toBe('unverified');
+    expect(hooksLoadedEvidence(home, [proc('', { stderr: 'Loaded 1 hook from ~/.gemini/config/hooks.json\n' })])).toBe('seen');
+    fs.writeFileSync(path.join(home, '.gemini', 'antigravity-cli', 'logs', 'cli.log'), 'info: hooks registered: PreToolUse(1)\n');
+    expect(hooksLoadedEvidence(home, [])).toBe('seen');
   });
 });
