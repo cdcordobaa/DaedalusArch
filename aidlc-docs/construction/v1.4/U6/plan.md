@@ -65,31 +65,31 @@
 ## Part A: pre-flight (no behaviour change)
 
 ### Step 1: Guard the tests against a non-A default
-- [ ] These tests read `CONSTRUCT_ANSWERS` (checked with grep):
+- [x] These tests read `CONSTRUCT_ANSWERS` (checked with grep):
   - `tests/unit/construct-switches/{pipeline,pipeline-report,compile,rescore}.test.ts`
   - `tests/unit/pipeline/commands.test.ts`
   - `tests/unit/fitness-compiler/v13-fix-round.test.ts`
-- [ ] Where a test *uses* the default while expecting the status quo, make it pass `STATUS_QUO_ANSWERS` explicitly (`src/shared/construct-switches.ts`).
-- [ ] Leave the guard `expect(isStatusQuo(CONSTRUCT_ANSWERS)).toBe(true)` in `rescore.test.ts` as it is here. It is changed on purpose in Step 6, not here.
-- [ ] Run `npx jest --maxWorkers=2 tests/unit/construct-switches tests/unit/pipeline tests/unit/fitness-compiler`. It must be green, with no behaviour change. Make this a separate commit.
+- [x] Where a test *uses* the default while expecting the status quo, make it pass `STATUS_QUO_ANSWERS` explicitly (`src/shared/construct-switches.ts`).
+- [x] Leave the guard `expect(isStatusQuo(CONSTRUCT_ANSWERS)).toBe(true)` in `rescore.test.ts` as it is here. It is changed on purpose in Step 6, not here.
+- [x] Run `npx jest --maxWorkers=2 tests/unit/construct-switches tests/unit/pipeline tests/unit/fitness-compiler`. It must be green, with no behaviour change. Make this a separate commit.
 
 ### Step 2: Baseline checks
-- [ ] Run `npx tsc --noEmit` and `npx tsc --noEmit -p tsconfig.scripts.json`. Both must be clean.
-- [ ] Run `node --import tsx scripts/v1.3/blind-misses-rescore.ts --base results/v1.3-reference/after-member-facts --graph-cache <scratch>/graphs.json --json <scratch>/before.json > <scratch>/before.txt`. In the "corrected baseline (Q8 B)" set, it must reproduce blind 50/64 and 50/54, and author 54/54. Keep `before.txt` and `before.json` for the byte-identity check in Step 4.
+- [x] Run `npx tsc --noEmit` and `npx tsc --noEmit -p tsconfig.scripts.json`. Both must be clean.
+- [x] Run `node --import tsx scripts/v1.3/blind-misses-rescore.ts --base results/v1.3-reference/after-member-facts --graph-cache <scratch>/graphs.json --json <scratch>/before.json > <scratch>/before.txt`. In the "corrected baseline (Q8 B)" set, it must reproduce blind 50/64 and 50/54, and author 54/54. Keep `before.txt` and `before.json` for the byte-identity check in Step 4.
 
 ---
 
 ## Part B: adjudicated reference view (new code)
 
 ### Step 3: Move the key code, then add the verdict parser and checker
-- [ ] Move `canon`, `match`, `rebuildBlindKey`, `scoreBlind` and the CSV parser out of `scripts/v1.3/blind-misses-rescore.ts`, unchanged, into a new `scripts/v1.3/lib/blind-key.ts`. The entry file imports them.
-- [ ] Create `tests/unit/scripts/v1.3/blind-key.test.ts` on toy rows: cycle canonicalisation, exact targets first, one-to-one matching.
-- [ ] Create `scripts/v1.3/lib/adjudication-verdicts.ts`. It:
+- [x] Move `canon`, `match`, `rebuildBlindKey`, `scoreBlind` and the CSV parser out of `scripts/v1.3/blind-misses-rescore.ts`, unchanged, into a new `scripts/v1.3/lib/blind-key.ts`. The entry file imports them.
+- [x] Create `tests/unit/scripts/v1.3/blind-key.test.ts` on toy rows: cycle canonicalisation, exact targets first, one-to-one matching.
+- [x] Create `scripts/v1.3/lib/adjudication-verdicts.ts`. It:
   - parses the CSV defined in design §6.2;
   - matches each verdict to a row of the **rebuilt blind-expanded key** (not `adjudication.csv` alone, because N1 is an agreed row), by style, variant, rule and the `canon` file pair;
   - enforces BR-U6-C1: it refuses split verdicts within one question group that have no `verdict_note`, and flags a `blind` verdict whose answer does not recover the row;
   - returns the key minus the rows ruled `spec`.
-- [ ] Create `tests/unit/scripts/v1.3/adjudication-verdicts.test.ts`. It covers:
+- [x] Create `tests/unit/scripts/v1.3/adjudication-verdicts.test.ts`. It covers:
   - parsing;
   - an unknown row, which is an error;
   - N1 matched against an agreed key row;
@@ -100,80 +100,80 @@
   - adjudicated counts on a toy key of 3 styles.
 
 ### Step 4: New options of the re-score
-- [ ] Add `--verdicts <csv>` to `scripts/v1.3/blind-misses-rescore.ts`. It adds an `adjudicated` column group and a JSON `adjudicated` object to every set printed (design §6.3).
-- [ ] Add `--answers <json>`, which appends one set, "answers file", read with `parseAnswersDocument`. Q8 B is added if the file does not set it. Do not edit `SETS`.
-- [ ] Add `--as-run` and `--key-base <dir>`. Under `--as-run`, the tool rows are the base's `raw/` as written (no `rescore()`), and the key renames follow the switch file's answers. The key and its `scores.json` check come from `--key-base`.
-- [ ] Byte identity: without the new flags, run the Step 2 command again and `diff` the output against `before.txt` and `before.json`. Both must be identical.
-- [ ] Run `npx jest --maxWorkers=2 tests/unit/scripts/v1.3 tests/unit/construct-switches`.
+- [x] Add `--verdicts <csv>` to `scripts/v1.3/blind-misses-rescore.ts`. It adds an `adjudicated` column group and a JSON `adjudicated` object to every set printed (design §6.3).
+- [x] Add `--answers <json>`, which appends one set, "answers file", read with `parseAnswersDocument`. Q8 B is added if the file does not set it. Do not edit `SETS`.
+- [x] Add `--as-run` and `--key-base <dir>`. Under `--as-run`, the tool rows are the base's `raw/` as written (no `rescore()`), and the key renames follow the switch file's answers. The key and its `scores.json` check come from `--key-base`.
+- [x] Byte identity: without the new flags, run the Step 2 command again and `diff` the output against `before.txt` and `before.json`. Both must be identical.
+- [x] Run `npx jest --maxWorkers=2 tests/unit/scripts/v1.3 tests/unit/construct-switches`.
 
 ---
 
 ## Part C: apply the answers (after Gate 0, and in the order G0.10 sets)
 
 ### Step 5: The answers file
-- [ ] Create `Docs/v1.3/construct-answers.json`, holding the author's G0.3 answers with notes. If another unit already made it, merge U6's entries into it. U6 owns Q4, Q5, Q6, Q7, Q10, Q12, Q13 and Q20 only. Q8 B is confirmed with its owning unit, and is not written by U6.
-- [ ] Transcribe the signed verdicts to `results/v1.3-reference/after-member-facts/adjudication-verdicts.csv` (design §6.2). Its first data row's `verdict_note`, or the run note, says that it is an author-made file, not a run output.
+- [x] Create `Docs/v1.3/construct-answers.json`, holding the author's G0.3 answers with notes. If another unit already made it, merge U6's entries into it. U6 owns Q4, Q5, Q6, Q7, Q10, Q12, Q13 and Q20 only. Q8 B is confirmed with its owning unit, and is not written by U6.
+- [x] Transcribe the signed verdicts to `results/v1.3-reference/after-member-facts/adjudication-verdicts.csv` (design §6.2). Its first data row's `verdict_note`, or the run note, says that it is an author-made file, not a run output.
 
 ### Step 6: Dry run, then apply
-- [ ] Run the external status-quo evaluations of Step 11 first, while the switch block is still at A. Or, after this step, run them in a worktree at the commit before the apply.
-- [ ] Run `node --import tsx scripts/v1.3/apply-construct-answers.ts Docs/v1.3/construct-answers.json --dry-run`. Save the printed ADR sign-off lines and action items for Step 8.
-- [ ] Run it again without `--dry-run`. This rewrites only the generated block of `src/shared/construct-switches.ts`. Never edit that block by hand.
-- [ ] In the same commit, change the guard in `tests/unit/construct-switches/rescore.test.ts` from `isStatusQuo(CONSTRUCT_ANSWERS)` to an assertion that the switch block equals `renderSwitchBlock` of the answers file (freeze-check F2). (Its status-quo byte-identity cases already take `STATUS_QUO_ANSWERS` from Step 1.)
-- [ ] Run `npx jest --maxWorkers=2 tests/unit/construct-switches/switch-file.test.ts tests/unit/construct-switches/rescore.test.ts tests/unit/construct-switches/answers-combinations.test.ts`.
+- [x] Run the external status-quo evaluations of Step 11 first, while the switch block is still at A. Or, after this step, run them in a worktree at the commit before the apply.
+- [x] Run `node --import tsx scripts/v1.3/apply-construct-answers.ts Docs/v1.3/construct-answers.json --dry-run`. Save the printed ADR sign-off lines and action items for Step 8.
+- [x] Run it again without `--dry-run`. This rewrites only the generated block of `src/shared/construct-switches.ts`. Never edit that block by hand.
+- [x] In the same commit, change the guard in `tests/unit/construct-switches/rescore.test.ts` from `isStatusQuo(CONSTRUCT_ANSWERS)` to an assertion that the switch block equals `renderSwitchBlock` of the answers file (freeze-check F2). (Its status-quo byte-identity cases already take `STATUS_QUO_ANSWERS` from Step 1.)
+- [x] Run `npx jest --maxWorkers=2 tests/unit/construct-switches/switch-file.test.ts tests/unit/construct-switches/rescore.test.ts tests/unit/construct-switches/answers-combinations.test.ts`.
 
 ### Step 7: A combination test for the chosen set
-- [ ] In `tests/unit/construct-switches/interactions.test.ts`, add a case on a hand-built fixture (rows and tiers only; no development-set effect) for exactly the chosen answers. It must assert:
+- [x] In `tests/unit/construct-switches/interactions.test.ts`, add a case on a hand-built fixture (rows and tiers only; no development-set effect) for exactly the chosen answers. It must assert:
   - the adapter pair moves to FF-S05 (or to FF-S01 under C) and is blocking in hexagonal;
   - the application → adapter FF-S04 row is added and the domain → application FF-S04 row is dropped;
   - the express import becomes FF-S01 and FF-P01 is not applicable in layered;
   - the adjacent upward FF-S03 row is dropped;
   - no switch undoes another.
-- [ ] Write the expected rows before running the test.
+- [x] Write the expected rows before running the test.
 
 ---
 
 ## Part D: ADR text (draft now; sign after the fresh checks)
 
 ### Step 8: Draft
-- [ ] Create `Docs/v1.3/adr-v13-03-draft.md` from `aidlc-docs/construction/v1.4/U6/functional-design/adr-drafts.md`, keeping only the chosen options. Add:
+- [x] Create `Docs/v1.3/adr-v13-03-draft.md` from `aidlc-docs/construction/v1.4/U6/functional-design/adr-drafts.md`, keeping only the chosen options. Add:
   - the Step 6 sign-off lines;
   - the G0.9 refutation criteria;
   - the G0.8 choice (with the scoring-deviation entry under (a));
   - the FF-S05 row for `blind-rule-mapping.json` if Q5 is D (`Docs/v1.3/freeze-runbook.md`, step 3);
   - the Q13 action item (the ADR-V13-02 / NestJS preset contradiction).
-- [ ] Do **not** sign yet. The design says the fresh checks come before the signature (design §4.1, §9).
+- [x] Do **not** sign yet. The design says the fresh checks come before the signature (design §4.1, §9).
 
 ---
 
 ## Part E: offline preview and fresh checks
 
 ### Step 9: Offline preview
-- [ ] Before running, copy the expected figures of design §4.5 into the run note's "expected" table, with Q5 D or C and Q10 C or D as chosen.
-- [ ] Run `node --import tsx scripts/v1.3/construct-rescore.ts --base results/v1.3-reference/after-member-facts --answers Docs/v1.3/construct-answers.json --graph-cache <scratch>/graphs.json --out <scratch>/preview`.
-- [ ] Run `node --import tsx scripts/v1.3/blind-misses-rescore.ts --base results/v1.3-reference/after-member-facts --answers Docs/v1.3/construct-answers.json --verdicts results/v1.3-reference/after-member-facts/adjudication-verdicts.csv --graph-cache <scratch>/graphs.json --json <scratch>/preview/adjudicated.json`.
-- [ ] Count any Q6 B FF-S04 rows whose target is a composition layer (design BR-U6-06 note).
-- [ ] Compare with the expected table. Any difference is **reported, not fixed**.
-- [ ] These are offline figures. Under G0.8 (b), the run note also states that the registered scorers will not show the Q5 D gain, nor the FF-P01 scope change (design §3.3).
+- [x] Before running, copy the expected figures of design §4.5 into the run note's "expected" table, with Q5 D or C and Q10 C or D as chosen.
+- [x] Run `node --import tsx scripts/v1.3/construct-rescore.ts --base results/v1.3-reference/after-member-facts --answers Docs/v1.3/construct-answers.json --graph-cache <scratch>/graphs.json --out <scratch>/preview`.
+- [x] Run `node --import tsx scripts/v1.3/blind-misses-rescore.ts --base results/v1.3-reference/after-member-facts --answers Docs/v1.3/construct-answers.json --verdicts results/v1.3-reference/after-member-facts/adjudication-verdicts.csv --graph-cache <scratch>/graphs.json --json <scratch>/preview/adjudicated.json`.
+- [x] Count any Q6 B FF-S04 rows whose target is a composition layer (design BR-U6-06 note).
+- [x] Compare with the expected table. Any difference is **reported, not fixed**.
+- [x] These are offline figures. Under G0.8 (b), the run note also states that the registered scorers will not show the Q5 D gain, nor the FF-P01 scope change (design §3.3).
 
 ### Step 10: MO-H03 and MO-H02 seeds (Q5, Q6)
-- [ ] Add an optional `engine` parameter to `cliEvaluate` in `scripts/lib/freeze-gate-main.ts`, defaulting to `neo4j` so every other caller is unchanged. It hard-codes `--engine neo4j` today. Under `cypher-interp`, the child environment has `NEO4J_URI` blank, as in `ue-baseline-live.ts`. Add `--engine` to `scripts/v1.3/operators-hexddd-run.ts`, plus a small argument test.
-- [ ] In `operators-hexddd-run.ts:336`, replace `ruleTier` with `constructRuleTier(…, CONSTRUCT_ANSWERS)`. At the status quo the two are equal; add a test that shows this.
-- [ ] Add run options, recorded in `run.json` and in the notes:
+- [x] Add an optional `engine` parameter to `cliEvaluate` in `scripts/lib/freeze-gate-main.ts`, defaulting to `neo4j` so every other caller is unchanged. It hard-codes `--engine neo4j` today. Under `cypher-interp`, the child environment has `NEO4J_URI` blank, as in `ue-baseline-live.ts`. Add `--engine` to `scripts/v1.3/operators-hexddd-run.ts`, plus a small argument test.
+- [x] In `operators-hexddd-run.ts:336`, replace `ruleTier` with `constructRuleTier(…, CONSTRUCT_ANSWERS)`. At the status quo the two are equal; add a test that shows this.
+- [x] Add run options, recorded in `run.json` and in the notes:
   - MO-H03's expected key moves from `layer-skip-graph` to FF-S05 under Q5 D (FF-S01 under C);
   - FF-S04 is added to MO-H02's expected keys under Q6 B.
   - The operator catalogue is not edited.
-- [ ] Run MO-H03, MO-H03n, MO-H02 and MO-H02n on the reference bases, with the switch file applied and `--engine cypher-interp`, one base at a time. MO-H03 is hexagonal only, so record that ddd has no seeded Q5 check.
-- [ ] On the real bases, cloning (`--prepare`) needs the G0.5 approval. If there is no approval, skip and note.
-- [ ] List the baseline FF-S03 adapter-pair rows on the unmodified real hex and ddd projects. These are the rows that FF-S05 makes blocking, and they go to a correctness read.
-- [ ] Apply the G0.9 criteria as written. Do not reinterpret them.
+- [x] Run MO-H03, MO-H03n, MO-H02 and MO-H02n on the reference bases, with the switch file applied and `--engine cypher-interp`, one base at a time. MO-H03 is hexagonal only, so record that ddd has no seeded Q5 check.
+- [x] On the real bases, cloning (`--prepare`) needs the G0.5 approval. If there is no approval, skip and note.
+- [x] List the baseline FF-S03 adapter-pair rows on the unmodified real hex and ddd projects. These are the rows that FF-S05 makes blocking, and they go to a correctness read.
+- [x] Apply the G0.9 criteria as written. Do not reinterpret them.
 
 ### Step 11: External layered repositories (Q10, Q12)
-- [ ] With the G0.5 approval, clone the 5 layered repositories at the SHAs pinned in `Docs/DiagnosticRuns/v1.3-external-set-3-2026-10-16.md:54-58`, and install with `--ignore-scripts`. Clones go into scratch and are never committed.
-- [ ] Run `bin/firewall.ts evaluate --engine cypher-interp --symbolic-only`, one repository at a time: at the status quo (before Step 6, or in a worktree at the pre-apply commit) and with the answers. Count only:
+- [x] With the G0.5 approval, clone the 5 layered repositories at the SHAs pinned in `Docs/DiagnosticRuns/v1.3-external-set-3-2026-10-16.md:54-58`, and install with `--ignore-scripts`. Clones go into scratch and are never committed.
+- [x] Run `bin/firewall.ts evaluate --engine cypher-interp --symbolic-only`, one repository at a time: at the status quo (before Step 6, or in a worktree at the pre-apply commit) and with the answers. Count only:
   - the FF-P01 rows removed;
   - the adjacent-upward FF-S03 rows removed;
   - the new FF-S01 package-layer rows, with the file and the package (no source text).
-- [ ] Join the counts to the external correctness labels, and apply the G0.9 criteria. Report to the author **before** Q10 is final. If the criteria send Q10 to D, re-apply once (Step 6) and repeat Step 9 once. This is the only result-driven choice the plan allows, and it is pre-declared in the ADR.
+- [x] Join the counts to the external correctness labels, and apply the G0.9 criteria. Report to the author **before** Q10 is final. If the criteria send Q10 to D, re-apply once (Step 6) and repeat Step 9 once. This is the only result-driven choice the plan allows, and it is pre-declared in the ADR.
 
 ### Step 11b: Sign
 - [ ] The author signs. Then move the text to `Docs/v1.3/adr-v13.md` §ADR-V13-03 (freeze-check F4).
@@ -229,6 +229,17 @@
 - [ ] Open one PR targeting `main` from a unit branch. Do not merge it. The author's PR review is the code-approval gate.
 
 ---
+
+## Progress (2026-10-20, FREEZE-PREP routine, zero model calls)
+
+- Steps 1–11 are done; see `Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md`.
+  - Step 6: the external status-quo runs used a worktree at the pre-apply commit.
+  - Steps 10–11 ran on cypher-interp with clones at their pinned SHAs and no install.
+  - Q5, Q6 and Q12: no G0.9 criterion met.
+  - **Q10: the criterion is met as written.** The 2 new FF-S01 `express` rows were judged incorrect by the C3 checker, which appears not to handle package targets. This is reported to the author; Q10 stays at the signed, provisional C.
+- Step 11b is open: the author signs ADR-V13-03.
+- Steps 12–13 deviate, at the routine's direction. One development re-run was made on Neo4j 5.26.24 into `results/v1.3-reference/after-construct-answers-u6-dev/`, not `DEV_RERUN_DIR`, and scored `--as-run` without `ue-score.ts --blind` (sealed). The F8 record run stays with the author (G0.6 = A).
+- Step 14 is done (see the run note). Steps 15–16 are covered by the run note and `code/summary.md`. Step 17 is the PR.
 
 ## Traceability
 

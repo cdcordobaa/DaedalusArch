@@ -2519,3 +2519,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Stage A ran at 5bfe36e3: Layered x3, none@L2, Claude Sonnet, 15 turns, 3/3 complete. Mean D 1.33, Y1>=1 in 3/3, all FF-S03. The stop check does not trigger, so Layered continues (provisional until the freeze re-score). Two earlier attempts made 0 model calls: an absolute-binary-path error, then 'Not logged in' under the per-run HOME (the S3 keychain finding; that isolation is off for Stage A, declared)."
 **Context**: exploratory study Stage A; 15 Claude generator turns
 ---
+
+## Construction v1.4 U6 — FREEZE-PREP (signed answers applied, U6 built, one development re-run)
+**Timestamp**: 2026-10-20T04:30:00Z
+**User Input**: "Scheduled routine (zero model calls): write the 61 signed decision-desk answers into their files of record, apply the construct answers, build U6 per its plan, run the one Neo4j development re-run, report, and open a PR without merging."
+**AI Response**: "Wrote the answers: construct-decisions Q1–Q25 and P1/P2/PREC; the adjudication verdicts (9 rows and N1, all spec); ADR-V14 Q-A..Q-E; the U6 Gate 0 boxes with the G0.8 (b) and G0.9 entries; MEAN-01 §12; the ADR-V13-03 draft (unsigned). Each is marked signed by the author or delegated to the coordinator. Applied all 25 answers through apply-construct-answers.ts (switch file sha256 3f796d43…). Built plan Steps 1–10 with tests. Fresh checks: the Q5, Q6 and Q12 criteria were not met. The Q10 criterion was met as written (2 new FF-S01 express rows judged incorrect by the C3 checker, likely a checker limit on package targets). This was reported to the author, and Q10 stays at the provisional C. One Neo4j 5.26.24 development re-run (not the F8 record run; ue-score --blind not run): blind recall pooled 50/64 → 55/65, layered 7/10 → 8/10, hexagonal 12/18 → 15/18, ddd 9/9 → 10/10; adjudicated 55/55. Run note: Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md."
+**Context**: CONSTRUCTION v1.4, unit U6, Code Generation and the freeze runbook step 3 development re-run. Plan Step 11b (signature) and the record run stay with the author (G0.6 = A). G0.10 = A: merge after the other units' development runs.
+
+---

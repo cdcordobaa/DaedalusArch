@@ -119,7 +119,11 @@ Delegated to the coordinator 2026-10-19 (recommended answer: as drafted on `ops/
 
 ## Fresh-check results (U6 plan Steps 10 and 11)
 
-Recorded in `Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md`, against the criteria above. A met criterion is acted on as written; nothing else changes.
+Recorded in `Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md` §2 (2026-10-20, after the criteria were dated). Evidence: `results/v1.4-u6-fresh-checks/`.
+- **Q5 C: not met.** MO-H03 seeds 10/10 detected; twins 0/6. On the real hex/ddd projects, 14 adapter-pair rows move to FF-S01, and all 14 are correct by the C3 checker.
+- **Q6 B: not met.** MO-H02 seeds 10/10 detected with FF-S04 in the key; twins 0/6. On real code, all 23 new FF-S04 rows are on edges FF-S01 already reports, so no new edge.
+- **Q12 B: not met.** 11 adjacent-upward FF-S03 rows were removed, and all 11 are still reported by FF-S01.
+- **Q10 C: met, read as written.** The 2 new FF-S01 `express` rows were judged incorrect by the C3 checker ("the statement(s) at that line do not reach express (literal view)"), and no other FF-S01 row covers them. The checker appears not to handle a package target for a direction rule; the same imports are labelled correct as FF-P01 rows. Per plan Step 11 this goes to the author before Q10 is final. **The author decides: D, as the criterion reads, or C, if the verdict is a checker artefact.** Until then Q10 stays at the signed, provisional C.
 
 ## Sign-off
 
