@@ -1,0 +1,305 @@
+# s2-orders-invoices step-04: tree after the step against the tree before it (14 files changed, 102 insertions(+), 15 deletions(-))
+diff --git a/src/billing/acl/OrderingAcl.ts b/src/billing/acl/OrderingAcl.ts
+index 94e33ab..4fc0363 100644
+--- a/src/billing/acl/OrderingAcl.ts
++++ b/src/billing/acl/OrderingAcl.ts
+@@ -8,6 +8,6 @@ export class OrderingAcl implements OrderSource {
+   async billableOrder(orderId: string): Promise<BillableOrder | null> {
+     const summary = await this.ordering.summaryOf(orderId);
+     if (summary === null) return null;
+-    return { orderId: summary.orderId, customerId: summary.customerId, amountCents: summary.totalCents, currency: summary.currency };
++    return { orderId: summary.orderId, customerId: summary.customerId, amountCents: summary.totalCents - summary.taxCents, taxCents: summary.taxCents, currency: summary.currency };
+   }
+ }
+diff --git a/src/billing/application/IssueInvoice.ts b/src/billing/application/IssueInvoice.ts
+index 1eccfaf..cbafbf4 100644
+--- a/src/billing/application/IssueInvoice.ts
++++ b/src/billing/application/IssueInvoice.ts
+@@ -7,14 +7,14 @@ import type { Order } from '../../ordering/domain/order/Order.js';
+ 
+ /** Application service: coordinates; the invoice computes its own tax. */
+ export class IssueInvoice {
+-  constructor(private readonly orders: OrderSource, private readonly invoices: InvoiceRepository, private readonly taxRate: number) {}
++  constructor(private readonly orders: OrderSource, private readonly invoices: InvoiceRepository) {}
+ 
+   async execute(invoiceId: string, orderId: string): Promise<void> {
+     const order = await this.orders.billableOrder(orderId);
+     if (order === null) throw new Error('Unknown order');
+     const invoice = new Invoice(new InvoiceId(invoiceId), order.orderId, order.currency, order.customerId);
+     invoice.charge(`order ${order.orderId}`, Money.of(order.amountCents, order.currency));
+-    invoice.issue(this.taxRate);
++    invoice.issue(Money.of(order.taxCents, order.currency));
+     await this.invoices.save(invoice);
+   }
+ 
+diff --git a/src/billing/application/ports/OrderSource.ts b/src/billing/application/ports/OrderSource.ts
+index 0be0224..17a7391 100644
+--- a/src/billing/application/ports/OrderSource.ts
++++ b/src/billing/application/ports/OrderSource.ts
+@@ -2,7 +2,10 @@
+ export interface BillableOrder {
+   readonly orderId: string;
+   readonly customerId: string;
++  /** Net amount, before tax. */
+   readonly amountCents: number;
++  /** Tax agreed with the customer at ordering time. */
++  readonly taxCents: number;
+   readonly currency: string;
+ }
+ 
+diff --git a/src/billing/domain/invoice/Invoice.ts b/src/billing/domain/invoice/Invoice.ts
+index 015f1c0..b1dad3e 100644
+--- a/src/billing/domain/invoice/Invoice.ts
++++ b/src/billing/domain/invoice/Invoice.ts
+@@ -23,11 +23,13 @@ export class Invoice {
+     this.lines.push(new InvoiceLine(this.lines.length + 1, description, amount));
+   }
+ 
+-  issue(taxRate: number, now: Date = new Date()): void {
++  /** The tax is the amount fixed on the order when it was placed, so invoice and order total always agree. */
++  issue(tax: Money, now: Date = new Date()): void {
+     if (this.lines.length === 0) throw new Error('Nothing to invoice');
+     const net = this.net();
+-    if (net.cents < 0 || taxRate < 0) throw new Error('An invoice total must not be negative');
+-    this.lines.push(new InvoiceLine(this.lines.length + 1, 'tax', net.times(taxRate)));
++    if (tax.currency !== this.currency) throw new Error('Currency mismatch');
++    if (net.cents < 0 || tax.cents < 0) throw new Error('An invoice total must not be negative');
++    this.lines.push(new InvoiceLine(this.lines.length + 1, 'tax', tax));
+     this.issued = true;
+     this.issuedOn = now;
+     this.events.push(new InvoiceIssued(this.id.value, this.orderId));
+diff --git a/src/main.ts b/src/main.ts
+index c20f350..f2b81b9 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -3,6 +3,8 @@ import { PlaceOrder } from './ordering/application/PlaceOrder.js';
+ import { GetOrderSummary } from './ordering/application/GetOrderSummary.js';
+ import { MarkOrderPaid } from './ordering/application/MarkOrderPaid.js';
+ import { SetCreditLimit } from './ordering/application/SetCreditLimit.js';
++import { SetTaxRate } from './ordering/application/SetTaxRate.js';
++import { InMemoryTaxRates } from './ordering/infrastructure/InMemoryTaxRates.js';
+ import { InMemoryOrderRepository } from './ordering/infrastructure/InMemoryOrderRepository.js';
+ import { InMemoryCustomerRepository } from './ordering/infrastructure/InMemoryCustomerRepository.js';
+ import { OrderController } from './ordering/api/OrderController.js';
+@@ -24,13 +26,14 @@ export function compose(): { orders: OrderController; invoices: InvoiceControlle
+   const customerRepo = new InMemoryCustomerRepository(new Map());
+   const invoiceRepo = new InMemoryInvoiceRepository();
+   const billingAcl = new BillingAcl(new UnpaidBalance(invoiceRepo));
+-  const orders = new OrderController(new PlaceOrder(orderRepo, customerRepo, billingAcl));
+-  const customers = new CustomerController(new SetCreditLimit(customerRepo));
++  const taxRates = new InMemoryTaxRates();
++  const orders = new OrderController(new PlaceOrder(orderRepo, customerRepo, billingAcl, taxRates));
++  const customers = new CustomerController(new SetCreditLimit(customerRepo), new SetTaxRate(taxRates));
+   const acl = new OrderingAcl(new GetOrderSummary(orderRepo));
+   const paidAcl = new OrderingPaidAcl(new MarkOrderPaid(orderRepo));
+   const countAcl = new OrderingCountAcl(new GetOrderCounts(orderRepo));
+   const invoices = new InvoiceController(
+-    new IssueInvoice(acl, invoiceRepo, 0.2),
++    new IssueInvoice(acl, invoiceRepo),
+     new RecordPayment(invoiceRepo, paidAcl),
+     new MonthlyRevenueReport(invoiceRepo, countAcl),
+   );
+diff --git a/src/ordering/api/CustomerController.ts b/src/ordering/api/CustomerController.ts
+index 0f9d771..42410ba 100644
+--- a/src/ordering/api/CustomerController.ts
++++ b/src/ordering/api/CustomerController.ts
+@@ -1,8 +1,14 @@
+ import type { SetCreditLimit } from '../application/SetCreditLimit.js';
++import type { SetTaxRate } from '../application/SetTaxRate.js';
+ 
+ /** Inbound adapter for finance. */
+ export class CustomerController {
+-  constructor(private readonly setCreditLimit: SetCreditLimit) {}
++  constructor(private readonly setCreditLimit: SetCreditLimit, private readonly setTaxRate: SetTaxRate) {}
++
++  async putTaxRate(body: { country: string; rate: number }): Promise<{ status: number }> {
++    await this.setTaxRate.execute(body.country, body.rate);
++    return { status: 204 };
++  }
+ 
+   async putCreditLimit(body: { customerId: string; limitCents: number }): Promise<{ status: number }> {
+     await this.setCreditLimit.execute(body.customerId, body.limitCents);
+diff --git a/src/ordering/application/GetOrderSummary.ts b/src/ordering/application/GetOrderSummary.ts
+index 932ae16..352fc04 100644
+--- a/src/ordering/application/GetOrderSummary.ts
++++ b/src/ordering/application/GetOrderSummary.ts
+@@ -10,6 +10,6 @@ export class GetOrderSummary implements OrderSummaryQuery {
+     const order = await this.orders.byId(new OrderId(orderId));
+     if (order === null) return null;
+     const total = order.total();
+-    return { orderId, customerId: order.customerId.value, totalCents: total.cents, currency: total.currency, lineCount: order.lineCount(), paid: order.isPaid() };
++    return { orderId, customerId: order.customerId.value, totalCents: total.cents, taxCents: order.tax().cents, currency: total.currency, lineCount: order.lineCount(), paid: order.isPaid() };
+   }
+ }
+diff --git a/src/ordering/application/PlaceOrder.ts b/src/ordering/application/PlaceOrder.ts
+index 7b07cd4..c752c28 100644
+--- a/src/ordering/application/PlaceOrder.ts
++++ b/src/ordering/application/PlaceOrder.ts
+@@ -4,6 +4,7 @@ import type { OrderRepository } from '../domain/order/OrderRepository.js';
+ import { OrderId } from '../domain/order/value-objects/OrderId.js';
+ import type { CustomerRepository } from '../domain/customer/CustomerRepository.js';
+ import { CustomerId } from '../domain/customer/value-objects/CustomerId.js';
++import type { TaxRates } from '../domain/tax/TaxRates.js';
+ import { Quantity } from '../domain/value-objects/Quantity.js';
+ 
+ /** Port: the customer's issued-but-unpaid invoice balance in a currency, in minor units. */
+@@ -24,12 +25,13 @@ export class PlaceOrder {
+     private readonly orders: OrderRepository,
+     private readonly customers: CustomerRepository,
+     private readonly unpaid: UnpaidInvoices,
++    private readonly taxRates: TaxRates,
+   ) {}
+ 
+   async execute(cmd: PlaceOrderCommand): Promise<void> {
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+     if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');
+-    const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
++    const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency, await this.taxRates.rateFor(customer.country));
+     cmd.lines.forEach((l, i) => {
+       const where = `Order line ${i + 1} (product ${l.productId})`;
+       if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new Error(`${where}: quantity must be a positive whole number, got ${l.quantity}`);
+diff --git a/src/ordering/application/SetTaxRate.ts b/src/ordering/application/SetTaxRate.ts
+new file mode 100644
+index 0000000..3720e10
+--- /dev/null
++++ b/src/ordering/application/SetTaxRate.ts
+@@ -0,0 +1,11 @@
++import { normalizeCountry, type TaxRates } from '../domain/tax/TaxRates.js';
++
++/** Finance changes a country's rate; it affects orders placed afterwards only. */
++export class SetTaxRate {
++  constructor(private readonly rates: TaxRates) {}
++
++  async execute(country: string, rate: number): Promise<void> {
++    if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) throw new Error('Tax rate must be a fraction between 0 and 1');
++    await this.rates.setRate(normalizeCountry(country), rate);
++  }
++}
+diff --git a/src/ordering/contracts/OrderSummary.ts b/src/ordering/contracts/OrderSummary.ts
+index f8db9f0..123fb3f 100644
+--- a/src/ordering/contracts/OrderSummary.ts
++++ b/src/ordering/contracts/OrderSummary.ts
+@@ -2,7 +2,10 @@
+ export interface OrderSummary {
+   readonly orderId: string;
+   readonly customerId: string;
++  /** Total including tax. */
+   readonly totalCents: number;
++  /** The tax part of totalCents, as fixed when the order was placed. */
++  readonly taxCents: number;
+   readonly currency: string;
+   readonly lineCount: number;
+   readonly paid: boolean;
+diff --git a/src/ordering/domain/customer/Customer.ts b/src/ordering/domain/customer/Customer.ts
+index 3634ec8..dd22630 100644
+--- a/src/ordering/domain/customer/Customer.ts
++++ b/src/ordering/domain/customer/Customer.ts
+@@ -1,5 +1,6 @@
+ import type { Money } from '../../../shared-kernel/value-objects/Money.js';
+ import { CustomerId } from './value-objects/CustomerId.js';
++import { DEFAULT_COUNTRY, normalizeCountry } from '../tax/TaxRates.js';
+ 
+ /** 5,000.00 in minor units of the order currency. */
+ export const DEFAULT_CREDIT_LIMIT_CENTS = 500000;
+@@ -9,7 +10,16 @@ export class Customer {
+   private active = true;
+   private creditLimitCents: number | null = null;
+ 
+-  constructor(readonly id: CustomerId, readonly name: string) {}
++  readonly country: string;
++
++  constructor(readonly id: CustomerId, readonly name: string, country: string) {
++    this.country = normalizeCountry(country);
++  }
++
++  /** Rebuilds a customer stored before countries existed; those default to GB. */
++  static legacy(id: CustomerId, name: string, country?: string | null): Customer {
++    return new Customer(id, name, country ?? DEFAULT_COUNTRY);
++  }
+ 
+   canOrder(): boolean {
+     return this.active;
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index 8fe3a4f..1810250 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -14,7 +14,10 @@ export class Order {
+   private placedOn: Date | null = null;
+   private readonly events: DomainEvent[] = [];
+ 
+-  constructor(readonly id: OrderId, readonly customerId: CustomerId, readonly currency: string) {}
++  /** taxRate is the customer's country rate at the moment of ordering; the order keeps it for good. */
++  constructor(readonly id: OrderId, readonly customerId: CustomerId, readonly currency: string, private readonly taxRate: number) {
++    if (!Number.isFinite(taxRate) || taxRate < 0) throw new Error('Tax rate must not be negative');
++  }
+ 
+   addLine(productId: string, quantity: Quantity, unitPrice: Money): void {
+     if (this.placed) throw new Error('A placed order cannot change');
+@@ -45,10 +48,20 @@ export class Order {
+     return this.paid;
+   }
+ 
+-  total(): Money {
++  net(): Money {
+     return this.lines.reduce((sum, l) => sum.add(l.subtotal()), Money.of(0, this.currency));
+   }
+ 
++  /** The tax the invoice will charge for this order. */
++  tax(): Money {
++    return this.net().times(this.taxRate);
++  }
++
++  /** Net plus tax: what the customer sees. */
++  total(): Money {
++    return this.net().add(this.tax());
++  }
++
+   lineCount(): number {
+     return this.lines.length;
+   }
+diff --git a/src/ordering/domain/tax/TaxRates.ts b/src/ordering/domain/tax/TaxRates.ts
+new file mode 100644
+index 0000000..7c5d0b5
+--- /dev/null
++++ b/src/ordering/domain/tax/TaxRates.ts
+@@ -0,0 +1,21 @@
++/** Default country for customers that predate the country field. */
++export const DEFAULT_COUNTRY = 'GB';
++
++/** Rates (as fractions) in force until finance changes them; every other country is 0. */
++export const INITIAL_TAX_RATES: ReadonlyMap<string, number> = new Map([
++  ['GB', 0.2],
++  ['DE', 0.19],
++  ['ES', 0.21],
++]);
++
++export function normalizeCountry(country: string): string {
++  const code = typeof country === 'string' ? country.trim().toUpperCase() : '';
++  if (code === '') throw new Error('A country is required');
++  return code;
++}
++
++/** Port: the tax rate currently in force per country. */
++export interface TaxRates {
++  rateFor(country: string): Promise<number>;
++  setRate(country: string, rate: number): Promise<void>;
++}
+diff --git a/src/ordering/infrastructure/InMemoryTaxRates.ts b/src/ordering/infrastructure/InMemoryTaxRates.ts
+new file mode 100644
+index 0000000..eeb45b6
+--- /dev/null
++++ b/src/ordering/infrastructure/InMemoryTaxRates.ts
+@@ -0,0 +1,13 @@
++import { INITIAL_TAX_RATES, normalizeCountry, type TaxRates } from '../domain/tax/TaxRates.js';
++
++export class InMemoryTaxRates implements TaxRates {
++  private readonly rates = new Map<string, number>(INITIAL_TAX_RATES);
++
++  async rateFor(country: string): Promise<number> {
++    return this.rates.get(normalizeCountry(country)) ?? 0;
++  }
++
++  async setRate(country: string, rate: number): Promise<void> {
++    this.rates.set(normalizeCountry(country), rate);
++  }
++}

@@ -1,0 +1,74 @@
+# s1-hotel-bookings step-02: tree after the step against the tree before it (1 file changed, 33 insertions(+), 4 deletions(-))
+diff --git a/src/application/services/BookRoomService.ts b/src/application/services/BookRoomService.ts
+index ec9902b..66c64cf 100644
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -1,5 +1,7 @@
+ import { BookingError } from '../../domain/errors/BookingError';
+ import { Booking } from '../../domain/model/Booking';
++import { Guest } from '../../domain/model/Guest';
++import { Room } from '../../domain/model/Room';
+ import { DateRange } from '../../domain/model/DateRange';
+ import { AvailabilityChecker } from '../../domain/services/AvailabilityChecker';
+ import { PriceCalculator } from '../../domain/services/PriceCalculator';
+@@ -31,13 +33,41 @@ export class BookRoomService implements BookRoom {
+     if (!room.fits(command.guests)) throw new BookingError('invalid', `Room ${room.number} sleeps ${room.capacity}`);
+ 
+     const stay = DateRange.parse(command.checkIn, command.checkOut);
++    // Check, charge and save must be one step per room, or concurrent requests all see the room as free.
++    const outcome = await this.withRoomLock(room.id, () => this.reserve(command, room, guest, stay));
++    if (outcome.replayed) return toBookingView(outcome.booking);
++    const booking = outcome.booking;
++    await this.notifications.send(guest.email, `Room ${room.number} is booked (${booking.id})`);
++    return toBookingView(booking);
++  }
++
++  private readonly roomLocks = new Map<string, Promise<unknown>>();
++
++  private async withRoomLock<T>(roomId: string, task: () => Promise<T>): Promise<T> {
++    const previous = this.roomLocks.get(roomId) ?? Promise.resolve();
++    const run = previous.then(task, task);
++    const tail = run.catch(() => undefined);
++    this.roomLocks.set(roomId, tail);
++    try {
++      return await run;
++    } finally {
++      if (this.roomLocks.get(roomId) === tail) this.roomLocks.delete(roomId);
++    }
++  }
++
++  private async reserve(
++    command: BookRoomCommand,
++    room: Room,
++    guest: Guest,
++    stay: DateRange,
++  ): Promise<{ booking: Booking; replayed: boolean }> {
+     const existing = await this.bookings.findByRoom(room.id);
+ 
+     // A retried request must neither charge nor book twice: replay the booking it already produced.
+     let idempotencyKey = command.idempotencyKey;
+     if (idempotencyKey !== undefined) {
+       const replay = existing.find((b) => b.idempotencyKey === idempotencyKey);
+-      if (replay !== undefined) return toBookingView(replay);
++      if (replay !== undefined) return { booking: replay, replayed: true };
+     } else {
+       const sameRequest = existing.filter(
+         (b) =>
+@@ -46,7 +76,7 @@ export class BookRoomService implements BookRoom {
+           b.stay.checkOut.getTime() === stay.checkOut.getTime(),
+       );
+       const active = sameRequest.find((b) => b.isActive);
+-      if (active !== undefined) return toBookingView(active);
++      if (active !== undefined) return { booking: active, replayed: true };
+       // Earlier cancelled bookings were charged under earlier keys, so a re-booking gets a fresh one.
+       idempotencyKey = [room.id, guest.id, command.checkIn, command.checkOut, command.guests, sameRequest.length].join('|');
+     }
+@@ -58,7 +88,6 @@ export class BookRoomService implements BookRoom {
+     const paymentRef = await this.payments.charge(guest.id, total, idempotencyKey);
+     const booking = new Booking(this.bookings.nextId(), room.id, guest.id, stay, total, paymentRef, idempotencyKey);
+     await this.bookings.save(booking);
+-    await this.notifications.send(guest.email, `Room ${room.number} is booked (${booking.id})`);
+-    return toBookingView(booking);
++    return { booking, replayed: false };
+   }
+ }

@@ -2820,3 +2820,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: HEXDDD-01 exploratory pilot, step 2 of the run brief (inputs frozen before any call); zero generator calls so far; no Study 2b path, freeze tag or frozen path touched
 
 ---
+
+## HEXDDD-01 exploratory pilot — run and zero-call scoring
+**Timestamp**: 2026-10-20T20:54:28Z
+**User Input**: (paraphrase) Continue the HEXDDD-01 run brief: smoke check, confinement probes, the 10-call pilot, zero-call scoring, results split for a blind hand read, a counts-only run report, and an unmerged PR.
+**AI Response**: Smoke check passed (1 call; CLI 2.1.304, Linux sandbox). Confinement probes 1-5 passed (5 calls). Pilot ran 2 runs x 5 steps with no redraw (10 calls; 16 in total, under the cap of 18). Zero-call scoring at main: D_seed 0 in both runs, 0 advisory candidates in FF-S03/FF-P02/FF-DT05/FF-DT06; pass bar of design §5.2 FAIL. Exposure counting is not available for Hexagonal/DDD specs (Layered only). Results under results/pilot-hexddd-01/ (diffs/ for the blind read, scores/ with every finding, hand-read-log.csv template); counts-only report in Docs/DiagnosticRuns/pilot-hexddd-01-2026-10-20.md. The one revision §5.2 allows after a FAIL (a real-repo seed) is left to the author.
+**Context**: HEXDDD-01 exploratory pilot, steps 3-8 of the run brief; not Study 2b; no frozen path, Study 2b file or freeze tag touched
+
+---
