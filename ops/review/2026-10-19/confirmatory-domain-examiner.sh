@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # External examiner for the confirmatory tasks' domains (the F23 check, for the new tasks). It replaces the author's own
-# check, by the author's direction (2026-10-19): "just send an external examiner".
+# check, by the author's direction (2026-10-19) to use an external examiner.
 # A separate claude session (Fable), no tools, no MCP, no saved transcript, gets the 4 sealed tasks and the retired
 # sealed Study 2 list on stdin. It prints a verdict that names no domain: only task numbers (1-4) and GO / NO-GO.
 #   SEALED_ROOT=<abs path of daedalus-sealed> bash ops/review/2026-10-19/confirmatory-domain-examiner.sh
