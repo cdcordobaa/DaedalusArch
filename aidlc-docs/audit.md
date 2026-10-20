@@ -2659,3 +2659,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Study 2b gate preparation
 
 ---
+
+## v1.3 hold-out attempt 3 (DELEG-H3): attempt-1 layout + scripted header repair; live run aborted
+**Timestamp**: 2026-10-20T11:32:03Z
+**User Input**: "Coordinator, under GO-2B: record DELEG-H3 and addendum 3 (with its own hash row) before acting. Attempt 3, one try only: attempt 1's path-only layout plus attempt 2's header-only repair, the layout and repair done without a model where possible; verify by script; structure check at the tag on 4 styles; live run once if 0 problems, otherwise STOP; clean up, record, merge on green; don't touch docs/study2b-prereg."
+**AI Response**: "DELEG-H3 and addendum 3 were pushed at 11:07Z, before the attempt. Fresh copy at 1379b561 (608 files). The attempt-1 adapter session was re-run unchanged (its MAP had been deleted): 594 files, ddd incomplete. The scripted header repair rewrote 35 sections in 34 patches (8/9/6/11). Verifier: 34 of 34 hunks byte-identical, header-only, 0 other changes. Structure check: ok, 0 problems. Live run once on Neo4j 5.26.24 + APOC (11:30:25-11:30:31Z): ue-baseline-live.ts exited 2 at its first evaluate call, because the spec failed schema validation (missing spec_version, architecture, scoring, confidence_thresholds). 0 output files and no figure. Content-free record results/v1.3-holdout/run-1-aborted/abort-record.json. Fallback F-RF applies. Work dir and Neo4j removed."
+**Context**: CONSTRUCTION, v1.3/v1.4 hold-out (prespec addendum 3); live run aborted before output; 1 model session (blind adapter, attempt-1 prompt)
+
+---

@@ -96,6 +96,7 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 **Post-seal changes now pending: M3, D5, N3 (and V4 if the count triggers it).** Each one is a declared deviation. The examiner review flags the count of deviations as a risk in its own right. I'll write them up together as one dated list, so the director sees all of them at once.
 
 ## Changelog
+- 2026-10-20 (after attempt 3): DELEG-H3 outcome. Layout plus scripted header repair verified (34 of 34 hunks byte-identical). Structure check ok (0 problems). The one live run aborted at its first evaluate call: the hold-out's spec file lacks spec_version, architecture, scoring and confidence_thresholds. Exit 2; 0 output files, no figure (`results/v1.3-holdout/run-1-aborted/abort-record.json`). Fallback F-RF applies. Whether the live run is spent is open for the author.
 - 2026-10-20 (11:07Z): DELEG-H3 recorded before attempt 3.
 - 2026-10-20 (after attempt 2): DELEG5 outcome. Header repair verified (34 of 34 hunks byte-identical, header-only), but the structure check still shows 4 problems (one missing expected-findings.json per style). STOP: no live run and no hold-out figure. Fallback F-RF applies: r_f comes from the development record run, and layered stays confirmatory in 2b with the limitation stated (`Docs/v1.3/holdout-prespec-addendum-2-2026-10-20.md` §2).
 - 2026-10-20 (10:04Z): DELEG5 recorded before attempt 2 (patch-header-only repair; fallback F-RF for r_f).
