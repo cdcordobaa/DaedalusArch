@@ -219,14 +219,14 @@ describe('derivation against the pipeline compiled text', () => {
         compiled.disabledFunctions.map((d) => ({ id: String(d.id), reason: d.reason ?? '' })),
         'layered',
       );
-      expect(blocking.map((q) => q.functionId)).toEqual(['FF-P01', 'FF-S01', 'FF-S02', 'FF-S03']);
-      expect(notCompiled.map((n) => n.ruleId)).toEqual(['FF-P03', 'FF-P06', 'FF-S04']);
+      // Q10 = D (applied construct): FF-P01 is not compiled for layered.
+      expect(blocking.map((q) => q.functionId)).toEqual(['FF-S01', 'FF-S02', 'FF-S03']);
+      expect(notCompiled.map((n) => n.ruleId)).toEqual(['FF-P01', 'FF-P03', 'FF-P06', 'FF-S04']);
       const by = new Map<string, Awaited<ReturnType<typeof ruleExposure>>>();
       for (const q of blocking) by.set(q.functionId, await ruleExposure(repo, q, 0));
       expect(by.get('FF-S01')).toMatchObject({ opportunities: 3, violationRows: 0 });
       expect(by.get('FF-S03')).toMatchObject({ opportunities: 3, violationRows: 1, rowsOutsideOpportunities: 0 });
       expect(by.get('FF-S02')).toMatchObject({ opportunities: 3, violationRows: 0 });
-      expect(by.get('FF-P01')).toMatchObject({ status: 'not-exercised', opportunities: 0 });
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }

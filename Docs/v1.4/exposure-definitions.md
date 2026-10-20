@@ -137,4 +137,29 @@ v = the scorer's counted blocking violations, o = opportunities. FF-P01 is not e
 
 **Loop path.** The `--steps` path was checked end to end on a synthetic out-root (one `snapshots.git` holding the v03 tree, one loop-step/v1 record naming `presets/layered.yaml` with its sha256 and a recorded `blockingByRule` of FF-S03 = 1): the harness tsconfig path gives the same counts as the dev set (FF-S01 0/18, FF-S02 0/63, FF-S03 1/18, FF-P01 not exercised) and `recordedMatch` is true. On `results/v1.4-exploratory` (60 scored snapshots in Stages A and B) every snapshot is `no-tree`, as expected: the trees live in the local out-roots (§5).
 
+## 6b. Re-run at the U6-applied construct (2026-10-20, after merging main at PR #305)
+
+The section 6 table was computed on `main` **before** the U6 construct answers were applied. This re-run is on the applied answers that Study 2 is scored with. The script and opportunity definitions are unchanged, and the row checks still pass on every tree. Three differences, each the intended effect of a signed answer:
+- **FF-P01 is not compiled for Layered (Q10 = D).** It is listed as `not-compiled`, so v07 and v08 no longer count.
+- **In-layer file cycles are advisory (Q3 = C),** so the v05 and v06 cycles are no longer blocking: FF-S02 is 0 blocking there.
+- **Upward edges are no longer FF-S03 (Q12 B),** so v01 and v02 are reported by FF-S01 only.
+
+| Tree | FF-P01 v/o | FF-S01 v/o | FF-S02 v/o | FF-S03 v/o |
+|---|---|---|---|---|
+| clean | not compiled | 0/17 | 0/62 | 0/17 |
+| n01-controller-parses-money | not compiled | 0/18 | 0/63 | 0/18 |
+| n02-reporting-service-reads-database | not compiled | 0/19 | 0/66 | 0/19 |
+| n03-views-import-model-barrel | not compiled | 0/17 | 0/67 | 0/17 |
+| v01-gateway-returns-business-money | not compiled | 1/18 | 0/63 | 0/18 |
+| v02-service-renders-view | not compiled | 1/18 | 0/63 | 0/18 |
+| v03-controller-reads-gateway | not compiled | 0/18 | 0/63 | 1/18 |
+| v04-view-types-persistence-record | not compiled | 0/18 | 0/63 | 1/18 |
+| v05-business-model-cycle | not compiled | 0/17 | 0/64 | 0/17 |
+| v06-router-controller-cycle | not compiled | 0/17 | 0/63 | 0/17 |
+| v07-business-model-typeorm-decorator | not compiled | 0/17 | 0/62 | 0/17 |
+| v08-business-service-takes-express-request | not compiled | 0/17 | 0/62 | 0/17 |
+| v09-presentation-root-builds-database | not compiled | 0/18 | 0/63 | 1/18 |
+
+**Consequence for the exposure report:** with the applied construct, the Layered blocking set is FF-S01, FF-S02 (cross-layer cycles only) and FF-S03. Stage C reports exposure on this set.
+
 **Unit tests:** `tests/unit/scripts/v1.4/exposure-count.test.ts` (fixture graphs for each rule, a zero-opportunity rule, drift detection of the compiled text, the aggregate, and the derivation on the pipeline's own compiled text for `presets/layered.yaml`).
