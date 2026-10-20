@@ -10,6 +10,7 @@ import { NodeProcessRunner } from '../../../../src/shared/process/node-process-r
 import { buildGeneratorChildEnv } from '../../../../scripts/lib/generators/env.js';
 import { GENERATOR_ENV_ALLOW } from '../../../../scripts/lib/generators/types.js';
 import { ClaudeStepAgent } from '../../../../scripts/lib/loop/agents.js';
+import { buildGeneratorArgs } from '../../../../scripts/lib/generators/argv.js';
 import { ISOLATION_ENV_NAMES, checkIsolationPaths, probeHomeOf, runHomeOf } from '../../../../scripts/lib/loop/isolation.js';
 import type { ClaudeIsolation } from '../../../../scripts/lib/loop/isolation.js';
 import { main } from '../../../../scripts/lib/loop/main.js';
@@ -309,12 +310,29 @@ describe('P3: every isolated spawn runs with the per-run HOME, the dedicated con
     expect(runner.cliCalls).toHaveLength(0);
   });
 
-  it('a poisoned config dir also stops the probe', async () => {
-    fs.mkdirSync(path.join(iso.configDir, 'skills'));
+  it('a poisoned config dir also stops the probe (an unsynced skill; a CLAUDE.md even inside synced/)', async () => {
+    fs.mkdirSync(path.join(iso.configDir, 'skills', 'mine'), { recursive: true });
+    fs.writeFileSync(path.join(iso.configDir, 'skills', 'mine', 'SKILL.md'), 'x');
     const runner = new FakeGeneratorRunner(h.binary, [{ stdout: `${PINNED} (Claude Code)` }]);
     const r = await new ClaudeStepAgent(h.config, { runner, parentEnv: PARENT, cliVersion: PINNED, isolation: iso }).probe();
     expect(r.success).toBe(false);
     expect(runner.cliCalls).toHaveLength(0);
+    fs.rmSync(path.join(iso.configDir, 'skills'), { recursive: true, force: true });
+    fs.mkdirSync(path.join(iso.configDir, 'skills', 'synced', 'acct'), { recursive: true });
+    fs.writeFileSync(path.join(iso.configDir, 'skills', 'synced', 'acct', 'CLAUDE.md'), 'x');
+    const runner2 = new FakeGeneratorRunner(h.binary, [{ stdout: `${PINNED} (Claude Code)` }]);
+    const r2 = await new ClaudeStepAgent(h.config, { runner: runner2, parentEnv: PARENT, cliVersion: PINNED, isolation: iso }).probe();
+    expect(r2.success).toBe(false);
+  });
+
+  it('skills and plugins the CLI syncs into the config dir are tolerated (every turn runs with --safe-mode)', async () => {
+    for (const d of ['skills/synced/acct/docs', 'plugins/synced/acct']) fs.mkdirSync(path.join(iso.configDir, d), { recursive: true });
+    fs.writeFileSync(path.join(iso.configDir, 'skills', 'synced', 'acct', 'docs', 'SKILL.md'), 'x');
+    fs.writeFileSync(path.join(iso.configDir, 'plugins', 'synced', 'acct', '.marketplaces.json'), '{}');
+    const runner = new FakeGeneratorRunner(h.binary, [{ stdout: `${PINNED} (Claude Code)` }]);
+    const r = await new ClaudeStepAgent(h.config, { runner, parentEnv: PARENT, cliVersion: PINNED, isolation: iso }).probe();
+    expect(r.success).toBe(true);
+    expect(buildGeneratorArgs(h.config, { runId: 'r' }, 'p')).toContain('--safe-mode');
   });
 });
 
