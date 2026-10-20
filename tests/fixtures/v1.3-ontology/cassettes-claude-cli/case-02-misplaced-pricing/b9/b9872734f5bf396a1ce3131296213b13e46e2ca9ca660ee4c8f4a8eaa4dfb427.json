@@ -1,0 +1,69 @@
+{
+  "itemId": "component:ordering",
+  "itemName": "component:ordering",
+  "key": "b9872734f5bf396a1ce3131296213b13e46e2ca9ca660ee4c8f4a8eaa4dfb427",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "4f41f6a47dabb0e90767a93aab05f696e9a261ea32015628df10e617b9e60358",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"ordering\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- PlaceOrderUseCase (node 6860bbf1a3b5131d), file src/ordering/application/place-order.use-case.ts, declaration line 4: \"export class PlaceOrderUseCase {\"\n  component ordering, layer application; responsibilities: Place order; Record placed orders\n- Order (node 99595122f2958507), file src/ordering/domain/order.ts, declaration line 7: \"export class Order {\"\n  component ordering, layer domain; responsibilities: Represent an order; Compute order subtotal\n\n## APG relations of the group\nGraph statistics: 2 classes; 0 relations inside the group; 0 outgoing relations to code outside it.\n- (none)",
+  "recordedAt": "2026-10-20T01:25:58.294Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.75,
+        "description": "Customers can place orders, and the business keeps a record of every order placed.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "nodeId": "6860bbf1a3b5131d",
+            "quote": "export class PlaceOrderUseCase {",
+            "startLine": 4
+          },
+          {
+            "endLine": 7,
+            "file": "src/ordering/domain/order.ts",
+            "nodeId": "99595122f2958507",
+            "quote": "export class Order {",
+            "startLine": 7
+          }
+        ],
+        "name": "Order placement",
+        "realizedBy": [
+          "6860bbf1a3b5131d",
+          "99595122f2958507"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "The business can work out an order's subtotal from its contents.",
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/ordering/domain/order.ts",
+            "nodeId": "99595122f2958507",
+            "quote": "export class Order {",
+            "startLine": 7
+          }
+        ],
+        "name": "Order pricing",
+        "realizedBy": [
+          "99595122f2958507"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1969,
+    "outputTokens": 460
+  }
+}

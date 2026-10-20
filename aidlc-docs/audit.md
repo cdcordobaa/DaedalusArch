@@ -2485,3 +2485,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, TRUST-01 L3; 30 model calls (Gemini)
 
 ---
+
+## v1.4 research ops: C1d pilot, Claude half
+**Timestamp**: 2026-10-20T01:29:42Z
+**User Input**: "We are back; give it the last mile."
+**AI Response**: "Ran the C1d 2-case pilot on Claude (CLI 2.1.304 under the D1 exploratory allowance). Defect found; 2 grounded false positives (1 of them on the clean twin, a formatting responsibility read as presentation logic); 0 hallucinations. Gemini had 0 false positives. Report updated."
+**Context**: v1.4 instrument track, TRUST-01 L3; ≤ 40 Claude calls
+---
