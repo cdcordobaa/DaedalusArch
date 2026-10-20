@@ -70,7 +70,7 @@ confirmatory-tasks=written-blind-sealed-before-stage-A
 2. The tasks, their acceptance checks and their hint audits are **hashed and sealed before Stage A starts** (**proposed**: stricter than "before results are read", and easier to verify). The hash and date go in this file's changelog.
 3. Any change to `Docs/v1.3/study2-task-design.md` after Stage A is dated and declared, because a guide tuned on exploratory results is a lever (`rev-05:73`).
 
-> AUTHOR: confirm "sealed before Stage A" (or "before any exploratory result is read").
+> AUTHOR: confirmed — "sealed before Stage A" (decision D7, 2026-10-19).
 
 ## 5. Cells
 
@@ -108,7 +108,7 @@ Every `none@L2` trajectory of Stage A is also the step-1 tree and the `none@L2` 
 
 **Order (proposed):** freeze (with the V4 ADR) → hold-out once → **this study** → read its report → the confirmatory design (any change to the drift record is a dated deviation) → the drift record's pilot and rehearsal → pre-registration → gate → confirmatory run. If the freeze slips, the study may run earlier. Then every number carries the commit tag it ran at (`rev-05:59`).
 
-> AUTHOR: confirm the order, or allow a run before the freeze with the tag rule.
+> AUTHOR: confirmed — the order as written (decision D7, 2026-10-19).
 
 ## 7. The staged stop rule (fixed here, before any call)
 
@@ -191,7 +191,7 @@ Wall time per lane: 188 turns × 1.5–3.5 min = about 5–11 h before usage-win
 
 **Approval.** This is a study run. AUTO did not approve any study run (`ops/decisions.md:31`). **Nothing in this registration runs without the author's explicit OK of these counts.**
 
-> AUTHOR: OK the counts (core 312 turns, cap 468; optional cells; semantic caps), or cut a stage.
+> AUTHOR: OK — the counts as written (decision D7, 2026-10-19).
 
 ## 11. What it hands to the confirmatory design
 
