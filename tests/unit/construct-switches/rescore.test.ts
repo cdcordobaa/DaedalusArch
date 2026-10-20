@@ -37,7 +37,7 @@ describe('construct re-score of after-member-facts', () => {
         const evidence = (JSON.parse(fs.readFileSync(path.join(BASE, 'evidence', style, f), 'utf8')) as { violations: Violation[] }).violations;
         const out = applyConstructRows(
           [{ functionId: 'X' as never, dimension: 'structural', passed: false, violations: evidence, executionTimeMs: 0, deterministic: true }],
-          { answers: CONSTRUCT_ANSWERS, style, layerModel: { layers: [] }, functions: [], graph: EMPTY_CONSTRUCT_GRAPH },
+          { answers: STATUS_QUO_ANSWERS, style, layerModel: { layers: [] }, functions: [], graph: EMPTY_CONSTRUCT_GRAPH },
         );
         const findings = out.results.flatMap((r) => r.violations).map(toFinding);
         expect(JSON.stringify({ style, variant, findings }, null, 2) + '\n').toBe(fs.readFileSync(path.join(BASE, 'raw', style, f), 'utf8'));
@@ -51,9 +51,9 @@ describe('construct re-score of after-member-facts', () => {
     const replay = path.join(tmp, 'replay');
     const code = await validateReference(['--from-raw', `${BASE_REL}/raw`, '--out', replay], REPO, { env: {}, out: () => undefined, err: () => undefined });
     expect(code).toBe(0);
-    const result = await rescore({ repoRoot: REPO, base: BASE, answers: CONSTRUCT_ANSWERS });
+    const result = await rescore({ repoRoot: REPO, base: BASE, answers: STATUS_QUO_ANSWERS });
     const mine = path.join(tmp, 'rescore');
-    writeRescore(mine, result, HEADER, CONSTRUCT_ANSWERS);
+    writeRescore(mine, result, HEADER, STATUS_QUO_ANSWERS);
     for (const f of ['report.json', 'report.md']) {
       expect(fs.readFileSync(path.join(mine, f), 'utf8')).toBe(fs.readFileSync(path.join(replay, f), 'utf8'));
     }
