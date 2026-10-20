@@ -64,3 +64,4 @@ Recorded by the coordinator under the author's delegation (`ops/decisions.md` DE
 | Artefact | sha256 | Note |
 |---|---|---|
 | Docs/v1.3/holdout-prespec-addendum-2026-10-20.md | f1948c05ec90b558693162dc62348f91cdde60575f53c41d8615a8b49633ec53 | Addendum 1 (DELEG4): path-only blind adapter. Recorded before the run. |
+| Docs/v1.3/holdout-prespec-addendum-2-2026-10-20.md | f901beea0667507abc4fc988b2451e0d93dfc394df9cb0f15b406a000c06b0d3 | Addendum 2 (DELEG5): patch-header-only repair and fallback F-RF. Recorded before attempt 2. |
