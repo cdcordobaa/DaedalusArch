@@ -92,6 +92,8 @@ export interface ServerContext {
   readonly ruleMining?: boolean | undefined;
   /** v1.4 U9: register the read-only `semantic_facts` tool over this A2 directory. Off by default (absent). */
   readonly semanticFacts?: SemanticFactsConfig | undefined;
+  /** `--confine` (`confine.ts`): `spec` and `project` arguments may not leave the configured spec and project. Off by default. */
+  readonly confine?: boolean | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
