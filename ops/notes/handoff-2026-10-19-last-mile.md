@@ -32,7 +32,7 @@ The author is restarting the Mac to clear about 11.6 GB of swap. macOS keeps swa
 
    This is NS-02 §4, cases case-02 and case-04b.
 2. **Gemini S4 G0 failure.** Record: `ops/review/2026-10-19/gemini-s4-g0-failure.json`. Two causes:
-   - **`~/.agents` sits in the home folder.** The ancestor check refuses harness and out roots under `~`. Fix: use roots outside `~`, for example `/Users/Shared/daedalus-gemini-s4/{h,out}`.
+   - **An `.agents` folder sits in the home folder.** The ancestor check refuses harness and out roots under `~`. Fix: use roots outside `~`, for example `/Users/Shared/daedalus-gemini-s4/{h,out}`.
    - **agy 1.4.2 rewrote both homes' `settings.json`** and dropped the deny entries `search_web(*)`, `browser(*)`, `subagent(*)`, `schedule(*)`, `generate_image(*)`, `workflow(*)`, `inbox(*)`, `plugin(*)`. Only `read_url(*)` and `mcp(...)` entries survive. The tools still exist in 1.4.2 (init tool list: `search_web`, the `browser_*` tools, `schedule`, `generate_image`, `invoke_subagent`, ...), so 1.4.2 uses a different permission format.
      - **Next:** a **one-hour, zero-call timebox**. Write candidate deny formats into a copy of the home, start agy only far enough to normalise its settings, and see which entries survive.
      - **If cracked:** update G1–G12 and the baseline settings, re-apply them to the homes (`scripts/v1.4/lib/gemini-homes.ts` `baselineSettings`; the homes exist, so `--create` will not rewrite them), then re-run S4 (≤ 30 calls).
