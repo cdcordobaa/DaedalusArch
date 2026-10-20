@@ -181,7 +181,7 @@ call; not a measurement.
 
 ## S4 re-run with the hook (U12)
 
-The first live run (2026-10-19) used the roots `/Users/Shared/daedalus-gemini-s4/{h,out}`, because `~/.agents` in the
+The first live run (2026-10-19) used the roots `<shared>/daedalus-gemini-s4/{h,out}`, because an `.agents` folder in the home folder in the
 user home trips the ancestor check. The re-run uses the same roots and the same signed-in homes. Steps 1 and 2 make no
 model call. Step 3 makes at most 30 (24 planned) and needs the author's OK under the standing S4 approval.
 
@@ -189,7 +189,7 @@ model call. Step 3 makes at most 30 (24 planned) and needs the author's OK under
 # 1. Install the hook files into the two existing homes (hooks.json, the committed script, the baseline turn config;
 #    the harness-owned settings keys reset to the corrected baseline). No sign-in, no credential file opened.
 npx tsx scripts/v1.4/gemini-homes.ts --create --home-none ~/.firewall/gemini-gen-none --home-mcp ~/.firewall/gemini-gen-mcp \
-  --out-root /Users/Shared/daedalus-gemini-s4/out --harness-root /Users/Shared/daedalus-gemini-s4/h
+  --out-root <shared>/daedalus-gemini-s4/out --harness-root <shared>/daedalus-gemini-s4/h
 # 2. A dry run (the scripted agy runs the real hook), the MCP server build, the agy version.
 npx tsx scripts/generator/probes/agy-gen-confinement-cli.ts --dry-run --no-record --plan experiments/loop-gemini/gemini-plan.template.json
 npm run build && HOME=~/.firewall/gemini-gen-none agy --version
@@ -197,7 +197,7 @@ npm run build && HOME=~/.firewall/gemini-gen-none agy --version
 npx tsx scripts/generator/probes/agy-gen-confinement-cli.ts \
   --plan experiments/loop-gemini/gemini-plan.template.json \
   --binary "$(command -v agy)" \
-  --harness-root /Users/Shared/daedalus-gemini-s4/h --out-root /Users/Shared/daedalus-gemini-s4/out \
+  --harness-root <shared>/daedalus-gemini-s4/h --out-root <shared>/daedalus-gemini-s4/out \
   --gemini-home-none ~/.firewall/gemini-gen-none --gemini-home-mcp ~/.firewall/gemini-gen-mcp
 ```
 
