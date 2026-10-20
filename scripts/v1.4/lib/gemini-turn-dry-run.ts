@@ -18,7 +18,7 @@ import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { ProcessResult, ProcessRunOptions, ProcessRunner } from '../../../src/shared/interfaces/process-runner.js';
 import { NodeProcessRunner } from '../../../src/shared/process/node-process-runner.js';
-import { AGY_GEN_MCP_CONFIG_REL } from '../../lib/generators/agy-gen-cli.js';
+import { AGY_GEN_MCP_CONFIG_REL, installBaselineAgyHooks } from '../../lib/generators/agy-gen-cli.js';
 import { agyGenConfigFromPlan, checkAgyGenLiveVersion, checkS4Result } from '../../lib/generators/agy-gen-plan.js';
 import { typecheckCommand } from '../../lib/generators/argv.js';
 import { GeminiStepAgent } from '../../lib/loop/agents.js';
@@ -105,6 +105,9 @@ export async function runGeminiTurnDryRun(repoRoot: string, scratch: string): Pr
   const server = { nodeBinary: path.join(scratch, 'server', 'node'), serverEntry: path.join(scratch, 'server', 'main.js'), specPath: path.join(scratch, 'server', 'spec.yaml') };
   for (const d of [H, bin, ...Object.values(homes)]) fs.mkdirSync(d, { recursive: true, mode: 0o700 });
   for (const d of Object.values(homes)) fs.chmodSync(d, 0o700);
+  // U12: the hook files `gemini-homes.ts --create` installs (the pre-turn probe requires them).
+  const hooked = installBaselineAgyHooks(homes, repoRoot, true);
+  if (!hooked.success) return DomainResult.fail(hooked.errors);
   fs.writeFileSync(binary, FAKE_AGY_SOURCE, { mode: 0o755 });
 
   const tasksRaw = { description: 'DEMO ONLY: one made-up one-step task for the U11 Gemini turn dry run. Not a study task.', tasks: [NOTES_TASK] };

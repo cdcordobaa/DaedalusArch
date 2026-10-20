@@ -14,7 +14,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { ProcessResult, ProcessRunOptions, ProcessRunner } from '../../../src/shared/interfaces/process-runner.js';
-import { AGY_GEN_MCP_CONFIG_REL, AGY_GEN_SETTINGS_REL } from '../../lib/generators/agy-gen-cli.js';
+import { AGY_GEN_MCP_CONFIG_REL, AGY_GEN_SETTINGS_REL, installBaselineAgyHooks } from '../../lib/generators/agy-gen-cli.js';
 import { agyGenConfigFromPlan, checkS4Result } from '../../lib/generators/agy-gen-plan.js';
 import { typecheckCommand } from '../../lib/generators/argv.js';
 import { GeminiStepAgent } from '../../lib/loop/agents.js';
@@ -113,7 +113,10 @@ export async function runGeminiAdapterDryRun(repoRoot: string, scratch: string):
   const server = { nodeBinary: path.join(scratch, 'server', 'node'), serverEntry: path.join(scratch, 'server', 'main.js'), specPath: path.join(scratch, 'server', 'spec.yaml') };
   for (const d of [H, ...Object.values(homes)]) fs.mkdirSync(d, { recursive: true, mode: 0o700 });
   for (const d of Object.values(homes)) fs.chmodSync(d, 0o700);
-  const demo = readJson(path.join(repoRoot, 'experiments/loop-demo/demo-tasks.json')) as { tasks: LoopTask[] };
+  // U12: the hook files `gemini-homes.ts --create` installs (the pre-turn probe requires them).
+  const hooked = installBaselineAgyHooks(homes, repoRoot, true);
+  if (!hooked.success) return DomainResult.fail(hooked.errors);
+  const demo =readJson(path.join(repoRoot, 'experiments/loop-demo/demo-tasks.json')) as { tasks: LoopTask[] };
   const tasksRaw = { description: 'DEMO ONLY: two made-up loop tasks for the Gemini adapter dry run. Not study tasks.', tasks: [...demo.tasks.slice(0, 1), NOTES_TASK] };
   const tasks = validateTasks(tasksRaw);
   if (!tasks.success) return DomainResult.fail(tasks.errors);

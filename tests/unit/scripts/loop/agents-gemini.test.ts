@@ -8,7 +8,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
-import { AGY_GEN_MCP_CONFIG_REL, buildAgyGenArgs, createAgyGenCliConfig } from '../../../../scripts/lib/generators/agy-gen-cli.js';
+import { AGY_GEN_MCP_CONFIG_REL, buildAgyGenArgs, createAgyGenCliConfig, installBaselineAgyHooks } from '../../../../scripts/lib/generators/agy-gen-cli.js';
 import type { AgyGenCliConfig } from '../../../../scripts/lib/generators/agy-gen-cli.js';
 import { typecheckCommand } from '../../../../scripts/lib/generators/argv.js';
 import { createGeneratorCliConfig } from '../../../../scripts/lib/generators/config.js';
@@ -36,6 +36,7 @@ beforeEach(() => {
   homes = { none: path.join(tmp, 'homes', 'none'), 'daedalus-mcp': path.join(tmp, 'homes', 'mcp') };
   for (const d of [H, ...Object.values(homes)]) fs.mkdirSync(d, { recursive: true, mode: 0o700 });
   for (const d of Object.values(homes)) fs.chmodSync(d, 0o700);
+  if (!installBaselineAgyHooks(homes, REPO, true).success) throw new Error('hooks');
   const base = createGeneratorCliConfig({ binary, modelId: MODEL, outputRoot: path.join(tmp, 'out'), harnessRoot: H }, REPO);
   if (!base.success) throw new Error('base');
   const c = createAgyGenCliConfig({ base: base.data, homes, cliVersion: '0.0.0' }, REPO);
@@ -81,7 +82,7 @@ function input(arm: 'none' | 'daedalus-mcp' | 'gate', over: Partial<TurnInput> =
 }
 
 function stream(name: string, arm: string): string {
-  return fs.readFileSync(path.join(FIX, name), 'utf8').replace(/<TYPECHECK>/g, typecheckCommand(H, runIdOf(arm))).replace(/<CWD>/g, '/w');
+  return fs.readFileSync(path.join(FIX, name), 'utf8').replace(/<TYPECHECK>/g, typecheckCommand(H, runIdOf(arm))).replace(/<CWD>/g, path.join(tmp, 'out', 'runs', ...runIdOf(arm).split('/'), 'work'));
 }
 
 /** Answers `agy --version` (checked before every turn, design R3) without consuming a script or a cliCalls entry. */

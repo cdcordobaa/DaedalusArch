@@ -5,15 +5,18 @@
  * `TS2322`, the MCP server logs `check_file` (and refuses the outside file), a workspace `GEMINI.md` is read (G11), and a
  * home or sibling rule file is not (G7). Each stream ends with a `result` event; the process is NOT left hanging (the
  * hang is covered by the fake-agy tests). The result it leads to is synthetic and is refused by every live wiring.
+ * U12: before every scripted tool step it runs the home's real PreToolUse hook (the hooks.json command, the copied
+ * committed script) with agy's payload; a hook deny or failure makes the step ERROR, and the hook writes its log.
  *
  * `dryRunScratchArgs` fills the machine-local flags with directories in one OS temp scratch directory (mode 700).
  */
+import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { ProcessResult, ProcessRunOptions, ProcessRunner } from '../../../src/shared/interfaces/process-runner.js';
-import { AGY_GEN_MCP_CONFIG_REL, mcpServersOf } from '../../lib/generators/agy-gen-cli.js';
+import { AGY_GEN_HOOKS_REL, AGY_GEN_MCP_CONFIG_REL, AGY_HOOK_TIMEOUT_S, mcpServersOf } from '../../lib/generators/agy-gen-cli.js';
 import type { AgyGenCliConfig } from '../../lib/generators/agy-gen-cli.js';
 import { PROBE_ERROR_CODE, PROBE_ERROR_FILE } from './confinement.js';
 import { OUTSIDE_FILE } from './agy-gen-confinement.js';
@@ -32,11 +35,24 @@ interface Step {
   readonly params?: Readonly<Record<string, unknown>>;
 }
 
+/** The one PreToolUse hook command of a hooks.json text, or null. */
+export function hookCommandOf(text: string): string | null {
+  try {
+    const v = JSON.parse(text) as { hooks?: { PreToolUse?: { hooks?: { command?: unknown }[] }[] } };
+    const c = v.hooks?.PreToolUse?.[0]?.hooks?.[0]?.command;
+    return typeof c === 'string' ? c : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The scripted, confined agy of the dry run. */
 export class ScriptedAgyS4Runner implements ProcessRunner {
   current: S4CallSite | null = null;
   readonly modelCalls: string[] = [];
   processCalls = 0;
+  /** Hook processes run (U12). */
+  hookCalls = 0;
 
   constructor(private readonly config: Pick<AgyGenCliConfig, 'cliVersion' | 'modelId' | 'allowCommand'>) {}
 
@@ -63,7 +79,14 @@ export class ScriptedAgyS4Runner implements ProcessRunner {
     const site = this.current;
     if (site === null || options.cwd === undefined) return Promise.resolve(DomainResult.fail([{ code: 'PROCESS_SPAWN_FAILED', message: 'no scripted probe call' }]));
     this.modelCalls.push(`${site.arm}/${site.id}${site.part ?? ''}`);
-    const { steps, answer } = this.play(site, options.cwd);
+    const played = this.play(site, options.cwd);
+    const answer = played.answer;
+    // U12: like agy, run the home's PreToolUse hook (hooks.json's own command, the real committed script) before each
+    // tool step; a deny or a hook failure turns the step into ERROR.
+    const steps = played.steps.map((s, i): Step => {
+      const d = this.hook(home, options.cwd ?? '', s, i + 1);
+      return d === null || d === 'allow' ? s : { ...s, state: 'ERROR' };
+    });
     const lines = [
       ev({ event: 'init', conversation_id: 'dry-run', init: { model: this.config.modelId, tools: ['write_to_file', 'run_command', 'call_mcp_tool', 'finish'], permission_mode: 'strict' } }),
       ev({ event: 'step_update', step_update: { step_index: 0, state: 'DONE', step_type: 'user_input' } }),
@@ -72,6 +95,27 @@ export class ScriptedAgyS4Runner implements ProcessRunner {
       ev({ event: 'result', result: { status: 'SUCCESS', response: answer, duration_seconds: 1, usage: { input_tokens: 10, output_tokens: 5, cache_read_tokens: 0 } } }),
     ];
     return ok(`${lines.join('\n')}\n`);
+  }
+
+  /**
+   * Runs the home's hook as agy would: the command from `.gemini/config/hooks.json` through `/bin/sh -c`, the
+   * camelCase payload on stdin. null when the home has no hooks.json (the pre-U12 behaviour).
+   */
+  private hook(home: string, cwd: string, step: Step, stepIdx: number): 'allow' | 'deny' | 'error' | null {
+    const file = path.join(home, AGY_GEN_HOOKS_REL);
+    if (!fs.existsSync(file)) return null;
+    this.hookCalls++;
+    const command = hookCommandOf(fs.readFileSync(file, 'utf8'));
+    if (command === null) return 'error';
+    const payload = { toolCall: { name: step.tool, args: step.params ?? {} }, conversationId: 'dry-run', workspacePaths: [cwd], modelName: this.config.modelId, stepIdx };
+    const r = spawnSync('/bin/sh', ['-c', command], { input: JSON.stringify(payload), encoding: 'utf8', timeout: AGY_HOOK_TIMEOUT_S * 1000 });
+    if (r.status !== 0) return 'error';
+    try {
+      const v = JSON.parse(r.stdout.trim()) as { decision?: unknown };
+      return v.decision === 'allow' ? 'allow' : 'deny';
+    } catch {
+      return 'error';
+    }
   }
 
   private log(site: S4CallSite, line: { tool: string; error: string | null; filesTouched: string[] }): void {
