@@ -2566,3 +2566,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION — exploratory study Stage B (approved counts, amendment 1)
 
 ---
+
+## v1.4 instrument track: Claude S4 confinement probe with the Daedalus MCP server
+**Timestamp**: 2026-10-20T06:00:23Z
+**User Input**: "Coordinator brief: build the MCP server at origin/main, extend the Claude S4 probe with the daedalus-mcp arm (probes 1-5 under the MCP argv; evaluate_project denied; an allowed tool returns; no path traversal; only daedalus reachable), declare the spec first, count the calls first and keep the total at 10 or fewer, run it live, fill the mcp@L2 plan only on a pass, and open and merge the PRs (AUTO, 'Claude S4 with MCP, counted first')."
+**AI Response**: "A zero-call stdio smoke of the b01f6663 build found the spec and project tool arguments unbounded. Added the server's --confine for the Claude arm (PR #308, merged as 7decd672, with the probe and the declared spec). The server was rebuilt at 7decd672 outside every cwd. Count stated first: 9 probe calls, cap 10. Live result: FAIL (ADR-029). Probes 1-5 pass. Probes b-e fail because the MCP server never loads: --safe-mode, always in buildGeneratorArgs, disables the --mcp-config server on CLI 2.1.304. One diagnostic call (10/10), the probe-c argv without --safe-mode, loaded the server and check_file returned. mcp@L2 must not run as templated. The filled plan was not written. An argv decision and a full S4 re-run are needed. No pass criterion changed."
+**Context**: v1.4 instrument track, exploratory study prerequisite for mcp@L2; spec Docs/v1.4/claude-s4-mcp-probe-spec.md; run note Docs/DiagnosticRuns/v1.4-claude-s4-mcp-2026-10-20.md; 10 live Claude calls
+---

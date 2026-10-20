@@ -1,6 +1,7 @@
 # Claude S4 confinement probe with the Daedalus MCP server: specification
 
-**Status: DECLARED 2026-10-20T05:30Z, before any live call. Pass criteria frozen at this date.** Approval:
+**Status: DECLARED 2026-10-20T05:30Z, before any live call. Pass criteria frozen at this date.** **Run 2026-10-20T05:57Z: FAIL** (a1–a5 pass; b–e fail because `--safe-mode` keeps the MCP server from loading;
+`Docs/DiagnosticRuns/v1.4-claude-s4-mcp-2026-10-20.md`). The criteria below are unchanged. Approval:
 `ops/decisions.md` AUTO, "Claude S4 with MCP, counted first". This is the last prerequisite of the exploratory
 study's `mcp@L2` cell (`experiments/exploratory-study/stage-b/plan-mcp-L2.template.json`). No model was called to
 write this document.
