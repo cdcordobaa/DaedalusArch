@@ -1,0 +1,101 @@
+{
+  "itemId": "e4b465cb4e5c3815",
+  "itemName": "Shipment",
+  "key": "a663e58811898c2bb6753f1a890776608467efffc15952ee727e88175e79a105",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass Shipment (node e4b465cb4e5c3815), file src/shipping/domain/shipment.ts, lines 1-8.\nComponent: shipping. Declared layer: domain (kind domain).\nMethods:\n- (none)\nFields: id, recipientEmail, shippedAt, carrier\n\n## APG neighbourhood\nGraph statistics: 0 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- Shipment: nameRole=\"unknown\"\n- Shipment: behaviourRole=\"coordination\"\n- Shipment: ioCategories=[]\n- Shipment: lcom4=0\n- Shipment: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\nFlags:\n- communities/community-component-mismatch: src/shipping/domain/shipment.ts (component shipping) clusters with community 0 whose majority component is notifications\n\n## Source\n=====SOURCE-BEGIN src/shipping/domain/shipment.ts\n1| export class Shipment {\n2|   constructor(\n3|     readonly id: string,\n4|     readonly recipientEmail: string,\n5|     readonly shippedAt: Date,\n6|     readonly carrier: string,\n7|   ) {}\n8| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T01:27:28.030Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "export class Shipment {",
+            "startLine": 1
+          }
+        ],
+        "name": "Shipment",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "readonly carrier: string,",
+            "startLine": 6
+          }
+        ],
+        "name": "Carrier",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.55,
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "readonly recipientEmail: string,",
+            "startLine": 4
+          }
+        ],
+        "name": "Recipient",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Holds the identity and immutable facts of a dispatched shipment: its identifier, when it was shipped, and which carrier handles it.",
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "readonly shippedAt: Date,",
+            "startLine": 3
+          }
+        ],
+        "name": "Represent shipment record",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.6,
+        "description": "Records the recipient's email address so the shipment's recipient can be contacted, for example when they are notified.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "readonly recipientEmail: string,",
+            "startLine": 4
+          }
+        ],
+        "name": "Carry recipient contact for shipment",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2662,
+    "outputTokens": 699
+  }
+}

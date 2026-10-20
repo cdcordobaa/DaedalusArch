@@ -1,7 +1,9 @@
 /**
  * Ontology model routes (v1.4 U3, design §3.5; BR-U3-12 to -14): one registry for every vendor.
  *
- * - `claude-cli`: the judge's isolated Claude CLI route, as before (`ClaudeCliOntologyProvider`).
+ * - `claude-cli`: the judge's isolated Claude CLI route, as before (`ClaudeCliOntologyProvider`). The pre-flight holds
+ *   the frozen judge pin (`PINNED_CLI_VERSION`, 2.1.294) unless the spec is `exploratory`: then
+ *   `CLAUDE_EXPLORATORY_VERSIONS` (2.1.303; author decision D1, 2026-10-19) is also accepted.
  * - `gemini-api`: `GeminiProvider` through `LlmOntologyProvider`. Needs `--model` (no default, BR-U3-13) and a
  *   temperature. The API key is read from `process.env.GEMINI_API_KEY` by the factory only, when a live record opens.
  * - `gemini-agy`: `AgyCliProvider` (its home `LABELLER_AGY_HOME`, else `AGY_HOME_DEFAULT`, and its isolation
@@ -17,7 +19,7 @@
  */
 import * as path from 'node:path';
 import { AGY_EXPLORATORY_VERSIONS, AGY_HOME_DEFAULT, AgyCliProvider, expandHome } from '../../llm-critic/agy-cli-provider.js';
-import { ClaudeCliProvider } from '../../llm-critic/claude-cli-provider.js';
+import { CLAUDE_EXPLORATORY_VERSIONS, ClaudeCliProvider } from '../../llm-critic/claude-cli-provider.js';
 import { JUDGE_CONFIG_DIR_DEFAULT, JUDGE_EFFORT, JUDGE_MAX_TOKENS, JUDGE_MODEL } from '../../llm-critic/frozen.js';
 import { GeminiProvider } from '../../llm-critic/gemini-provider.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
@@ -36,13 +38,32 @@ export interface OntologyRouteSpec {
   readonly model?: string;
   readonly temperature?: number;
   readonly maxTokens?: number;
-  /** An exploratory run (gemini-agy only): the agy pre-flight also accepts `AGY_EXPLORATORY_VERSIONS`. */
+  /**
+   * An exploratory run (claude-cli or gemini-agy): the route's pre-flight also accepts its exploratory versions
+   * (`CLAUDE_EXPLORATORY_VERSIONS` or `AGY_EXPLORATORY_VERSIONS`; `EXPLORATORY_ROUTE_VERSIONS`).
+   */
   readonly exploratory?: boolean;
+}
+
+/** Per-route exploratory allowances: the CLI versions a route accepts besides its frozen pin when `exploratory`. */
+export const EXPLORATORY_ROUTE_VERSIONS: Readonly<Partial<Record<OntologyRouteName, readonly string[]>>> = Object.freeze({
+  'claude-cli': CLAUDE_EXPLORATORY_VERSIONS,
+  'gemini-agy': AGY_EXPLORATORY_VERSIONS,
+});
+
+/** The versions a route's pre-flight accepts besides its pin: the route's exploratory list, or none. */
+export function exploratoryVersionsFor(spec: OntologyRouteSpec): readonly string[] | undefined {
+  return spec.exploratory === true ? EXPLORATORY_ROUTE_VERSIONS[spec.route] : undefined;
 }
 
 /** The agy versions a route's pre-flight accepts besides the pin: the shared exploratory list, or none. */
 export function agyExploratoryVersions(spec: OntologyRouteSpec): readonly string[] | undefined {
-  return spec.route === 'gemini-agy' && spec.exploratory === true ? AGY_EXPLORATORY_VERSIONS : undefined;
+  return spec.route === 'gemini-agy' ? exploratoryVersionsFor(spec) : undefined;
+}
+
+/** The Claude CLI versions a route's pre-flight accepts besides the judge pin: the exploratory list, or none. */
+export function claudeExploratoryVersions(spec: OntologyRouteSpec): readonly string[] | undefined {
+  return spec.route === 'claude-cli' ? exploratoryVersionsFor(spec) : undefined;
 }
 
 export function isOntologyRoute(name: string): name is OntologyRouteName {
@@ -61,8 +82,8 @@ export function checkRoute(spec: OntologyRouteSpec): DomainResult<void> {
   if (spec.route === 'gemini-agy' && spec.temperature !== undefined) {
     errors.push({ code: 'ONTOLOGY_ROUTE_TEMPERATURE_UNSENT', message: 'agy sends no temperature; drop --temperature for gemini-agy' });
   }
-  if (spec.exploratory === true && spec.route !== 'gemini-agy') {
-    errors.push({ code: 'ONTOLOGY_ROUTE_EXPLORATORY_AGY_ONLY', message: '--exploratory widens the agy version pin only; it applies to gemini-agy alone' });
+  if (spec.exploratory === true && EXPLORATORY_ROUTE_VERSIONS[spec.route] === undefined) {
+    errors.push({ code: 'ONTOLOGY_ROUTE_EXPLORATORY_UNSUPPORTED', message: `--exploratory widens a CLI version pin; it applies to ${Object.keys(EXPLORATORY_ROUTE_VERSIONS).join(' and ')} only, not ${spec.route}` });
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(undefined);
 }
@@ -90,6 +111,8 @@ export interface ClaudeCliRouteConfig {
   readonly binary: string;
   readonly judgeConfigDir: string;
   readonly model: string;
+  /** Exploratory runs only: `CLAUDE_EXPLORATORY_VERSIONS` (absent = the frozen judge pin alone). */
+  readonly exploratoryVersions?: readonly string[];
 }
 
 /** Live-provider factories. The only place that builds a vendor provider or reads its credentials or home. */
@@ -113,8 +136,13 @@ export async function openRoute(spec: OntologyRouteSpec, deps: RouteDeps, opts: 
   switch (spec.route) {
     case 'mock':
       return DomainResult.fail([{ code: 'ONTOLOGY_ROUTE_MOCK', message: 'the mock route is built per project from its scripted answers' }]);
-    case 'claude-cli':
-      return deps.claudeCli({ binary: opts.claude?.binary ?? 'claude', judgeConfigDir: opts.claude?.judgeConfigDir ?? JUDGE_CONFIG_DIR_DEFAULT, model: spec.model ?? JUDGE_MODEL });
+    case 'claude-cli': {
+      const exploratoryVersions = claudeExploratoryVersions(spec);
+      return deps.claudeCli({
+        binary: opts.claude?.binary ?? 'claude', judgeConfigDir: opts.claude?.judgeConfigDir ?? JUDGE_CONFIG_DIR_DEFAULT, model: spec.model ?? JUDGE_MODEL,
+        ...(exploratoryVersions !== undefined ? { exploratoryVersions } : {}),
+      });
+    }
     case 'gemini-api': {
       const model = spec.model ?? '';
       const temperature = spec.temperature ?? 0;
@@ -135,7 +163,10 @@ export async function openRoute(spec: OntologyRouteSpec, deps: RouteDeps, opts: 
 /** The real factories. Never called by a test, an estimate or a replay. */
 export const DEFAULT_ROUTE_DEPS: RouteDeps = Object.freeze({
   async claudeCli(cfg: ClaudeCliRouteConfig): Promise<DomainResult<OpenedRoute>> {
-    const cli = new ClaudeCliProvider({ binary: cfg.binary, judgeConfigDir: expandHome(cfg.judgeConfigDir), mode: 'record', projectRoot: path.resolve('.') }, { runner: new NodeProcessRunner() });
+    const cli = new ClaudeCliProvider({
+      binary: cfg.binary, judgeConfigDir: expandHome(cfg.judgeConfigDir), mode: 'record', projectRoot: path.resolve('.'),
+      ...(cfg.exploratoryVersions !== undefined ? { exploratoryVersions: cfg.exploratoryVersions } : {}),
+    }, { runner: new NodeProcessRunner() });
     const prepared = await cli.prepare();
     if (!prepared.success) {
       cli.dispose();
@@ -144,7 +175,7 @@ export const DEFAULT_ROUTE_DEPS: RouteDeps = Object.freeze({
     return DomainResult.ok({
       provider: new ClaudeCliOntologyProvider(cli, { model: cfg.model }),
       dispose: () => { cli.dispose(); },
-      ready: `judge route ready: CLI ${prepared.data.cliVersion}, probe ${prepared.data.isolationProbeSha256.slice(0, 12)}`,
+      ready: `judge route ready: CLI ${prepared.data.cliVersion}, probe ${prepared.data.isolationProbeSha256.slice(0, 12)}${cfg.exploratoryVersions !== undefined ? ' (exploratory: Claude CLI versions beyond the pin accepted)' : ''}`,
     });
   },
   geminiApi(cfg: { readonly model: string; readonly temperature: number; readonly maxTokens: number }): Promise<DomainResult<LLMProvider>> {

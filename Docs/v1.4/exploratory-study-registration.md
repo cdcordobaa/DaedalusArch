@@ -1,6 +1,6 @@
 # Exploratory study registration: the drift study before confirmatory Study 2 (2026-10-19)
 
-<!-- exploratory-protocol: study=exploratory-before-confirmatory-study2; claims=none; tests=descriptive-only; cells=none@L2,none@L3,mcp@L2; optional-cells=sem-mcp@L2,mcp-eval@L2; start=shared-step-1; k=5; tasks=ice-rink,youth-league,hive-health,vineyard-harvest,exp-ddd-1,exp-ddd-2; generators=claude-sonnet-5-5,gemini-pin; stages=A-none@L2-rep1,stop-check,B-rest,C-scoring; stop=meanD<0.5-and-Y1=0-in-most-blocks-for-both-generators; semantic=C1d+C4-scoring-24-snapshots; confirmatory-tasks=written-blind-sealed-before-stage-A -->
+<!-- exploratory-protocol: study=exploratory-before-confirmatory-study2; claims=none; tests=descriptive-only; cells=none@L2,none@L3,mcp@L2; optional-cells=sem-mcp@L2,mcp-eval@L2; start=shared-step-1; k=5; tasks=ice-rink,youth-league,hive-health; generators=claude-sonnet-5-5; stages=A-layered-none@L2-rep1-prefreeze,stop-check,B-rest,C-scoring; stop=meanD<0.5-and-Y1=0-in-most-blocks-provisional-until-rescored-at-freeze; semantic=C1d+C4-scoring-12-snapshots; confirmatory-tasks=4-layered-sealed-before-stage-A; ddd=deferred-until-DDD-BETA-passes -->
 
 **Status: registration of an exploratory study, dated 2026-10-19. It makes no confirmatory claim.**
 - **The decisions are the author's.** EXP, EXPT, SEM and AUTO were settled in chat on 2026-10-19 (`ops/decisions.md:27-31`). An AI session wrote this down. It took none of them.
@@ -23,12 +23,13 @@ cells=none@L2,none@L3,mcp@L2
 optional-cells=sem-mcp@L2,mcp-eval@L2
 start=shared-step-1
 k=5
-tasks=ice-rink,youth-league,hive-health,vineyard-harvest,exp-ddd-1,exp-ddd-2
-generators=claude-sonnet-5-5,gemini-pin
-stages=A-none@L2-rep1,stop-check,B-rest,C-scoring
-stop=meanD<0.5-and-Y1=0-in-most-blocks-for-both-generators
-semantic=C1d+C4-scoring-24-snapshots
-confirmatory-tasks=written-blind-sealed-before-stage-A
+tasks=ice-rink,youth-league,hive-health
+generators=claude-sonnet-5-5
+stages=A-layered-none@L2-rep1-prefreeze,stop-check,B-rest,C-scoring
+stop=meanD<0.5-and-Y1=0-in-most-blocks-provisional-until-rescored-at-freeze
+semantic=C1d+C4-scoring-12-snapshots
+confirmatory-tasks=4-layered-sealed-before-stage-A
+ddd=deferred-until-DDD-BETA-passes
 ```
 
 `npm run lint:protocol` checks that this block exists, that the line at the top matches it, that `claims=none`, and that this file cites the drift record (`scripts/v1.3/protocol-consistency-check.mjs`).
@@ -233,5 +234,38 @@ Each change these results cause in the drift record is written as a dated deviat
 - The writer of the two exploratory-only DDD tasks: which session and which model.
 - Whether the drift record's own pilot (2 tasks × 3 replicates, `study2-deviation-2026-10-19-drift.md:54`) is still needed after this study. Dropping it would be a dated deviation.
 
+## Amendment 1, 2026-10-19 (dated, before any Stage A call)
+
+**Why.** Four decisions and results came after this registration was written:
+- the author's DDD-BETA decision (`ops/decisions.md`);
+- the choice to run Stage A before the freeze, as §6 allows;
+- the Gemini S4 failure on agy 1.4.2 (`Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md`);
+- the blind writing of the 4 Layered confirmatory tasks.
+
+A Fable consistency check of this text against REV-05 and those decisions found the contradictions below. This amendment resolves them. The protocol block and line above are updated to match, and `npm run lint:protocol` passes.
+
+1. **Tasks and styles: Layered only.**
+   - Stage A runs `ice-rink`, `youth-league` and `hive-health`.
+   - DDD is **deferred** until the DDD-beta capability report passes (DDD-BETA). When it runs, it is strategic-only (D5) and has its own dated Stage A, with its own task hash in the changelog.
+   - The two exploratory-only DDD tasks are written only then.
+2. **Generator: Claude Sonnet only.** Gemini failed S4 in both arms under ADR-029, so no Gemini coding cell runs. Gemini keeps its one-shot roles: C1d and C4 scoring, and the cross-vendor check. Wherever §7 says "for both generators", read "for the generator that ran".
+3. **Stage A runs before the freeze.**
+   - It runs at a recorded commit tag, with Claude CLI 2.1.304 under the D1 exploratory allowance. The tag and CLI version are recorded per trajectory.
+   - Every Stage A number is **re-scored at the freeze tag**, and both figures are reported.
+4. **The stop check is provisional.** The Stage A stop check runs on the pre-U6 instrument (Layered development recall 0.70). So it is **provisional until re-scored at the freeze**:
+   - a stop the re-scoring overturns is lifted, and declared;
+   - a stop the re-scoring confirms is final.
+   - With one style, a Layered stop means the study stops.
+5. **Confirmatory tasks.** The 4 Layered confirmatory tasks are written blind and sealed before Stage A. Their `tasks.json` and manifest hashes go in the changelog before the first Stage A call. The 2 DDD confirmatory tasks are sealed before any DDD Stage A.
+6. **Samples and counts, one style and one generator:**
+   - **Stage A:** 3 tasks × 1 replicate × 5 steps = **15 turns** (cap 23).
+   - **Core** (Stage A + replicate 2 + `none@L3` and `mcp@L2` over 6 blocks × 4 steps): 15 + 15 + 48 = **78 turns** (cap 117).
+   - **Semantic scoring sample:** cell (3) × style (1) × generator (1) = 3 strata, 12 snapshots. The C1d and C4 caps in §10 halve.
+
+   All of these are below the counts D7 approved, so no new OK is needed for them.
+7. **The drift record's `fallback=run-exploratory`** is superseded by this study as the exploratory route (REV-05 §7 item 1). A confirmatory Study 2, if it runs, uses its own protocol.
+8. **§14:** the sealing time, the order and the counts are closed by D7 and this amendment. What stays open: the writer of the exploratory DDD tasks, and whether the drift record's pilot is still needed.
+
 ## Changelog
+- 2026-10-19: Amendment 1 (Layered only, Claude only, Stage A before the freeze with a provisional stop, DDD deferred, counts halved). The confirmatory task hashes are added here before Stage A.
 - 2026-10-19: first version (EXP, EXPT, SEM; REV-05 §3, §5, §6 items 1, 2 and 7).

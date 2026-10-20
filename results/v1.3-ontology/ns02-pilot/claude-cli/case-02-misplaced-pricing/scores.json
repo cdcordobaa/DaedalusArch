@@ -1,0 +1,112 @@
+{
+  "provider": "claude-cli",
+  "replay": false,
+  "factPolicy": "agreed-only",
+  "aggregate": {
+    "cases": 1,
+    "expected": 1,
+    "found": 1,
+    "recall": 1,
+    "forbidden": 3,
+    "forbiddenHits": 1,
+    "unexpected": 1,
+    "precision": 0.5,
+    "cheapCaughtExpected": 0,
+    "cheapFlaggedForbidden": 0,
+    "judgeRecorded": 0,
+    "hallucinations": 0,
+    "acceptedAssertions": 59,
+    "hallucinationRate": 0
+  },
+  "cases": [
+    {
+      "case": "case-02-misplaced-pricing",
+      "planted": "misplaced-responsibility",
+      "items": [
+        {
+          "kind": "misplacedResponsibilities",
+          "id": "discount-in-notifier",
+          "polarity": "expected",
+          "ontology": "found",
+          "cheap": "missed",
+          "judge": "not-recorded"
+        },
+        {
+          "kind": "misplacedResponsibilities",
+          "id": "Order",
+          "polarity": "forbidden",
+          "ontology": "clear",
+          "cheap": "clear",
+          "judge": "not-recorded"
+        },
+        {
+          "kind": "misplacedResponsibilities",
+          "id": "PlaceOrderUseCase",
+          "polarity": "forbidden",
+          "ontology": "forbidden-hit",
+          "cheap": "clear",
+          "judge": "not-recorded"
+        },
+        {
+          "kind": "misplacedResponsibilities",
+          "id": "ConsoleMailer",
+          "polarity": "forbidden",
+          "ontology": "clear",
+          "cheap": "clear",
+          "judge": "not-recorded"
+        }
+      ],
+      "counts": {
+        "ruleDuplications": {
+          "expected": 0,
+          "found": 0,
+          "forbidden": 0,
+          "forbiddenHits": 0,
+          "unexpected": 0
+        },
+        "misplacedResponsibilities": {
+          "expected": 1,
+          "found": 1,
+          "forbidden": 3,
+          "forbiddenHits": 1,
+          "unexpected": 1
+        },
+        "conceptFragmentations": {
+          "expected": 0,
+          "found": 0,
+          "forbidden": 0,
+          "forbiddenHits": 0,
+          "unexpected": 0
+        },
+        "capabilityScatter": {
+          "expected": 0,
+          "found": 0,
+          "forbidden": 0,
+          "forbiddenHits": 0,
+          "unexpected": 0
+        }
+      },
+      "unexpectedFindings": [
+        {
+          "kind": "misplaced-responsibility",
+          "responsibilityId": "sem:SemResponsibility:3baad1366a85839d",
+          "responsibility": "Record placed orders",
+          "site": {
+            "nodeId": "c12d39f40d4561ac",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "className": "PlaceOrderUseCase",
+            "methodName": "execute",
+            "component": "ordering"
+          },
+          "classLayer": "application",
+          "naturalLayer": "infrastructure",
+          "citedLogicDensity": 0,
+          "confidence": 0.6
+        }
+      ],
+      "hallucinations": 0,
+      "acceptedAssertions": 59
+    }
+  ],
+  "notes": []
+}

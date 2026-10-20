@@ -1,0 +1,827 @@
+{
+  "runId": "ontology-v0-01e31abcdb2b",
+  "provider": {
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5"
+  },
+  "nodes": [
+    {
+      "id": "sem:SemBusinessConcept:03f6398fd2e64cf9",
+      "label": "SemBusinessConcept",
+      "name": "Carrier",
+      "properties": {
+        "names": [
+          "Carrier"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        },
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly carrier: string,",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessConcept:3f3d65ebb67cc1e4",
+      "label": "SemBusinessConcept",
+      "name": "Shipment Notification",
+      "properties": {
+        "names": [
+          "Shipment Notification"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessConcept:81f0537396af82cb",
+      "label": "SemBusinessConcept",
+      "name": "Recipient",
+      "properties": {
+        "names": [
+          "Recipient"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly recipientEmail: string,",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessConcept:93ea4b31a959efa2",
+      "label": "SemBusinessConcept",
+      "name": "Shipment",
+      "properties": {
+        "names": [
+          "Shipment"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.875,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "async sendShipped(shipment: Shipment): Promise<void> {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:620cba338e264bac",
+      "label": "SemCapability",
+      "name": "Shipment record keeping",
+      "properties": {
+        "description": "The business can keep a record for each shipment, including the recipient's contact information.",
+        "names": [
+          "Shipment record keeping"
+        ],
+        "groups": [
+          "community:0"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "f71662f05b1b112e044e504795660b302028d8732d6605d0831c67317b99e3a3",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:b03f26b649174e20",
+      "label": "SemCapability",
+      "name": "Shipment dispatch notification",
+      "properties": {
+        "description": "The business can tell recipients that their shipment has been sent. It writes the notification message from the shipment record, which holds the recipient's contact details.",
+        "names": [
+          "Shipment dispatch notification",
+          "Shipment dispatch notification to customers"
+        ],
+        "groups": [
+          "community:0",
+          "component:notifications"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "f71662f05b1b112e044e504795660b302028d8732d6605d0831c67317b99e3a3",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:e0fbe32fc89ccd27",
+      "label": "SemCapability",
+      "name": "Shipment tracking and delivery recipient management",
+      "properties": {
+        "description": "Lets the business keep a record of each shipment along with the recipient's contact details, so goods can be delivered and the recipient can be reached.",
+        "names": [
+          "Shipment tracking and delivery recipient management"
+        ],
+        "groups": [
+          "component:shipping"
+        ]
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "79544d274af854cf4577d7ab7bd6b35444a3d6a15c46ecc3a5772b36bfbc361f",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemResponsibility:00f05532a0949b34",
+      "label": "SemResponsibility",
+      "name": "Hold recipient contact",
+      "properties": {
+        "description": "Stores the recipient's email address so a shipment can be linked to the person it is for, for example to notify them.",
+        "naturalLayer": "domain",
+        "classId": "e4b465cb4e5c3815"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly recipientEmail: string,",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.6
+    },
+    {
+      "id": "sem:SemResponsibility:751a15f2fb030d1f",
+      "label": "SemResponsibility",
+      "name": "Compose shipment notification content",
+      "properties": {
+        "description": "Builds the shipped-notification message text, including the shipping date (formatted as a day) and the carrier.",
+        "naturalLayer": "presentation",
+        "classId": "21902eaf2ee28c4a"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "const day = shipment.shippedAt.toISOString().slice(0, 10);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.6
+    },
+    {
+      "id": "sem:SemResponsibility:a49108a1c821b1eb",
+      "label": "SemResponsibility",
+      "name": "Model shipment record",
+      "properties": {
+        "description": "Represents a shipment as an immutable domain value: its identifier, the shipping date and the carrier that handled it.",
+        "naturalLayer": "domain",
+        "classId": "e4b465cb4e5c3815"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly shippedAt: Date,",
+          "startLine": 5,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "sem:SemResponsibility:e595936914027c42",
+      "label": "SemResponsibility",
+      "name": "Notify recipient that shipment has shipped",
+      "properties": {
+        "description": "Orchestrates sending a 'your order has shipped' email to the shipment's recipient through the Mailer port.",
+        "naturalLayer": "application",
+        "classId": "21902eaf2ee28c4a"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.85
+    }
+  ],
+  "edges": [
+    {
+      "id": "sem:SemEMBODIES:0616a50d8d163b6f",
+      "type": "SemEMBODIES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemBusinessConcept:81f0537396af82cb",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly recipientEmail: string,",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:27567a67dfff7ab3",
+      "type": "SemEMBODIES",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemBusinessConcept:03f6398fd2e64cf9",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:33cf699d64e35389",
+      "type": "SemEMBODIES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemBusinessConcept:03f6398fd2e64cf9",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly carrier: string,",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:6d197c4e860215cc",
+      "type": "SemEMBODIES",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemBusinessConcept:3f3d65ebb67cc1e4",
+      "properties": {
+        "relation": "defines"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:9d78f80ef3739af0",
+      "type": "SemEMBODIES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemBusinessConcept:93ea4b31a959efa2",
+      "properties": {
+        "relation": "defines"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:d0a76178bdc38421",
+      "type": "SemEMBODIES",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemBusinessConcept:93ea4b31a959efa2",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "async sendShipped(shipment: Shipment): Promise<void> {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemMISPLACED_IN:5f3447b1d6150408",
+      "type": "SemMISPLACED_IN",
+      "sourceId": "sem:SemResponsibility:751a15f2fb030d1f",
+      "targetId": "layer:presentation",
+      "properties": {
+        "classLayer": "application",
+        "naturalLayer": "presentation"
+      },
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "const day = shipment.shippedAt.toISOString().slice(0, 10);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:125555179c9618fc",
+      "type": "SemREALIZES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemCapability:620cba338e264bac",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "f71662f05b1b112e044e504795660b302028d8732d6605d0831c67317b99e3a3",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:1a5a60a499ede020",
+      "type": "SemREALIZES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemCapability:b03f26b649174e20",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "f71662f05b1b112e044e504795660b302028d8732d6605d0831c67317b99e3a3",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:cc3312acbfbaf57f",
+      "type": "SemREALIZES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemCapability:e0fbe32fc89ccd27",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "79544d274af854cf4577d7ab7bd6b35444a3d6a15c46ecc3a5772b36bfbc361f",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:e03ce3642d91649a",
+      "type": "SemREALIZES",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemCapability:b03f26b649174e20",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "f71662f05b1b112e044e504795660b302028d8732d6605d0831c67317b99e3a3",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:05f82799a528dbf7",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemResponsibility:751a15f2fb030d1f",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "const day = shipment.shippedAt.toISOString().slice(0, 10);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:0c5f2c136b8d783b",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemResponsibility:a49108a1c821b1eb",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly shippedAt: Date,",
+          "startLine": 5,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:17aa66f149028e40",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemResponsibility:e595936914027c42",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:e268e9c25b8a7819",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemResponsibility:00f05532a0949b34",
+      "properties": {},
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-01e31abcdb2b",
+        "temperature": null
+      },
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "readonly recipientEmail: string,",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    }
+  ],
+  "findings": [
+    {
+      "kind": "misplaced-responsibility",
+      "responsibilityId": "sem:SemResponsibility:751a15f2fb030d1f",
+      "responsibility": "Compose shipment notification content",
+      "site": {
+        "nodeId": "1e7c92c05d631e52",
+        "file": "src/notifications/application/shipment-notification.service.ts",
+        "className": "ShipmentNotificationService",
+        "methodName": "sendShipped",
+        "component": "notifications"
+      },
+      "classLayer": "application",
+      "naturalLayer": "presentation",
+      "citedLogicDensity": 0,
+      "confidence": 0.6
+    }
+  ],
+  "hallucinations": [],
+  "acceptedAssertions": {
+    "responsibility": 20,
+    "capability": 8,
+    "rules": 0,
+    "adjudicate": 4
+  },
+  "agreement": {
+    "responsibility": {
+      "items": 4,
+      "meanJaccard": 1,
+      "agreedAssertions": 10,
+      "totalAssertions": 10
+    },
+    "capability": {
+      "items": 3,
+      "meanJaccard": 1,
+      "agreedAssertions": 4,
+      "totalAssertions": 4
+    },
+    "rules": {
+      "items": 0,
+      "meanJaccard": null,
+      "agreedAssertions": 0,
+      "totalAssertions": 0
+    },
+    "adjudicate": {
+      "items": 2,
+      "meanJaccard": 1,
+      "agreedAssertions": 2,
+      "totalAssertions": 2
+    }
+  },
+  "calls": {
+    "providerCalls": 14,
+    "cacheHits": 0,
+    "invalid": 0,
+    "skippedForBudget": 0,
+    "cassetteMisses": 0,
+    "usage": {
+      "inputTokens": 29828,
+      "outputTokens": 6707
+    }
+  },
+  "budget": 20,
+  "stopped": null
+}

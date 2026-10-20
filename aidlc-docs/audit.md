@@ -2486,6 +2486,27 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.4 research ops: Claude CLI exploratory version allowance (D1)
+**Timestamp**: 2026-10-20T00:38:02Z
+**User Input**: "Author decision D1: the Claude CLI auto-updated to 2.1.303; keep the frozen judge pin 2.1.294 unchanged and add an exploratory allowance like agy's, used only when a route spec is exploratory."
+**AI Response**: "Added CLAUDE_EXPLORATORY_VERSIONS = ['2.1.303'] in src/llm-critic/claude-cli-provider.ts (frozen.ts untouched). checkJudgeIsolation and ClaudeCliProvider take an optional exploratoryVersions; default behaviour is the strict pin. The ontology routes replace the agy-only --exploratory refusal with per-route allowances (claude-cli and gemini-agy; mock and gemini-api still refused, code ONTOLOGY_ROUTE_EXPLORATORY_UNSUPPORTED). Help text of scripts/v1.3/ontology-run.ts and scripts/v1.4/c4-run.ts updated. The loop's Claude generator pin is the plan's adapters[].cliVersion, not the judge pin, so no code change there. Unit tests added; zero model calls."
+**Context**: v1.4 instrument track; unblocks the Claude half of the capped C1d pilot under the exploratory label; frozen judge runs unaffected
+
+## v1.4 research ops: C1d pilot, Claude half
+**Timestamp**: 2026-10-20T01:29:42Z
+**User Input**: "We are back; give it the last mile."
+**AI Response**: "Ran the C1d 2-case pilot on Claude (CLI 2.1.304 under the D1 exploratory allowance). Defect found; 2 grounded false positives (1 of them on the clean twin, a formatting responsibility read as presentation logic); 0 hallucinations. Gemini had 0 false positives. Report updated."
+**Context**: v1.4 instrument track, TRUST-01 L3; ≤ 40 Claude calls
+---
+
+## v1.4 research ops: Gemini S4 on agy 1.4.2 fails; exploratory generator is Claude only
+**Timestamp**: 2026-10-20T02:12:15Z
+**User Input**: "Give it the last mile" (the one-hour, zero-call timebox on agy 1.4.2 permissions, then S4 within the 30-call approval)
+**AI Response**: "Run 1: G0 failed on a check-order artifact plus ~/.agents (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
+**Context**: v1.4 instrument track, TRUST-01 L9; 24 Gemini calls
+
+---
+
 ## v1.4 DDD-BETA: representation and enforcement capability
 **Timestamp**: 2026-10-20T01:36:21Z
 **User Input**: "Scheduled routine DDD-BETA, zero model calls, engine cypher-interp: per the 2026-10-19 author decision (DDD is a beta instrument), measure whether the instrument can represent a real DDD project and enforce each DDD blocking rule on it (reach, seeded recall with the existing operators, twin false fires, Wilson intervals), what a class/member grain would need (not implemented), and a one-page verdict. Outputs under results/v1.4-ddd-beta/, one audit entry, PR to main, do not merge."

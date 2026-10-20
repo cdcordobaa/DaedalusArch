@@ -9,7 +9,7 @@ import type { ProcessResult, ProcessRunOptions, ProcessRunner } from '../../../s
 import type { LLMOptions } from '../../../src/shared/interfaces/llm-provider.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import {
-  ClaudeCliProvider, buildClaudeCliArgs, buildJudgeChildEnv, checkConfigListing, checkJudgeIsolation, checkSettingsJson,
+  CLAUDE_EXPLORATORY_VERSIONS, ClaudeCliProvider, buildClaudeCliArgs, buildJudgeChildEnv, checkConfigListing, checkJudgeIsolation, checkSettingsJson,
   classifyProcessResult, classifyStop, configDirPlacementProblem, createNeutralCwd, evaluateInitEvent,
   interpretClaudeEnvelope, isolationProbeSha256Of, modelMatches, parseCliVersion, readStreamEvents, reduceEnvelope,
   resolveActualModel, initProbeStop,
@@ -413,6 +413,55 @@ describe('ISO-09 CLI version pin (T24)', () => {
   it('the pinned version passes', async () => {
     const result = await checkJudgeIsolation({ runner: new StubRunner(), judgeConfigDir: cleanConfigDir(), parentEnv: {}, tmpRoot: tmpDir() });
     expect(result.success).toBe(true);
+  });
+
+  describe('exploratory allowance (author decision D1, 2026-10-19)', () => {
+    const at = (v: string): StubRunner => new StubRunner({ version: DomainResult.ok(proc(`${v} (Claude Code)\n`)) });
+    const check = (v: string, exploratoryVersions?: readonly string[]): ReturnType<typeof checkJudgeIsolation> => checkJudgeIsolation({
+      runner: at(v), judgeConfigDir: cleanConfigDir(), parentEnv: {}, tmpRoot: tmpDir(),
+      ...(exploratoryVersions !== undefined ? { exploratoryVersions } : {}),
+    });
+    const code = (r: Awaited<ReturnType<typeof checkJudgeIsolation>>): string | null => (r.success ? null : r.errors[0]?.code ?? null);
+
+    it('the frozen pin is unchanged; the exploratory list is 2.1.303 and 2.1.304 and frozen', () => {
+      expect(F.PINNED_CLI_VERSION).toBe('2.1.294');
+      expect(CLAUDE_EXPLORATORY_VERSIONS).toEqual(['2.1.303', '2.1.304']);
+      expect(Object.isFrozen(CLAUDE_EXPLORATORY_VERSIONS)).toBe(true);
+    });
+
+    it('the pinned version passes with or without the exploratory list', async () => {
+      expect((await check(F.PINNED_CLI_VERSION)).success).toBe(true);
+      expect((await check(F.PINNED_CLI_VERSION, CLAUDE_EXPLORATORY_VERSIONS)).success).toBe(true);
+    });
+
+    it('2.1.303 drifts by default and passes with the exploratory list (the accepted version is reported)', async () => {
+      expect(code(await check('2.1.303'))).toBe('LLM_CLI_VERSION_DRIFT');
+      const ok = await check('2.1.303', CLAUDE_EXPLORATORY_VERSIONS);
+      expect(ok.success).toBe(true);
+      if (ok.success) expect(ok.data.cliVersion).toBe('2.1.303');
+    });
+
+    it('any other version drifts in both modes', async () => {
+      for (const v of ['2.1.302', '2.1.305', '2.2.0']) {
+        expect(code(await check(v))).toBe('LLM_CLI_VERSION_DRIFT');
+        expect(code(await check(v, CLAUDE_EXPLORATORY_VERSIONS))).toBe('LLM_CLI_VERSION_DRIFT');
+      }
+    });
+
+    it('the provider config passes the list to its pre-flight; without it the strict pin holds', async () => {
+      const mk = (exploratoryVersions?: readonly string[]): ClaudeCliProvider => new ClaudeCliProvider(
+        { judgeConfigDir: cleanConfigDir(), ...(exploratoryVersions !== undefined ? { exploratoryVersions } : {}) },
+        { runner: at('2.1.303'), parentEnv: { PATH: '/usr/bin:/bin', HOME: '/home/judge' }, tmpRoot: tmpDir('u4-cwd-root-') },
+      );
+      const strict = mk();
+      expect(code(await strict.prepare())).toBe('LLM_CLI_VERSION_DRIFT');
+      strict.dispose();
+      const exploratory = mk(CLAUDE_EXPLORATORY_VERSIONS);
+      const r = await exploratory.prepare();
+      expect(r.success).toBe(true);
+      expect(exploratory.describe()).toMatchObject({ cliVersion: '2.1.303' });
+      exploratory.dispose();
+    });
   });
 
   it('drift stops record mode before any judge call and no cassette is written', async () => {
