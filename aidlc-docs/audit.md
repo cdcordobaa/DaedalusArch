@@ -2804,3 +2804,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, before the run; zero model calls
 
 ---
+
+## Study 2b — the author's go for the run
+**Timestamp**: 2026-10-20T18:55:00Z
+**User Input**: "(coordinator brief) The author gave the go for the confirmatory Study 2b run after reviewing the readiness-gate verdict (GO-READY-FOR-AUTHOR; D10 green with the OSF deposit). Record the go, run the pre-run checks at the run commit (hashes, frozen inputs, zero-call re-checks, live S4 re-run for both arms), then run the 40 blocks per the runbook and write a counts-only collection report."
+**AI Response**: "Recorded the go as GO-2B-RUN in ops/decisions.md (gate rule 4, GO-2B), before the pre-run checks and before any 2b call. The run session proceeds per Docs/v1.4/study2b-runbook.md with addenda A-D."
+**Context**: v1.4 Study 2b, drift record order step: run; the time is the approximate time of the go as given by the coordinator
+
+---
