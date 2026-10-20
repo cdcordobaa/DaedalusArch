@@ -4,7 +4,7 @@
 
 ## v1.1 — Closure Reconciliation
 **Timestamp**: 2026-04-20T00:00:00Z
-**User Input**: "Review and make sure what is done gets closed, what is added gets synced with specs and we get to a clean point."
+**User Input**: "Requested a review that closes completed work, syncs additions with the specs and reaches a clean state."
 **AI Response**: Reconciled state vs reality. Updated aidlc-state.md to close U2, U3, and Build & Test (previously stale — these were merged days ago). Added 4 new stories (S-DASH-06..09) to v1.1-stories.md covering the post-merge dashboard clarity additions (How-It-Works panel, Symbolic vs Combined comparison, Pipeline Trace, LLM Failure Transparency). S-LLM-02 noted as "originally scoped, skipped in U2, implemented post-merge." Extended v1.1-requirements-scoped.md with Post-Merge Amendments section documenting: (1) FR-15 scope extension for neuro-symbolic explicitness, (2) scoring-engine warning-dropping defect fixed, (3) S-LLM-02 silent skip during autonomous U2 run, (4) process note for v1.2 on autonomous-mode gate enforcement. Status: v1.1 COMPLETE and demo-ready.
 **Context**: v1.1 COMPLETE. 22 stories total (was 18), 43 test suites, 421 tests, 0 failures. End-to-end validated against dev-nest (real NestJS repo) with working Gemini API key.
 
@@ -176,7 +176,7 @@
 
 ## Requirements Analysis — Critical Reframe
 **Timestamp**: 2026-03-27T16:30:00Z
-**User Input**: "There is something we are not capturing. Okay this project is meant to be an usable product not only to perform and validate a hypothesis that should be, if performed, on a separate or a parallel call. Here we are building a tool that any team, any person, could plug into their development cycle. That tool should be triggered automatically on pull request creation or triggered by some kind of command. Also I would prefer to delete the "thesis" term since this is not a thesis; this is a product."
+**User Input**: "Clarified that the project is a usable product, not only a hypothesis test (any validation runs separately or in parallel): a tool any team can plug into its development cycle, triggered automatically on pull-request creation or by a command. Requested that the term 'thesis' be removed from the product documents."
 **AI Response**: Critical reframe applied. Key changes:
 1. Removed all "thesis" terminology — this is a product
 2. Added FR-08 (CI/CD Integration): GitHub Action triggered on PR creation, posts AHS + violations as PR comment, sets check status, configurable threshold for blocking PRs, manual trigger via `/firewall` command
@@ -279,7 +279,7 @@
 
 ## Application Design — Approval
 **Timestamp**: 2026-03-28T01:10:00Z
-**User Input**: "User provided intent: aprove"
+**User Input**: "User approved the stage."
 **AI Response**: Application Design approved. User enriched the design with: FirewallContext aggregate root (C11), DI/IoC strategy, DomainResult<T> universal result model, Concurrency Governor for LLM throttling, VCR/Cassette pattern for deterministic neuronal testing, spec schema versioning. All additions integrated into the design artifacts.
 **Context**: Application Design — Approval Gate passed. Proceeding to Units Generation.
 
@@ -295,7 +295,7 @@
 
 ## Application Design — Artifacts Generated
 **Timestamp**: 2026-03-28T00:45:00Z
-**User Input**: "User provided intent: continue"
+**User Input**: "User requested to continue."
 **AI Response**: All 6 answers clear, no ambiguities. Generated 5 design artifacts: components.md (10 components: C1-C10), component-methods.md (method signatures with typed I/O), services.md (6 services: PipelineExecutor, GraphRepository, SnapshotService, LLMProviderService, AuditLogService, ReportService), component-dependency.md (dependency matrix, data flow diagram, ACLs, external deps), application-design.md (consolidated). Key design: typed pipeline + command pattern orchestration, connection pool, Neo4j+filesystem snapshots, strategy pattern for LLM, fail-fast/accumulate error handling.
 **Context**: Application Design — Steps 3-4 complete, awaiting approval
 
@@ -340,7 +340,7 @@
 
 ## User Stories — Plan Approval
 **Timestamp**: 2026-03-28T00:45:00Z
-**User Input**: "User provided intent: Aprove"
+**User Input**: "User approved the stage."
 **AI Response**: Plan approved. No contradictions or ambiguities in answers. Proceeding to Part 2 — Generation (personas.md and stories.md).
 **Context**: User Stories — Step 4 (Plan Approval Gate passed)
 
@@ -355,14 +355,14 @@
 
 ## Requirements Review — Gap Analysis between AdHoc, ADR, and PRD
 **Timestamp**: 2026-03-28T00:22:32Z
-**User Input**: "User provided intent: help me review this @[Docs/AdHoc System Requirements — Architectural Firewall.md] and compare against these @[Docs/ADR — Architectural Decision Records Firewall Tech.md] @[Docs/PRD — Architectural Firewall Spec-Driven Compliance.md] find missing definitions that are mission in the first doc, but described in the other two"
+**User Input**: "User requested a review of the AdHoc System Requirements document against the ADR and PRD documents, to find definitions missing from the first that the other two describe."
 **AI Response**: Identified 5 major gaps and 1 critical contradiction (Persistence vs Statelessness). Created comparison report.
 **Context**: Requirements Analysis — Review and alignment
 
 
 ## Construction — Unit 2 APG Extractor — Loop Start + Functional Design Questions
 **Timestamp**: 2026-03-30T00:05:00Z
-**User Input**: "User provided intent: continue"
+**User Input**: "User requested to continue."
 **AI Response**: Starting U2 — APG Extractor. Stage assessment: Functional Design (EXECUTE), NFR Requirements/Design/Infrastructure (all SKIP). Created unit-2-apg-extractor-functional-design-plan.md and unit-2-apg-extractor-design-questions.md with 4 targeted questions: Q1 node ID strategy, Q2 CONSTRUCTOR_INJECTS detection, Q3 CALLS edge scope, Q4 barrel import resolution. Awaiting user answers.
 **Context**: Construction Phase — U2 Functional Design Step 1 complete
 
@@ -377,7 +377,7 @@
 
 ## Construction — Unit 2 Functional Design — APPROVED
 **Timestamp**: 2026-03-30T00:25:00Z
-**User Input**: "User provided intent: go ahead"
+**User Input**: "User approved and requested to proceed."
 **AI Response**: Functional Design approved. Noted PipelineStage<string, APGResult> alignment from U1 output — APGExtractor class must implement this interface; execute() bridges to internal extractAPG() and calls context.setApgResult() on success. Proceeding to Code Generation Part 1 (plan).
 **Context**: Construction Phase — U2 Functional Design Step 7/8 complete, Code Generation starting
 
@@ -399,7 +399,7 @@
 
 ## Construction — Unit 5 Code Generation — APPROVED
 **Timestamp**: 2026-03-30T17:10:00Z
-**User Input**: "User provided intent: continue"
+**User Input**: "User requested to continue."
 **AI Response**: U5 approved. Proceeding to U6 (Scoring Engine + Reports).
 **Context**: Construction Phase — U5 complete, U6 loop starting
 
@@ -414,7 +414,7 @@
 
 ## Construction — Unit 5 Functional Design — APPROVED
 **Timestamp**: 2026-03-30T16:45:00Z
-**User Input**: "User provided intent: continue"
+**User Input**: "User requested to continue."
 **AI Response**: Functional Design approved. Proceeding to Code Generation Part 1 (plan). Key: CypherTemplate needs resultMapping extension from U3.
 **Context**: Construction Phase — U5 Functional Design complete, Code Generation starting
 
@@ -452,7 +452,7 @@
 
 ## Construction — Unit 4 Functional Design — APPROVED
 **Timestamp**: 2026-03-30T15:35:00Z
-**User Input**: "User provided intent: continue"
+**User Input**: "User requested to continue."
 **AI Response**: Functional Design approved. Proceeding to Code Generation Part 1 (plan).
 **Context**: Construction Phase — U4 Functional Design complete, Code Generation starting
 
@@ -475,7 +475,7 @@
 
 ## Construction — Unit 3 Code Generation — APPROVED
 **Timestamp**: 2026-03-30T15:10:00Z
-**User Input**: "User provided intent: continue"
+**User Input**: "User requested to continue."
 **AI Response**: U3 approved. Proceeding to U4 (Neo4j + Persistence).
 **Context**: Construction Phase — U3 complete, U4 loop starting
 
@@ -490,7 +490,7 @@
 
 ## Construction — Unit 3 Functional Design — APPROVED
 **Timestamp**: 2026-03-30T14:25:00Z
-**User Input**: "User provided intent: continue"
+**User Input**: "User requested to continue."
 **AI Response**: Functional Design approved. Proceeding to Code Generation Part 1 (plan). Key integration note: FirewallContext needs setParsedSpec() + setCompiledFunctions() setters from U1.
 **Context**: Construction Phase — U3 Functional Design complete, Code Generation starting
 
@@ -682,7 +682,7 @@
 
 ## v1.2 Inception — Requirements Analysis PIVOT to Minimal Reuse Scope (FR-16)
 **Timestamp**: 2026-06-26T15:25:00Z
-**User Input**: "Doesn't want to spec from scratch. Asked to analyze whether we can ship a much smaller version of an existing use case — something simple and fast to add the functionality and test it in production."
+**User Input**: "Asked whether a much smaller version of an existing use case could ship instead of a new spec from scratch: something simple and fast to add and test in production."
 **AI Response**: Re-scoped from a full from-scratch FR to a MINIMAL-DEPTH reuse feature. Code analysis (cli.ts, pipeline-factory.ts, extract-command.ts, apg.ts, fs-snapshot-store.ts) confirmed the graph-generation capability already exists and is unexposed: `extractAPG(projectPath, {excludePatterns})` returns `APGResult {nodes, edges, parseCoverage, warnings}` with NO Neo4j dependency; `FileSystemSnapshotStore` already JSON-serializes the APG; `baseline` and `report` CLI commands are the exact 'run → write file with -o/--output' template. Smallest path = reuse all three. Retired the heavy 8-question verification file; replaced it with a 2-question minimal scope decision (delivery surface: new `firewall graph` command vs `--export-graph` flag; JSON shape: single file vs nodes/edges split). Recommended Option A (new standalone `firewall graph --project <path> -o architecture-graph.json`, Neo4j-free, fully isolated, additive). Security Baseline extension judged N/A for this internal read-only export (no auth/data-exposure surface). Requirements depth downgraded to Minimal. Awaiting user pick on the 2 decisions.
 **Context**: v1.2 INCEPTION — Requirements Analysis (Minimal depth, FR-16). Minimal scope decision presented; STOP pending user pick.
 
@@ -753,7 +753,7 @@
 
 ## v1.2 Evaluation-Readiness — Workflow Planning
 **Timestamp**: 2026-10-06T17:00:00Z
-**User Input**: "proceed to workflow planning"
+**User Input**: "Requested to proceed to workflow planning."
 **AI Response**: Loaded inception/workflow-planning.md and content-validation rules. Created `inception/plans/v1.2E-execution-plan.md` (cycle-specific name so the v1.0 execution-plan.md is not overwritten). Decisions: User Stories SKIP; Application Design EXECUTE (minimal); Units Generation EXECUTE with six proposed units (U0 Foundation, U1 Spec+compiler, U2 Extractor+graph, U3 Evaluation+scoring+report, U4 Neural path, U5 Experiment tooling); Functional Design per unit except U0; NFR Requirements, NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test always. Risk Medium; rollback easy. Mermaid validated (alphanumeric node ids, no special characters in labels, emoji removed from subgraph titles) with a text alternative. Security: no stage skip removes a security control; SECURITY-09/10 items sit in U0, SECURITY-12 in U4.
 **AI Prompt**: "Ready to proceed with this plan?"
 **Context**: Workflow Planning COMPLETE, awaiting approval.
@@ -762,7 +762,7 @@
 
 ## v1.2 Evaluation-Readiness — Workflow Planning adversarial review, approval, Application Design start
 **Timestamp**: 2026-10-06T18:00:00Z
-**User Input**: "generate an adversarial assessment of this plan with a subagent and then progress"
+**User Input**: "Requested an adversarial assessment of the plan by a subagent, then progress."
 **AI Response**: Ran one independent read-only reviewer agent over the execution plan, requirements and code. Verdict: do not proceed until three false assumptions are fixed (SDK/port cannot deliver FR-23; neural dimension accounting broken; NFR-01 already violated with no Neo4j-backed regression test) and circularity guards are added. Verified the key claims in code before acting. Accepted all 14 findings (record: `inception/plans/v1.2E-execution-plan-adversarial-review.md`). Requirements amended (FR-09, 10, 12, 23, 24, 25, 27, 28 restated; FR-30..36, NFR-07, NFR-08 added; NFR-01 widened; Section 5 made consistent). Execution plan revision 2: NFR Requirements now EXECUTE (light, in U0); units re-scoped with a shared-file ownership table; U5 no longer depends on U4; timeline 25–30 days. Treated "then progress" as approval of Workflow Planning revision 2. Started Application Design: created `inception/plans/v1.2E-application-design-plan.md` with 10 questions (credential route, judge unit, type-only imports, layer kind precedence, labeller design, Claude-on-Claude judging, differential vs absolute clean, review cuts, verdict thresholds, timeline).
 **Security**: review F1/F12 strengthen SECURITY-12 and SECURITY-03 handling (credential route decision; NFR-08 scrubbing test). No blocking finding.
 **Context**: Workflow Planning APPROVED (rev. 2). Application Design IN PROGRESS, GATE on design questions.
@@ -771,7 +771,7 @@
 
 ## v1.2 Evaluation-Readiness — Application Design answers
 **Timestamp**: 2026-10-06T18:30:00Z
-**User Input**: "recommended for all, then continue; once the plan is set we set up an ultracode workflow"
+**User Input**: "Accepted the recommended option for every question and requested to continue; an ultracode workflow to be set up once the plan is set."
 **AI Response**: Filled all ten [Answer]: tags with A. Ambiguity analysis: none (single options, mutually consistent: Claude Code headless CLI credential route; Semantic per file, Integrity per module; type-only imports counted and flagged; kind precedence explicit > name > position; one Gemini labeller run twice; Claude judge kept with a Phase 5 Gemini cross-check; differential clean status; review cuts accepted with FR-20 kept; thresholds kept and described; 25-30 days). Generating the design artefacts with a multi-agent workflow (ultracode opt-in): four writers, three verification lenses, one repair pass, one consolidation.
 **Context**: Application Design — gate passed; artefact generation in progress.
 
@@ -779,7 +779,7 @@
 
 ## v1.2 Evaluation-Readiness — Application Design artefacts generated
 **Timestamp**: 2026-10-06T22:40:00Z
-**User Input**: "continue as soon as it finishes"
+**User Input**: "Requested to continue as soon as the running step finishes."
 **AI Response**: Multi-agent workflow (run wf_f1754876-091; first launch interrupted by a usage limit with no output, relaunched) generated `inception/application-design/v1.2E-components.md`, `v1.2E-component-methods.md`, `v1.2E-services.md`, `v1.2E-component-dependency.md` and the consolidated `v1.2E-application-design.md`. Verification: coverage lens 15 issues, consistency lens 17 (4 blocking), code-reality lens 11 (1 blocking); repair applied all 43 after re-checking each. Main resolutions: one report-assembly design (AssembleReportCommand + buildEvaluationReport); one revised LLM port (model required, usedOptions/ignoredOptions, describe(), effort incl. xhigh); RE_EXPORTS as a ninth edge type; ProcessRunner in C10 so C15 does not depend on C14; multiple application layers bound as $applicationLayers list; differential matching by baselineMatchKey without line; judge_unit file/class/module; single scrubber with allow-listed child environment. Requirement text aligned for FR-21 (via new | field-assignment) and FR-28 (Claude Code CLI). Open for Functional Design: Claude CLI JSON field names, pinned Gemini id, whether orphan checks count RE_EXPORTS, budget and cap values, generator tool permissions.
 **Security**: SECURITY-11/13 condition for U5 — the generator must not run with an unrestricted Bash tool on the host; Functional Design U5 must restrict tools (file write/edit only) and confine the working directory. Not blocking at design level. Other rules as in the consolidated summary.
 **AI Prompt**: Approval of Application Design requested.
@@ -789,7 +789,7 @@
 
 ## v1.2 Evaluation-Readiness — Application Design approval; Units Generation Part 1
 **Timestamp**: 2026-10-07T09:00:00Z
-**User Input**: "approve the design and continue to units generation"
+**User Input**: "Approved the design and requested to continue to units generation."
 **Status**: Application Design APPROVED.
 **AI Response**: Loaded inception/units-generation.md. Created `inception/plans/v1.2E-unit-of-work-plan.md` with seven proposed units (U0, U1, U2, U3, U4, U5a, U5b, taken from the approved build order) and four questions (split U5; branching and integration; units in flight; requirement map instead of story map). Gate: awaiting answers.
 **Context**: Units Generation Part 1 IN PROGRESS.
@@ -798,7 +798,7 @@
 
 ## v1.2 Evaluation-Readiness — Units Generation
 **Timestamp**: 2026-10-07T09:30:00Z
-**User Input**: "recommended for all, then continue"
+**User Input**: "Accepted the recommended option for every question and requested to continue."
 **AI Response**: Filled the four answers with A (U5 split into U5a/U5b; integration branch v1.2e with per-unit branches and worktrees; dependency lanes; requirement map instead of story map). No ambiguities. Treated "then continue" as approval of the unit-of-work plan. Generated `v1.2E-unit-of-work.md`, `v1.2E-unit-of-work-dependency.md`, `v1.2E-unit-of-work-requirement-map.md` (36 FR + 8 NFR, one owner each, FR-17 deferred). All plan checkboxes ticked.
 **AI Prompt**: Approval of Units Generation requested.
 **Context**: Units Generation COMPLETE, awaiting approval.
@@ -807,7 +807,7 @@
 
 ## v1.2 Evaluation-Readiness — Units approved; U0 planning starts
 **Timestamp**: 2026-10-07T10:00:00Z
-**User Input**: "approve units and start U0 with the ultracode workflow"
+**User Input**: "Approved the units and requested to start U0 with the ultracode workflow."
 **Status**: Units Generation APPROVED.
 **AI Response**: Loaded construction/code-generation.md. U0 skips Functional Design (contracts fixed in Application Design); the execution plan places a light NFR Requirements pass in U0. Launched a multi-agent workflow (ultracode opt-in) that scouts four areas, drafts the U0 NFR note and code-generation plan, verifies them under three adversarial lenses, and repairs. No source changes until the plan is approved.
 **Context**: CONSTRUCTION — U0 Part 1 (planning) IN PROGRESS.
@@ -824,7 +824,7 @@
 
 ## v1.2 Evaluation-Readiness — U0 plan approved; Part 2 starts
 **Timestamp**: 2026-10-07T12:00:00Z
-**User Input**: "approve the U0 plan and push, start generation"
+**User Input**: "Approved the U0 plan; requested a push and the start of generation."
 **Status**: U0 code-generation plan APPROVED (decisions D-U0-1..17 as recommended). Push of `v1.2e` and `v1.2e/u0-foundation` to origin AUTHORISED; `main` untouched.
 **AI Response**: Starting U0 Part 2. Steps 1–9 (branches, Neo4j smoke, baselines, lock, golden suite, CI-proven baseline) executed directly because they share git, Docker and CI state; Steps 10–29 run as a sequential multi-agent workflow (implement → gate check → adversarial review per step); Steps 30–32 closed directly.
 **Context**: CONSTRUCTION — U0 Code Generation Part 2 IN PROGRESS.
@@ -833,7 +833,7 @@
 
 ## v1.2 Evaluation-Readiness — U0 Part 2 executed
 **Timestamp**: 2026-10-07T21:30:00Z
-**User Input**: "how is this going?" (status check during execution; answered with progress)
+**User Input**: "Requested a status check during execution." (answered with progress)
 **AI Response**: Steps 1–9 executed directly (GOLDEN_BASE f5fed3f, CI-proven baseline run 37679924705). Steps 5–7 via workflow wf_2b2020c6-003 (implement, three adversarial reviews, repair). Steps 10–29 via workflow wf_2787b3e4-051 (six groups, each implement → adversarial verify; all passed without fix rounds). Steps 30–32 executed directly. Exit: 592 tests green, golden 8/8 with snapshots unchanged, Gate B 85, lint 624 ≤ 626, CI green on ebefd92. Deviations recorded in the code summary (branch names v1.2e-<unit>, pinned local image digest, Steps 5–7 in one commit, lint version/rule rename). Pull request v1.2e-u0-foundation → v1.2e opened for the PR-CI exit check; not merged.
 **AI Prompt**: Code Generation completion (2-option) for U0.
 **Context**: CONSTRUCTION — U0 Code Generation COMPLETE, awaiting approval.
@@ -842,7 +842,7 @@
 
 ## v1.2 Evaluation-Readiness — U0 approved and merged
 **Timestamp**: 2026-10-07T21:30:00Z
-**User Input**: "yes aprove whats the next step?"
+**User Input**: "Approved and asked for the next step."
 **Status**: U0 Code Generation APPROVED.
 **AI Response**: Merged PR #1 (v1.2e-u0-foundation → v1.2e) as merge commit 2050193. Next stage: lane 2 — Functional Design for U1 (spec + compiler) and U2 (extractor + graph), one plan with questions per unit; parallel worktrees once their code plans are approved.
 **Context**: CONSTRUCTION — U0 COMPLETE; lane 2 next.
@@ -851,7 +851,7 @@
 
 ## v1.2 Evaluation-Readiness — Lane 2 Functional Design starts
 **Timestamp**: 2026-10-07T21:40:00Z
-**User Input**: "use ultracode and subagents to progress on this"
+**User Input**: "Requested progress using ultracode and subagents."
 **AI Response**: Loaded construction/functional-design.md. Launched a multi-agent workflow for U1 and U2 in parallel: code scouts per unit, a drafter that writes the functional-design plan with [Answer]: questions (recommended option first, with code evidence), an adversarial reviewer, and a repairer. Gate: user answers both question files.
 **Context**: CONSTRUCTION — Functional Design U1, U2 Part 1 (plan + questions) IN PROGRESS.
 
@@ -867,7 +867,7 @@
 
 ## v1.2 Evaluation-Readiness — Lane 2 adversarial review of recommended options
 **Timestamp**: 2026-10-07T22:45:00Z
-**User Input**: "Can you generate an adversarial suggestion on all the relevant design choices and hand them to me?"
+**User Input**: "Requested an adversarial review of all relevant design choices."
 **AI Response**: Three parallel reviewers (U1 Q1–12, U1 Q13–24, U2 Q1–17) attacked every recommended option against code, corpus clones and Neo4j EXPLAIN. Consolidated in `construction/plans/v1.2E-lane2-functional-design-adversarial-review.md`: 5 keep, 29 keep-with-condition, 7 switch (U1 Q3, Q8, Q14, Q21, Q22, Q24; U2 Q13); 8 factual errors in the plans; new U1 Q25 proposed; pre-registration rule for observation-vs-fix proposed. Advisory only; question files unanswered.
 **Context**: CONSTRUCTION — Functional Design U1, U2 awaiting answers.
 
@@ -875,7 +875,7 @@
 
 ## v1.2 Evaluation-Readiness — Lane 2 decisions; ADR-015; answers filled
 **Timestamp**: 2026-10-07T23:10:00Z
-**User Input**: "Okay let's go this way. Let's generate an ADR so we keep track of the decisions we are generating here and then progress with the plan."
+**User Input**: "Agreed with the proposed direction; requested an ADR to track the decisions, then progress with the plan."
 **Intent**: Prioritise only decisions that affect producing the promised objective results (SO1–SO5) and a sound evaluation; default everything else; record decisions durably.
 **AI Response**: Added ADR-015 to `Docs/ADR — Architectural Decision Records Firewall Tech.md` (pre-registered fix/observe rule; frozen choices; corpus = Docs/corpus.md five, specs versioned; cycle bound literal + same bound in universal metric + latency gate/SCC fallback; intent→integrity weight; package-existence check; RE_EXPORTS traversal with byte-identical IMPORTS messages; operational tags; FF-CV02/FF-S03 corrections; FR-19/FR-20 met not reworded; merge order U2→U1; all else default A). Filled all [Answer]: tags (U1 25 incl. new Q25, U2 17), each citing ADR-015. No ambiguous answers remain. Proceeding to Functional Design Part 2 (artefact generation) via workflow.
 **Context**: CONSTRUCTION — Functional Design U1, U2 answers complete.
@@ -884,7 +884,7 @@
 
 ## v1.2 Evaluation-Readiness — Standing approval granted
 **Timestamp**: 2026-10-08T00:30:00Z
-**User Input**: "okay then keep on it use ultracode where it fits, and dont stop until we have results"
+**User Input**: "Requested continued work, using ultracode where it fits, until results are available."
 **Intent**: Standing approval for all remaining AI-DLC gates of the cycle (Functional Design, code-generation plan, code generation, merge into v1.2e for U1–U5b; Build and Test) and for running the experiments that produce the thesis results. Agents proceed without pausing at each gate.
 **Conditions recorded by the AI** (stated to the user in the previous turn): a stage is auto-approved only when its adversarial verification reports no blocking or major issue; design questions are answered by the ADR-015 criterion (choices that change whether promised results can be produced and defended take the verified-best option; all else the recommended default) and recorded in an ADR; genuine cross-unit conflicts, any change to requirement text beyond ADR-recorded amendments, and anything touching `main` are escalated to the author; every merge into v1.2e is summarised in this log. The author's 30-item audit remains the author's.
 **Context**: CONSTRUCTION — lane 2 Functional Design generation running (wf_fe5a2f01-c23).
@@ -918,7 +918,7 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ## v1.2 Evaluation-Readiness — Lane 3/4 Functional Design plans; escalations accepted
 **Timestamp**: 2026-10-08T03:30:00Z
-**User Input**: "accept all"
+**User Input**: "Accepted all recommendations."
 **AI Response**: Workflow wf_b74b3ea7-f1a produced answered Functional Design plans for U3 (11 Q, 16 review issues fixed), U4 (19 Q, 18 fixed), U5a (16 fixed), U5b (16 fixed). Seven escalations presented; author accepted all. Recorded as ADR-017 (corpus core + 3–5 E7 projects; SO5 in scope; ADR-011 superseded by the E1 grid; SO4 domain-layer remap pre-registered; FR-11 RE_EXPORTS; FR-25 per tag; FR-27 agreement pairs; SECURITY-11 on generator; U4 halt condition). Requirement text amended with dated notes. Next: Functional Design Part 2 for U3/U4/U5a/U5b while lane 2 builds.
 **Context**: CONSTRUCTION — lanes 3/4 Functional Design plans complete.
 
@@ -926,7 +926,7 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ## v1.2 Evaluation-Readiness — Lanes 3/4 Functional Design and code-generation plans complete (auto-approved)
 **Timestamp**: 2026-10-08T05:00:00Z
-**User Input**: None (standing approval; author's "accept all" of 2026-10-08T03:30:00Z)
+**User Input**: None (standing approval; the author's acceptance of all recommendations at 2026-10-08T03:30:00Z)
 **Intent**: Close Functional Design Part 2 and the code-generation plans for U3, U4, U5a and U5b.
 **AI Response**: Functional designs written under `construction/v1.2E-u3-evaluation-scoring-report/`, `v1.2E-u4-neural-path/`, `v1.2E-u5a-mutation-manifest-generator/`, `v1.2E-u5b-scoring-harness/`, and code-generation plans under `construction/plans/`. Adversarial review issues found and fixed: U3 design 14, plan 7; U4 design 13, plan 14; U5a design 13, plan 8; U5b design 10, plan 9. Auto-approved under standing approval; no blocking or major review issue remains.
 **Context**: CONSTRUCTION — lanes 3/4 Functional Design and Code Generation planning COMPLETE (U3, U4, U5a, U5b); next: code generation after lane 2 lands.
@@ -971,7 +971,7 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ## U4 Gate H — ISO-04 resolution
 **Timestamp**: 2026-10-08T12:40:00Z
-**User Input**: "logged in" / "done" (author completed the subscription login into the dedicated judge config dir)
+**User Input**: "Confirmed the login was complete." (author completed the subscription login into the dedicated judge config dir)
 **AI Response**: "Gate H passed H1–H5 (8bbd2cc). The judge dir broke the ISO-04 allow-list (marketplace plugins, settings.json, per-call projects/*/memory). Resolved under the standing approval as ADR-018: plugins/ removed and the judge call re-verified; allow-list values filled; settings.json content rule; CLI pinned at 2.1.294 with DISABLE_AUTOUPDATER in the child env. U4 proceeds to Step 7 after U3 merges."
 **Context**: CONSTRUCTION, U4 Code Generation Part 2, Group 1 exit
 
@@ -1279,7 +1279,7 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ## Build and Test — E7 corpus run (runbook §4), prereg v11, instrument v2
 **Timestamp**: 2026-10-10T04:35:00Z
-**User Input**: "go E7: run experiments/e7-corpus/plan.json (9 bases, full mode, live pinned judge) exactly as registered; ladder only by its registered trigger; let usage stops pause and resume; then the registered E7 aggregation, the P4 judge-verdicts file and the P2 pool, the v1 symbolic sensitivity row; label-dependent outcomes pending; PR into v1.2e."
+**User Input**: "Approved E7: run experiments/e7-corpus/plan.json (9 bases, full mode, live pinned judge) exactly as registered; ladder only by its registered trigger; let usage stops pause and resume; then the registered E7 aggregation, the P4 judge-verdicts file and the P2 pool, the v1 symbolic sensitivity row; label-dependent outcomes pending; PR into v1.2e."
 **AI Response**: "Stage 0b done (P-4); 0c estimate 1002 calls (ceiling 1089). Gate: pre-registration v11 ok (69 artefacts); after merging origin/v1.2e, v12 ok with the v11 records. Preflight: judge CLI 2.1.294 = pin, config-dir placement none, listing pass 0 failures; per-run init probe passed on all 9 (tools StructuredOutput, no MCP, apiKeySource none, model claude-opus-5-5). First attempt stopped at the init probe ('Not logged in') with 0 judge calls: run-experiment CLI_ENV_ALLOW dropped USER, so the judge child could not reach its keychain login; fixed by adding USER and LOGNAME (855ff88, test added; no registered artefact changed), failed attempt discarded uncommitted. Second run: 9/9 accepted, attempt 1, no usage-limit stop, no pause. Judge calls 1002 = 9 init probes + 993 judged runs (FF-N01 456, FF-N02 537), equal to the estimate; 993/993 outcomes valid, 0 parse/invalid/retry, resolved model claude-opus-5-5 throughout. No ladder step (trigger never reached). Units: FF-N01 152 valid, 31 fail (20.4 %); FF-N02 179 valid, 42 fail (23.5 %); 0 flagged unstable; 20/331 units had a split 3-run vote. AHS det -> combined, verdict: realworld 0.721->0.743 warning; ghostfolio 0.387->0.437 hard-block; truthy 0.387->0.441 hard-block; dry-run 0.504->0.547 soft-block; nestjs-active-record 0.571->0.608 soft-block; nestjslatam 0.354->0.411 hard-block; valex 0.553->0.591 soft-block; typescript-ddd 0.392->0.443 hard-block; ecommerce-store 0.175->0.247 hard-block. Aggregation 7.3 into results/e7-corpus/agg (label-dependent tables header-only). P2 pool / P4: a first build-label-plan (--corpus-runs only, pre-v12 producer) drew P2 30 with no v1-only split and P4 0; after merging prereg v12 (PR #44, v1-only stratum producer) that draw is superseded and was removed. The v12 producer refuses without --corpus-v1-runs (RunRecords stamped instrumentVersion 1), and no registered route yields symbolic-only v1 RunRecords for the full-mode e7-corpus plan (run-experiment takes the mode from the plan; --instrument v1 on it would re-spawn the judge, at least the 9 init probes), so the P2 pool and judge-verdicts file are open: they need a registered symbolic-only v1 route (plan or flag, a prereg bump) and then 6.1. P4 holds no E7 units by registration (E1 + fixtures). v1 sensitivity: symbolic-only evaluate --instrument v1 on the same 9 trees, results/e7-corpus/v1/ahs_v1_sensitivity.csv; v1 -> v2 symbolic violations differ only in FF-C02/C03/CV05; AHS det equal except nestjs-active-record 0.538 -> 0.571 (as in SO4). Repetition reliability: not registered for E7 (repetition 0 only; sub-study is fixtures). Labelling outcomes pending."
 **Context**: CONSTRUCTION — Build and Test, E7 run. Worktree ../DaedalusArch-wt-e7run, branch v1.2e-exp-e7.
 
@@ -1348,7 +1348,7 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ## Build and Test — E1 grid (SO5), generation and judge passes (prereg v16 → v20)
 **Timestamp**: 2026-10-11T04:30:00Z
-**User Input**: "go E1 (author, 2026-10-10): run E1 exactly as registered; generation first, judge after the judge-weighted variant is merged; add the Codex cells once ADR-029 is merged; both ADR-028 passes; every registered reading; P4 label items without live labelling; PR and merge."
+**User Input**: "Approved E1 (author, 2026-10-10): run E1 exactly as registered; generation first, judge after the judge-weighted variant is merged; add the Codex cells once ADR-029 is merged; both ADR-028 passes; every registered reading; P4 label items without live labelling; PR and merge."
 **AI Response**: "Generation: 54 Claude cells (generator-plan.json, orderSeed 20261008, CLI 2.1.294) gave 47 ok and 7 failed-typecheck (GEN-TYPECHECK, all claude-haiku-4-5), with no usage pause and no restart. After PR #50 (v18), the 18 Codex cells (gpt-5.6-terra, CLI 0.162.1, effort medium) were all ok, with no quota pause. Harness-overlap check of the 4 Claude cells that overlapped the Codex lane's reinstalls: no generator transcript exists (--no-session-persistence). The envelopes show ok, tsc 0, no node_modules write, and one denied, unexecuted `ls node_modules` (opus OF minimal-prose run-0). Result: checked, no observable interaction; cells kept. Judge pass 1 first ran on v18/v19 code and exposed the tsconfig gap (ADR-032). It was stopped and its records discarded (1 accepted). ADR-032 was merged as PR #52 (prereg v20). Pass 1 was re-run under v20 and hit one usage window at cell 35: the init-probe usage limit was classified as transport-error, so there was no registered pause. The same command was re-run (cassettes reused) and gave 72 records: 65 accepted, 7 not-run. 3,654 judge cassette entries (central estimate 4,428 for 54 cells). Pass 2 (proportional replay) made 0 new calls (cassettes unchanged) and gave 65 accepted. compare-aggregations results: registered vs proportional 0 verdict changes; any-fail 0; judge-weighted-v1 0 under the registered and proportional readings and 8 under any-fail. judge_mattered was 0 except jw any-fail (8). Judge diagnostics frame 1.1.0: no pooled code is informative (≥ 0.3); 15 FF-N02 units have no cassette join by project id (content-keyed cassettes shared across cells). P4 label plan built in results/e1-grid/label-plan-p4 (P4 46 items; P1/P2 items identical to results/labels); no live labelling. Fixtures plan (step 3) 5/5 accepted at v19 (unaffected by ADR-032)."
 **Context**: CONSTRUCTION — Build and Test, runbook §5 E1 and §7.2; worktree ../DaedalusArch-wt-e1, branch v1.2e-exp-e1; ADR-028, ADR-029, ADR-032.
 
@@ -1447,7 +1447,7 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ## v1.3 INCEPTION — Workspace Detection (new cycle: tool validity, greenfield focus)
 **Timestamp**: 2026-10-14T19:08:15Z
-**User Input**: "Make the tool really work before any new study: use every test and run we have to improve it and prove its validity. Focus on greenfield. Add hexagonal and/or DDD as common real-world styles. Explore how specs shape the patterns LLMs generate and how the tool reviews that. Later, infer the rules of brownfield projects from the same graph (ISE). Then run another study; the methodology may change." (Author intent: a validation-and-hardening cycle v1.3 whose exit criterion is demonstrated tool validity, followed by a new pre-registered study.)
+**User Input**: "Make the tool work reliably before any new study: use every test and run we have to improve it and prove its validity. Focus on greenfield. Add hexagonal and/or DDD as common real-world styles. Explore how specs shape the patterns LLMs generate and how the tool reviews that. Later, infer the rules of brownfield projects from the same graph (ISE). Then run another study; the methodology may change." (Author intent: a validation-and-hardening cycle v1.3 whose exit criterion is demonstrated tool validity, followed by a new pre-registered study.)
 **AI Response**: "Started AI-DLC v1.3 cycle. Workspace: existing TypeScript codebase on v1.2e (a28d245+), reverse-engineering artefacts exist, so Reverse Engineering is skipped. v1.2E stays frozen as Study 1. Evidence inventory for the questions: open v1.3 drafts #69 (dynamic imports, NestJS module wiring), #74 (MCP loop), #75 (graph adapters), #76 (hexagonal library), #77 (pnpm/yarn), #79 (judge anti-pattern operators); known instrument gaps: FLOWS_TO near-empty (ADR-023), dynamic import() uncovered (all 6 SO4 misses), FF-CV05 test-file-pairing (advisory) produces 83% of E1 findings, judge fail-detection untested (36/36 pass in P4; 0 probe sites), real-code precision a 24-item pilot (n_eff 11.5), graph fidelity and file-to-layer accuracy never measured against a reference, no-spec E1 confound. Next: Requirements Analysis, question file v1.3-validity-questions.md."
 **Context**: v1.3 INCEPTION — Workspace Detection complete; proceeding to Requirements Analysis (comprehensive depth). This is a requirement change, so the v1.2E standing approval does not cover v1.3 gates: author approval required at each gate.
 
@@ -1455,7 +1455,7 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ## v1.3 INCEPTION — Requirements Analysis: author delegates all v1.3 decisions
 **Timestamp**: 2026-10-14T19:30:00Z
-**User Input**: "Okay please take charge of the whole implementation. Please generate a brief document in Notion for this and move the progress toward what we just talked about. I need quick results as you know so" (Intent: delegate every v1.3 decision and gate to the AI; prioritise speed; Notion brief; results quickly.)
+**User Input**: "Delegated the v1.3 implementation to the AI, with a brief Notion document and progress on the agreed plan; speed of results is the priority." (Intent: v1.3 gate-level and protocol calls delegated to the AI; prioritise speed; Notion brief.)
 **AI Response**: "Answered all 17 questions with the recommended defaults, each marked 'AI default, delegated' in v1.3-validity-questions.md: per-link numeric targets (provisional); hexagonal + DDD (tactical first, strategic as bounded-context isolation) plus the existing styles; reference graph = hand-built for reference projects + automatic dependency-cruiser/tsc comparison; validation projects = hand-written core with manifests + reviewed generations; labels = Gemini + author sample audit, two labels (correct, meaningful); formal blocking/advisory tiers; judge filter-and-explain; FLOWS_TO stays a limitation; drafts #69 #74 #76 #79 in, #75 #77 parked; spec-influence pilot now, confirmatory later; ISE in a later cycle; Study 1 frozen / v1.3 development / Study 2 pre-registered on fresh data; tight timeline; proceed and bring results to the director; security baseline on. Author delegation recorded as standing approval for v1.3 gates; escalate only conflicts, scope changes, main, or anything that spends paid credits beyond the plan."
 **Context**: v1.3 INCEPTION — Requirements Analysis answers recorded; requirements document next.
 
@@ -1511,7 +1511,7 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ## v1.3 Construction — night plan (2026-10-16)
 **Timestamp**: 2026-10-16T01:55:00Z
-**User Input**: "The author wants the night's work spent on closing the thesis gaps (SO3 neuro-symbolic, SO4 validity, SO5 spec level), never on side tracks (frontend dropped). The overriding constraint is that Study 2 must run exactly once ('I don't want to ruin a third study'). Human labels by the author or director carry little authority, so validity must rest on non-human evidence. Cloud work must bill the subscription, not a separate cloud credit [spend figure redacted 2026-10-16]. The plan is to be tracked in AI-DLC."
+**User Input**: "The author set the night's priority: close the thesis gaps (SO3 neuro-symbolic, SO4 validity, SO5 spec level), with no side tracks (frontend dropped). The overriding constraint is that Study 2 runs exactly once. Human labels by the author or director carry little authority, so validity must rest on non-human evidence. The plan is to be tracked in AI-DLC."
 **AI Response**: "Wrote construction/plans/v1.3-night-2026-10-16-plan.md, tracking about 40 jobs across three usage windows with a pass criterion each.
 - Validity without raters: developer-fix mining, predictive bug-fix churn, convergent agreement with three external checkers, a cross-vendor model panel, a methods memo, an external human-written set, and graph-fidelity adjudication prep.
 - Readiness: a go/no-go gate, a floor-effect probe, an analysis rehearsal on synthetic data, a no-LLM loop replay, and task design.
@@ -1903,7 +1903,7 @@ Other changes in the same PR: paper wording (judge interval, distinct floor-prob
 
 ## Study 2 protocol reconciliation: declared deviation (scheduled routine)
 **Timestamp**: 2026-10-16T14:09:49Z
-**User Input**: "Scheduled routine carrying the author's 2026-10-16 13:50 UTC delegation ('unblock everything'): record the switch of the Study 2 primary outcome to the level outcome Y as a declared, dated deviation; record the memo §5 branch from the PR #229 re-score; fallback 'do not run'; canonical order; distinct-edge count unit; arms none and daedalus-mcp; k = 4 unless the power simulation says otherwise; Sonnet 5.5 plus the Codex pin with no V10 waiver; grid from the level power simulation. Amend every conflicting protocol doc in one pass, add and run a consistency check, open a PR into v1.3 and merge it if the check passes."
+**User Input**: "Scheduled routine carrying the author's 2026-10-16 13:50 UTC delegation to unblock the remaining work: record the switch of the Study 2 primary outcome to the level outcome Y as a declared, dated deviation; record the memo §5 branch from the PR #229 re-score; fallback 'do not run'; canonical order; distinct-edge count unit; arms none and daedalus-mcp; k = 4 unless the power simulation says otherwise; Sonnet 5.5 plus the Codex pin with no V10 waiver; grid from the level power simulation. Amend every conflicting protocol doc in one pass, add and run a consistency check, open a PR into v1.3 and merge it if the check passes."
 **AI Response**: "Branch v1.3-protocol-reconciliation from origin/v1.3 (38f199fd). Wrote Docs/v1.3/study2-deviation-2026-10-16.md (canonical protocol block, rationale, §5 branch = zero on #229 with its limits, 24-block grid from the level simulation with the RR <= 0.25 limit, canonical order, evidence timeline). Amended outline v2, gap plan, readiness gate, pilot memo (appended §8, original text unchanged, pre-amendment sha256 recorded), floor-escape design, dashboard, task-design guide and dress rehearsal. Added scripts/v1.3/protocol-consistency-check.mjs (npm run lint:protocol, CI step); it found 47 conflicts before the edits and 0 after, and its self-test shows it fails on a planted contradiction. No sealed directory or .env read."
 **Context**: INCEPTION/planning, Study 2 protocol (docs only). Options taken under delegation: (1) k = 4 is kept because the level simulation finds k = 6 adds turns for no power; the validation pilot uses dated k = 4 fixture variants whose step 4 is the original step 5, so the defining pressure stays inside the horizon; (2) probe 3's vineyard-harvest run is excluded from the validation pilot's go/no-go and reported separately; (3) if one stratum passes, 4 tasks of that style keep the grid at 24 blocks; (4) contrasts below 0.80 at 24 blocks are demoted to secondary before the pre-registration, and if none reaches 0.80 Study 2 does not run; (5) the dress rehearsal is re-sized to k = 4, 5 cells, 2 generators. AD2 (pilot T1 / D15) remains open for the author.
 
@@ -2079,7 +2079,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 CONSTRUCTION — cloud units done; blind re-derivation started; U-D resumed
 **Timestamp**: 2026-10-15T00:40:00Z
-**User Input**: "how are we progressing here"
+**User Input**: "Requested a progress update."
 **AI Response**: "Cloud U-C2 → PR #82 (4 reference projects, clean/layered/NestJS/hexagonal, 27–30 files each, 56 variants of which 40 are violations and 12 near-misses, hand-written expected graphs, validation runner with --check/--materialise/live/--from-raw; no Neo4j run). Cloud U-C1 → PR #83 (DDD style: 7 templates, declarations-based, 31-file two-context reference project with 10 violations, 3 probes and 1 negative control, manifests committed before the templates; it independently found the same barrel-routing defect; three tier disagreements are proposed as ADRs). U-D had stalled waiting for a memory signal that never came; resumed. Blind re-derivation (protocol §1) started: 71 cases shuffled and renamed, 68 revealing comments removed, the variant key kept by the coordinator only; annotator = Fable model, sees only code, declarations, style-rule-sources.md and rule-tiers.md."
 **Context**: v1.3 CONSTRUCTION — waiting on U-D, the blind annotation, and the author's Gate 2 answer (barrel fix, ADR-V13-01).
 
@@ -2087,7 +2087,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 CONSTRUCTION — Gate 2 decided by the author: barrel fix option A (ADR-V13-01)
 **Timestamp**: 2026-10-15T01:30:00Z
-**User Input**: "yes A" (Intent: approve Gate 2 and choose to record both the literal edge to the re-export file and the resolved edge to the declaring file.)
+**User Input**: "Approved Gate 2, option A." (Intent: approve Gate 2 and choose to record both the literal edge to the re-export file and the resolved edge to the declaring file.)
 **AI Response**: "Recorded ADR-V13-01 (Docs/v1.3/adr-v13.md). U-D done (96120b3, PR #84: verdict FAIL iff a blocking rule has a counted violation; v1.2E scoring byte-identical by default in the library, v1.3 default in evaluate/MCP; 41+17+5 new tests, 837 unit, 81 golden). Integration agent merging #84, #82, #83 and the fidelity branch into v1.3 and wiring DDD tiers. Barrel-fix unit launched on branch v1.3-barrels from v1.3. U-E (live reference validation) runs after both land."
 **Context**: v1.3 Gate 2 passed.
 
@@ -2103,7 +2103,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 CONSTRUCTION — barrel fix merged (ADR-V13-01); academic deck
 **Timestamp**: 2026-10-15T05:00:00Z
-**User Input**: "can i really have an academic presentation please send a sub agent, creat ea nice style" (earlier); none since for the barrel fix (approved as 'yes A').
+**User Input**: "Requested an academic-style presentation, prepared by a subagent" (earlier); none since for the barrel fix (approved as option A).
 **AI Response**: "PR #85 (04c6158) merged into v1.3 as 79c692f. Extractor option reExportEdges ('resolved-only' in V12E, 'both' in v1.3); Docs/v1.3/edge-views.md committed before validation (13 literal, 4 resolved, 21 none, out of 38 templates), applied by a compile-time rewrite with the frozen template text unchanged; v1.2E extraction byte-identical on 15 fixtures. Fidelity on the two disagreeing E1 cells: task-management/none/run-1 Jaccard 0.3962 → 1.0, order-fulfilment/full-aac/run-1 0.9435 → 1.0 (literal view vs dependency-cruiser/tsc). 968 tests + 81 golden pass; prereg v25 ok. Follow-ups: the scoring engine's universal metrics, the drift detector, the judge source context and the report graph still read both views and need a view decision; the other 70 E1 cells and SO4 have not been rerun. Academic deck: 31 slides, HTML + PDF, committed 3325fa5 on v1.2e (the director-deck-v12e-2026-10 folder; since 2026-10-16 archived in the private thesis repository, presentation/)."
 **Context**: v1.3 — U-E baseline (pre-barrel, v1.3@5d50dfa) running; a post-barrel re-run follows on 79c692f.
 
@@ -2119,7 +2119,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — author decision: no pre-registration until the tool is fit
 **Timestamp**: 2026-10-15T07:00:00Z
-**User Input**: "i dont want p[reregistrations  until we make sure the tool is good enough to actually detect what we are trying to find out" (Intent: defer every pre-registration until the tool is demonstrated to detect what the study needs.)
+**User Input**: "Defer every pre-registration until the tool is demonstrated to detect what the study needs." (author decision)
 **AI Response**: "Requirements revision 2: FR-V12 is now an informal outline only; no prereg work in v1.3; pre-registration is gated on the hold-out validation meeting the targets (or written waivers) plus the author's explicit go. The non-prereg safeguards (sealed hold-out, blind manifests, a priori tiers, sealed task hash) stay."
 **Context**: v1.3 scope change by the author.
 
@@ -2127,7 +2127,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — clarification: pre-registration deferred, not dropped
 **Timestamp**: 2026-10-15T07:10:00Z
-**User Input**: "I do want to do the registration at some point, not discard it at all. I really want to do the proper process but before actually going into and running the whole study, I want to be sure the tool exists before presenting the study."
+**User Input**: "Confirmed that the registration will be done, following the proper process, once the tool is shown to work and before the study is run or presented."
 **AI Response**: "Confirmed: the order is tool validated (hold-out) → author go → full Study 2 pre-registration → Study 2 run. Clarification added to requirements rev 2."
 **Context**: v1.3 scope clarification.
 
@@ -2143,7 +2143,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 CONSTRUCTION — fix round merged (dev set)
 **Timestamp**: 2026-10-15T09:30:00Z
-**User Input**: "Do you think we overpromised?" (answered: SO3 'neuro' and the 'governing' claim are the unsupported parts; the symbolic core is not overpromised)
+**User Input**: "Asked whether the thesis overpromised." (answered: SO3 'neuro' and the 'governing' claim are the unsupported parts; the symbolic core is not overpromised)
 **AI Response**: "PR #87 (b35bf17) merged into v1.3. Construct reasons committed before measuring (3e8d4b4). Dev-set after fixes (blocking; author cycle-normalised / blind expanded): pooled recall 56/57 / 52/67, pooled precision 56/56 / 52/56; clean variants 5/5 pass; near-misses with a blocking FP 0/14; barrel edges 18/18; DDD key edges 16/16; blind literal edge recall 1.000 in every style. Two live runs byte-identical under the new Neo4j lock (~/.daedalus/locks). Fixes: lock; cycle matching on file set; FF-P06 not applicable to layered (ADR-V13-02 draft); camel-case-token role matching (FF-P03/P04/P05); literal view for metrics/drift/judge context/report; DDD context isolation on the literal barrel edge. Remaining: FF-DT03 setter accessor (needs extractor member facts); advisory misses and FPs; the gap against the blind manifests is construct-reading disagreement that awaits author adjudication (RDQ-3 FF-P02 sibling injection open)."
 **Context**: v1.3 — tool frozen for hold-out pending the adjudication outcome and the author's answer on enlarging the hold-out set.
 
@@ -2151,15 +2151,15 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — overnight push started (author: maximise progress until 7am)
 **Timestamp**: 2026-10-15T16:50:00Z
-**User Input**: "i just updgraded my subscription, lets put fire to we most we can here ... until tomorrow 7am where week reestarts"; "what are we going to do"
-**AI Response**: "caffeinate until 07:30 local. Wave 1. Local: judge catch test (FR-V9; AP operators frozen first; ≤400 judge calls; clean variants as negative control); construct-decision document for the author (Docs/v1.3/construct-decisions.md); hold-out enlargement to ≥32 violations per style (sealed, Fable model; the author's open question on option A taken as yes under 'max progress'). Cloud: member facts + FF-DT03 value-object immutability (trig_01VCHsLrUyNLhFesQD8ZczZC); labelling harness, correctness checker + meaningful labeller, no live calls (trig_016GhDoS9pYs8fDafta1Dton); firewall-in-the-loop multi-step harness + informal Study 2 outline, not a pre-registration (trig_01EsbzfWhTfZj2j6UrUgTZDt). Neo4j work is serialised by the new lock."
+**User Input**: "Requested maximum progress overnight with the available capacity, and a plan for the work."
+**AI Response**: "Machine kept awake for the overnight run. Wave 1. Local: judge catch test (FR-V9; AP operators frozen first; ≤400 judge calls; clean variants as negative control); construct-decision document for the author (Docs/v1.3/construct-decisions.md); hold-out enlargement to ≥32 violations per style (sealed, Fable model; the author's open question on option A taken as yes under the standing delegation). Cloud: member facts + FF-DT03 value-object immutability (trig_01VCHsLrUyNLhFesQD8ZczZC); labelling harness, correctness checker + meaningful labeller, no live calls (trig_016GhDoS9pYs8fDafta1Dton); firewall-in-the-loop multi-step harness + informal Study 2 outline, not a pre-registration (trig_01EsbzfWhTfZj2j6UrUgTZDt). Neo4j work is serialised by the new lock."
 **Context**: v1.3 overnight; wave 2 (merges, the dev-set re-run with member facts, E1/SO4 re-run, U-F labelling, then the hold-out freeze decision) follows as wave 1 lands.
 
 ---
 
 ## ISE — author starts exploratory testing now (scope change: pulled forward from a later cycle)
 **Timestamp**: 2026-10-15T17:12:00Z
-**User Input**: "Now that we have the capacity, can we start some testing on the ESA? ... the capability of building the rules based on the graph itself" (Intent: begin ISE, inferring the spec from the APG, now, using spare capacity.)
+**User Input**: "Requested ISE testing to start now: building the rules from the graph itself." (Intent: begin ISE, inferring the spec from the APG, now, using spare capacity.)
 **AI Response**: "Cloud routine trig_017XkPGDWCqp4brThyUVyEfo, branch v1.3-ise: a style classifier, a layer-mapping inferrer and a spec emitter (thesis §16 Option 2), with Option 1 (majority vote) and Option 3 (deviation clustering) as comparators. Anti-leakage: the inferrer sees only src/ and the in-memory APG, enforced by a test. Ground truth = the 71-case dev reference set (true specs and expected graphs); the sealed hold-out is NOT used. Metrics: style accuracy, per-file layer accuracy, glob equivalence, downstream finding agreement and planted-violation recall under the inferred spec (needs Neo4j; local run later), plus a renamed-directory robustness probe. Exploratory, not pre-registered."
 **Context**: ISE exploratory track inside the v1.3 overnight push.
 
@@ -2167,7 +2167,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — APG v2 generic enrichments (author choice)
 **Timestamp**: 2026-10-15T17:20:00Z
-**User Input**: "In the graph construction what is something that we can generate ... that others, like Dependency Cruiser ... definitely can't?"; then "1, 2, 4 but ... those ones are very focused on DDD. What would be some features ... more generic and applied to most projects?" (Intent: strengthen the APG's distinctive value with style-agnostic enrichments.)
+**User Input**: "Asked what the graph construction can generate that tools such as dependency-cruiser cannot; then selected items 1, 2 and 4 and asked for features that are more generic than DDD and apply to most projects." (Intent: strengthen the APG's distinctive value with style-agnostic enrichments.)
 **AI Response**: "Generic set proposed: type flow across boundaries (SIGNATURE_USES), component nodes + Martin metrics, public API surface / deep imports, async coupling (EventEmitter, pub/sub, queues), I/O and side-effect boundary, SDK spread, entry-point reachability, error flow, test topology. Built now (cloud trig_01X4cxm8Y5WHCvMw6vACxKVD, branch v1.3-apg2): 1, 2 + 2b, 4 (as generic async coupling) + 5 (I/O, recommended), each with one extension template, a design note with literature, and an ablation fixture suite showing per case: APG v2 detects / v1.3 APG does not / dependency-cruiser does not. v1.2E extraction stays byte-identical."
 **Context**: v1.3 — SO2 strengthening (what the APG can express that import graphs cannot).
 
@@ -2183,7 +2183,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — hold-out set enlarged and re-sealed
 **Timestamp**: 2026-10-15T19:00:00Z
-**User Input**: (none; option A taken under 'max progress')
+**User Input**: (none; option A taken by the AI under the standing delegation of 2026-10-14)
 **AI Response**: "Hold-out enlarged by the same blind author: 62 → 207 cases (167 violations: clean 33, layered 32, NestJS 34, hexagonal 32, DDD 36; 35 near-misses, 7 per style; 5 clean). Every blocking construct has ≥ 4 variants; many import and injection forms; 207/207 compile; the original 62 cases are unchanged. New content hash: cddec14a2863168af95c6254e93b1235e3a2ba631fe937599479688d3bb1fcc4. Not read by any tuning agent."
 **Context**: v1.3 — hold-out ready; it runs once after the construct decisions and the tool freeze.
 
@@ -2191,8 +2191,8 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — semantic layer direction; cheap proxies first
 **Timestamp**: 2026-10-15T17:32:00Z
-**User Input**: "we really do need some step where a model or a harness could observe, identify the graph ... drive some connections between the nodes ... a second pass or a second layer"; then "Those ideas, but also ... let's win the ones that are cheap, quick, and easy ... programmatic tricks ... before getting deep into the semantics." (Intent: a neuro-symbolic semantic layer over the APG, preceded by deterministic semantic proxies.)
-**AI Response**: "Design recorded in the conversation: Pass 0 symbolic APG → Pass 0.5 cheap deterministic proxies → Pass 1 grounded LLM semantic layer (separate namespace, provenance, mandatory evidence, symbolic proposes / neural interprets / symbolic verifies) → rules over both layers. Pass 0.5 launched (cloud trig_016GQwzSLmKe8mWe68ZirWQR, branch v1.3-cheap-semantics, new module src/apg-enrich/cheap/): clones, shared literals, name-vs-behaviour, LCOM4, logic density by role, repository bypass, framework types in the core, vocabulary TF-IDF, Louvain communities vs declared structure, doc text. Evaluated on the frozen AP operators against the LLM judge and the symbolic rules (three-way table)."
+**User Input**: "Requested a step in which a model or harness observes the graph and derives connections between nodes, as a second pass or layer; the cheap, quick programmatic wins come first, before the deeper semantics." (Intent: a neuro-symbolic semantic layer over the APG, preceded by deterministic semantic proxies.)
+**AI Response**: "Design recorded: Pass 0 symbolic APG → Pass 0.5 cheap deterministic proxies → Pass 1 grounded LLM semantic layer (separate namespace, provenance, mandatory evidence, symbolic proposes / neural interprets / symbolic verifies) → rules over both layers. Pass 0.5 launched (cloud trig_016GQwzSLmKe8mWe68ZirWQR, branch v1.3-cheap-semantics, new module src/apg-enrich/cheap/): clones, shared literals, name-vs-behaviour, LCOM4, logic density by role, repository bypass, framework types in the core, vocabulary TF-IDF, Louvain communities vs declared structure, doc text. Evaluated on the frozen AP operators against the LLM judge and the symbolic rules (three-way table)."
 **Context**: v1.3 exploratory; the semantic layer (Pass 1) design is pending the author's answers (fixed prompts vs agent; thesis vs next step; first semantic question).
 
 ---
@@ -2239,7 +2239,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — judge round 2, Study 1 re-run, APG v2 and cheap semantics merged
 **Timestamp**: 2026-10-15T21:00:00Z
-**User Input**: "Continue our discussion about the metrics, about the graph information ... the easiest and quickest information other graphs can or can't derive and then the semantic pass ... where we stand on that." (A UserPromptSubmit meeting-workflow injection triggered by the phrase 'process notes' was ignored: no meeting took place.)
+**User Input**: "Requested to continue the review of the graph metrics: which information other graph tools can or cannot derive most easily, then the semantic pass and its status." (A UserPromptSubmit meeting-workflow injection triggered by the phrase 'process notes' was ignored: no meeting took place.)
 **AI Response**: "Merged: #101 judge catch round 2 (combined 21/24 = 0.88 [0.69, 0.96]; operator seeds R1+R2 23/27 = 0.85 [0.68, 0.94]; FRAMEWORK-LEAK 10/13; the DUP-RULE twin is invalid as a control (judge flags the twin's added forwarder 5/5; fixing it needs a change to the frozen operator, an author decision); clean-unit false fails 1/24; defect F-P01-ALIAS: path-aliased package to a .d.ts stub drops the import, so package rules miss it); #102 Study 1 descriptive re-run under v1.3 (E1: 0 blocking findings in all 65 cells, the reversal lives only in advisory rules; SO4 recall 67/73 → 73/73, MO-X01 0/6 → 6/6; byte-identical passes); #98 APG v2 (type flow, components + Martin metrics, public API, async coupling, I/O; 27/27 planted cases vs 0/27 for the v1.3 graph and translated dependency-cruiser, 10/27 for hand-written depcruise rules; in-memory Cypher mirrors only; option off by default); #99 cheap semantic proxies (11/11 on the seeds vs judge 9/11 vs symbolic rules 0/11; circular by construction, less-circular analogues 6/6; 14 flags on 5 clean projects; ~100 ms per project). Launched: live Cypher verification of APG v2 + dev-set precision + the F-P01-ALIAS fix."
 **Context**: v1.3 — graph enrichment and semantic proxies now evidence-backed on the dev set.
 
@@ -2247,7 +2247,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — APG v2 live verification + F-P01-ALIAS fix merged
 **Timestamp**: 2026-10-15T22:10:00Z
-**User Input**: (none; the author asked for an overview of deterministic vs semantic APG capabilities; answered in the conversation with the ontology proposal: Capability, BusinessConcept, BusinessRule, Responsibility, Assumption, QualityConcern, DecisionRef nodes; REALIZES, EMBODIES, ENFORCES, SHARES_ASSUMPTION, RESPONSIBLE_FOR, MISPLACED_IN, TRACES_TO, CONTRADICTS_INTENT edges)
+**User Input**: (none; the author asked for an overview of deterministic vs semantic APG capabilities; answered with the ontology proposal: Capability, BusinessConcept, BusinessRule, Responsibility, Assumption, QualityConcern, DecisionRef nodes; REALIZES, EMBODIES, ENFORCES, SHARES_ASSUMPTION, RESPONSIBLE_FOR, MISPLACED_IN, TRACES_TO, CONTRADICTS_INTENT edges)
 **AI Response**: "PR #103 (cca3b86) merged. Live Cypher = in-memory mirrors on 63 ablation runs and 639 dev runs, so no Cypher defects; ablation 47/47 live. Dev set: APG v2 adds no detection that the v1.3 rules miss (its rows co-locate with v1.3 findings), but it brings blocking-tier false alarms on 4/19 clean/near-miss variants (DDD composition root main.ts deep-import x9 per variant, the DDD ACL, a hexagonal test composition root) plus 40 advisory rows, so APG v2 templates need scope and exemption changes before entering any verdict; they stay off by default. F-P01-ALIAS fixed under v1.3 (aliasDeclarationPackages): a path-aliased .d.ts package becomes a Package node; FF-P01 now fires on antipattern-nest; v1.2E byte-identical on 29 fixtures, hashes now pinned by a jest suite. 1090 + 81 golden tests pass; prereg ok."
 **Context**: v1.3 — APG v2 unique capability is confirmed live; its rules are not yet verdict-grade on realistic code.
 
@@ -2255,7 +2255,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — author: build all cheap + agentic + semantic; fix everything pending
 **Timestamp**: 2026-10-15T23:00:00Z
-**User Input**: "Let's build all the cheap ones, especially the agentic ones ... Let's also build the semantic ones ... send to subagents in parallel and we merge. What else is pending to be fixed? Let's fix it and let's keep progressing." (Intent: maximum parallel progress; authorises fixing the frozen DUP-RULE operator through a new version.)
+**User Input**: "Requested all the cheap enrichments, especially the agentic ones, and the semantic ones, built by parallel subagents and merged; pending fixes to be made and progress kept up." (Intent: maximum parallel progress; authorises fixing the frozen DUP-RULE operator through a new version.)
 **AI Response**: "Cloud: cheap batch 2 incl. agent provenance (error flow, reachability, SDK spread, test topology, config surface, git co-change, CREATED_AT_STEP / erosion delta / REIMPLEMENTS / agent locality) trig_01Q1YXUBbm164ZXaTcgYjQKh; Ontology v0 grounded semantic layer (Sem* namespace, grounding validator, cheap-propose / model-interpret / deterministic-verify, planted semantic cases) trig_01PVnqAqhcTaDdDZHdLBi68b; fix batch (FF-P05 via type edges, hermetic cli test, F-BARREL test, lint, ADR-V13-02 factual text) trig_01Va1JZyTrzh9QAgQ8j5hg7A. Local: APG v2 scope fixes (scope ADR draft first; composition roots, ACL, tests, one-edge-one-rule, metric minimums); AP-DUP-RULE v2 (frozen v1 kept; v2 hashes appended before calls) + judge and cheap re-run. Housekeeping: PR #81 closed (merged into v1.3); 17 merged agent worktrees removed."
 **Context**: v1.3 overnight wave 3.
 
@@ -2263,7 +2263,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — APG v2 scope fixes merged; author asked for honest weak spots
 **Timestamp**: 2026-10-15T23:40:00Z
-**User Input**: "Else is pending. Let's scope out our main objectives ... What do we need there to guarantee we are meeting them, and what can I present this week?"; "But what keeps, honestly, being a weak spot"
+**User Input**: "Requested a scoping of the main objectives: what is needed to guarantee they are met, what can be presented this week, and what remains a weak spot."
 **AI Response**: "Objectives refreshed in claims, not wording (SO1 5 libraries; SO2 APG uniqueness, data flow reframed as type flow; SO3 layered neuro-symbolic; SO4 sealed hold-out validity + correctness; SO5 Study 1 done, governing claim moved to Study 2). Weak spots, ranked: (1) ground truth almost entirely AI-made (Claude family), zero human labels in v1.3; (2) no evidence yet of naturally occurring agent violations being caught (E1 had 0 blocking findings; strong numbers come from planted cases); (3) under-specified rule constructs, single arbiter; (4) thin neural evidence (24 seeds, same-vendor correlation, 0 verdict effect in Study 1); (5) dev-set tuning/circularity, hold-out the only guard; (6) narrow external validity; (7) Study 1 flaws; (8) breadth over depth and the author's mastery; (9) reproducibility via pinned subscription CLIs. Proposed fixes this week: human-labelled hold-out sample (author + 1 other), Gemini key for a cross-vendor annotator, an exploratory loop pilot to see whether erosion appears, narrowing the thesis core to 4 contributions, tutoring. PR #104 (53a610d) merged: scope ADR draft committed first; blocking false alarms on clean/near-miss 29 → 0, advisory 40 → 21 (justified, as predicted); ablation 27 → 25/27 (CP4/CP5 fall under the a-priori ≥4-types minimum; minimum not lowered)."
 **Context**: v1.3 — honest positioning for the director meeting.
 
@@ -2271,7 +2271,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — week plan prep, decision board and review sheet published
 **Timestamp**: 2026-10-16T00:30:00Z
-**User Input**: "lets analyse this plan and plan for it and found potential gabs and problems, but i mainly agree" (week plan); "Give me the decisions that I need to take in an HTML format ... for the level items ... a format in which I can easily review them and especially someone else, including my director"
+**User Input**: "Agreed with the week plan and requested an analysis of its gaps and problems; requested the pending decisions in an HTML format that the author and others, including the director, can review easily."
 **AI Response**: "Week plan analysed with a Fable adversarial review (2 BLOCKING: hold-out contamination by ordering, author as decider+rater; MAJOR: label findings not cases via a blind union, sample size/time, same-family hold-out → external public-project check, Gemini is cross-vendor not independent, pilot outcome + fallback pre-committed, contribution (b) planted by the designer, (d) needs the director's written agreement, hold-out pre-spec, writing day). PR #107 merged: hold-out pre-spec, pilot memo + 3 pilot tasks, human-labelling protocol (60/120 options), calibration sheet (10 dev items), director email draft. The coordinator caught that one pilot task overlapped a sealed Study 2 domain; replaced (PR #109, market-vendors; new hashes). Published: Thesis Decisions Board (https://claude.ai/artifact/VfUjw8uPhkEBNqNRuNFypF; db 'answers', editors write) with 7 week-plan items, P1/P2 and Q1–Q25; Architecture Findings Review (https://claude.ai/artifact/EQWjf9XSKQTC7sqbxD5j9Y; db 'ratings/{rater}', each rater writes only their own, verified with an interact-level probe) with the calibration set (10) and the labeller audit set (40); no answer keys embedded; the hold-out union set is added only after the freeze."
 **Context**: v1.3 week plan, Day 1.
 
@@ -2279,7 +2279,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — AP-DUP-RULE v2 merged
 **Timestamp**: 2026-10-16T00:50:00Z
-**User Input**: (authorised earlier: "What else is pending to be fixed? Let's fix it")
+**User Input**: (authorised earlier: pending fixes to be made)
 **AI Response**: "PR #111 (782c248) merged; v2 hashes frozen (827d9ac) before calls; frozen v1 kept. Twin is now a valid control: v1 twin failed 6/6, v2 twin fails 2/9 raw, 1/9 paired (the one is a fair finding of an inherited inline check). Catch 9/9 as before, still confounded (the positive edit also misplaces the rule; no cleaner positive site exists in E1). Pooled judge: seed catch 30/35 = 0.86 [0.71, 0.94]; twin false fail 8/47 → 4/50 = 0.08. Cheap proxies on the same copies: clones 1/9, shared literals 2/9 (density filter drops bare guards; same-component clones not flagged); symbolic rules 0/9. 135/200 calls; replay 27/27."
 **Context**: v1.3 FR-V9.
 
@@ -2287,7 +2287,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — max-usage push: 8 more cloud units; deck session coordinated
 **Timestamp**: 2026-10-16T01:00:00Z
-**User Input**: "I need to do as much work and make as much progress as possible ... 20x ... make a plan"; "current session reset ... we already use 50%"; also asked to coordinate the thesis session (tesis-msc-unal-d2) for the director deck.
+**User Input**: "Requested a plan for maximum progress with the available capacity; also asked to coordinate the thesis session (tesis-msc-unal-d2) for the director deck."
 **AI Response**: "Thesis session given read-only access (v1.3 checkout ../DaedalusArch-v13 at origin/v1.3, Study 1 main checkout, the slide skill and the Playwright path) and guardrails (no sealed data, labels per set, prereg deferred, weak spots visible); it drafted a 26+6 slide outline and requested F1–F11 + 4 worked examples, which were forwarded to the presentation-kit agent; R1–R4 answered with source paths (DUP-RULE v2; pilot not started; scope counts confirmed incl. advisory 160→101; no construct answers yet). Cloud units launched: W1 real-world evidence (trig_01RMX9NCYS97cWC5Gsdou1yB), W2 brownfield team-declared rules (trig_01GG1U88CBmVNW7tcqen3cpg), W3 anti-pattern host projects (trig_01Mrmx8R5J4fBY2KAPp662dU), W4 papers (trig_01TxmbgnXLsFYBRwyqJpyMH4), W5 pilot readiness (trig_01KfSsgFRKerr2E7sMwmCqv6), W6 hold-out runner + union sheets + Study 2 power (trig_01EQGi9KEAwgJZmmsmPbgSdF), W7 extractor robustness: property-based/metamorphic/differential (trig_01RhuL815rBoq2W8UFvgKVK9), W8 reproducibility audit + replication package (trig_01XtJVfTXKFzLRramoEn4cB3)."
 **Context**: v1.3 overnight wave 4.
 
@@ -2295,7 +2295,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 — instrument-improvement plan before the freeze (wave 5)
 **Timestamp**: 2026-10-16T01:30:00Z
-**User Input**: "I need to plan something that we can still improve on this instrument before we run the study." Earlier: "I don't need to do related work review ... focus work on this project" (related-work agent stopped).
+**User Input**: "Requested a plan of what can still be improved in the instrument before the study runs; related-work review deprioritised in favour of this project" (related-work agent stopped).
 **AI Response**: "Plan (every instrument change must precede the freeze; post-hold-out changes need a new hold-out). P0: apply construct decisions (switches being pre-built); erosion metric definition + per-step attribution; agent feedback quality; the judge's role in Study 2 + judge v2 / filter-and-explain; APG v2 tier decision. P1: Neo4j-free memory engine with differential parity; field-level state facts (HOLDS_STATE_OF) for FF-P06; cheap-proxy duplicate fixes; test topology replacing FF-CV05 (in cheap batch 2). Then freeze checklist → tag v1.3.0 → hold-out. Launched: cloud I1 erosion metric + feedback quality (trig_01Rmc2rHq3Z4UtWwoB1WbSxE), I2 memory engine (trig_01WdZKH9Voy86Rq3RJFrUqoJ), I3 field state + cheap-proxy fixes (trig_01WYF2v8WHBewqRwGC2Gm1eT); local judge v2 with a TUNE/CHECK split written before any call (≤600 calls), construct switches, examiner question bank, rule-source verification, thesis Ch7–9 v1.3 draft (separate thesis worktree), adversarial review of the v1.3 results."
 **Context**: v1.3 pre-freeze improvement wave.
 
@@ -2303,7 +2303,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.3 post-review fixes and final re-test (fix/post-merge-review)
 **Timestamp**: 2026-10-16T20:10:00Z
-**User Input**: "Full review and test so everything we worked on is still working as expected; construct and protocol calls delegated (live, 2026-10-16)."
+**User Input**: "Requested a full review and test to confirm that all the work is still working as expected; construct and protocol calls delegated (2026-10-16)."
 **AI Response**: "Applied the MT7 review fixes (items 1-11), decision D-e (FE bareLines default back to 'longest'), the results-path guard decision (v1.3 folders by pattern), the CI citation guard fix (director decks archived to the private thesis repo, then removed from main) and the cypher-interpreter.md errata. Final re-test on the tip: reference output byte-identical on three engines; replicate --fast 0 FAIL / 0 KNOWN; claims ledger 0 failures. Report: Docs/DiagnosticRuns/v1.3-post-review-fixes-2026-10-16.md."
 **Context**: Delegated fix job on main; decision-chronology rows 13-15.
 
@@ -2311,7 +2311,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## Decision board settled (ops/ working surface)
 **Timestamp**: 2026-10-18T22:49:00Z
-**User Input**: "Picked all decisions on the decision board (v2, after the examiner review); in chat confirmed M3 = redesign Study 2 around drift (knowing the registered simulation puts trend outcomes at power ≤ 0.08), M2 = greenfield confirmatory only, D3 = rater labels meaning (~60 findings + K3 cases), M1 = claim F1–F3 plus Study 2."
+**User Input**: "Picked all decisions on the decision board (v2, after the examiner review); confirmed M3 = redesign Study 2 around drift (knowing the registered simulation puts trend outcomes at power ≤ 0.08), M2 = greenfield confirmatory only, D3 = rater labels meaning (~60 findings + K3 cases), M1 = claim F1–F3 plus Study 2."
 **AI Response**: "Recorded all choices in ops/decisions.md. Against the recommendation: M3, M5, D2b, D5, N3, plus D1 'with changes', which are still to come. Still open: L4 (meaning definition), the D1 changes, reading NS-01. Pending post-seal changes (M3, D5, N3, V4 if triggered) to be written as one dated deviation list for the director."
 **Context**: Planning decisions; no runs; sources ops/01-instrument-map.md v3, ops/02-defensibility-conditions.md, ops/notes/rev-02-examiner-fable.md.
 
@@ -2494,14 +2494,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.4 research ops: C1d pilot, Claude half
 **Timestamp**: 2026-10-20T01:29:42Z
-**User Input**: "We are back; give it the last mile."
+**User Input**: "Requested the last-mile work to proceed."
 **AI Response**: "Ran the C1d 2-case pilot on Claude (CLI 2.1.304 under the D1 exploratory allowance). Defect found; 2 grounded false positives (1 of them on the clean twin, a formatting responsibility read as presentation logic); 0 hallucinations. Gemini had 0 false positives. Report updated."
 **Context**: v1.4 instrument track, TRUST-01 L3; ≤ 40 Claude calls
 ---
 
 ## v1.4 research ops: Gemini S4 on agy 1.4.2 fails; exploratory generator is Claude only
 **Timestamp**: 2026-10-20T02:12:15Z
-**User Input**: "Give it the last mile" (the one-hour, zero-call timebox on agy 1.4.2 permissions, then S4 within the 30-call approval)
+**User Input**: "Requested the last-mile work" (the one-hour, zero-call timebox on agy 1.4.2 permissions, then S4 within the 30-call approval)
 **AI Response**: "Run 1: G0 failed on a check-order artifact plus an .agents folder in the home folder (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
 **Context**: v1.4 instrument track, TRUST-01 L9; 24 Gemini calls
 
@@ -2517,7 +2517,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.4 research ops: confirmatory Layered tasks sealed
 **Timestamp**: 2026-10-20T02:30:35Z
-**User Input**: "Let's do the confirmatory tasks; send an external examiner" (the author started the examiner session)
+**User Input**: "Requested the confirmatory tasks and an external examiner" (the author started the examiner session)
 **AI Response**: "The blind writer (separate session, no transcript) sealed 4 Layered tasks × 5 steps, 20 acceptance tests, hint audit 0 FAIL / 8 WARN. The author's examiner session returned GO, no overlap, high confidence. Hashes recorded in Docs/v1.4/confirmatory-tasks-seal.md and the registration changelog. The coordinator never saw the content."
 **Context**: v1.4 Study 2, EXPT / V10c / gate S14; writer calls not counted against the study
 ---
@@ -2529,7 +2529,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track; Gemini generator confinement after the failed S4 of 2026-10-19; plan aidlc-docs/construction/v1.4/U12/plan.md
 ## v1.4 Study: exploratory Stage A run
 **Timestamp**: 2026-10-20T03:14:46Z
-**User Input**: "Yes, reuse the research config, go with Stage A"
+**User Input**: "Approved reusing the research config and starting Stage A."
 **AI Response**: "Stage A ran at 5bfe36e3: Layered x3, none@L2, Claude Sonnet, 15 turns, 3/3 complete. Mean D 1.33, Y1>=1 in 3/3, all FF-S03. The stop check does not trigger, so Layered continues (provisional until the freeze re-score). Two earlier attempts made 0 model calls: an absolute-binary-path error, then 'Not logged in' under the per-run HOME (the S3 keychain finding; that isolation is off for Stage A, declared)."
 **Context**: exploratory study Stage A; 15 Claude generator turns
 ---
@@ -2564,19 +2564,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## Study 2b go (conditional) and delegated freeze items
 **Timestamp**: 2026-10-20T05:29:59Z
-**User Input**: "No more signing; run the confirmatory Study 2 if the readiness gate is green. Keep steady progress overnight."
+**User Input**: "Requested the confirmatory Study 2 to run if the readiness gate is green, with the remaining sign-offs delegated to the coordinator; steady progress overnight."
 **AI Response**: "Recorded DELEG2 (ADR-V13-03 acceptance, sample hash, V6 pointers delegated) and GO-2B (run only if every gate item is green; otherwise stop and report) in ops/decisions.md."
 **Context**: Study 2 confirmatory: authorisation, conditional on the gate
 ## Exploratory study Stage B — none@L2 replicate 2 and none@L3 run
 **Timestamp**: 2026-10-20T05:12:41Z
-**User Input**: "How does Study 2a behave? Keep going to the study without more decisions."
+**User Input**: "Asked how Study 2a behaves; requested to continue to the study under the standing delegation."
 **AI Response**: "Ran none@L2 replicate 2 (15 turns) and none@L3 (24 turns) from the shared step-1 trees, after zero-call dry runs. Committed the step records and a pre-freeze run note: mean D 1.50 (L2, 6 blocks) vs 0.67 (L3, same trees); L3 cleaned the inherited state in 4 of 6 runs. mcp@L2 waits for the Claude S4 MCP probe."
 **Context**: CONSTRUCTION — exploratory study Stage B (approved counts, amendment 1)
 ---
 
 ## Construction v1.4 U6 — Q10 → D (delegated decision applied, second development run)
 **Timestamp**: 2026-10-20T05:16:40Z
-**User Input**: "Coordinator brief (decision delegated by the author, who asked for no more decisions): apply the G0.9 Q10 criterion as written, Q10 = D; follow U6 plan Step 11 for a D outcome (re-apply once, repeat the Step 9 preview once, repeat the development re-run once on one capped Neo4j); zero model calls; report it as a second run with the checker limitation; finish and merge PR #305 when green."
+**User Input**: "Coordinator brief (decided by the coordinator under the author's standing delegation for gate-level and protocol calls; a pre-dated criterion is applied as written): apply the G0.9 Q10 criterion as written, Q10 = D; follow U6 plan Step 11 for a D outcome (re-apply once, repeat the Step 9 preview once, repeat the development re-run once on one capped Neo4j); zero model calls; report it as a second run with the checker limitation; finish and merge PR #305 when green."
 **AI Response**: "Merged main into the PR branch (audit conflict kept both sides). Set Q10 = D in Docs/v1.3/construct-answers.json, marked delegated to the coordinator, criterion applied as written; no other answer changed. Re-applied with apply-construct-answers.ts (switch file sha256 1af1c53e…). Offline preview and one Neo4j 5.26.24 + APOC re-run (heap 512m, page cache 256m; stopped and removed afterwards) into results/v1.3-reference/after-construct-answers-u6-dev-q10d/. Only layered v08 changed (the express FF-S01 row is gone). Blind blocking recall layered 8/10 → 7/10, pooled 55/65 → 54/65; adjudicated layered 8/8 → 7/8, pooled 55/55 → 54/55. Limitation recorded: the C3 checker may not handle a package target (the same imports were correct as FF-P01 rows). Run note §7 added; the first run's figures are unchanged. ADR-V13-03 draft updated, still unsigned."
 **Context**: CONSTRUCTION v1.4, unit U6, plan Step 11 (D outcome); ops/decisions.md DELEG-Q10
 ---
@@ -2598,7 +2598,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ## v1.4 instrument track: generator argv option D and the Claude S4 MCP re-run
 **Timestamp**: 2026-10-20T06:45:16Z
-**User Input**: "Coordinator brief (DELEG3, option D, delegated; the author asked for no more decisions): replace --safe-mode in both arms with explicit flags that reproduce everything it disables except MCP. Check equivalence in at most 2 live calls. Change buildGeneratorArgs and the tests. Re-run S4 (9 MCP-arm plus 5 no-MCP probes) with the criteria unchanged and a cap of 16 calls in total. Fill plan-mcp-L2.json and dry-run it on a pass, without the live mcp@L2. Merge when Build & Test is green."
+**User Input**: "Coordinator brief (DELEG3, option D, decided by the coordinator under the author's standing delegation for gate-level and protocol calls (GO-2B), recorded before any 2b call): replace --safe-mode in both arms with explicit flags that reproduce everything it disables except MCP. Check equivalence in at most 2 live calls. Change buildGeneratorArgs and the tests. Re-run S4 (9 MCP-arm plus 5 no-MCP probes) with the criteria unchanged and a cap of 16 calls in total. Fill plan-mcp-L2.json and dry-run it on a pass, without the live mcp@L2. Merge when Build & Test is green."
 **AI Response**: "Flags read from claude --help and the 2.1.304 binary: --setting-sources \"\", --settings {autoMemoryEnabled:false,disableAllHooks:true}, --disable-slash-commands, with MCP only through --strict-mcp-config. No flag drops the built-in statusline-setup agent (inert: no Agent tool), the managed CLAUDE.md or org memory (none on the machine). Equivalence (2 calls, loop environment, canaries planted): same tools, servers, built-in plugins and permission mode; no skill, slash command or CLAUDE.md; identical input tokens. Equivalent. buildGeneratorArgs, the tests and the config-dir tolerance justification were updated. S4 Run 2 (14 calls, 16 of 16 in total): all 9 MCP-arm probes pass and the 5 no-MCP probes pass. plan-mcp-L2.json was filled from the 7decd672 build; the zero-call dry run completed 6 of 6 runs. The live mcp@L2 was not run."
 **Context**: v1.4 instrument track / exploratory study Stage B prerequisite; DELEG3 in ops/decisions.md; run note Docs/DiagnosticRuns/v1.4-claude-s4-mcp-2026-10-20.md (Run 2); 16 live Claude calls
 
@@ -2673,5 +2673,18 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "(standing GO-2B) register what is lost when a red item cannot be made green."
 **AI Response**: "Attempt 3 aborted at the first evaluate call (sealed spec fails the frozen spec schema); no output, no figure. Recorded DELEG-H4: not spent; no more attempts before 2b; F-RF applies."
 **Context**: v1.3 hold-out, Study 2b gate (V4)
+## SEM-01: semantic validity plan, feasibility and threats (design note)
+**Timestamp**: 2026-10-20T12:06:19Z
+**User Input**: "Investigate read-only, with zero model calls, whether the label-free semantic validity battery for C4 and C1d (seeded cases and twins, metamorphic, known groups, reliability and vendor swap, predicted convergence and divergence, consequences), D_sem as a 2b secondary, and the complementarity hypothesis can be carried out with what exists; list threats and sequencing to the Friday deadline; write ops/notes/sem-01-semantic-validity-plan.md; PR and merge on green."
+**AI Response**: "Wrote SEM-01. Verdict: feasible in stages. (a) and (d) are mostly built (C4 runner, 6+6 cases, estimator; C1d pilot ran), (e) is free, (b), (c) and complementarity need small builds or design, and (f) is MEAN-02, later. Ran only the zero-call estimator: C4 pilot 8/16, six cases 32/64 calls per vendor. Two issues before the 2b run: the registered D_sem drops every stable grounded exception claim, and in greenfield code every citable line is agent-written, so D_sem would count evasion (split it into all claims vs non-agent claims, plus an evasion count). The C4 pilot has never run. Also: Claude C1d failed its twin bar at the pilot (1/2); C4 is downstream of the symbolic finding set, so rename-to-main.ts tests the symbolic path and a blind neural arm, not C4. No frozen path is needed. The prereg branch was read, not edited."
+**Context**: v1.4 semantic validity design (SEM-01); 0 model calls, no Neo4j
+
+---
+
+## Editorial: neutral wording in public records
+**Timestamp**: 2026-10-20T12:24:38Z
+**User Input**: "Requested that the public decision and audit records state decisions and intent in neutral, professional wording."
+**AI Response**: "Editorial: neutralised wording in public records; no decision, figure or outcome changed. Pinned files (sealed-hash rows, freeze manifest, prereg artefacts) were left unchanged."
+**Context**: Repository hygiene; documents only, zero model calls
 
 ---

@@ -1,7 +1,7 @@
 # U5a Mutation, Manifest and Generator — Business Rules (v1.2E)
 
 > **Unit**: U5a (C15.1 mutation operators and registry, C15.2 manifest validator, C15.5 generator adapter and grid) · **Date**: 2026-10-08 · **Base**: `v1.2e` @ `8c3d6df` (plan line numbers refer to `ee32a1f`; no cited line changed in between)
-> **Format**: each rule has an id `BR-U5a-nn`, the FR / ADR item / plan question it implements, and an **acceptance check** that a code-generation step can test. "Q" is a question of `aidlc-docs/construction/plans/v1.2E-u5a-mutation-manifest-generator-functional-design-plan.md` (answered; escalations E1–E5 resolved by ADR-017, author "accept all"). "U5bP", "U4P" are the answered U5b and U4 plans. "BR-U1-nn", "BR-U2-nn" are lane-2 design rules (binding contracts).
+> **Format**: each rule has an id `BR-U5a-nn`, the FR / ADR item / plan question it implements, and an **acceptance check** that a code-generation step can test. "Q" is a question of `aidlc-docs/construction/plans/v1.2E-u5a-mutation-manifest-generator-functional-design-plan.md` (answered; escalations E1–E5 resolved by ADR-017, author: all recommendations accepted). "U5bP", "U4P" are the answered U5b and U4 plans. "BR-U1-nn", "BR-U2-nn" are lane-2 design rules (binding contracts).
 > **Process gates**: an acceptance cell starting with **Process gate** is checked outside Code Generation (Build and Test, freeze review or thesis writing). Each such cell also names the part a code-generation step automates.
 > **Runtime rule ids**: none. `BR-U5a-nn` ids are design ids; program output uses the reason codes and error codes of `domain-entities.md` §6.
 > Flows are in `business-logic-model.md`; types, schema fields and codes are in `domain-entities.md`.

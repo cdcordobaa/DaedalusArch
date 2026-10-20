@@ -20,7 +20,7 @@ The story has five phases. They can serve as the backbone of the v1.3 chapter an
 | 10-14 20:08 | Validation protocol rev 1: a-priori rule tiers, rule sources, blind manifests, adjudicated fidelity; the Study 2 task list hashed (sealed, never opened since). The tiers come after the Study 1 data and before any v1.3 data. | `9c3804f8`; `Docs/v1.3/sealed-hashes.md`; chronology row 2 |
 | 10-14 20:35 | Graph-fidelity harness and the first result on E1 and SO4. It found the barrel (re-export) defect. | `5b5be04e`; `Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md` |
 | 10-14 20:39 | DDD style library (the fifth style). | `6c60bcd4`, PR #83 |
-| 10-15 00:41 | ADR-V13-01 accepted by the author ("yes A"): record literal and resolved re-export edges, one view per template. This is the one human decision taken before the reference data it affects. | `Docs/v1.3/adr-v13.md:7`; chronology row 3 |
+| 10-15 00:41 | ADR-V13-01 accepted by the author (option A): record literal and resolved re-export edges, one view per template. This is the one human decision taken before the reference data it affects. | `Docs/v1.3/adr-v13.md:7`; chronology row 3 |
 | 10-15 00:42–02:09 | Reference set, tiers, DDD, barrels, the unified evaluation (UE) and the first fix batch merged. Reference baseline run (71 variants). The hold-out was first sealed (62 cases) on `v1.2e` after this baseline. | PRs #82–#87; chronology row 4 |
 
 ## Phase 2: development evidence (2026-10-15)
@@ -54,7 +54,7 @@ The story has five phases. They can serve as the backbone of the v1.3 chapter an
 | 11:26 | DDD pilot snapshots re-scored offline under each T1 option: zero branch under options a, c and d. | PR #229 (open) |
 | 11:53 / 12:00 | Readiness dashboard: Study 2 NO; 1 of 42 gate lines GREEN, 11 AMBER, 30 RED. | `Docs/v1.3/study2-readiness-dashboard.md:3` |
 | 12:59–13:52 | Night report, artifact-evaluation pack, Paper 2 update, level-power simulation (designs for RR 0.25), APG v2 fixes mined, Neo4j version independence (73/73), forecast, human erosion (5 of 6, p = 0.219), snapshot measures, replication part 2 (5,154 numbers), spec ladder, semantic mutation tests (strict kill 90 → 164 of 273), judge v2.2 prep and CHECK-2 (NOT CANDIDATE), rule gaps, rule mining, MCP–interpreter parity, metamorphic testing, MT-B1 barrel fix, judge steering prep, engine tee, acceptance runner, npx readiness, external labelled datasets survey, claims privacy hygiene, instrument hardening, unsealer, external correctness (283/283, negative control 500/500), refactor PRs, known groups (null). | PRs #224, #223, #217, #234, #221, #207, #205, #209, #197, #215, #231, #225, #141, #191, #144, #145, #176, #185, #222, #208, #199, #200, #237, #241, #240, #238, #174, #167, #239, #198 |
-| 13:50 | **Author decision**, as a declared deviation: Study 2's primary outcome becomes Y (distinct blocking edges at step k = 4); arms `none` and `daedalus-mcp`; Sonnet 5.5 plus the Codex pin; no V10(a) waiver; if no stratum passes the validation pilot, Study 2 does not run. The author also delegated "unblock everything". | `Docs/v1.3/study2-deviation-2026-10-16.md` §7 |
+| 13:50 | **Author decision**, as a declared deviation: Study 2's primary outcome becomes Y (distinct blocking edges at step k = 4); arms `none` and `daedalus-mcp`; Sonnet 5.5 plus the Codex pin; no V10(a) waiver; if no stratum passes the validation pilot, Study 2 does not run. The author also delegated the unblocking of the remaining work. | `Docs/v1.3/study2-deviation-2026-10-16.md` §7 |
 | 14:06–14:12 | Merge train MT6: external set 1–3 (15 human-written repositories; D-a keeps `conduit` with a limitation), protocol reconciliation (the deviation record and amended documents), loop harness fixes. The train stopped after #232 at a permission refusal; the held PRs were left untouched. | PRs #133, #181, #232, #243, #242; `Docs/v1.3/merge-train-mt6.md` |
 | 15:10 | Labeller calibration against published human labels: pre-registration and harness; no model call. | PR #244; `Docs/v1.3/labeller-calibration-plan.md` |
 | 15:19 | Jury fixes from a mock defence. A5: a blocking rule that fails to execute now gives `incomplete` and the CI gate fails on it, ON by default, with the 71 reference results byte-identical. A6: the clustered statement of the external correctness result. B1–B3: FF-S02 cycle sensitivity. | PR #245; `Docs/DiagnosticRuns/v1.3-jury-fixes-2026-10-16.md` |
@@ -62,7 +62,7 @@ The story has five phases. They can serve as the backbone of the v1.3 chapter an
 
 ## Phase 5: merge train MT7, one-branch consolidation, post-merge verification (2026-10-16, 16:03 to 19:52)
 
-The author confirmed live at about 15:55 UTC that everything should be merged ("I obviously need everything merged"). From 17:30 UTC, `main` is the default and working branch; `v1.3` and `v1.2e` are read-only reference snapshots.
+The author confirmed at about 15:55 UTC that everything should be merged. From 17:30 UTC, `main` is the default and working branch; `v1.3` and `v1.2e` are read-only reference snapshots.
 
 | When | Event | Where |
 |---|---|---|
