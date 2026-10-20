@@ -10,7 +10,8 @@
  * - runs in a fresh neutral cwd with no `CLAUDE.md` or `.claude` on its ancestor chain (ISO-05).
  *
  * Before the first call of a record-mode run, `checkJudgeIsolation` checks, in this order
- * (BLM §6): the CLI version against `PINNED_CLI_VERSION` (ISO-09), the config-dir entry
+ * (BLM §6): the CLI version against `PINNED_CLI_VERSION` (ISO-09; an exploratory caller may also pass
+ * `CLAUDE_EXPLORATORY_VERSIONS`, author decision D1 2026-10-19), the config-dir entry
  * names against the ADR-018 allow-list (ISO-04), the neutral cwd (ISO-05), and one
  * stream-json init probe against the frozen pass condition (ISO-06). Any failure is a stop
  * (`LLM_CLI_VERSION_DRIFT` or `LLM_CLI_ISOLATION`) before any judge call; the cassette
@@ -49,6 +50,13 @@ import { knownSecretsFrom } from './cassette-provider.js';
 
 // ── Configuration (DE §5.3; the shared `ClaudeCliConfig` is U0-owned and left unchanged) ──
 
+/**
+ * The Claude CLI versions accepted for EXPLORATORY runs besides the frozen judge pin (author decision D1, 2026-10-19:
+ * the CLI auto-updated to 2.1.303). Passed only by exploratory callers (the ontology route with `exploratory: true`);
+ * `PINNED_CLI_VERSION` in `frozen.ts` is unchanged and every frozen judge run still holds it alone.
+ */
+export const CLAUDE_EXPLORATORY_VERSIONS: readonly string[] = Object.freeze(['2.1.303', '2.1.304']);
+
 export interface ClaudeCliProviderConfig {
   /** Binary name or absolute path; resolved against the child `PATH` (default `claude`). */
   readonly binary?: string;
@@ -61,6 +69,8 @@ export interface ClaudeCliProviderConfig {
   readonly mode?: VCRMode;                  // default 'record'
   /** The evaluated project; the config dir must not lie inside it (ISO-04). */
   readonly projectRoot?: string;
+  /** Exploratory runs only: passed to `checkJudgeIsolation` (absent = the strict pin). */
+  readonly exploratoryVersions?: readonly string[];
 }
 
 export interface ClaudeCliProviderDeps {
@@ -605,6 +615,11 @@ export interface JudgeIsolationInput {
   readonly parentEnv?: NodeJS.ProcessEnv;
   readonly tmpRoot?: string;
   readonly timeoutMs?: number;
+  /**
+   * Exploratory runs only (`CLAUDE_EXPLORATORY_VERSIONS`): CLI versions accepted besides `PINNED_CLI_VERSION`.
+   * Absent (every frozen judge run) = the pin alone, unchanged. The accepted version is in the result.
+   */
+  readonly exploratoryVersions?: readonly string[];
 }
 
 /**
@@ -647,7 +662,7 @@ export async function checkJudgeIsolation(input: JudgeIsolationInput): Promise<D
 
   const version = await readCliVersion(input.runner, binary, env, secrets);
   if (!version.success) return DomainResult.fail(version.errors);
-  if (version.data !== PINNED_CLI_VERSION) {
+  if (version.data !== PINNED_CLI_VERSION && !(input.exploratoryVersions ?? []).includes(version.data)) {
     return DomainResult.fail([{
       code: 'LLM_CLI_VERSION_DRIFT',
       message: `Claude CLI ${version.data} differs from the pinned ${PINNED_CLI_VERSION}`,
@@ -782,6 +797,7 @@ export class ClaudeCliProvider implements LLMProvider, ArgvFlagSource {
       parentEnv: this.parentEnv,
       ...(this.deps.tmpRoot !== undefined ? { tmpRoot: this.deps.tmpRoot } : {}),
       timeoutMs: this.timeoutMs,
+      ...(this.config.exploratoryVersions !== undefined ? { exploratoryVersions: this.config.exploratoryVersions } : {}),
     }).then((r) => {
       if (r.success) this.isolation = r.data;
       return r;

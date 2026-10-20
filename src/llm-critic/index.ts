@@ -11,7 +11,7 @@ export {
 export type { JudgeRunHolder, JudgeStageSettings, PreparedJudgeStage } from './judge-stage.js';
 export type { ProviderFactoryDeps, JudgeCassetteOptions } from './provider-factory.js';
 export {
-  ClaudeCliProvider, buildClaudeCliArgs, checkJudgeIsolation, interpretClaudeEnvelope,
+  CLAUDE_EXPLORATORY_VERSIONS, ClaudeCliProvider, buildClaudeCliArgs, checkJudgeIsolation, interpretClaudeEnvelope,
 } from './claude-cli-provider.js';
 export type { ClaudeCliProviderConfig, IsolationProbeResult, JudgeIsolation } from './claude-cli-provider.js';
 // GeminiProvider is NOT re-exported here to avoid pulling @google/generative-ai
