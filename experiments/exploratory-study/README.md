@@ -45,9 +45,9 @@ with an empty per-run `HOME`, the dedicated config dir and `DISABLE_AUTOUPDATER=
    `fixtures/v1.3-rehearsal-tasks/specs/vineyard-harvest.ddd.yaml` (`presets/ddd.yaml` constrained to `src/picking/` and
    `src/cellar/`, no aggregate declared; rehearsal README "Before any run" item 4). The author approves or replaces it;
    whether DDD runs with a static spec at all is D15. L3 and the per-task MCP spec both need it static.
-5. **The shared start** (one step-1 tree per block, all cells branching at step 2) is not a harness feature. These
-   templates run every cell from step 1; D at steps 2–5 is still computable per run, but the cells do not share
-   their step-1 tree.
+5. **The shared start** (one step-1 tree per block, all cells branching at step 2) is not used by these templates:
+   they run every cell from step 1. Since U13 (2026-10-20) the harness supports it (`sharedStart`); the Stage B
+   templates that use it are in `stage-b/`.
 6. The Gemini lane needs its own plan (a `gemini` block and a passing committed S4 result); it is not written here.
 
 The templates assume the `layered` loop style and `taskProfiles` together with the `daedalus-mcp` arm (BUILD-L items
