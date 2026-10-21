@@ -1,0 +1,183 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/lost-property/none/run-0",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "lost-property",
+    "arm": "none",
+    "runIndex": 0
+  },
+  "stepIndex": 0,
+  "stepId": "found-and-lost",
+  "startedAt": "2026-10-20T19:19:02.346Z",
+  "finishedAt": "2026-10-20T19:20:10.786Z",
+  "turns": [
+    {
+      "turnId": "step-01",
+      "kind": "step",
+      "promptSha256": "e83fe53530ba5ad1d5b499562f19f67241263d6795939732630fa0da56e800ce",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.17298170000000002,
+          "inputTokens": 14,
+          "outputTokens": 11053,
+          "cacheReadTokens": 70117,
+          "cacheCreationTokens": 13853,
+          "numTurns": 15,
+          "durationMs": 66724
+        },
+        "wallMs": 67775,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T19:19:02.347Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-l2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-l2/runs/claude-code-cli/claude-sonnet-5-5/lost-property/none/run-0/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-01.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "6c1eb40d951f2df103d6d3b6505acbdcc317368e",
+        "sourceFiles": [
+          "business/errors.ts",
+          "business/lostPropertyService.ts",
+          "business/validation.ts",
+          "persistence/index.ts",
+          "persistence/models.ts",
+          "persistence/postwingClient.ts",
+          "persistence/repositories.ts",
+          "presentation/main.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 9,
+        "loc": 269,
+        "diff": {
+          "added": 9,
+          "modified": 0,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.895,
+          "blockingAhs": 1,
+          "verdict": "pass",
+          "violationCount": 10,
+          "blockingViolationCount": 0,
+          "advisoryViolationCount": 10,
+          "blockingByRule": {},
+          "advisoryByRule": {
+            "FF-C06": 1,
+            "FF-CV05": 8,
+            "FF-CV06": 1
+          },
+          "blockingFindings": [],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 1,
+          "durationMs": 3,
+          "testFileSha256": "3430bfe9a54b5ef9c9423a5a31a54f19fdd324e161e844f8473521e290b1b789",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "e90515e77b427e6ba13c8724075e952f713fd53a0a4dfb3b58ca327dec0c64ab",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 1,
+    "durationMs": 3,
+    "testFileSha256": "3430bfe9a54b5ef9c9423a5a31a54f19fdd324e161e844f8473521e290b1b789",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "e90515e77b427e6ba13c8724075e952f713fd53a0a4dfb3b58ca327dec0c64ab",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "6c1eb40d951f2df103d6d3b6505acbdcc317368e",
+  "cost": {
+    "costUsd": 0.17298170000000002,
+    "inputTokens": 14,
+    "outputTokens": 11053,
+    "wallMs": 67775
+  },
+  "inherited": {
+    "sourceRunId": "claude-code-cli/claude-sonnet-5-5/lost-property/none/run-0",
+    "sourceSpec": {
+      "adapterId": "claude-code-cli",
+      "modelId": "claude-sonnet-5-5",
+      "taskId": "lost-property",
+      "arm": "none",
+      "runIndex": 0
+    },
+    "sourceStepRecordSha256": "9f3c4a3aad33ff52a2134a22184c69c0219b99e17d6e685b53f20832edb1832a"
+  }
+}
