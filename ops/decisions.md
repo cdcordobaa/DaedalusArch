@@ -6,7 +6,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 
 ## Still open (yours)
 
-- **The 9 spec–manifest disagreement rows (C3).** U6 will deliver a short adjudication sheet.
+- ~~**The 9 spec–manifest disagreement rows (C3).**~~ *Done 2026-10-19:* all 9 rows (and N1) were ruled `spec` on the decision desk, part of the 61 desk items (56 signed by the author, 5 delegated; DELEG "Signing desk 61/61"; `Docs/v1.3/decision-chronology.md` row 36). **Open now (2026-10-21):** the hold-out choice under DELEG-H4 (a spec-format fix under its own addendum, or report "not scored"); the other items waiting on the author are listed in [`00-overview.md`](00-overview.md), "Waiting on you".
 - ~~**F23.**~~ *Done 2026-10-19:* the author and an examiner compared the domains with the sealed list; two demo tasks were replaced (`Docs/DiagnosticRuns/v1.3-f23-and-v4-count-2026-10-18.md`, Part 3).
 
 ## Settled by the author, 2026-10-19
@@ -104,12 +104,13 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 **Post-seal changes now pending: M3, D5, N3 (and V4 if the count triggers it).** Each one is a declared deviation. The examiner review flags the count of deviations as a risk in its own right. I'll write them up together as one dated list, so the director sees all of them at once.
 
 ## Changelog
+- 2026-10-21: status reconciled, no new decision. "Still open": the 9 adjudication rows marked done (signing desk 61/61, DELEG). The two hold-out changelog entries of 2026-10-20 now point to the entries that settled them (DELEG-H4: not spent; DELEG5: F-RF). Fixes conflicts 5 and 6 of `06-open-tracks-and-capabilities.md`.
 - 2026-10-20 (about 18:55Z): GO-2B-RUN recorded, the author's go for the Study 2b run after the gate verdict.
-- 2026-10-20 (after attempt 3): DELEG-H3 outcome. Layout plus scripted header repair verified (34 of 34 hunks byte-identical). Structure check ok (0 problems). The one live run aborted at its first evaluate call: the hold-out's spec file lacks spec_version, architecture, scoring and confidence_thresholds. Exit 2; 0 output files, no figure (`results/v1.3-holdout/run-1-aborted/abort-record.json`). Fallback F-RF applies. Whether the live run is spent is open for the author.
+- 2026-10-20 (after attempt 3): DELEG-H3 outcome. Layout plus scripted header repair verified (34 of 34 hunks byte-identical). Structure check ok (0 problems). The one live run aborted at its first evaluate call: the hold-out's spec file lacks spec_version, architecture, scoring and confidence_thresholds. Exit 2; 0 output files, no figure (`results/v1.3-holdout/run-1-aborted/abort-record.json`). Fallback F-RF applies. Whether the live run is spent is open for the author. *(Settled by DELEG-H4, recorded the same day: not spent. What stays open for the author is the choice between a spec-format fix under its own addendum, which would count as the first scoring run, and reporting the hold-out as "not scored".)*
 - 2026-10-20 (11:07Z): DELEG-H3 recorded before attempt 3.
 - 2026-10-20 (after attempt 2): DELEG5 outcome. Header repair verified (34 of 34 hunks byte-identical, header-only), but the structure check still shows 4 problems (one missing expected-findings.json per style). STOP: no live run and no hold-out figure. Fallback F-RF applies: r_f comes from the development record run, and layered stays confirmatory in 2b with the limitation stated (`Docs/v1.3/holdout-prespec-addendum-2-2026-10-20.md` §2).
 - 2026-10-20 (10:04Z): DELEG5 recorded before attempt 2 (patch-header-only repair; fallback F-RF for r_f).
-- 2026-10-20 (after the attempt): DELEG4 outcome. The adapter converted four styles; ddd is incomplete (patch format). Under the frozen loader 34 variants do not materialise, so the run stopped before scoring and no figure exists (`Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md`). Open for the author: a registered fallback for r_f in ADR-V14-04 §4 part A, or layered becomes exploratory.
+- 2026-10-20 (after the attempt): DELEG4 outcome. The adapter converted four styles; ddd is incomplete (patch format). Under the frozen loader 34 variants do not materialise, so the run stopped before scoring and no figure exists (`Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md`). Open for the author: a registered fallback for r_f in ADR-V14-04 §4 part A, or layered becomes exploratory. *(Settled by DELEG5: fallback F-RF.)*
 - 2026-10-20: DELEG4 (the hold-out through a path-only blind adapter), recorded before the run.
 - 2026-10-19 (evening): F23 marked done under "Still open" (REV-04 §6 item 7).
 - 2026-10-19: the drift record, tasks, fallback, generators, styles, label timing, V4 (c), U6 under the spec-derived principle, the signing sheet, D15 (pending B2) and the automated FP/FN review.

@@ -137,6 +137,7 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
 
 ## Changelog
+- 2026-10-21: the sources this thread cites (HEXDDD-01, DETECT-01 and PUZZLE-01 literature, plus the search-session list) are consolidated in `Docs/sources/sources-ledger.md` (keys in `Docs/sources/sources.bib`).
 - 2026-10-21: entry 7 (DETECT-01 and PUZZLE-01 results).
 - 2026-10-21: entry 6 (hand read against scores); spot-check closed.
 - 2026-10-21: log opened with entries 1–5.
