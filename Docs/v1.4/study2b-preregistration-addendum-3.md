@@ -12,10 +12,13 @@
 | **DA10** | V4 part B seeded recall (pre-registration §4 "V4 consequence"; `study2b-analyse.ts --recall`) | Seeded recall per cell of the operators keyed to the firing blocking families, on non-exempt sites, snapshot-clustered bootstrap seed `20261021`, 10,000 resamples, \|difference\| ≤ 0.10 | The seeding invocation | `scripts/v1.4/seeded-recall-agent.ts` at the tag, exactly as in 2a (report §8): the final (step-5) snapshot of every trajectory, one process per cell over its 10 out-roots, the tool's defaults `--k 2 --k-twin 1 --seed 20261019`, the skeleton install of the `none@L2` harness root. The restriction to firing families and to non-exempt sites, and the bootstrap, are the analysis script's own | equal (2a's registered tool and settings) |
 | **DA11** | Evasion items 4 and 5 (pre-registration §4 "Evasion") | Item 4: re-score every step-5 snapshot at the literal view; item 5: a blind moved-only read of 10 + 10 diffs | No literal-view re-score tool exists at the tag or among the registered post-tag scripts; item 5 is a human read | Neither runs in this pass. Both are reported as **not run** in the results report, with this reason; no decision of §1 reads them | weaker (two descriptive evasion items missing from this pass) |
 
+| **DA12** (dated 2026-10-21T03:04:53Z, after the post-run acceptance runner finished and printed its per-cell counts, before `study2b-analyse.ts` ran and before any D or contrast was read) | Evasion item 1 input (`study2b-analyse.ts --acceptance`) | The analysis reads `[{cell, block, step, passed}]` | `post-run-acceptance.ts` writes `{schema, procedure, summary, rows}` with rows `{cell, task, rep, step, pass, …}`; passed as is, the analysis script would fail on it | A mechanical conversion, no filter: every row kept (600, inherited step-1 rows included, as the runner's own pass rate counts them), `block` = `<task>/rep<rep>` (the re-score's block id), `passed` = `pass`. File `acceptance/acceptance-rows.json` beside the runner's output | equal (format only) |
+
 ## Also recorded
 
 - **A false start with no output.** The first launch of §6.1 and §6.1b at 2026-10-21T02:41:50Z exited at argument parsing (exit 2, usage message) because the session's shell does not split a variable into words; no snapshot was read and nothing was written. Both were re-launched under `bash` at 02:42Z with the same arguments. This is not a second scoring pass.
 - **C4 / D_sem** is a separate registered step with its own precondition (pre-registration §4 "Semantic layer", sem-01 T2) and is not run in this pass.
 
 ## Changelog
+- 2026-10-21T03:04:53Z: DA12 added (acceptance input format), before the analysis script ran.
 - 2026-10-21T02:44:13Z: first version, before any 2b figure was read (zero model calls).
