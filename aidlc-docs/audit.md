@@ -2820,3 +2820,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 follow-up design (Hexagonal/DDD drift and conformance), exploratory; instrument frozen for 2b, so all changes are listed for after the 2b scoring
 
 ---
+
+## EXPLORE-01 — research log for the exploratory thread
+**Timestamp**: 2026-10-21T00:58:00Z
+**User Input**: "Asked that the exploratory investigation (HEXDDD-01 pilot and hand read, detection coverage, architecture puzzles, case bank) be recorded in the repository."
+**AI Response**: "Added ops/notes/explore-01-research-log.md (entries: HEXDDD-01 design, pilot run, blind hand read, DETECT-01 and PUZZLE-01 launched as cloud routines on unmerged branches, the case-bank proposal; guardrails and open items), linked it from ops/00-overview.md and ops/README.md. Documentation only; no model call, no frozen path, no Study 2b file touched."
+**Context**: exploratory thread alongside Study 2b; dev material only
+
+---
