@@ -2828,3 +2828,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory PUZZLE-01 baseline, plan stage; no frozen path or Study 2b file changed
 
 ---
+
+## PUZZLE-01 baseline — run and zero-call scoring
+**Timestamp**: 2026-10-21T02:54:04Z
+**User Input**: "(coordinator brief, continued) Run the baseline under the committed plan, score it with zero calls, report and open an unmerged PR."
+**AI Response**: "54 of 72 generator calls (smoke 1, probes 5, baseline 48); isolation achieved (unprivileged generator user, root-only directories, 0 readable fingerprints, READ probe denied all paths); one whole-session redraw after a container restart. Clean solves: P1 0/5, P2 0/5 by the oracle (1/5 if the pre-registered over-rejection case is accepted), P4 5/5; no functional failure; the frozen instrument and the DETECT-01 prototypes flag none of the 12 agent-tree oracle failures. Section 9 band not met; P4 at 5/5 calls for a harder visible puzzle before any tool arm. Counts provisional until the author's hand read."
+**Context**: Exploratory PUZZLE-01 baseline, run and scoring; no frozen path or Study 2b file changed
+
+---

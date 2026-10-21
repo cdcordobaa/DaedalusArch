@@ -29,6 +29,7 @@
  *   npx tsx <this file> --smoke    --input <input.json>   (1 call)
  *   npx tsx <this file> --probes   --input <input.json>   (up to 5 calls: the read probe, then confinement probes)
  *   npx tsx <this file> --baseline --input <input.json>   (up to 66 calls)
+ *   npx tsx <this file> --baseline --resume --input <input.json>   (after a container restart; see `baseline`)
  */
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -390,8 +391,12 @@ async function smoke(input: Input): Promise<number> {
   return result.passed ? 0 : 1;
 }
 
-/** `--probes` (up to 5 calls): the READ probe first, then the listed confinement probes; stops at the first failure. */
-async function probes(input: Input): Promise<number> {
+/**
+ * `--probes` (up to 5 calls): the READ probe first, then the listed confinement probes; stops at the first failure.
+ * `--read-only` runs only the READ probe; `--skip-read` runs only the confinement probes (the brief's order is READ
+ * probe, smoke, confinement probes).
+ */
+async function probes(input: Input, mode: 'all' | 'read-only' | 'skip-read' = 'all'): Promise<number> {
   const install = await harness(input);
   const runner = new LedgerRunner(new NodeProcessRunner(), input.binary, path.join(input.outRoot, 'calls.jsonl'), 'probes', input.caps);
   const cfg = cliConfig(input, input.workRoot, true);
@@ -412,8 +417,8 @@ async function probes(input: Input): Promise<number> {
   };
 
   // READ probe (R3): every path must be denied or absent, and no forbidden text may be quoted.
-  resetHome(input);
-  {
+  if (mode !== 'skip-read') {
+    resetHome(input);
     const cwd = openCell(input, install, 'c90', null);
     const prompt = `${READ_PROBE_PREAMBLE}\n\nUse your file tools to read the first line of each of these files and quote it exactly; if a file cannot be read, say so and give the error you got:\n${input.readProbe.paths.map((p, i) => `${String(i + 1)}. ${p}`).join('\n')}`;
     fs.writeFileSync(path.join(dir, 'prompt-read.txt'), prompt);
@@ -423,7 +428,7 @@ async function probes(input: Input): Promise<number> {
     const leaked = input.readProbe.forbidden.filter((f) => text.includes(f));
     const passed = refused === null && envelope !== null && leaked.length === 0;
     results.push({ id: 'read', passed, leakedForbiddenStrings: leaked.length, permissionDenials: envelope?.summary.permissionDenials?.length ?? null, result: typeof envelope?.scrubbed.result === 'string' ? envelope.scrubbed.result : null });
-    if (!passed) return finishProbes(dir, results, runner);
+    if (!passed || mode === 'read-only') return finishProbes(dir, results, runner, 'read');
   }
 
   // Confinement probes of the frozen module (prompt and verdict functions unchanged).
@@ -445,19 +450,19 @@ async function probes(input: Input): Promise<number> {
     results.push({ ...v });
     if (!v.passed) break;
   }
-  return finishProbes(dir, results, runner);
+  return finishProbes(dir, results, runner, mode === 'skip-read' ? 'confinement' : 'all');
 }
 
-function finishProbes(dir: string, results: Record<string, unknown>[], runner: LedgerRunner): number {
+function finishProbes(dir: string, results: Record<string, unknown>[], runner: LedgerRunner, name: string): number {
   const allPassed = results.every((r) => r.passed === true);
   const out = { schema: 'puzzle-01-baseline-probes/v1', at: new Date().toISOString(), probes: results, allPassed, calls: runner.counts() };
-  fs.writeFileSync(path.join(dir, 'probes-result.json'), `${JSON.stringify(out, null, 2)}\n`);
+  fs.writeFileSync(path.join(dir, `probes-result-${name}.json`), `${JSON.stringify(out, null, 2)}\n`);
   process.stdout.write(`${JSON.stringify(out, null, 2)}\n`);
   return allPassed ? 0 : 1;
 }
 
 /** `--baseline`: every puzzle × run in the seeded order, with whole-session redraws on infrastructure failure. */
-async function baseline(input: Input): Promise<number> {
+async function baseline(input: Input, resume = false): Promise<number> {
   const install = await harness(input);
   const runner = new LedgerRunner(new NodeProcessRunner(), input.binary, path.join(input.outRoot, 'calls.jsonl'), 'baseline', input.caps);
   const agent = agentOf(input, runner);
@@ -466,10 +471,31 @@ async function baseline(input: Input): Promise<number> {
   const cells = input.tasks.flatMap((t) => Array.from({ length: input.runs }, (_, r) => ({ taskId: t.id, runIndex: r })));
   const order = shuffled(cells, input.orderSeed);
   const schedule = order.map((c, i) => ({ id: `c${String(i + 1).padStart(2, '0')}`, ...c, redrawOf: null as string | null }));
-  fs.writeFileSync(path.join(input.outRoot, 'schedule.json'), `${JSON.stringify({ orderSeed: input.orderSeed, cliVersion: probed.data.cliVersion, schedule }, null, 2)}\n`);
+  const scheduleFile = path.join(input.outRoot, 'schedule.json');
   let redraws = 0;
   let next = schedule.length + 1;
-  const queue: SessionSpec[] = [...schedule];
+  let queue: SessionSpec[] = [...schedule];
+  if (resume) {
+    // --resume (after a container restart): the same seeded schedule, plus the redraws already recorded; every session
+    // with a `session.json` is finished (done or redrawn) and is skipped.
+    const saved = JSON.parse(fs.readFileSync(scheduleFile, 'utf8')) as { schedule: SessionSpec[] };
+    if (JSON.stringify(saved.schedule) !== JSON.stringify(schedule)) throw new Error('resume: the saved schedule differs from the seeded one');
+    const redrawFile = path.join(input.outRoot, 'redraws.jsonl');
+    const recorded = fs.existsSync(redrawFile) ? fs.readFileSync(redrawFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as { redrawn: string; as: string }) : [];
+    redraws = recorded.length;
+    for (const r of recorded) {
+      const of = [...schedule, ...queue].find((s) => s.id === r.redrawn);
+      if (of === undefined) throw new Error(`resume: unknown redrawn session ${r.redrawn}`);
+      queue.push({ id: r.as, taskId: of.taskId, runIndex: of.runIndex, redrawOf: r.redrawn });
+      next = Math.max(next, Number(r.as.slice(1)) + 1);
+    }
+    queue = queue.filter((s) => !fs.existsSync(path.join(input.outRoot, 'sessions', s.id, 'session.json')));
+    // Redraws first, as in a live redraw; then the rest of the schedule in order.
+    queue.sort((a, b) => (a.redrawOf === null ? 1 : 0) - (b.redrawOf === null ? 1 : 0));
+    fs.appendFileSync(path.join(input.outRoot, 'resumes.jsonl'), `${JSON.stringify({ at: new Date().toISOString(), queue: queue.map((s) => s.id), redraws })}\n`);
+  } else {
+    fs.writeFileSync(scheduleFile, `${JSON.stringify({ orderSeed: input.orderSeed, cliVersion: probed.data.cliVersion, schedule }, null, 2)}\n`);
+  }
   while (queue.length > 0) {
     const spec = queue.shift() as SessionSpec;
     process.stdout.write(`${new Date().toISOString()} session ${spec.id} start\n`);
@@ -494,8 +520,8 @@ async function main(argv: readonly string[]): Promise<number> {
   const input = load(argv);
   if (argv.includes('--dry')) return dry(input);
   if (argv.includes('--smoke')) return smoke(input);
-  if (argv.includes('--probes')) return probes(input);
-  if (argv.includes('--baseline')) return baseline(input);
+  if (argv.includes('--probes')) return probes(input, argv.includes('--read-only') ? 'read-only' : argv.includes('--skip-read') ? 'skip-read' : 'all');
+  if (argv.includes('--baseline')) return baseline(input, argv.includes('--resume'));
   process.stderr.write('usage: run-baseline.ts --dry | --smoke | --probes | --baseline --input <input.json>\n');
   return 2;
 }

@@ -1,0 +1,84 @@
+diff --git a/a/src/business/services/LoanService.ts b/b/src/business/services/LoanService.ts
+index 94c3a75b..d7d930f4 100644
+--- a/a/src/business/services/LoanService.ts
++++ b/b/src/business/services/LoanService.ts
+@@ -19,6 +19,9 @@ export class LoanService {
+     const loan = this.loans.byId(loanId);
+     if (loan === undefined || loan.returnedDay !== null) throw new LibraryError(`no open loan ${loanId}`);
+     this.loans.update({ ...loan, returnedDay: today });
++    if (loan.overdue && !this.loans.openLoansOf(loan.memberId).some((l) => l.overdue)) {
++      this.members.reinstateAfterOverdue(loan.memberId);
++    }
+   }
+ 
+   openLoans(memberId: string): LoanView[] {
+@@ -29,7 +32,7 @@ export class LoanService {
+   nightly(today: string): number {
+     const flagged = this.loans.markOverdue(today);
+     for (const loan of flagged) {
+-      this.members.suspend(loan.memberId, `book ${loan.bookId} is overdue`);
++      this.members.suspend(loan.memberId, `book ${loan.bookId} is overdue`, false);
+     }
+     return flagged.length;
+   }
+diff --git a/a/src/business/services/MemberService.ts b/b/src/business/services/MemberService.ts
+index a971e92a..d4c2de7a 100644
+--- a/a/src/business/services/MemberService.ts
++++ b/b/src/business/services/MemberService.ts
+@@ -15,16 +15,27 @@ export class MemberService {
+   }
+ 
+   /** Suspends a member (no new loans) and tells them why; suspending twice changes nothing. */
+-  suspend(memberId: string, reason: string): void {
++  suspend(memberId: string, reason: string, byStaff = true): void {
+     const member = this.require(memberId);
+-    if (member.suspended) return;
+-    this.members.update({ ...member, suspended: true, notices: [...member.notices, `Your borrowing is suspended: ${reason}.`] });
++    if (member.suspended) {
++      // Staff taking over an automatic suspension makes it last until staff lift it.
++      if (byStaff && !member.suspendedByStaff) this.members.update({ ...member, suspendedByStaff: true });
++      return;
++    }
++    this.members.update({ ...member, suspended: true, suspendedByStaff: byStaff, notices: [...member.notices, `Your borrowing is suspended: ${reason}.`] });
+   }
+ 
+   reinstate(memberId: string): void {
+     const member = this.require(memberId);
+     if (!member.suspended) return;
+-    this.members.update({ ...member, suspended: false, notices: [...member.notices, 'Your borrowing is open again.'] });
++    this.members.update({ ...member, suspended: false, suspendedByStaff: false, notices: [...member.notices, 'Your borrowing is open again.'] });
++  }
++
++  /** Reopens borrowing once the last overdue book is back, unless staff made the suspension. */
++  reinstateAfterOverdue(memberId: string): void {
++    const member = this.require(memberId);
++    if (!member.suspended || member.suspendedByStaff) return;
++    this.reinstate(memberId);
+   }
+ 
+   notices(memberId: string): string[] {
+diff --git a/a/src/persistence/MemberGateway.ts b/b/src/persistence/MemberGateway.ts
+index bee07284..fedaf6c9 100644
+--- a/a/src/persistence/MemberGateway.ts
++++ b/b/src/persistence/MemberGateway.ts
+@@ -5,7 +5,7 @@ export class MemberGateway {
+   constructor(private readonly db: Database) {}
+ 
+   insert(name: string): MemberRecord {
+-    const row: MemberRecord = { id: this.db.nextId('M'), name, suspended: false, notices: [] };
++    const row: MemberRecord = { id: this.db.nextId('M'), name, suspended: false, suspendedByStaff: false, notices: [] };
+     this.db.members.set(row.id, row);
+     return { ...row };
+   }
+diff --git a/a/src/persistence/records/MemberRecord.ts b/b/src/persistence/records/MemberRecord.ts
+index e279f331..125d3793 100644
+--- a/a/src/persistence/records/MemberRecord.ts
++++ b/b/src/persistence/records/MemberRecord.ts
+@@ -2,5 +2,7 @@ export interface MemberRecord {
+   id: string;
+   name: string;
+   suspended: boolean;
++  /** True when staff suspended the member; such a suspension is not lifted automatically. */
++  suspendedByStaff: boolean;
+   notices: string[];
+ }

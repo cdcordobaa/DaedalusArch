@@ -1,0 +1,16 @@
+diff --git a/a/src/business/services/LoanService.ts b/b/src/business/services/LoanService.ts
+index e96a7be6..b2c0234f 100644
+--- a/a/src/business/services/LoanService.ts
++++ b/b/src/business/services/LoanService.ts
+@@ -25,7 +25,10 @@ export class LoanService {
+   }
+ 
+   openLoans(memberId: string): LoanView[] {
+-    return this.loans.openLoansOf(memberId).map(toView);
++    return this.loans
++      .openLoansOf(memberId)
++      .sort((a, b) => (a.dueDay < b.dueDay ? -1 : a.dueDay > b.dueDay ? 1 : 0))
++      .map(toView);
+   }
+ 
+   /** The nightly run: flags overdue loans and suspends their holders. */

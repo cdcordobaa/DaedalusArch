@@ -62,3 +62,17 @@ this cloud session may push only to its designated branch), before any generator
   `p > 2000`). On seed, clean, trap and trap-alt the verdicts equal `verification.json`. Oracle sha256: P1 `74f9637e…`,
   P2 `9722c3ca…`.
 - Hand-read categories for verdicts that may be wrong are pre-registered in `oracle-hand-read-categories.md`.
+
+## During the run, 2026-10-21 (logged; no frame, cap, outcome definition or oracle changed)
+
+- **Driver, before the first call:** `--probes --read-only` and `--probes --skip-read`, so the brief's order of READ
+  probe (1 call), smoke (1 call), then confinement probes (4 calls) could be kept.
+- **CLI wrapper, before the first call:** the isolation sweep found its comment naming the experiment; reworded, sweep
+  re-run (0 hits).
+- **Container restart, about 02:33Z**, during session c12 step 3: the driver was killed and the in-flight call has no
+  result. That call was added to `calls.jsonl` by hand and counted. c12 was recorded as an infrastructure failure and
+  redrawn whole as c16 (redraw 1 of 2). The driver gained `--resume`, which rebuilds the same seeded schedule, checks it
+  against the saved one, and runs the redraws, then the unfinished sessions. Isolation was re-swept after the restart
+  (0 hits).
+- **Scorer:** `score-baseline.ts` written during generation, inside the root-only vault, and run after it. One path fix
+  (`run/turns.jsonl`).
