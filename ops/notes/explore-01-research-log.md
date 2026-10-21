@@ -95,12 +95,48 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - **Where S1's advisory growth (36 to 52) came from:** 12 test-pairing noise findings, 2 naming false positives, and 1 each from FF-SO02 and FF-C03. None of it tracks a hand-read violation.
 - **Reading:** the rules that fired measure size and coupling, not consistency, rule placement or contract shape. The 9 rows become blind-spot cards (dev).
 
+### 7. DETECT-01 and PUZZLE-01 results (2026-10-21, about 01:20 UTC; PRs #334 and #335, not merged)
+**DETECT-01** (`ops/notes/detect-01-coverage-map.md`, `Docs/DiagnosticRuns/detect-01-2026-10-21.md` on `explore/detect-01`):
+- **Coverage map.** Of the 9 hand-read misses, 6 are symbolically reachable and 3 are semantic-only. Every reachable case needs a fact the frozen extractor does not emit:
+  - calls to port (interface) methods;
+  - external types in signatures (behind `apg2`);
+  - statement-level guards;
+  - return-type shapes.
+- **Symbolic prototypes** (zero calls): an experimental extractor plus 7 Cypher rules on `cypher-interp`.
+  - **Fixtures:** every positive is flagged except two forms that are out of scope by design. No twin and no negative control is flagged.
+  - **Rebuilt pilot trees:** all 6 reachable cases are found at the hand-read step and line. One rule (X1b) was adjusted after it first missed S1, so this result is partly fitted (dev).
+  - **Comparison trees:** no finding on the Layered, Hexagonal or DDD comparison trees. Clean and DDD trees produced 26 hits that are true to the construct, but there the norm is not declared.
+- **Semantic prototypes** (32 of the 40-call cap, `claude-sonnet-5-5`):
+  - all citations grounded, 1 abstention;
+  - twin discrimination 9 of 11 (the D3 question did not separate);
+  - the 3 semantic-only pilot cases flagged at the step that introduced them;
+  - 1 false positive on a negative control at the current D5 threshold.
+- **Found on the way:** the committed S1 seed on `pilot/hexddd-01` lacks `src/application/ports/out/`, because a `.gitignore` `out/` rule excluded it. The seed builder regenerates it with matching hashes.
+
+**PUZZLE-01** (`ops/notes/puzzle-01-design.md`, `Docs/DiagnosticRuns/puzzle-01-2026-10-21.md` on `explore/puzzle-01`, zero calls):
+- **Four dev puzzles, all VALID.** In every puzzle tsc reports 0 errors, the tests pass on both the clean and the trap solution and fail on the seed, the oracle passes the clean solution and fails every trap sub-goal, the trap changes fewer lines than the clean solution, and the hint audit reports 0 FAIL.
+- **What the instrument sees of each trap:**
+  - P1, DDD transfers: invisible (blind control).
+  - P2, DDD loyalty across 2 contexts: partial. FF-DS02 sees the import route; the alternative trap is invisible.
+  - P3, Hexagonal shipping quotes: invisible, because FF-P01 checks vendor packages only in the domain.
+  - P4, Layered library loans: visible through FF-S01 (positive control).
+- **Case bank seeded:** 4 puzzle cards and 9 HEXDDD-01 observation cards. Instrument verdicts and the spot-check status are to be updated from entry 6.
+- **Proposed pilot, awaiting author approval:** 4 puzzles × `none`/`mcp` × 5 runs = 40 sessions, hard cap 44. A placebo arm needs its own separate approval later.
+
+**Reading (dev):**
+- The symbolic path can reach two thirds of the observed misses once a few facts are extracted.
+- The semantic path covers the rest, and it separates violations from their twins in most cases.
+- That is the first concrete map of where the two paths complement each other. It is not yet a test on held-out cases.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
-- [ ] Read the DETECT-01 and PUZZLE-01 PRs, then add their results here.
+- [x] Read the DETECT-01 and PUZZLE-01 PRs (entry 7).
+- [ ] Fix the S1 seed `.gitignore` gap on `pilot/hexddd-01`; update the case-bank cards with the entry 6 verdicts.
+- [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
 
 ## Changelog
+- 2026-10-21: entry 7 (DETECT-01 and PUZZLE-01 results).
 - 2026-10-21: entry 6 (hand read against scores); spot-check closed.
 - 2026-10-21: log opened with entries 1–5.
