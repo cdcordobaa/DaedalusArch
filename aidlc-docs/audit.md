@@ -2820,3 +2820,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 follow-up design (Hexagonal/DDD drift and conformance), exploratory; instrument frozen for 2b, so all changes are listed for after the 2b scoring
 
 ---
+
+## PUZZLE-01 baseline — agent alone, arm none (plan, before any generator call)
+**Timestamp**: 2026-10-21T02:12:29Z
+**User Input**: "(coordinator brief) Run the exploratory PUZZLE-01 baseline (arm none only, DEV split, not Study 2b): repair the gaps an adversarial review found (restore the ignored ports/out files, add declared house rules to each seed, repair two oracles and pre-register hand-read categories, keep tests and all puzzle material out of the generator's reach), commit the plan before any call, then smoke, probes, 5 runs per puzzle, zero-call scoring with oracle and instrument visibility, a report and an unmerged PR."
+**AI Response**: "Before any call: R1 restored the P3 seed and trap port files byte-exact; the P3 clean port could not be restored exactly, so P3 is dropped; P1, P2 and P4 re-verified VALID. R7 added a neutral ARCHITECTURE.md to every seed (hint audit 0 FAIL). R4 widened P1 SG1 and P2 SG1 and pre-registered hand-read categories. Committed the plan (claude-sonnet-5-5, CLI 2.1.305, seed 20261021, 3 puzzles x 5 runs x 3 steps, caps 1 + 5 + 66 = 72), the outcome definitions, the go/no-go band with the R5 and R6 readings, the isolation procedure (unprivileged generator user, root-only directories) and the driver. Zero generator calls so far."
+**Context**: Exploratory PUZZLE-01 baseline, plan stage; no frozen path or Study 2b file changed
+
+---
