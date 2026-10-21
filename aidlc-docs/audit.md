@@ -2820,3 +2820,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 follow-up design (Hexagonal/DDD drift and conformance), exploratory; instrument frozen for 2b, so all changes are listed for after the 2b scoring
 
 ---
+
+## DETECT-01 — coverage map and prototype detectors (exploratory)
+**Timestamp**: 2026-10-21T01:20:00Z
+**User Input**: "(scheduled task) Map which Hexagonal and DDD violation families the instrument detects, classify the nine hand-read misses of the HEXDDD-01 pilot, and prototype symbolic and semantic detections for the gaps under experiments/detect-01/, without touching the frozen instrument or any Study 2b path; cap of 40 model calls."
+**AI Response**: "Wrote ops/notes/detect-01-coverage-map.md before any code (6 of 9 misses symbolically reachable, 3 semantic only). Built 25 development fixture variants, an experimental extractor and 7 Cypher rules run on cypher-interp; on the rebuilt pilot trees the rules found all 6 reachable cases at the logged step, with no finding on Layered or Hexagonal comparison trees. Semantic questions: 32 of 40 calls, every citation grounded, twin discrimination 9 of 11 fixture pairs. Report: Docs/DiagnosticRuns/detect-01-2026-10-21.md; promotion candidates listed for after the 2b scoring, never retroactive."
+**Context**: Exploratory follow-up to HEXDDD-01; instrument unchanged; branch explore/detect-01, PR not to be merged
+
+---

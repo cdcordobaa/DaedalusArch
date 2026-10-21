@@ -1,0 +1,62 @@
+{
+ "id": "c8-s2-d4-issueinvoice/pos",
+ "family": "D4",
+ "role": "positive",
+ "target": "c8-s2-d4-issueinvoice/pos",
+ "files": [
+  "src/billing/acl/OrderingAcl.ts",
+  "src/billing/acl/OrderingInvoicedAcl.ts",
+  "src/billing/application/IssueInvoice.ts",
+  "src/billing/application/ports/OrderInvoiced.ts",
+  "src/billing/application/ports/OrderSource.ts",
+  "src/billing/domain/invoice/Invoice.ts",
+  "src/billing/domain/invoice/InvoiceRepository.ts",
+  "src/ordering/application/GetOrderAmount.ts",
+  "src/ordering/application/MarkOrderInvoiced.ts",
+  "src/ordering/contracts/OrderCommands.ts",
+  "src/ordering/domain/order/Order.ts",
+  "src/ordering/domain/order/OrderRepository.ts",
+  "src/ordering/index.ts",
+  "src/shared-kernel/DomainEvent.ts",
+  "src/shared-kernel/value-objects/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "e37c0d4b99a72e3f961f9569a677482c26554f830da4b075219cd87ba619d772",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/billing/application/IssueInvoice.ts\",\"line\":16,\"quote\":\"await this.invoices.save(invoice);\"},{\"file\":\"src/billing/application/IssueInvoice.ts\",\"line\":17,\"quote\":\"await this.invoiced.orderInvoiced(order.orderId);\"}],\"rationale\":\"IssueInvoice.execute saves the Billing Invoice aggregate and then synchronously calls the Ordering context through an ACL (markInvoiced), which loads, mutates and saves the Order aggregate. No outbox, message, or deferred domain event is used between the two writes.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/billing/application/IssueInvoice.ts",
+    "line": 16,
+    "quote": "await this.invoices.save(invoice);"
+   },
+   {
+    "file": "src/billing/application/IssueInvoice.ts",
+    "line": 17,
+    "quote": "await this.invoiced.orderInvoiced(order.orderId);"
+   }
+  ],
+  "rationale": "IssueInvoice.execute saves the Billing Invoice aggregate and then synchronously calls the Ordering context through an ACL (markInvoiced), which loads, mutates and saves the Order aggregate. No outbox, message, or deferred domain event is used between the two writes."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/billing/application/IssueInvoice.ts",
+    "line": 16,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/billing/application/IssueInvoice.ts",
+    "line": 17,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

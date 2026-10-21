@@ -1,0 +1,53 @@
+{
+ "id": "c4v-h5-vendor-type/twin",
+ "family": "H5",
+ "role": "twin",
+ "target": "c4v-h5-vendor-type/twin",
+ "files": [
+  "src/adapters/outbound/persistence/PostgresBookingRepository.ts",
+  "src/application/ports/out/BookingRepository.ts",
+  "src/application/ports/out/UnitOfWork.ts",
+  "src/application/services/BookRoomService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "74b23b17656435208239ac9b4a3c8bf74215c8b333c268591062d54807cdd29f",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/ports/out/BookingRepository.ts\",\"line\":9,\"quote\":\"inTransaction<T>(task: (work: UnitOfWork) => Promise<T>): Promise<T>;\"},{\"file\":\"src/application/ports/out/BookingRepository.ts\",\"line\":6,\"quote\":\"findByRoom(roomId: string, work?: UnitOfWork): Promise<Booking[]>;\"}],\"rationale\":\"The BookingRepository port exposes a transaction mechanism: the method is named inTransaction, and a UnitOfWork parameter is threaded through findByRoom and save. These are persistence-technology concepts rather than an application-level need such as 'book atomically'.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 9,
+    "quote": "inTransaction<T>(task: (work: UnitOfWork) => Promise<T>): Promise<T>;"
+   },
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 6,
+    "quote": "findByRoom(roomId: string, work?: UnitOfWork): Promise<Booking[]>;"
+   }
+  ],
+  "rationale": "The BookingRepository port exposes a transaction mechanism: the method is named inTransaction, and a UnitOfWork parameter is threaded through findByRoom and save. These are persistence-technology concepts rather than an application-level need such as 'book atomically'."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 9,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 6,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

@@ -1,0 +1,38 @@
+{
+ "id": "c7-s2-d5-settaxrate/pos",
+ "family": "D5",
+ "role": "positive",
+ "target": "c7-s2-d5-settaxrate/pos",
+ "files": [
+  "src/ordering/application/SetTaxRate.ts",
+  "src/ordering/domain/tax/TaxRates.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "83c83c2333e500210e963dd3a626270a3f69485e43d3c9419a71c872454a94b8",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/ordering/application/SetTaxRate.ts\",\"line\":8,\"quote\":\"if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) throw new Error('Tax rate must be a fraction between 0 and 1');\"}],\"rationale\":\"The rule that a tax rate must be a finite fraction between 0 and 1 is validated in the SetTaxRate application use case. The domain TaxRates is only an interface with no validation, so nothing in the domain enforces it. Country normalization is also done by the application layer.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/ordering/application/SetTaxRate.ts",
+    "line": 8,
+    "quote": "if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) throw new Error('Tax rate must be a fraction between 0 and 1');"
+   }
+  ],
+  "rationale": "The rule that a tax rate must be a finite fraction between 0 and 1 is validated in the SetTaxRate application use case. The domain TaxRates is only an interface with no validation, so nothing in the domain enforces it. Country normalization is also done by the application layer."
+ },
+ "grounding": {
+  "cited": 1,
+  "grounded": 1,
+  "details": [
+   {
+    "file": "src/ordering/application/SetTaxRate.ts",
+    "line": 8,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

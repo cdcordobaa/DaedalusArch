@@ -1,0 +1,53 @@
+{
+ "id": "c3-s1-d3-revenue/pos",
+ "family": "D3",
+ "role": "positive",
+ "target": "c3-s1-d3-revenue/pos",
+ "files": [
+  "src/application/ports/in/NightRevenueView.ts",
+  "src/application/ports/out/BookingRepository.ts",
+  "src/application/services/OccupancyReportService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts",
+  "src/domain/model/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "ee84cfbaa1d9dcc68c05a1a8357135135c16385cbde541d53b17ca1b846763d5",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/services/OccupancyReportService.ts\",\"line\":16,\"quote\":\"const base = Math.floor(booking.total.cents / stayNights);\"},{\"file\":\"src/application/services/OccupancyReportService.ts\",\"line\":17,\"quote\":\"const extra = booking.total.cents - base * stayNights;\"}],\"rationale\":\"The application service splits a booking's total across nights, distributing the remainder cents to the earliest nights. This allocation logic operates on Booking/Money/DateRange data and could live on Booking or Money (e.g., an allocate or per-night split method) or in a domain service, rather than in the report service.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 16,
+    "quote": "const base = Math.floor(booking.total.cents / stayNights);"
+   },
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 17,
+    "quote": "const extra = booking.total.cents - base * stayNights;"
+   }
+  ],
+  "rationale": "The application service splits a booking's total across nights, distributing the remainder cents to the earliest nights. This allocation logic operates on Booking/Money/DateRange data and could live on Booking or Money (e.g., an allocate or per-night split method) or in a domain service, rather than in the report service."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 16,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 17,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

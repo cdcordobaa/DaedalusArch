@@ -1,0 +1,38 @@
+{
+ "id": "c8-s2-d4-issueinvoice/twin",
+ "family": "D4",
+ "role": "twin",
+ "target": "c8-s2-d4-issueinvoice/twin",
+ "files": [
+  "src/billing/acl/OrderingAcl.ts",
+  "src/billing/application/IssueInvoice.ts",
+  "src/billing/application/ports/OrderSource.ts",
+  "src/billing/application/ports/Outbox.ts",
+  "src/billing/domain/invoice/Invoice.ts",
+  "src/billing/domain/invoice/InvoiceRepository.ts",
+  "src/ordering/application/GetOrderAmount.ts",
+  "src/ordering/application/MarkOrderInvoiced.ts",
+  "src/ordering/application/OnInvoiceIssued.ts",
+  "src/ordering/contracts/OrderCommands.ts",
+  "src/ordering/domain/order/Order.ts",
+  "src/ordering/domain/order/OrderRepository.ts",
+  "src/ordering/index.ts",
+  "src/shared-kernel/DomainEvent.ts",
+  "src/shared-kernel/value-objects/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "1f42d5f6330a93aa15490be5b0924d8cf08de54f837094b71f6ab50485aac8a4",
+ "ok": true,
+ "raw": "{\"verdict\":\"absent\",\"evidence\":[],\"rationale\":\"IssueInvoice saves only the Invoice aggregate and appends its events to an Outbox. The Ordering side is updated separately by OnInvoiceIssued via MarkOrderInvoiced, which saves only the Order. Cross-context reads go through an ACL query, which doesn't persist anything. No single request persists two aggregates synchronously.\"}",
+ "answer": {
+  "verdict": "absent",
+  "evidence": [],
+  "rationale": "IssueInvoice saves only the Invoice aggregate and appends its events to an Outbox. The Ordering side is updated separately by OnInvoiceIssued via MarkOrderInvoiced, which saves only the Order. Cross-context reads go through an ACL query, which doesn't persist anything. No single request persists two aggregates synchronously."
+ },
+ "grounding": {
+  "cited": 0,
+  "grounded": 0,
+  "details": []
+ }
+}

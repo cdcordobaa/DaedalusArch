@@ -1,0 +1,41 @@
+{
+ "id": "c2-s1-d4-saveaudited/pos",
+ "family": "D4",
+ "role": "positive",
+ "target": "c2-s1-d4-saveaudited/pos",
+ "files": [
+  "src/application/ports/out/BookingRepository.ts",
+  "src/application/services/CancelBookingService.ts",
+  "src/domain/model/AuditRecord.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "34c0a643152885bd949b34c9634c2801b1fa65d8b7fdbf6e34781184e0171775",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/services/CancelBookingService.ts\",\"line\":12,\"quote\":\"await this.bookings.saveAudited(booking, [entry]);\"}],\"rationale\":\"The cancel request mutates the Booking aggregate and creates a separate AuditEntry record, then persists both synchronously in one saveAudited call. No domain event, outbox or message is involved. AuditEntry has its own id and appears to be a distinct record from Booking.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/services/CancelBookingService.ts",
+    "line": 12,
+    "quote": "await this.bookings.saveAudited(booking, [entry]);"
+   }
+  ],
+  "rationale": "The cancel request mutates the Booking aggregate and creates a separate AuditEntry record, then persists both synchronously in one saveAudited call. No domain event, outbox or message is involved. AuditEntry has its own id and appears to be a distinct record from Booking."
+ },
+ "grounding": {
+  "cited": 1,
+  "grounded": 1,
+  "details": [
+   {
+    "file": "src/application/services/CancelBookingService.ts",
+    "line": 12,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

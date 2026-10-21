@@ -1,0 +1,53 @@
+{
+ "id": "n1-hex-clean-guests/clean",
+ "family": "D5",
+ "role": "clean",
+ "target": "n1-hex-clean-guests/clean",
+ "files": [
+  "src/adapters/inbound/http/GuestController.ts",
+  "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+  "src/application/ports/in/GuestView.ts",
+  "src/application/ports/out/GuestRepository.ts",
+  "src/application/services/RegisterGuestService.ts",
+  "src/domain/model/Guest.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "4d04d97580f0f1f4567210f7f9bf14f8d16044cf9d86646f89963f4d6955d659",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/services/RegisterGuestService.ts\",\"line\":9,\"quote\":\"if (!email.includes('@')) throw new Error('Malformed e-mail address');\"},{\"file\":\"src/application/services/RegisterGuestService.ts\",\"line\":10,\"quote\":\"if ((await this.guests.byEmail(email)) !== undefined) throw new Error('E-mail already registered');\"}],\"rationale\":\"The Guest domain object takes email as a plain string and never validates it. The email-format rule and email-uniqueness rule are enforced in RegisterGuestService (application layer), not in Guest or an Email value object, so Guest can be constructed with a malformed email elsewhere.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/services/RegisterGuestService.ts",
+    "line": 9,
+    "quote": "if (!email.includes('@')) throw new Error('Malformed e-mail address');"
+   },
+   {
+    "file": "src/application/services/RegisterGuestService.ts",
+    "line": 10,
+    "quote": "if ((await this.guests.byEmail(email)) !== undefined) throw new Error('E-mail already registered');"
+   }
+  ],
+  "rationale": "The Guest domain object takes email as a plain string and never validates it. The email-format rule and email-uniqueness rule are enforced in RegisterGuestService (application layer), not in Guest or an Email value object, so Guest can be constructed with a malformed email elsewhere."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/application/services/RegisterGuestService.ts",
+    "line": 9,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/services/RegisterGuestService.ts",
+    "line": 10,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

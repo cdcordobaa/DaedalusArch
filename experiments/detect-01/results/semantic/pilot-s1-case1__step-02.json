@@ -1,0 +1,62 @@
+{
+ "id": "pilot-s1-case1/step-02",
+ "family": "D5",
+ "role": "pilot-after",
+ "target": "pilot:s1-hotel-bookings/step-02",
+ "files": [
+  "src/application/services/BookRoomService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/Room.ts",
+  "src/domain/services/AvailabilityChecker.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "74bee4700c6ea25ff165a2e5ea3555e83d03c43966f06de708969ccab21c12f5",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/services/BookRoomService.ts\",\"line\":37,\"quote\":\"const outcome = await this.withRoomLock(room.id, () => this.reserve(command, room, guest, stay));\"},{\"file\":\"src/application/services/BookRoomService.ts\",\"line\":84,\"quote\":\"if (!this.availability.isAvailable(room, stay, existing)) {\"},{\"file\":\"src/application/services/BookRoomService.ts\",\"line\":33,\"quote\":\"if (!room.fits(command.guests)) throw new BookingError('invalid', `Room ${room.number} sleeps ${room.capacity}`);\"}],\"rationale\":\"The no-double-booking invariant for a room is enforced in the application service: it loads all bookings, checks availability, and uses an in-process per-room lock (withRoomLock) solely to keep that rule true under concurrency. Idempotency/duplicate-booking logic is also application-level rather than inside a Room/Booking aggregate.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 37,
+    "quote": "const outcome = await this.withRoomLock(room.id, () => this.reserve(command, room, guest, stay));"
+   },
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 84,
+    "quote": "if (!this.availability.isAvailable(room, stay, existing)) {"
+   },
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 33,
+    "quote": "if (!room.fits(command.guests)) throw new BookingError('invalid', `Room ${room.number} sleeps ${room.capacity}`);"
+   }
+  ],
+  "rationale": "The no-double-booking invariant for a room is enforced in the application service: it loads all bookings, checks availability, and uses an in-process per-room lock (withRoomLock) solely to keep that rule true under concurrency. Idempotency/duplicate-booking logic is also application-level rather than inside a Room/Booking aggregate."
+ },
+ "grounding": {
+  "cited": 3,
+  "grounded": 3,
+  "details": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 37,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 84,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 33,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

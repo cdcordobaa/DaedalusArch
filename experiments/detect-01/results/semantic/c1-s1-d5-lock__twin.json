@@ -1,0 +1,28 @@
+{
+ "id": "c1-s1-d5-lock/twin",
+ "family": "D5",
+ "role": "twin",
+ "target": "c1-s1-d5-lock/twin",
+ "files": [
+  "src/application/ports/out/RoomScheduleRepository.ts",
+  "src/application/services/BookRoomService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts",
+  "src/domain/model/RoomSchedule.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "d3659c993b54160d79e163691f3bd659e9bb49aff5510b07ce8445a492dd3e68",
+ "ok": true,
+ "raw": "{\"verdict\":\"absent\",\"evidence\":[],\"rationale\":\"The invariants are enforced in the domain: DateRange validates check-out after check-in in its constructor, RoomSchedule.book rejects overlapping active bookings, and Booking.cancel guards double cancellation. BookRoomService only orchestrates (load, delegate, save) with no duplicated checks or locks.\"}",
+ "answer": {
+  "verdict": "absent",
+  "evidence": [],
+  "rationale": "The invariants are enforced in the domain: DateRange validates check-out after check-in in its constructor, RoomSchedule.book rejects overlapping active bookings, and Booking.cancel guards double cancellation. BookRoomService only orchestrates (load, delegate, save) with no duplicated checks or locks."
+ },
+ "grounding": {
+  "cited": 0,
+  "grounded": 0,
+  "details": []
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "id": "pilot-s1-case1/step-01",
+ "family": "D5",
+ "role": "pilot-before",
+ "target": "pilot:s1-hotel-bookings/step-01",
+ "files": [
+  "src/application/services/BookRoomService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/Room.ts",
+  "src/domain/services/AvailabilityChecker.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "3e7f7f7424160ecb6de8e56e16b0129c49d0f435b4591a476c455521d276c2b9",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/services/BookRoomService.ts\",\"line\":31,\"quote\":\"if (!room.fits(command.guests)) throw new BookingError('invalid', `Room ${room.number} sleeps ${room.capacity}`);\"},{\"file\":\"src/application/services/BookRoomService.ts\",\"line\":54,\"quote\":\"if (!this.availability.isAvailable(room, stay, existing)) {\"}],\"rationale\":\"The no-double-booking invariant (no overlapping active bookings for a room) is enforced in the application service via a domain service over a fetched list, not inside a Booking or Room aggregate, and the Booking constructor validates nothing. Capacity is likewise checked in the service. The idempotency and duplicate-request logic is also application-level.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 31,
+    "quote": "if (!room.fits(command.guests)) throw new BookingError('invalid', `Room ${room.number} sleeps ${room.capacity}`);"
+   },
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 54,
+    "quote": "if (!this.availability.isAvailable(room, stay, existing)) {"
+   }
+  ],
+  "rationale": "The no-double-booking invariant (no overlapping active bookings for a room) is enforced in the application service via a domain service over a fetched list, not inside a Booking or Room aggregate, and the Booking constructor validates nothing. Capacity is likewise checked in the service. The idempotency and duplicate-request logic is also application-level."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 31,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 54,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}
