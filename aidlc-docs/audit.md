@@ -2845,6 +2845,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Study 2b — registered scoring pass
+**Timestamp**: 2026-10-21T03:28:06Z
+**User Input**: "(coordinator brief) After PRs #330 and #337 merged, run the single registered scoring pass of Study 2b at the freeze tag: hash checks, re-score, D and D-dagger, the registered tests via study2b-analyse.ts, and the registered post-run checks; C4 / D_sem not in this pass."
+**AI Response**: "Hashes verified (pre-registration, 27 registered artefacts, OSF package 8/8; instrument tree equals the tag blob for blob; frozen-path diff empty; sealed hashes match). Scored at X with zero model calls: 600 snapshots, 0 evaluation failures; D8 parity 30/30 identical on one capped Neo4j; coverage, post-run acceptance, exposure, telemetry and seeded recall run; analysis run once. H1 and H2 rejected after Holm with the predicted sign and supported under D and D-dagger; H3 not rejected; E fails; V4 part B passes. Implementation choices DA9-DA12 recorded in addendum 3 before the figures were read (DA12 before the analysis ran). Report Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md."
+**Context**: v1.4 Study 2b, drift record order step: run (scoring); C4 / D_sem is the next registered step with its own precondition
+
+---
+
 ## DETECT-01 — coverage map and prototype detectors (exploratory)
 **Timestamp**: 2026-10-21T01:20:00Z
 **User Input**: "(scheduled task) Map which Hexagonal and DDD violation families the instrument detects, classify the nine hand-read misses of the HEXDDD-01 pilot, and prototype symbolic and semantic detections for the gaps under experiments/detect-01/, without touching the frozen instrument or any Study 2b path; cap of 40 model calls."

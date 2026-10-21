@@ -1,0 +1,227 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/laundromat/none/run-8",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "laundromat",
+    "arm": "none",
+    "runIndex": 8
+  },
+  "stepIndex": 0,
+  "stepId": "machines-and-wallets",
+  "startedAt": "2026-10-21T00:51:56.414Z",
+  "finishedAt": "2026-10-21T00:53:03.876Z",
+  "turns": [
+    {
+      "turnId": "step-01",
+      "kind": "step",
+      "promptSha256": "db8c32d8c35cd1137dda20ea5298ccbd0864e0917f24eab08cf367345f90c1ad",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.1894505,
+          "inputTokens": 16,
+          "outputTokens": 11846,
+          "cacheReadTokens": 82585,
+          "cacheCreationTokens": 15675,
+          "numTurns": 18,
+          "durationMs": 64949
+        },
+        "wallMs": 66109,
+        "attempts": [
+          {
+            "startedAt": "2026-10-21T00:51:56.416Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-l2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-l2/runs/claude-code-cli/claude-sonnet-5-5/laundromat/none/run-8/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-01.json",
+        "permissionDenials": 4
+      },
+      "snapshot": {
+        "commit": "0194515dba06219d71c56064c709efd688a50a9a",
+        "sourceFiles": [
+          "business/errors.ts",
+          "business/laundromatService.ts",
+          "business/validation.ts",
+          "persistence/customerRepository.ts",
+          "persistence/machineRepository.ts",
+          "persistence/models.ts",
+          "persistence/rinselyAccountRepository.ts",
+          "persistence/rinselyGateway.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 11,
+        "loc": 246,
+        "diff": {
+          "added": 11,
+          "modified": 0,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.695,
+          "blockingAhs": 0.667,
+          "verdict": "fail",
+          "violationCount": 18,
+          "blockingViolationCount": 4,
+          "advisoryViolationCount": 14,
+          "blockingByRule": {
+            "FF-S03": 4
+          },
+          "advisoryByRule": {
+            "FF-C03": 3,
+            "FF-C06": 1,
+            "FF-CV05": 10
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-f1f363b28762b55b",
+              "filePath": "src/presentation/app.ts",
+              "line": 2,
+              "target": "src/persistence/customerRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/customerRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-4dd7d05092e19864",
+              "filePath": "src/presentation/app.ts",
+              "line": 3,
+              "target": "src/persistence/machineRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/machineRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-7fa0227507ae6fb7",
+              "filePath": "src/presentation/app.ts",
+              "line": 4,
+              "target": "src/persistence/rinselyAccountRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/rinselyAccountRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-eca4a7fb21db50b0",
+              "filePath": "src/presentation/app.ts",
+              "line": 5,
+              "target": "src/persistence/rinselyGateway.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/rinselyGateway.ts (persistence)"
+            }
+          ],
+          "durationMs": 13,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 1,
+          "durationMs": 4,
+          "testFileSha256": "670855e10a820a4c3a1a00d5ec14d32a4706ec2c62e117a4c9ee0b8c1901998c",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "64d30a86bb08ff61c0f31a8a82d687190d46bc32fd13f72e5849a718a92e1952",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 1,
+    "durationMs": 4,
+    "testFileSha256": "670855e10a820a4c3a1a00d5ec14d32a4706ec2c62e117a4c9ee0b8c1901998c",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "64d30a86bb08ff61c0f31a8a82d687190d46bc32fd13f72e5849a718a92e1952",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "0194515dba06219d71c56064c709efd688a50a9a",
+  "cost": {
+    "costUsd": 0.1894505,
+    "inputTokens": 16,
+    "outputTokens": 11846,
+    "wallMs": 66109
+  },
+  "inherited": {
+    "sourceRunId": "claude-code-cli/claude-sonnet-5-5/laundromat/none/run-8",
+    "sourceSpec": {
+      "adapterId": "claude-code-cli",
+      "modelId": "claude-sonnet-5-5",
+      "taskId": "laundromat",
+      "arm": "none",
+      "runIndex": 8
+    },
+    "sourceStepRecordSha256": "ba840360daad683218542acce840bf42a3b895ee7e999274f2179adf5b4bd892"
+  }
+}

@@ -1,0 +1,289 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/community-radio/none/run-5",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "community-radio",
+    "arm": "none",
+    "runIndex": 5
+  },
+  "stepIndex": 2,
+  "stepId": "cover-requests",
+  "startedAt": "2026-10-20T23:07:46.687Z",
+  "finishedAt": "2026-10-20T23:08:53.849Z",
+  "turns": [
+    {
+      "turnId": "step-03",
+      "kind": "step",
+      "promptSha256": "994262a87415983451d413aee59bea97354137ec091d66d5da7165e5774c25ea",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.19940970000000002,
+          "inputTokens": 14,
+          "outputTokens": 11119,
+          "cacheReadTokens": 77917,
+          "cacheCreationTokens": 20100,
+          "numTurns": 24,
+          "durationMs": 65175
+        },
+        "wallMs": 66364,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T23:07:46.687Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-l2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-l2/runs/claude-code-cli/claude-sonnet-5-5/community-radio/none/run-5/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-03.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "05f3c19399fe335bcf914488fafc124507145842",
+        "sourceFiles": [
+          "business/buzzlyAccountService.ts",
+          "business/coverService.ts",
+          "business/errors.ts",
+          "business/hostService.ts",
+          "business/playService.ts",
+          "business/requestService.ts",
+          "business/showService.ts",
+          "business/time.ts",
+          "persistence/buzzlyAccountRepository.ts",
+          "persistence/buzzlyGateway.ts",
+          "persistence/coverRepository.ts",
+          "persistence/hostRepository.ts",
+          "persistence/playRepository.ts",
+          "persistence/requestRepository.ts",
+          "persistence/showRepository.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 18,
+        "loc": 651,
+        "diff": {
+          "added": 4,
+          "modified": 2,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.695,
+          "blockingAhs": 0.667,
+          "verdict": "fail",
+          "violationCount": 29,
+          "blockingViolationCount": 7,
+          "advisoryViolationCount": 22,
+          "blockingByRule": {
+            "FF-S03": 7
+          },
+          "advisoryByRule": {
+            "FF-C02": 1,
+            "FF-C03": 4,
+            "FF-CV05": 17
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-b3a219f0c1935e2f",
+              "filePath": "src/presentation/app.ts",
+              "line": 4,
+              "target": "src/persistence/buzzlyAccountRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/buzzlyAccountRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-c0e284975d692232",
+              "filePath": "src/presentation/app.ts",
+              "line": 5,
+              "target": "src/persistence/buzzlyGateway.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/buzzlyGateway.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-7a132ae7ce428f71",
+              "filePath": "src/presentation/app.ts",
+              "line": 13,
+              "target": "src/persistence/coverRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/coverRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-f438aa0052291cc6",
+              "filePath": "src/presentation/app.ts",
+              "line": 12,
+              "target": "src/persistence/hostRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/hostRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-fd064f65b1743325",
+              "filePath": "src/presentation/app.ts",
+              "line": 2,
+              "target": "src/persistence/playRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/playRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-fd02cb1a056399f8",
+              "filePath": "src/presentation/app.ts",
+              "line": 6,
+              "target": "src/persistence/requestRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/requestRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-e904d0129b356e9c",
+              "filePath": "src/presentation/app.ts",
+              "line": 3,
+              "target": "src/persistence/showRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/showRepository.ts (persistence)"
+            }
+          ],
+          "durationMs": 2,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 3,
+          "durationMs": 5,
+          "testFileSha256": "b49ad0409a270869c918e10d243188735f9984abff382a640bc971c7ea7c1173",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "d4c93051ade3776f414248fbc1aa4f3d05711bb69a30ef8da0a78b7ec7188f78",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            },
+            {
+              "file": "step-02.test.mjs",
+              "sha256": "7d8624c0aa79b56ff07920c4fa2b64f78cce48f70a6711a50042244bff10f432",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            },
+            {
+              "file": "step-03.test.mjs",
+              "sha256": "5f5ba32e6869c08f9082ea673d770f77de9fffc214023ac89024dcc61cf31371",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 3,
+    "durationMs": 5,
+    "testFileSha256": "b49ad0409a270869c918e10d243188735f9984abff382a640bc971c7ea7c1173",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "d4c93051ade3776f414248fbc1aa4f3d05711bb69a30ef8da0a78b7ec7188f78",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      },
+      {
+        "file": "step-02.test.mjs",
+        "sha256": "7d8624c0aa79b56ff07920c4fa2b64f78cce48f70a6711a50042244bff10f432",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      },
+      {
+        "file": "step-03.test.mjs",
+        "sha256": "5f5ba32e6869c08f9082ea673d770f77de9fffc214023ac89024dcc61cf31371",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "05f3c19399fe335bcf914488fafc124507145842",
+  "cost": {
+    "costUsd": 0.19940970000000002,
+    "inputTokens": 14,
+    "outputTokens": 11119,
+    "wallMs": 66364
+  }
+}
