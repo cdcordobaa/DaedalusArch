@@ -2829,6 +2829,22 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Study 2b — the author's go for the run
+**Timestamp**: 2026-10-20T18:55:00Z
+**User Input**: "(coordinator brief) The author gave the go for the confirmatory Study 2b run after reviewing the readiness-gate verdict (GO-READY-FOR-AUTHOR; D10 green with the OSF deposit). Record the go, run the pre-run checks at the run commit (hashes, frozen inputs, zero-call re-checks, live S4 re-run for both arms), then run the 40 blocks per the runbook and write a counts-only collection report."
+**AI Response**: "Recorded the go as GO-2B-RUN in ops/decisions.md (gate rule 4, GO-2B), before the pre-run checks and before any 2b call. The run session proceeds per Docs/v1.4/study2b-runbook.md with addenda A-D."
+**Context**: v1.4 Study 2b, drift record order step: run; the time is the approximate time of the go as given by the coordinator
+
+---
+
+## Study 2b — run collected (counts only, not scored)
+**Timestamp**: 2026-10-21T02:17:25Z
+**User Input**: "(coordinator brief) After the go: pre-run checks at the run commit (hashes, frozen inputs, zero-call re-checks, live S4 re-run, 9 calls), then the 40-block run per the runbook, replicate by replicate, two lanes; stop only on an integrity failure; no scoring; archive the out-roots path-free and write a counts-only collection report."
+**AI Response**: "Pre-run checks green at 0b17d601 (sealed tasks.json, MANIFEST and pinned CLI hashes match; frozen-path diff empty; instrument tree equals the tag; dry run of the real plans 30/30; S4 re-run PASS 9/9). Run 2026-10-20T19:07:04Z to 2026-10-21T02:17:25Z: 40 of 40 blocks complete in each of none@L2, none@L3 and mcp@L2; 520 step turns; 0 pauses; 0 redraws; CLI 2.1.304; served model claude-sonnet-5-5 only; no harness failure and no stop. In-run checks: 0 evaluation errors, telemetry as expected, 0 denials naming HOME or the sealed folder. 30 out-roots archived and verified; tarball hashes and pointers committed, full manifests kept with the tarballs until scoring. Report: Docs/DiagnosticRuns/v1.4-study2b-collection-2026-10-20.md."
+**Context**: v1.4 Study 2b, drift record order step: run (collection); scoring follows in a later session
+
+---
+
 ## DETECT-01 — coverage map and prototype detectors (exploratory)
 **Timestamp**: 2026-10-21T01:20:00Z
 **User Input**: "(scheduled task) Map which Hexagonal and DDD violation families the instrument detects, classify the nine hand-read misses of the HEXDDD-01 pilot, and prototype symbolic and semantic detections for the gaps under experiments/detect-01/, without touching the frozen instrument or any Study 2b path; cap of 40 model calls."
