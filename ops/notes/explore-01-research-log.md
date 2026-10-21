@@ -86,11 +86,21 @@ After each run, a zero-call step turns its material into reusable cards (YAML). 
 
 The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand-read observations. A design note (`case-bank-design.md`) follows after the 2b scoring.
 
+### 6. Hand read against the instrument's scores (2026-10-21, commit `b9b0ba96` on `pilot/hexddd-01`)
+- **Spot-check:** the author checked two hand-read rows (S2 step 1 `RecordPayment`; S1 step 5 `withRoomLock` and the payment charge inside the transaction) and agreed with both.
+- **Comparison** (`results/pilot-hexddd-01/hand-read-vs-scores.md`, zero calls): of the 9 hand-read violations, the instrument caught 0, 2 were adjacent and 7 were missed.
+  - The 2 adjacent findings, FF-SO02 and FF-C03, sit on the same port or adapter but are not attributable to the change.
+  - Debt status agrees in both runs: S1's planted debt was fixed, S2's persisted.
+  - There were 2 false positives: the FF-CV03 "Repo" inside "Report" defect (N18).
+- **Where S1's advisory growth (36 to 52) came from:** 12 test-pairing noise findings, 2 naming false positives, and 1 each from FF-SO02 and FF-C03. None of it tracks a hand-read violation.
+- **Reading:** the rules that fired measure size and coupling, not consistency, rule placement or contract shape. The 9 rows become blind-spot cards (dev).
+
 ## Open items
-- [ ] Author spot-check of two hand-read rows: S2 step 1 `RecordPayment`, and S1 step 5 `withRoomLock`.
+- [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
 - [ ] Read the DETECT-01 and PUZZLE-01 PRs, then add their results here.
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
 
 ## Changelog
+- 2026-10-21: entry 6 (hand read against scores); spot-check closed.
 - 2026-10-21: log opened with entries 1–5.
