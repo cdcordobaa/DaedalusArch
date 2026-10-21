@@ -18,6 +18,7 @@ This folder is where the author and the agent plan, track and decide. It replace
 | [`track-1-instrument.md`](track-1-instrument.md) | SO1–SO3, the instrument, read three ways: per objective, per link of the chain, and applied to a few projects |
 | [`track-2-scale.md`](track-2-scale.md) | SO4–SO5, the instrument at scale: validity beyond the development set, and the agent study |
 | [`decisions.md`](decisions.md) | Open author decisions, each with its options, a recommendation and its cost |
+| [`06-open-tracks-and-capabilities.md`](06-open-tracks-and-capabilities.md) | Every open track (tagged Friday / after the draft / future work / dropped) and every built capability with evidence and maturity |
 | [`notes/explore-01-research-log.md`](notes/explore-01-research-log.md) | Living log of the exploratory thread: agent violations, detection coverage, puzzles, case bank |
 | [`notes/`](notes/) | Thinking notes, one per idea, written before any run (`ns-01-…` is the first) |
 
@@ -28,6 +29,7 @@ This folder is where the author and the agent plan, track and decide. It replace
 - **Pace.** Each experiment gets a short design note here first: its question, what result would change our minds, and its call count. It runs only after you have read the note.
 
 ## Changelog
+- 2026-10-21: linked the open-tracks and capabilities inventory.
 - 2026-10-21: linked the exploratory research log.
 - 2026-10-18: added the conditions register and the gap-closing plan.
 - 2026-10-18: added `01-instrument-map.md`.
