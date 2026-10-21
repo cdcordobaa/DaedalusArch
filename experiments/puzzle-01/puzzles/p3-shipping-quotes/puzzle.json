@@ -1,0 +1,18 @@
+{
+  "id": "p3-shipping-quotes",
+  "split": "dev",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": { "fastship-sdk": "vendor/fastship-sdk" },
+  "subGoals": [
+    { "id": "SG1", "family": "H5", "steps": ["live-rates", "freight"], "rule": "Ports and the application core speak the application's own language; the carrier's request, response and field names stay in the adapter (Cockburn P1: each adapter talks to the application through a port)." },
+    { "id": "SG2", "family": "H2/H1b", "steps": ["carrier-down"], "rule": "The core has no runtime dependency on the vendor SDK: carrier failures reach it as its own error (Cockburn P1)." }
+  ],
+  "plantedDebt": [
+    { "file": "src/application/ports/out/TrackingPort.ts", "family": "H5", "what": "tracking port typed with the SDK's FastshipTrackingEvent" },
+    { "file": "src/application/services/TrackShipmentService.ts", "family": "H5", "what": "maps the SDK's event codes in the core" }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 2, "Pd": 2, "Dx": 0, "rung": 4 },
+  "precedent": "trap-shaped: the existing tracking port is typed with the vendor's event type and the service maps vendor codes."
+}

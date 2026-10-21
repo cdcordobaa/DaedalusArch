@@ -1,0 +1,17 @@
+{
+  "id": "p2-loyalty",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D6/D10", "steps": ["tier-discount", "gold-threshold"], "rule": "The tier rule has one owner (membership); the other context reaches it only through the owner's published interface and never re-implements it (Fowler P3; Evans bounded context)." },
+    { "id": "SG2", "family": "D4", "steps": ["points-on-orders"], "rule": "Placing an order changes no member: the member's points follow from a stored event delivered to the owning context (Vernon P4, eventual consistency outside the boundary)." }
+  ],
+  "aggregateRoots": ["Order", "Member"],
+  "plantedDebt": [
+    { "file": "src/sales/application/ReceiptFooter.ts", "family": "D6", "what": "imports membership's MemberRepository and MemberId from its domain (cross-context internal import)" }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 3, "Pd": 2, "Dx": 0, "rung": 5 },
+  "precedent": "both: a clean published interface (membership index.ts, MemberCard contract, sales acl) and a trap-shaped one (ReceiptFooter reads members through membership's domain repository)."
+}
