@@ -10,6 +10,9 @@
 
 **Instrument map (draft v3):** [`01-instrument-map.md`](01-instrument-map.md) covers four planes and ten parts, the artifacts between them, the chain of trust (v3: the weakest link is C3m, meaning; C2r is second, `01-instrument-map.md:196`) and the ordered work left. It has been reviewed adversarially ([`notes/rev-01-instrument-map-fable.md`](notes/rev-01-instrument-map-fable.md)).
 
+## Exploratory thread (from 2026-10-21) → [`notes/explore-01-research-log.md`](notes/explore-01-research-log.md)
+Alongside Study 2b, and never feeding it: are agents stressed into architecture violations, which violations can the instrument detect (symbolic, semantic, or both), and do architecture puzzles measure whether the tool helps? HEXDDD-01 pilot done (FAIL on the pass bar; the blind hand read found 9 violations, none import-level). DETECT-01 (coverage map and prototype detectors) and PUZZLE-01 (first dev puzzles) are running.
+
 ## Track 1: the instrument → [`track-1-instrument.md`](track-1-instrument.md)
 
 | Objective | Status | One line | Next move |
@@ -59,6 +62,7 @@ Study 2 work (B2, T1, F23, the prerequisites) waits until the thread pauses.
 **Running now:** nothing.
 
 ## Changelog
+- 2026-10-21: pointer to the exploratory research log (EXPLORE-01).
 - 2026-10-19: map v3 and its weakest link (C3m) stated; the waiting list replaced (L4, D1 and NS-01 were settled on 2026-10-18).
 - 2026-10-18: the board's decisions are settled; the waiting list is down to three.
 - 2026-10-18: link to the instrument map (draft).

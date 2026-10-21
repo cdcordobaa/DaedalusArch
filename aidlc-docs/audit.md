@@ -2821,6 +2821,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## EXPLORE-01 — research log for the exploratory thread
+**Timestamp**: 2026-10-21T00:58:00Z
+**User Input**: "Asked that the exploratory investigation (HEXDDD-01 pilot and hand read, detection coverage, architecture puzzles, case bank) be recorded in the repository."
+**AI Response**: "Added ops/notes/explore-01-research-log.md (entries: HEXDDD-01 design, pilot run, blind hand read, DETECT-01 and PUZZLE-01 launched as cloud routines on unmerged branches, the case-bank proposal; guardrails and open items), linked it from ops/00-overview.md and ops/README.md. Documentation only; no model call, no frozen path, no Study 2b file touched."
+**Context**: exploratory thread alongside Study 2b; dev material only
+
+---
+
 ## DETECT-01 — coverage map and prototype detectors (exploratory)
 **Timestamp**: 2026-10-21T01:20:00Z
 **User Input**: "(scheduled task) Map which Hexagonal and DDD violation families the instrument detects, classify the nine hand-read misses of the HEXDDD-01 pilot, and prototype symbolic and semantic detections for the gaps under experiments/detect-01/, without touching the frozen instrument or any Study 2b path; cap of 40 model calls."
