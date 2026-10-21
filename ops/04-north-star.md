@@ -15,25 +15,25 @@
 | C1a/b Extract + fidelity | real repos | tsc | edge precision and recall | 1.000 on imports; N33/N38 being fixed |
 | C1c Query | the same Cypher on both engines | Neo4j | content differences | 0 in 72,388 statements |
 | C1c Efficiency | fixed questions | answers derived from the compiler and graph | accuracy and tokens, graph tools vs raw files | designed |
-| C1d Enrich | six K3/K2m cases with twins | answers written first | correct facts; 0 false facts on twins | designed |
+| C1d Enrich | six K3/K2m cases with twins | answers written first | correct facts; 0 false facts on twins | designed → built; 2-case pilot run; six cases not run *(2026-10-21)* |
 | C1e Time and identity | histories with renames and deletions | the fix-mining taxonomy, checked by hand | identity errors | spec in progress |
 | C2 Declared norms | planted seeds per rule | the planted answer | seeded recall per rule; twins pass | 50/52 under hand-written specs (N07) |
-| C3 Detect | the gold norm set | blind manifests, then the hold-out | blocking recall and precision per style | blind recall 0.78 (N105); hold-out not run |
-| C3m Meaning | about 60 correct findings | rater and author | κ; meaningful precision | codebook in progress |
-| C4 Interpret | gold findings plus intent cases | answers written first | catch rate; false fails | 16/21 (judge, F3) |
+| C3 Detect | the gold norm set | blind manifests, then the hold-out | blocking recall and precision per style | blind recall 0.78 (N105); hold-out not run → three attempts, not scored (DELEG-H4) *(2026-10-21)* |
+| C3m Meaning | about 60 correct findings | rater and author | κ; meaningful precision | codebook in progress → codebook and packet ready, 0 labels *(2026-10-21)* |
+| C4 Interpret | gold findings plus intent cases | answers written first | catch rate; false fails | 16/21 (judge, F3) → judge dropped; C4 built in PR #282, pilot not run against a seeded key *(2026-10-21)* |
 | C5 Drift | human histories | the fix-mining survival table | reproduces it exactly | **done**: reproduces it |
-| C6 Control | scripted tool calls; a dry-run agent step | expected tool answers; the evasion checklist | tools correct; evasion check runs | MCP: 11 tools, or 13 with `--neural`; evasion check being built (U5) |
+| C6 Control | scripted tool calls; a dry-run agent step | expected tool answers; the evasion checklist | tools correct; evasion check runs | MCP: 11 tools, or 13 with `--neural`; evasion check being built (U5) → evasion items computed in 2b, items 4–5 not run *(2026-10-21)* |
 
 ## Layer 2: the whole instrument
 
 | Question | Measure | Today |
 |---|---|---|
 | **Applicability:** does it run on real projects of every style and size? | external and wild sets; npx mode identical to Neo4j mode; time and memory | 36/36 identical; external 15, wild 14 |
-| **Applicability:** do agents actually use it? | share of MCP steps that call a tool (≥ 80 %, or "no mechanism") | to be measured in Study 2 |
-| **Validity:** correct on code it never saw? | the hold-out, run once | not run |
+| **Applicability:** do agents actually use it? | share of MCP steps that call a tool (≥ 80 %, or "no mechanism") | to be measured in Study 2 → 160/160 `mcp@L2` steps in 2b *(2026-10-21)* |
+| **Validity:** correct on code it never saw? | the hold-out, run once | not run → three attempts, not scored *(2026-10-21)* |
 | **Validity:** do findings matter? | the meaning labels (C3m) | not run |
 | **Validity:** does it agree with other tools? | κ against three tools, per rule | 0.913–1.000 pooled; low on some rules (N130) |
-| **Validity:** does it change what agents build? | Study 2 (drift outcome) | designed, in review |
+| **Validity:** does it change what agents build? | Study 2 (drift outcome) | designed, in review → Study 2b scored once: H1, H2 supported, scoped to FF-S03 *(2026-10-21)* |
 
 ## How the objectives are met
 
@@ -52,4 +52,5 @@
 4. Run Study 2.
 
 ## Changelog
+- 2026-10-21: "Today" cells updated (C1d, C3, C3m, C4, C6, MCP use, hold-out, Study 2b), each citing `Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md`, `Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md` or `ops/06-open-tracks-and-capabilities.md`; no new measurement. Fixes conflict 8 of the inventory.
 - 2026-10-18: first version.
