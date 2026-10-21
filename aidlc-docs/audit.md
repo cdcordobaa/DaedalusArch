@@ -2852,3 +2852,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, drift record order step: run (scoring); C4 / D_sem is the next registered step with its own precondition
 
 ---
+
+## Inventory — open tracks and built capabilities
+**Timestamp**: 2026-10-21T05:30:00Z
+**User Input**: "Asked for a compilation of all open tracks (to tag as future work or as work that can continue after a first chapter draft) and of all capabilities built for the instrument, at the start of chapter drafting."
+**AI Response**: "Added ops/06-open-tracks-and-capabilities.md: Part A, open tracks in eight groups with status, evidence path, remaining work and a tag (FRIDAY / DRAFT-NEXT / FUTURE-WORK / DROPPED), plus eight status files that disagree; Part B, built capabilities by instrument plane with evidence and maturity (VALIDATED / DEV / PROTOTYPE / SPEC-ONLY); the strongest supportable claims and a chapter-to-evidence map. Linked from ops/README.md and ops/00-overview.md. Documentation only; no model call, no frozen path."
+**Context**: start of chapter drafting, after the Study 2b scoring pass
+
+---
