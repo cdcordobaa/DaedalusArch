@@ -1,0 +1,17 @@
+{
+ "split": "dev",
+ "case": 5,
+ "family": "D4",
+ "provenance": {
+  "branch": "pilot/hexddd-01",
+  "pilotCommit": "c1805364",
+  "task": "s2-orders-invoices",
+  "step": 1,
+  "runSnapshotCommit": "57a5f33586f69875ef0b764db967e89670ecbe0c",
+  "diff": "results/pilot-hexddd-01/diffs/s2-orders-invoices/step-01.diff",
+  "handReadRow": "src/billing/application/RecordPayment.ts:15"
+ },
+ "positive": "pos",
+ "twin": "twin",
+ "note": "pos: RecordPayment saves the Invoice, then synchronously marks the Order paid (OrderPaidNotifier -> OrderingPaidAcl -> OrderPaidCommand -> MarkOrderPaid -> OrderRepository.save). twin: the InvoicePaid event goes to an outbox; an ordering subscriber (OnInvoicePaid) marks the order paid later, in its own transaction."
+}
