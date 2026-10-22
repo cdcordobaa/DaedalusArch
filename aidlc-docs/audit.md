@@ -2919,6 +2919,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Study 2b — addendum 4: closing the registered secondaries
+**Timestamp**: 2026-10-22T03:58:00Z
+**User Input**: "Decided to close Study 2b's registered secondaries now by the least costly route: run the C4 precondition and, if it passes, C4 and D_sem; run evasion items 4 and 5; defer C1d."
+**AI Response**: "Added Docs/v1.4/study2b-preregistration-addendum-4.md before any semantic call on 2b data: DA13 (C4 precondition then C4 and D_sem as registered, cap fixed by --estimate and dated before the first 2b call), DA14 (C1d not run, reason), DA15 (evasion item 4 computed post hoc at the freeze tag with a new zero-call driver, registered bar unchanged), DA16 (evasion item 5 read blind by an independent AI session with an author spot-check of two diffs). Zero model calls."
+**Context**: Study 2b closure; registered secondaries
+
+---
+
 ## V15-PLAN steps 2 and 3 — edit-gate design note and final-study draft (documentation only)
 **Timestamp**: 2026-10-22T04:40:00Z
 **User Input**: "(coordinator brief) Write the edit-gate design note and a first draft of the final confirmatory study of instrument v1.5, zero calls, and link both from the V15 plan."
