@@ -1,0 +1,51 @@
+# t1-rep3-pull step-02 (session c22): tree after the step against the tree before it
+diff --git a/src/billing/domain/invoice/Invoice.ts b/src/billing/domain/invoice/Invoice.ts
+index 8901f699e..3b7ad8de2 100644
+--- a/src/billing/domain/invoice/Invoice.ts
++++ b/src/billing/domain/invoice/Invoice.ts
+@@ -16,11 +16,13 @@ export class Invoice {
+ 
+   charge(description: string, amount: Money): void {
+     if (this.issued) throw new Error('An issued invoice cannot change');
++    if (amount.cents < 0) throw new Error('An invoice amount must not be negative');
+     this.lines.push(new InvoiceLine(this.lines.length + 1, description, amount));
+   }
+ 
+   issue(taxRate: number): void {
+     if (this.lines.length === 0) throw new Error('Nothing to invoice');
++    if (!(taxRate >= 0)) throw new Error('A tax rate must not be negative');
+     const net = this.net();
+     this.lines.push(new InvoiceLine(this.lines.length + 1, 'tax', net.times(taxRate)));
+     this.issued = true;
+diff --git a/src/ordering/application/PlaceOrder.ts b/src/ordering/application/PlaceOrder.ts
+index b1a40fb45..45494f38f 100644
+--- a/src/ordering/application/PlaceOrder.ts
++++ b/src/ordering/application/PlaceOrder.ts
+@@ -22,7 +22,12 @@ export class PlaceOrder {
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+     if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');
+     const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
+-    for (const l of cmd.lines) order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
++    cmd.lines.forEach((l, i) => {
++      const where = `Order line ${i + 1} (product ${l.productId})`;
++      if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new Error(`${where}: quantity must be a positive whole number, got ${l.quantity}`);
++      if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throw new Error(`${where}: unit price must not be negative, got ${l.unitPriceCents}`);
++      order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
++    });
+     order.place();
+     const unpaid = Money.of(await this.receivables.unpaidCents(cmd.customerId, cmd.currency), cmd.currency);
+     customer.assertWithinCredit(unpaid, order.total());
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index 437e8aeee..89979346c 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -18,7 +18,8 @@ export class Order {
+   addLine(productId: string, quantity: Quantity, unitPrice: Money): void {
+     if (this.placed) throw new Error('A placed order cannot change');
+     if (unitPrice.currency !== this.currency) throw new Error('Currency mismatch');
+-    const existing = this.lines.find((l) => l.isFor(productId));
++    if (unitPrice.cents < 0) throw new Error('A unit price must not be negative');
++    const existing =this.lines.find((l) => l.isFor(productId));
+     if (existing) existing.increase(quantity);
+     else this.lines.push(new OrderLine(this.lines.length + 1, productId, quantity, unitPrice));
+   }

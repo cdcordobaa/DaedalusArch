@@ -1,0 +1,32 @@
+# t2-rep2-pull step-02 (session c16): tree after the step against the tree before it
+diff --git a/src/application/services/BookRoomService.ts b/src/application/services/BookRoomService.ts
+index 50158e592..c0c27ff6e 100644
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -23,7 +23,25 @@ export class BookRoomService implements BookRoom {
+     private readonly notifications: NotificationSender,
+   ) {}
+ 
+-  async book(command: BookRoomCommand): Promise<BookingView> {
++  private readonly roomQueues = new Map<string, Promise<unknown>>();
++
++  /** Runs bookings for the same room one at a time, so check, charge and save are atomic per room. */
++  private withRoomLock<T>(roomId: string, work: () => Promise<T>): Promise<T> {
++    const previous = this.roomQueues.get(roomId) ?? Promise.resolve();
++    const run = previous.then(work, work);
++    const tail = run.catch(() => undefined);
++    this.roomQueues.set(roomId, tail);
++    void tail.then(() => {
++      if (this.roomQueues.get(roomId) === tail) this.roomQueues.delete(roomId);
++    });
++    return run;
++  }
++
++  book(command: BookRoomCommand): Promise<BookingView> {
++    return this.withRoomLock(command.roomId, () => this.bookExclusively(command));
++  }
++
++  private async bookExclusively(command: BookRoomCommand): Promise<BookingView> {
+     const room = await this.rooms.findById(command.roomId);
+     if (room === undefined) throw new BookingError('not-found', `No room ${command.roomId}`);
+     const guest = await this.guests.findById(command.guestId);

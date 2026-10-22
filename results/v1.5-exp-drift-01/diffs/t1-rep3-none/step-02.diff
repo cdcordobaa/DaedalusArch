@@ -1,0 +1,47 @@
+# t1-rep3-none step-02 (session c24): tree after the step against the tree before it
+diff --git a/src/billing/domain/invoice/Invoice.ts b/src/billing/domain/invoice/Invoice.ts
+index 8901f699e..cfa9bb5e0 100644
+--- a/src/billing/domain/invoice/Invoice.ts
++++ b/src/billing/domain/invoice/Invoice.ts
+@@ -16,6 +16,7 @@ export class Invoice {
+ 
+   charge(description: string, amount: Money): void {
+     if (this.issued) throw new Error('An issued invoice cannot change');
++    if (amount.cents < 0) throw new Error('An invoice amount must not be negative');
+     this.lines.push(new InvoiceLine(this.lines.length + 1, description, amount));
+   }
+ 
+diff --git a/src/ordering/application/PlaceOrder.ts b/src/ordering/application/PlaceOrder.ts
+index b1a40fb45..4db9e5f4c 100644
+--- a/src/ordering/application/PlaceOrder.ts
++++ b/src/ordering/application/PlaceOrder.ts
+@@ -22,7 +22,14 @@ export class PlaceOrder {
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+     if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');
+     const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
+-    for (const l of cmd.lines) order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
++    cmd.lines.forEach((l, i) => {
++      try {
++        order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
++      } catch (e) {
++        const reason = e instanceof Error ? e.message : String(e);
++        throw new Error(`Order refused: line ${i + 1} (product ${l.productId}): ${reason}`);
++      }
++    });
+     order.place();
+     const unpaid = Money.of(await this.receivables.unpaidCents(cmd.customerId, cmd.currency), cmd.currency);
+     customer.assertWithinCredit(unpaid, order.total());
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index 437e8aeee..75d84ee78 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -18,7 +18,8 @@ export class Order {
+   addLine(productId: string, quantity: Quantity, unitPrice: Money): void {
+     if (this.placed) throw new Error('A placed order cannot change');
+     if (unitPrice.currency !== this.currency) throw new Error('Currency mismatch');
+-    const existing = this.lines.find((l) => l.isFor(productId));
++    if (unitPrice.cents < 0) throw new Error('Unit price must not be negative');
++    const existing =this.lines.find((l) => l.isFor(productId));
+     if (existing) existing.increase(quantity);
+     else this.lines.push(new OrderLine(this.lines.length + 1, productId, quantity, unitPrice));
+   }

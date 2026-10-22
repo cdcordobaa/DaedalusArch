@@ -1,0 +1,52 @@
+# t2-rep1-pull step-02 (session c03): tree after the step against the tree before it
+diff --git a/src/application/services/BookRoomService.ts b/src/application/services/BookRoomService.ts
+index 77db939bc..6eb525f5c 100644
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -31,17 +31,36 @@ export class BookRoomService implements BookRoom {
+     if (!room.fits(command.guests)) throw new BookingError('invalid', `Room ${room.number} sleeps ${room.capacity}`);
+ 
+     const stay = DateRange.parse(command.checkIn, command.checkOut);
+-    if (!this.availability.isAvailable(room, stay, await this.bookings.findByRoom(room.id))) {
+-      throw new BookingError('unavailable', `Room ${room.number} is taken for these dates`);
+-    }
+-    const total = this.pricing.quote(room, stay);
+-    const idempotencyKey =
+-      command.idempotencyKey ??
+-      `book:${room.id}:${guest.id}:${command.checkIn}:${command.checkOut}:${command.guests}`;
+-    const paymentRef = await this.payments.charge(guest.id, total, idempotencyKey);
+-    const booking = new Booking(this.bookings.nextId(), room.id, guest.id, stay, total, paymentRef);
+-    await this.bookings.save(booking);
++    // Availability check, charge and save run as one critical section per room,
++    // so concurrent requests cannot both pass the check; the loser is never charged.
++    const booking = await this.withRoomLock(room.id, async () => {
++      if (!this.availability.isAvailable(room, stay, await this.bookings.findByRoom(room.id))) {
++        throw new BookingError('unavailable', `Room ${room.number} is taken for these dates`);
++      }
++      const total = this.pricing.quote(room, stay);
++      const idempotencyKey =
++        command.idempotencyKey ??
++        `book:${room.id}:${guest.id}:${command.checkIn}:${command.checkOut}:${command.guests}`;
++      const paymentRef = await this.payments.charge(guest.id, total, idempotencyKey);
++      const created = new Booking(this.bookings.nextId(), room.id, guest.id, stay, total, paymentRef);
++      await this.bookings.save(created);
++      return created;
++    });
+     await this.notifications.send(guest.email, `Room ${room.number} is booked (${booking.id})`);
+     return toBookingView(booking);
+   }
++
++  private readonly roomLocks = new Map<string, Promise<unknown>>();
++
++  private async withRoomLock<T>(roomId: string, work: () => Promise<T>): Promise<T> {
++    const previous = this.roomLocks.get(roomId) ?? Promise.resolve();
++    const run = previous.then(work, work);
++    const tail = run.catch(() => undefined);
++    this.roomLocks.set(roomId, tail);
++    try {
++      return await run;
++    } finally {
++      if (this.roomLocks.get(roomId) === tail) this.roomLocks.delete(roomId);
++    }
++  }
+ }

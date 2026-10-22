@@ -199,6 +199,25 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - **Reading (dev):** P6 is the first puzzle the frozen instrument sees that the agent alone fails at 2/5 or below.
   The condition for sizing an `mcp` arm is met, and P5 meets it for a DETECT-02 arm.
 
+### 14. DRIFT-01: the Study 2b drift protocol on DDD and Hexagonal seeds (2026-10-22)
+Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Docs/DiagnosticRuns/drift-01-rescores-2026-10-23.md` (Part A, zero calls) and `Docs/DiagnosticRuns/drift-01-pilot-2026-10-23.md`. Records: `results/v1.5-exp-drift-01/`.
+- **Part A, re-score of HEXDDD-01** with the frozen rules plus R-D4 and R-XCTX:
+  - D_v15 is 2 on both S1 (inferred roots) and S2, against a frozen D of 0;
+  - the per-step new identities are S1 0/0/2/0/0 and S2 2/0/0/0/2;
+  - 3 of the 9 hand-read cases are caught at their step (7 of 9 with every DETECT-02 rule; fitted, dev);
+  - the Study 2b step-5 trees are not in the repository, so that precision check was skipped.
+- **Pilot:** `claude-sonnet-5-5`, CLI 2.1.308, shared step 1 then steps 2–5 per arm, 3 replicates, the puzzle isolation with the clone closed in place. 82 of 94 calls, 0 redraws, 78/78 turns completed.
+- **ΣD_v15** (never pooled):
+  - DDD `t1`: none 6 (2, 2, 2), pull 0, gate 0;
+  - Hexagonal `t2`: none 1, pull 0, gate 0;
+  - D_frozen is 0 everywhere;
+  - `none`'s identities are the step-5 synchronous `IssueInvoice → Order` write, the HEXDDD-01 case-8 shape.
+- **The mechanisms differ:**
+  - the gate showed the inherited step-1 `RecordPayment` cross-context write at step 2, and the agent removed it in 3/3 blocks;
+  - pull's tool reported that write in 13 of 14 calls, and it stayed in 3/3 blocks. Pull's agents still avoided the new write (a read-only status query instead).
+- **Predictions:** P1, P2 and P5 hold; P3 (gate beats pull on D) fails as a tie at 0; P4 holds for the gate and fails for pull.
+- **Caveats:** the replicates are nearly identical, t2 rests on inferred roots (its one `none` identity is a candidate false positive), and there is no functional acceptance beyond tsc. Four identities are listed for the author's hand read.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -206,9 +225,11 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Fix the S1 seed `.gitignore` gap on `pilot/hexddd-01`; update the case-bank cards with the entry 6 verdicts.
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
+- [ ] Author: hand-read the 4 new DRIFT-01 identities and the inherited `RecordPayment` pair (entry 14).
 - [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
+- 2026-10-22: entry 14 (DRIFT-01).
 - 2026-10-22: entry 13 (PUZZLE-03).
 - 2026-10-22: entry 12 (v1.5 U3 severity rubric).
 - 2026-10-22: entry 11 (edit gate built and smoke-tested).

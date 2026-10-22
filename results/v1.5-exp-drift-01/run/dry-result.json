@@ -1,0 +1,206 @@
+{
+  "schema": "drift-01-dry/v1",
+  "at": "2026-10-22T19:13:29.778Z",
+  "calls": 0,
+  "listing": [
+    {
+      "path": "/srv/o/specs/t1.yaml",
+      "denied": true
+    },
+    {
+      "path": "/srv/o/input.json",
+      "denied": true
+    },
+    {
+      "path": "/srv/o/canary.txt",
+      "denied": true
+    },
+    {
+      "path": "/srv/o/out/canary.txt",
+      "denied": true
+    },
+    {
+      "path": "/srv/o/seeds/t1",
+      "denied": true
+    },
+    {
+      "path": "<repo>/ops/notes/drift-01-design.md",
+      "denied": true
+    },
+    {
+      "path": "<repo>/experiments/drift-01/run-drift.ts",
+      "denied": true
+    },
+    {
+      "path": "<repo>/experiments/pilot-hexddd-01/tasks.json",
+      "denied": true
+    },
+    {
+      "path": "<repo>/experiments/edit-gate/hub.ts",
+      "denied": true
+    },
+    {
+      "path": "/root",
+      "denied": true
+    },
+    {
+      "path": "/tmp/claude-0",
+      "denied": true
+    }
+  ],
+  "sweep": {
+    "patterns": 18,
+    "readableFiles": []
+  },
+  "relays": [
+    {
+      "task": "t1",
+      "inside": {
+        "tools": 12,
+        "hasCheck": true,
+        "isError": false,
+        "status": "clean",
+        "text": "check_consistency: No command writes more than one aggregate instance or another context's aggregate (checked 4 commands"
+      },
+      "outside": {
+        "tools": 12,
+        "hasCheck": true,
+        "isError": true,
+        "status": null,
+        "text": "confined: the project argument must lie inside the configured project; omit it to use the configured project"
+      }
+    },
+    {
+      "task": "t2",
+      "inside": {
+        "tools": 12,
+        "hasCheck": true,
+        "isError": false,
+        "status": "clean",
+        "text": "check_consistency: No command writes more than one aggregate instance or another context's aggregate (checked 3 commands"
+      },
+      "outside": {
+        "tools": 12,
+        "hasCheck": true,
+        "isError": true,
+        "status": null,
+        "text": "confined: the project argument must lie inside the configured project; omit it to use the configured project"
+      }
+    }
+  ],
+  "gateCheck": {
+    "ms": 292,
+    "replied": true
+  },
+  "sessions": [
+    {
+      "id": "c01",
+      "kind": "shared",
+      "task": "t2",
+      "arm": "none",
+      "verdict": "done",
+      "dryLines": [
+        "none step-01"
+      ]
+    },
+    {
+      "id": "c02",
+      "kind": "arm",
+      "task": "t2",
+      "arm": "none",
+      "verdict": "done",
+      "dryLines": [
+        "none step-01",
+        "none step-02",
+        "none step-03",
+        "none step-04",
+        "none step-05"
+      ]
+    },
+    {
+      "id": "c03",
+      "kind": "arm",
+      "task": "t2",
+      "arm": "pull",
+      "verdict": "done",
+      "dryLines": [
+        "none step-01",
+        "pull step-02",
+        "pull step-03",
+        "pull step-04",
+        "pull step-05"
+      ]
+    },
+    {
+      "id": "c04",
+      "kind": "arm",
+      "task": "t2",
+      "arm": "gate",
+      "verdict": "done",
+      "dryLines": [
+        "none step-01",
+        "gate step-02",
+        "gate step-03",
+        "gate step-04",
+        "gate step-05"
+      ]
+    },
+    {
+      "id": "c05",
+      "kind": "shared",
+      "task": "t1",
+      "arm": "none",
+      "verdict": "done",
+      "dryLines": [
+        "none step-01"
+      ]
+    },
+    {
+      "id": "c06",
+      "kind": "arm",
+      "task": "t1",
+      "arm": "gate",
+      "verdict": "done",
+      "dryLines": [
+        "none step-01",
+        "gate step-02",
+        "gate step-03",
+        "gate step-04",
+        "gate step-05"
+      ]
+    },
+    {
+      "id": "c07",
+      "kind": "arm",
+      "task": "t1",
+      "arm": "pull",
+      "verdict": "done",
+      "dryLines": [
+        "none step-01",
+        "pull step-02",
+        "pull step-03",
+        "pull step-04",
+        "pull step-05"
+      ]
+    },
+    {
+      "id": "c08",
+      "kind": "arm",
+      "task": "t1",
+      "arm": "none",
+      "verdict": "done",
+      "dryLines": [
+        "none step-01",
+        "none step-02",
+        "none step-03",
+        "none step-04",
+        "none step-05"
+      ]
+    }
+  ],
+  "argvDiffFromNone": {
+    "pull": 15,
+    "gate": 1
+  },
+  "passed": true
+}
