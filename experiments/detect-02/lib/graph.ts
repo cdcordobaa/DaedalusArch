@@ -46,7 +46,7 @@ export function writeTsconfig(tree: string, scratch: string): string {
   return file;
 }
 
-export interface BuildOptions { readonly spec?: string; readonly style?: string; readonly withApg?: boolean; readonly scratch?: string; readonly tsconfig?: string }
+export interface BuildOptions { readonly spec?: string | undefined; readonly style?: string | undefined; readonly withApg?: boolean | undefined; readonly scratch?: string | undefined; readonly tsconfig?: string | undefined }
 
 export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise<{ graph: MemoryGraph; facts: Facts; spec: DetectSpec; stats: Record<string, number> }> {
   const scratch = opts.scratch ?? fs.mkdtempSync(path.join(os.tmpdir(), 'detect-02-'));

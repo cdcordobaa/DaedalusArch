@@ -1,0 +1,655 @@
+{
+ "schema": "detect-02-zero-call-check-v1",
+ "version": "v1.5-exp",
+ "modelCalls": 0,
+ "via": "MCP in-process client, experimental server with --confine",
+ "tools": [
+  "get_architecture_spec",
+  "which_layer",
+  "check_import",
+  "evaluate_project",
+  "explain_violation",
+  "check_file",
+  "check_diff",
+  "suggest_placement",
+  "infer_spec",
+  "explain_finding",
+  "propose_spec",
+  "check_consistency"
+ ],
+ "confine": {
+  "refused": true,
+  "text": "confined: the project argument must lie inside the configured project; omit it to use the configured project"
+ },
+ "perGroup": {
+  "agent trees": {
+   "TP": 19,
+   "FN": 0,
+   "FP": 0,
+   "TN": 11
+  },
+  "P4 trees": {
+   "TP": 0,
+   "FN": 0,
+   "FP": 0,
+   "TN": 18
+  },
+  "clean solutions and seeds": {
+   "TP": 0,
+   "FN": 0,
+   "FP": 0,
+   "TN": 4
+  },
+  "trap solutions": {
+   "TP": 3,
+   "FN": 0,
+   "FP": 0,
+   "TN": 0
+  }
+ },
+ "latencyMs": {
+  "median": 56,
+  "p90": 75,
+  "max": 266
+ },
+ "samples": {
+  "P2": "c01/step-03\ncheck_consistency: 1 command(s) break a consistency boundary: fix each before finishing the step.\n\n1. src/sales/application/PlaceOrder.ts:24 [one aggregate per command; cross-context write]\n   Rule: One command changes and saves one aggregate instance. Any other aggregate (another instance of the same type, or another type) is updated afterwards by a handler of a domain event that the first aggregate records. A bounded context changes only its own aggregates. Another context's aggregate changes when that context reacts to an event it subscribes to, not inside this command.\n   Why: PlaceOrder.execute (src/sales/application/PlaceOrder.ts:24) saves more than one aggregate instance in the same call: Order: order; Member: member. PlaceOrder.execute (src/sales/application/PlaceOrder.ts:24), in context sales, changes Member (owned by membership) through PlaceOrder.execute → MembershipDirectory.awardPoints → awardPoints (published interface) → AwardPoints.execute → MemberRepository.save.\n   Write: src/membership/application/AwardPoints.ts:12 MemberRepository.save(…) via PlaceOrder.execute → MembershipDirectory.awardPoints → awardPoints (published interface) → AwardPoints.execute → MemberRepository.save\n   Write: src/sales/application/PlaceOrder.ts:32 OrderRepository.save(…) via PlaceOrder.execute → OrderRepository.save\n   Fix: Do not call the other context's write operation from this command. Record a domain event in Order (saved with it), and let membership subscribe to that event through its published interface and change its own aggregate there.",
+  "P1": "c10/step-03\ncheck_consistency: 1 command(s) break a consistency boundary: fix each before finishing the step.\n\n1. src/ledger/application/Transfer.ts:18 [one aggregate per command]\n   Rule: One command changes and saves one aggregate instance. Any other aggregate (another instance of the same type, or another type) is updated afterwards by a handler of a domain event that the first aggregate records.\n   Why: Transfer.execute (src/ledger/application/Transfer.ts:18) saves more than one aggregate instance in the same call: Account: from, to.\n   Write: src/ledger/application/Transfer.ts:35 AccountRepository.saveAll(…) via Transfer.execute → AccountRepository.saveAll\n   Fix: Let this command change and save one Account. Put the change of the other Account in a method that records a domain event, and apply it to the other instance in a handler of that event (idempotent per event), so each command writes one instance."
+ },
+ "rows": [
+  {
+   "label": "c01/step-01",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 266,
+   "findings": []
+  },
+  {
+   "label": "c01/step-02",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 94,
+   "findings": []
+  },
+  {
+   "label": "c01/step-03",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 85,
+   "findings": [
+    "R-D4+R-XCTX src/sales/application/PlaceOrder.ts:24"
+   ]
+  },
+  {
+   "label": "c02/step-01",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 83,
+   "findings": []
+  },
+  {
+   "label": "c02/step-02",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 75,
+   "findings": []
+  },
+  {
+   "label": "c02/step-03",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 72,
+   "findings": [
+    "R-D4+R-XCTX src/sales/application/PlaceOrder.ts:24"
+   ]
+  },
+  {
+   "label": "c03/step-01",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 54,
+   "findings": []
+  },
+  {
+   "label": "c03/step-02",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 53,
+   "findings": []
+  },
+  {
+   "label": "c03/step-03",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 48,
+   "findings": []
+  },
+  {
+   "label": "c04/step-01",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 80,
+   "findings": []
+  },
+  {
+   "label": "c04/step-02",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 75,
+   "findings": []
+  },
+  {
+   "label": "c04/step-03",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 75,
+   "findings": [
+    "R-D4+R-XCTX src/sales/application/PlaceOrder.ts:24"
+   ]
+  },
+  {
+   "label": "c05/step-01",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 38,
+   "findings": []
+  },
+  {
+   "label": "c05/step-02",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 43,
+   "findings": []
+  },
+  {
+   "label": "c05/step-03",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 47,
+   "findings": []
+  },
+  {
+   "label": "c06/step-01",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 65,
+   "findings": []
+  },
+  {
+   "label": "c06/step-02",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 66,
+   "findings": []
+  },
+  {
+   "label": "c06/step-03",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 71,
+   "findings": [
+    "R-D4+R-XCTX src/sales/application/PlaceOrder.ts:26"
+   ]
+  },
+  {
+   "label": "c07/step-01",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 64,
+   "findings": []
+  },
+  {
+   "label": "c07/step-02",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 64,
+   "findings": []
+  },
+  {
+   "label": "c07/step-03",
+   "group": "agent trees",
+   "puzzle": "p2-loyalty",
+   "expected": "legit-clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 69,
+   "findings": []
+  },
+  {
+   "label": "c08/step-01",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 35,
+   "findings": []
+  },
+  {
+   "label": "c08/step-02",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 41,
+   "findings": []
+  },
+  {
+   "label": "c08/step-03",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 44,
+   "findings": []
+  },
+  {
+   "label": "c09/step-01",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 36,
+   "findings": []
+  },
+  {
+   "label": "c09/step-02",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 42,
+   "findings": []
+  },
+  {
+   "label": "c09/step-03",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 70,
+   "findings": []
+  },
+  {
+   "label": "c10/step-01",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 52,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:9"
+   ]
+  },
+  {
+   "label": "c10/step-02",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 66,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:18"
+   ]
+  },
+  {
+   "label": "c10/step-03",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 60,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:18"
+   ]
+  },
+  {
+   "label": "c11/step-01",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 52,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:9"
+   ]
+  },
+  {
+   "label": "c11/step-02",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 55,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:12"
+   ]
+  },
+  {
+   "label": "c11/step-03",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 57,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:12"
+   ]
+  },
+  {
+   "label": "c13/step-01",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 53,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:9"
+   ]
+  },
+  {
+   "label": "c13/step-02",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 51,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:12"
+   ]
+  },
+  {
+   "label": "c13/step-03",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 57,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:12"
+   ]
+  },
+  {
+   "label": "c14/step-01",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 39,
+   "findings": []
+  },
+  {
+   "label": "c14/step-02",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 41,
+   "findings": []
+  },
+  {
+   "label": "c14/step-03",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 36,
+   "findings": []
+  },
+  {
+   "label": "c15/step-01",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 51,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:9"
+   ]
+  },
+  {
+   "label": "c15/step-02",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 54,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:12"
+   ]
+  },
+  {
+   "label": "c15/step-03",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 62,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:12"
+   ]
+  },
+  {
+   "label": "c16/step-01",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 51,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:9"
+   ]
+  },
+  {
+   "label": "c16/step-02",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 55,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:29"
+   ]
+  },
+  {
+   "label": "c16/step-03",
+   "group": "agent trees",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 64,
+   "findings": [
+    "R-D4 src/ledger/application/Transfer.ts:31"
+   ]
+  },
+  {
+   "label": "p1-transfers/seed",
+   "group": "clean solutions and seeds",
+   "puzzle": "p1-transfers",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 46,
+   "findings": []
+  },
+  {
+   "label": "p1-transfers/solutions/clean",
+   "group": "clean solutions and seeds",
+   "puzzle": "p1-transfers",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 58,
+   "findings": []
+  },
+  {
+   "label": "p1-transfers/solutions/trap",
+   "group": "trap solutions",
+   "puzzle": "p1-transfers",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 56,
+   "findings": [
+    "R-D4 src/ledger/application/TransferMoney.ts:11"
+   ]
+  },
+  {
+   "label": "p2-loyalty/seed",
+   "group": "clean solutions and seeds",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 56,
+   "findings": []
+  },
+  {
+   "label": "p2-loyalty/solutions/clean",
+   "group": "clean solutions and seeds",
+   "puzzle": "p2-loyalty",
+   "expected": "clean",
+   "status": "clean",
+   "verdict": "TN",
+   "ms": 69,
+   "findings": []
+  },
+  {
+   "label": "p2-loyalty/solutions/trap",
+   "group": "trap solutions",
+   "puzzle": "p2-loyalty",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 63,
+   "findings": [
+    "R-D4+R-XCTX src/sales/application/PlaceOrder.ts:27"
+   ]
+  },
+  {
+   "label": "p2-loyalty/solutions/trap-alt",
+   "group": "trap solutions",
+   "puzzle": "p2-loyalty",
+   "expected": "trap",
+   "status": "violations",
+   "verdict": "TP",
+   "ms": 62,
+   "findings": [
+    "R-D4+R-XCTX src/sales/application/PlaceOrder.ts:24"
+   ]
+  },
+  {
+   "label": "p4-library-holds/seed",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 39,
+   "findings": []
+  },
+  {
+   "label": "p4-library-holds/solutions/clean",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 45,
+   "findings": []
+  },
+  {
+   "label": "p4-library-holds/solutions/trap",
+   "group": "P4 trees",
+   "puzzle": "p4-library-holds",
+   "expected": "quiet",
+   "status": "not-applicable",
+   "verdict": "TN",
+   "ms": 35,
+   "findings": []
+  }
+ ]
+}

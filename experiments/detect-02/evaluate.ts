@@ -31,7 +31,9 @@ export interface DevTree {
 }
 
 const PUZ = 'experiments/puzzle-01/puzzles';
-const SESS = 'results/v1.4-puzzle-01-baseline/sessions';
+/** The baseline results folder (renamed to v1.4-puzzle-01-baseline; the old name is accepted until the rename lands). */
+export const BASELINE = fs.existsSync('results/v1.4-puzzle-01-baseline') ? 'results/v1.4-puzzle-01-baseline' : 'results/puzzle-01-baseline';
+const SESS = `${BASELINE}/sessions`;
 
 /** Oracle FAILs (results/v1.4-puzzle-01-baseline/oracle-verdicts-to-read.md), hand-read proposals; c07 is legit-clean. */
 const PUZZLE_FAILS: Record<string, Case[]> = {
@@ -51,7 +53,7 @@ const FAIL_FROM_STEP: Record<string, number> = { SG1: 1, SG2: 2 };
 const P2_SG2_STEP = 3;
 
 function puzzleTrees(): DevTree[] {
-  const map = JSON.parse(fs.readFileSync('results/v1.4-puzzle-01-baseline/private-id-map.json', 'utf8')) as { sessions: Record<string, { puzzle: string; verdict: string }> };
+  const map = JSON.parse(fs.readFileSync(`${BASELINE}/private-id-map.json`, 'utf8')) as { sessions: Record<string, { puzzle: string; verdict: string }> };
   const out: DevTree[] = [];
   for (const [s, v] of Object.entries(map.sessions)) {
     if (v.verdict !== 'done') continue;

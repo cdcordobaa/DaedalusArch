@@ -128,7 +128,7 @@ export function grounding(tree: string, files: readonly string[], a: Answer): { 
   return { cited: a.evidence.length, grounded };
 }
 
-export interface Outcome { id: string; verdict: string; grounded: boolean; cached: boolean; promptSha256: string; rationale?: string }
+export interface Outcome { id: string; verdict: string; grounded: boolean; cached: boolean; promptSha256: string; rationale?: string | undefined }
 
 /** Ask (or replay) one candidate. Never exceeds `cap` ledger lines; a replay costs nothing. */
 export function ask(c: Candidate, opts: { ledger?: string; cassettes?: string; cap?: number; dryRun?: boolean } = {}): Outcome {

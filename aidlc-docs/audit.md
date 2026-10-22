@@ -2921,3 +2921,13 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory PUZZLE-01 baseline, run and scoring; no frozen path or Study 2b file changed
 
 ---
+
+---
+
+## DETECT-02 — check_consistency tool for the puzzle traps (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T02:10:40Z
+**User Input**: "(coordinator brief, narrowed scope) Make the puzzle-trap violations visible to agents through a tool, then measure that. Scope: R-D4 (one command writes two or more aggregates) and R-XCTX (a command writes another context's aggregate) only. Build an experimental MCP server that serves the frozen tools unchanged plus check_consistency, run a zero-call check through the MCP layer, draft a run note for a tool arm, launch nothing."
+**AI Response**: "Earlier on this branch: design note ops/notes/detect-02-design.md (DRAFT), APG facts and rules under experiments/detect-02/, and a pause while the design was discussed. Added experiments/detect-02/mcp/: the server (the frozen createServer imported read-only, plus check_consistency, honouring --confine and --call-log), a stdio entry, a push gate for the loop harness, a README covering both modes, and a zero-call check that calls the tool through an in-process MCP client. Results: all P1 and P2 trap trees flagged (19 agent trees, 3 trap solutions); 0 hits on the clean solutions, the seeds, c07 (legit-clean), earlier P2 steps and all 18 P4 trees; median latency 56 ms; a confined project argument is refused. Drafted ops/notes/puzzle-02-tool-arm-note.md (arm mcp-detect on P1 and P2, 5 runs each, cap 38) with a frame sentence that passes the hint audit with 0 FAIL. Zero model calls; no run or cloud session launched; nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, and no registered Study 2b artefact, changed; no held-out or sealed path read."
+**Context**: Exploratory DETECT-02, tool delivery; development material only, never applied to Study 2b
+
+---
