@@ -6,6 +6,10 @@
  * (`gate.ts`) and replies with the hook JSON. It never echoes a spec path or spec text, refuses a `file_path` outside
  * the work tree (symlinks resolved first), drops `transcript_path`, and fails open (empty reply, logged) on any error.
  *
+ * With the `layers` option (PUZZLE-04) the hub also runs the frozen `check_diff` layer rules FF-S01–S03 on the changed
+ * source files against a copy of the seed taken when the cell opens (`layers.ts`); their findings join the same
+ * de-duplication, message and Stop hook.
+ *
  * One JSON line per hook event goes to `<logDir>/<cell>.gate.jsonl` (root-only): the record of the run.
  */
 import { createHash } from 'node:crypto';
@@ -13,6 +17,7 @@ import * as fs from 'node:fs';
 import * as net from 'node:net';
 import * as path from 'node:path';
 import { checkConsistency } from '../detect-02/mcp/consistency.js';
+import { checkLayers } from './layers.js';
 import { GATED_TOOLS, GateState, editMessage, insideTree, keyOf, parseHookEvent, postToolUseReply, stopMessage, stopReply } from './gate.js';
 
 export interface GateCell {
@@ -92,9 +97,20 @@ export interface GateLogLine {
   readonly error: string | null;
   /** Gaming flag: the agent's tree holds DETECT-02's allowance overlay, which can turn findings into `allowed`. */
   readonly allowOverlay: boolean;
+  /** `layers` only: blocking FF-S01–S03 findings in this event's check, the advisory ones dropped, and the time. */
+  readonly layerFindings?: number | null;
+  readonly layerAdvisory?: number | null;
+  readonly layerMs?: number | null;
+  /** `layers` only: the layer check failed; its findings are dropped, the consistency findings still count. */
+  readonly layerError?: string | null;
 }
 
-interface Session { readonly cell: GateCell; readonly seed: Map<string, string>; readonly state: GateState; readonly scratch: string }
+interface Session { readonly cell: GateCell; readonly seed: Map<string, string>; readonly state: GateState; readonly scratch: string; readonly seedCopy: string }
+
+export interface GateHubOptions {
+  /** Also run the frozen layer rules FF-S01–S03 (`layers.ts`). Off by default (the build's gate). */
+  readonly layers?: boolean;
+}
 
 export class GateHub {
   private server: net.Server | null = null;
@@ -106,14 +122,20 @@ export class GateHub {
     private readonly logDir: string,
     /** Optional seam for tests: replaces the check. */
     private readonly check: typeof checkConsistency = checkConsistency,
+    private readonly options: GateHubOptions = {},
   ) {}
 
   /** Opens a session on a cell; the seed is the tree as it is now. Warms the checker once (not logged). */
   async setCell(cell: GateCell): Promise<void> {
     const scratch = path.join(this.logDir, 'scratch', cell.id);
     fs.mkdirSync(scratch, { recursive: true, mode: 0o700 });
-    this.session = { cell, seed: treeHashes(cell.project), state: new GateState(), scratch };
+    const seedCopy = path.join(scratch, 'seed');
+    fs.rmSync(seedCopy, { recursive: true, force: true });
+    if (this.options.layers === true) fs.cpSync(cell.project, seedCopy, { recursive: true, filter: (src) => path.relative(cell.project, src).split(path.sep)[0] !== 'node_modules' });
+    this.session = { cell, seed: treeHashes(cell.project), state: new GateState(), scratch, seedCopy };
     await this.check({ root: cell.project, spec: cell.spec, scratch }).catch(() => undefined);
+    // Warm the frozen handler once: every seed file diffed against nothing (not logged, findings dropped).
+    if (this.options.layers === true) await checkLayers({ root: cell.project, spec: cell.spec, seedDir: path.join(scratch, 'none'), changed: [...this.session.seed.keys()] }).catch(() => undefined);
   }
 
   setTurn(turn: string): void {
@@ -190,10 +212,19 @@ export class GateHub {
       const changed = changedSince(s.seed, treeHashes(s.cell.project));
       const t1 = performance.now();
       const res = changed.length === 0 ? null : await this.check({ root: s.cell.project, spec: s.cell.spec, files: changed, scratch: s.scratch });
+      // A layer-check error (for example a spec the frozen loader rejects) is logged and drops only the layer findings.
+      let layerError: string | null = null;
+      const lay = this.options.layers === true && changed.length > 0
+        ? await checkLayers({ root: s.cell.project, spec: s.cell.spec, seedDir: s.seedCopy, changed }).catch((e: unknown) => {
+          layerError = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+          return null;
+        })
+        : null;
       const checkMs = res === null ? 0 : Math.round(performance.now() - t1);
-      const keyed = res === null ? [] : res.findings.map((f) => keyOf(f, res.aggregateRoots));
+      const keyed = [...(res === null ? [] : res.findings.map((f) => keyOf(f, res.aggregateRoots))), ...(lay?.findings ?? [])];
       const d = s.state.update(keyed);
-      const common = { ...base, file, checkMs, changedFiles: changed.length, findings: keyed.length, newKeys: d.fresh.map((f) => f.key), resolvedKeys: d.resolved.map((f) => f.key), openKeys: d.open.map((f) => f.key), allowOverlay };
+      const layerFields = this.options.layers === true ? { layerFindings: lay?.findings.length ?? 0, layerAdvisory: lay?.advisory ?? 0, layerMs: lay?.ms ?? 0, layerError } : {};
+      const common = { ...base, file, checkMs, changedFiles: changed.length, findings: keyed.length, newKeys: d.fresh.map((f) => f.key), resolvedKeys: d.resolved.map((f) => f.key), openKeys: d.open.map((f) => f.key), allowOverlay, ...layerFields };
       if (ev.event === 'PostToolUse') return log(common, ev.event, postToolUseReply(editMessage(d)));
       const block = d.open.length > 0 && !ev.stopHookActive && s.state.claimStop(s.cell.turn);
       return log({ ...common, stopBlock: block }, ev.event, block ? stopReply(stopMessage(d.open)) : '');

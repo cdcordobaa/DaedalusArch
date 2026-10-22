@@ -1,0 +1,88 @@
+diff --git a/b/src/bookings/application/CancelBooking.ts b/b/src/bookings/application/CancelBooking.ts
+new file mode 100644
+index 000000000..80b2ef50b
+--- /dev/null
++++ b/b/src/bookings/application/CancelBooking.ts
+@@ -0,0 +1,15 @@
++import { BookingError } from '../domain/BookingError';
++import type { BookingRepository } from '../domain/booking/BookingRepository';
++import { BookingId } from '../domain/booking/value-objects/BookingId';
++
++/** A passenger cancels a booking. */
++export class CancelBooking {
++  constructor(private readonly bookings: BookingRepository) {}
++
++  execute(bookingId: string): void {
++    const booking = this.bookings.byId(BookingId.of(bookingId));
++    if (booking === undefined) throw new BookingError(`no booking ${bookingId}`);
++    booking.cancel();
++    this.bookings.save(booking);
++  }
++}
+diff --git a/a/src/bookings/domain/booking/Booking.ts b/b/src/bookings/domain/booking/Booking.ts
+index f3ac43ea0..60a6a9360 100644
+--- a/a/src/bookings/domain/booking/Booking.ts
++++ b/b/src/bookings/domain/booking/Booking.ts
+@@ -3,7 +3,7 @@ import { BookingError } from '../BookingError';
+ import { BookingRequested } from './events/BookingRequested';
+ import type { BookingId } from './value-objects/BookingId';
+ 
+-export type BookingStatus = 'requested' | 'confirmed' | 'rejected';
++export type BookingStatus = 'requested' | 'confirmed' | 'rejected' | 'cancelled';
+ 
+ /** Seats one passenger asks for on one sailing. */
+ const MAX_SEATS = 9;
+@@ -50,6 +50,12 @@ export class Booking {
+     this.current = 'rejected';
+   }
+ 
++  /** Cancelling a cancelled or rejected booking changes nothing. */
++  cancel(): void {
++    if (this.current === 'cancelled' || this.current === 'rejected') return;
++    this.current = 'cancelled';
++  }
++
+   get status(): BookingStatus {
+     return this.current;
+   }
+diff --git a/a/src/bookings/index.ts b/b/src/bookings/index.ts
+index d643e0488..5ee668b39 100644
+--- a/a/src/bookings/index.ts
++++ b/b/src/bookings/index.ts
+@@ -1,3 +1,4 @@
++import { CancelBooking } from './application/CancelBooking';
+ import { GetBooking } from './application/GetBooking';
+ import { RequestBooking } from './application/RequestBooking';
+ import { SettleBooking } from './application/SettleBooking';
+@@ -12,6 +13,7 @@ export interface BookingsModule {
+   book(passenger: string, sailingId: string, seats: number): string;
+   booking(bookingId: string): BookingView | undefined;
+   settle(bookingId: string, seatsTaken: boolean): void;
++  cancel(bookingId: string): void;
+ }
+ 
+ export function createBookings(bookings: BookingRepository, sailings: SailingDirectory): BookingsModule {
+@@ -19,5 +21,6 @@ export function createBookings(bookings: BookingRepository, sailings: SailingDir
+     book: (passenger, sailingId, seats) => new RequestBooking(bookings, sailings).execute(passenger, sailingId, seats),
+     booking: (bookingId) => new GetBooking(bookings).execute(bookingId),
+     settle: (bookingId, seatsTaken) => new SettleBooking(bookings).execute(bookingId, seatsTaken),
++    cancel: (bookingId) => new CancelBooking(bookings).execute(bookingId),
+   };
+ }
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 9d145b415..184ee6598 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -38,6 +38,12 @@ export function createApp() {
+     releaseBlock: (sailingId: string, party: string): void => command(() => sailings.releaseSeats(sailingId, party)),
+     book: (passenger: string, sailingId: string, seats: number): string => command(() => bookings.book(passenger, sailingId, seats)),
+     booking: (bookingId: string) => bookings.booking(bookingId),
++    cancelBooking: (bookingId: string): void =>
++      command(() => {
++        const before = bookings.booking(bookingId);
++        bookings.cancel(bookingId);
++        if (before?.status === 'confirmed') sailings.releaseSeats(before.sailingId, `booking:${bookingId}`);
++      }),
+     deskNotices: (): string[] => notices.all(),
+   };
+ }

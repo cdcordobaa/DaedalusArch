@@ -1,0 +1,25 @@
+diff --git a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+index 1a1001828..6cfa47bfa 100644
+--- a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -6,6 +6,9 @@ import type { Parcel } from '../../../domain/model/Parcel';
+ import type { Quote } from '../../../domain/model/Quote';
+ import { PriceTable } from '../../../domain/services/PriceTable';
+ 
++/** Parcels heavier than this must use freight; lighter or equal ones must not. */
++const FREIGHT_THRESHOLD_GRAMS = 20_000;
++
+ export class FastshipRateAdapter implements RatePort {
+   constructor(
+     private readonly client: FastshipClient,
+@@ -24,7 +27,9 @@ export class FastshipRateAdapter implements RatePort {
+       if (e instanceof FastshipUnavailableError) return this.fallback.quote(parcel);
+       throw e;
+     }
+-    const priced = rates.map((rate) => ({
++    const needsFreight = parcel.weightGrams > FREIGHT_THRESHOLD_GRAMS;
++    const allowed = rates.filter((rate) => (rate.serviceCode === 'FREIGHT') === needsFreight);
++    const priced = allowed.map((rate) => ({
+       price: Money.of(Number(rate.amount.value), rate.amount.currency),
+       service: rate.serviceName,
+       estimated: false,

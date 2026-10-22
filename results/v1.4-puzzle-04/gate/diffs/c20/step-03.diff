@@ -1,0 +1,103 @@
+diff --git a/b/src/business/services/TakingsService.ts b/b/src/business/services/TakingsService.ts
+new file mode 100644
+index 000000000..77acabefd
+--- /dev/null
++++ b/b/src/business/services/TakingsService.ts
+@@ -0,0 +1,30 @@
++import type { JobGateway } from '../../persistence/JobGateway';
++import type { MechanicGateway } from '../../persistence/MechanicGateway';
++import { formatCents, jobTotalCents } from '../rules/Pricing';
++
++export interface MechanicTakingsLine {
++  readonly mechanic: string;
++  readonly takings: string;
++}
++
++export class TakingsService {
++  constructor(
++    private readonly jobs: JobGateway,
++    private readonly mechanics: MechanicGateway,
++  ) {}
++
++  /** Takings per mechanic for jobs closed in the month (YYYY-MM), highest first, then by name. */
++  byMechanic(month: string): MechanicTakingsLine[] {
++    const closed = this.jobs.closedIn(month);
++    return this.mechanics
++      .all()
++      .map((m) => {
++        const mine = closed.filter((j) => j.mechanicId === m.id);
++        const cents = mine.reduce((sum, j) => sum + jobTotalCents(j.labourMinutes, j.partsCents), 0);
++        return { mechanic: m.name, jobs: mine.length, cents };
++      })
++      .filter((l) => l.jobs > 0)
++      .sort((a, b) => b.cents - a.cents || (a.mechanic < b.mechanic ? -1 : a.mechanic > b.mechanic ? 1 : 0))
++      .map((l) => ({ mechanic: l.mechanic, takings: formatCents(l.cents) }));
++  }
++}
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 727b8af95..6985df94d 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,5 +1,6 @@
+ import { JobService } from './business/services/JobService';
+ import { MechanicService } from './business/services/MechanicService';
++import { TakingsService } from './business/services/TakingsService';
+ import { WorkloadService } from './business/services/WorkloadService';
+ import { Database } from './persistence/Database';
+ import { JobGateway } from './persistence/JobGateway';
+@@ -22,6 +23,10 @@ export function createApp(options: AppOptions = {}) {
+   const jobs = new JobService(jobGateway, mechanics);
+   return {
+     workshop: new WorkshopController(mechanics, jobs, today),
+-    reports: new ReportsController(jobGateway, new WorkloadService(jobGateway, mechanicGateway)),
++    reports: new ReportsController(
++      jobGateway,
++      new WorkloadService(jobGateway, mechanicGateway),
++      new TakingsService(jobGateway, mechanicGateway),
++    ),
+   };
+ }
+diff --git a/a/src/persistence/JobGateway.ts b/b/src/persistence/JobGateway.ts
+index 2908b2ec6..9bd15ea66 100644
+--- a/a/src/persistence/JobGateway.ts
++++ b/b/src/persistence/JobGateway.ts
+@@ -30,4 +30,9 @@ export class JobGateway {
+   closedOn(day: string): JobRecord[] {
+     return this.all().filter((j) => j.closedOn === day);
+   }
++
++  /** Jobs closed in the month, given as YYYY-MM. */
++  closedIn(month: string): JobRecord[] {
++    return this.all().filter((j) => j.closedOn !== null && j.closedOn.startsWith(`${month}-`));
++  }
+ }
+diff --git a/a/src/presentation/ReportsController.ts b/b/src/presentation/ReportsController.ts
+index 2ed55f552..59ccb75d4 100644
+--- a/a/src/presentation/ReportsController.ts
++++ b/b/src/presentation/ReportsController.ts
+@@ -1,4 +1,5 @@
+ import { formatCents, jobTotalCents } from '../business/rules/Pricing';
++import type { TakingsService } from '../business/services/TakingsService';
+ import type { WorkloadService } from '../business/services/WorkloadService';
+ import type { JobGateway } from '../persistence/JobGateway';
+ import { handle, type HttpResponse } from './HttpResponse';
+@@ -8,6 +9,7 @@ export class ReportsController {
+   constructor(
+     private readonly jobs: JobGateway,
+     private readonly workloadBoard: WorkloadService,
++    private readonly takingsBoard: TakingsService,
+   ) {}
+ 
+   /** Jobs closed on the day and what they brought in. */
+@@ -19,6 +21,11 @@ export class ReportsController {
+     });
+   }
+ 
++  /** Takings per mechanic for jobs closed in the month (YYYY-MM), highest first. */
++  takingsByMechanic(month: string): HttpResponse {
++    return handle(() => this.takingsBoard.byMechanic(month));
++  }
++
+   /** Every mechanic with their open jobs, busiest first, then by name. */
+   workload(): HttpResponse {
+     return handle(() => this.workloadBoard.workload());

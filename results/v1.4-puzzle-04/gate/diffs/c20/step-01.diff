@@ -1,0 +1,105 @@
+diff --git a/b/src/business/services/WorkloadService.ts b/b/src/business/services/WorkloadService.ts
+new file mode 100644
+index 000000000..8811eec61
+--- /dev/null
++++ b/b/src/business/services/WorkloadService.ts
+@@ -0,0 +1,29 @@
++import type { JobGateway } from '../../persistence/JobGateway';
++import type { MechanicGateway } from '../../persistence/MechanicGateway';
++
++export interface WorkloadLine {
++  readonly mechanic: string;
++  readonly openJobs: number;
++  readonly oldestOpenPlate: string | null;
++}
++
++export class WorkloadService {
++  constructor(
++    private readonly jobs: JobGateway,
++    private readonly mechanics: MechanicGateway,
++  ) {}
++
++  /** Every mechanic with their open jobs, busiest first, then by name. */
++  workload(): WorkloadLine[] {
++    const open = this.jobs.open();
++    return this.mechanics
++      .all()
++      .map((m) => {
++        const mine = open.filter((j) => j.mechanicId === m.id);
++        let oldest: (typeof mine)[number] | undefined;
++        for (const j of mine) if (oldest === undefined || j.openedOn < oldest.openedOn) oldest = j;
++        return { mechanic: m.name, openJobs: mine.length, oldestOpenPlate: oldest === undefined ? null : oldest.plate };
++      })
++      .sort((a, b) => b.openJobs - a.openJobs || (a.mechanic < b.mechanic ? -1 : a.mechanic > b.mechanic ? 1 : 0));
++  }
++}
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 79a7ba827..727b8af95 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,5 +1,6 @@
+ import { JobService } from './business/services/JobService';
+ import { MechanicService } from './business/services/MechanicService';
++import { WorkloadService } from './business/services/WorkloadService';
+ import { Database } from './persistence/Database';
+ import { JobGateway } from './persistence/JobGateway';
+ import { MechanicGateway } from './persistence/MechanicGateway';
+@@ -16,10 +17,11 @@ export function createApp(options: AppOptions = {}) {
+   const today = options.today ?? (() => new Date().toISOString().slice(0, 10));
+   const db = new Database();
+   const jobGateway = new JobGateway(db);
+-  const mechanics = new MechanicService(new MechanicGateway(db));
++  const mechanicGateway = new MechanicGateway(db);
++  const mechanics = new MechanicService(mechanicGateway);
+   const jobs = new JobService(jobGateway, mechanics);
+   return {
+     workshop: new WorkshopController(mechanics, jobs, today),
+-    reports: new ReportsController(jobGateway),
++    reports: new ReportsController(jobGateway, new WorkloadService(jobGateway, mechanicGateway)),
+   };
+ }
+diff --git a/a/src/persistence/JobGateway.ts b/b/src/persistence/JobGateway.ts
+index cab587d1b..2908b2ec6 100644
+--- a/a/src/persistence/JobGateway.ts
++++ b/b/src/persistence/JobGateway.ts
+@@ -23,6 +23,10 @@ export class JobGateway {
+     return [...this.db.jobs.values()].map((j) => ({ ...j }));
+   }
+ 
++  open(): JobRecord[] {
++    return this.all().filter((j) => j.closedOn === null);
++  }
++
+   closedOn(day: string): JobRecord[] {
+     return this.all().filter((j) => j.closedOn === day);
+   }
+diff --git a/a/src/presentation/ReportsController.ts b/b/src/presentation/ReportsController.ts
+index 5f19434be..2ed55f552 100644
+--- a/a/src/presentation/ReportsController.ts
++++ b/b/src/presentation/ReportsController.ts
+@@ -1,10 +1,14 @@
+ import { formatCents, jobTotalCents } from '../business/rules/Pricing';
++import type { WorkloadService } from '../business/services/WorkloadService';
+ import type { JobGateway } from '../persistence/JobGateway';
+ import { handle, type HttpResponse } from './HttpResponse';
+ 
+ /** GET /reports/takings?day=YYYY-MM-DD. */
+ export class ReportsController {
+-  constructor(private readonly jobs: JobGateway) {}
++  constructor(
++    private readonly jobs: JobGateway,
++    private readonly workloadBoard: WorkloadService,
++  ) {}
+ 
+   /** Jobs closed on the day and what they brought in. */
+   dailyTakings(day: string): HttpResponse {
+@@ -14,4 +18,9 @@ export class ReportsController {
+       return { day, jobs: closed.length, takings: formatCents(cents) };
+     });
+   }
++
++  /** Every mechanic with their open jobs, busiest first, then by name. */
++  workload(): HttpResponse {
++    return handle(() => this.workloadBoard.workload());
++  }
+ }

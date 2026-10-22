@@ -1,0 +1,80 @@
+diff --git a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+index 168dbfe01..ac63659dd 100644
+--- a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -1,7 +1,7 @@
+ import { FastshipUnavailableError } from 'fastship-sdk';
+ import type { FastshipClient } from 'fastship-sdk';
+ import type { RatePort } from '../../../application/ports/out/RatePort';
+-import { ShippingError } from '../../../domain/errors/ShippingError';
++import { CarrierUnavailableError, ShippingError } from '../../../domain/errors/ShippingError';
+ import { Money } from '../../../domain/model/Money';
+ import type { Parcel } from '../../../domain/model/Parcel';
+ import type { Quote } from '../../../domain/model/Quote';
+@@ -21,7 +21,7 @@ export class FastshipRateAdapter implements RatePort {
+         parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
+       }));
+     } catch (e) {
+-      if (e instanceof FastshipUnavailableError) throw new ShippingError('carrier rates are currently unavailable');
++      if (e instanceof FastshipUnavailableError) throw new CarrierUnavailableError('carrier rates are currently unavailable');
+       throw e;
+     }
+ 
+diff --git a/a/src/application/ports/in/QuoteShipment.ts b/b/src/application/ports/in/QuoteShipment.ts
+index 1232a22e9..d93d4df0e 100644
+--- a/a/src/application/ports/in/QuoteShipment.ts
++++ b/b/src/application/ports/in/QuoteShipment.ts
+@@ -8,6 +8,7 @@ export interface QuoteView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly service: string;
++  readonly estimated: boolean;
+ }
+ 
+ export interface QuoteShipment {
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 357ea5f25..20b3c1e8f 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,5 +1,7 @@
++import { CarrierUnavailableError } from '../../domain/errors/ShippingError';
+ import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
++import { PriceTable } from '../../domain/services/PriceTable';
+ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteShipment';
+ import type { RatePort } from '../ports/out/RatePort';
+ 
+@@ -11,8 +13,16 @@ export class QuoteShipmentService implements QuoteShipment {
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const cheapest = await this.rates.cheapest(parcel);
++    let cheapest;
++    let estimated = false;
++    try {
++      cheapest = await this.rates.cheapest(parcel);
++    } catch (e) {
++      if (!(e instanceof CarrierUnavailableError)) throw e;
++      cheapest = new PriceTable().quote(parcel);
++      estimated = true;
++    }
+     const price = cheapest.price.plus(Money.of(HANDLING_FEE, QUOTE_CURRENCY));
+-    return { amount: price.amount(), currency: price.currency, service: cheapest.service };
++    return { amount: price.amount(), currency: price.currency, service: cheapest.service, estimated };
+   }
+ }
+diff --git a/a/src/domain/errors/ShippingError.ts b/b/src/domain/errors/ShippingError.ts
+index 2360aa126..cf1adf083 100644
+--- a/a/src/domain/errors/ShippingError.ts
++++ b/b/src/domain/errors/ShippingError.ts
+@@ -4,3 +4,10 @@ export class ShippingError extends Error {
+     this.name = 'ShippingError';
+   }
+ }
++
++export class CarrierUnavailableError extends ShippingError {
++  constructor(message: string) {
++    super(message);
++    this.name = 'CarrierUnavailableError';
++  }
++}

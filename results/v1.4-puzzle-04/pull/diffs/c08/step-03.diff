@@ -1,0 +1,75 @@
+diff --git a/a/src/business/services/TakingsService.ts b/b/src/business/services/TakingsService.ts
+index ee4049711..20f67d7d4 100644
+--- a/a/src/business/services/TakingsService.ts
++++ b/b/src/business/services/TakingsService.ts
+@@ -1,5 +1,6 @@
+ import type { JobGateway } from '../../persistence/JobGateway';
+ import { formatCents, jobTotalCents } from '../rules/Pricing';
++import type { MechanicService } from './MechanicService';
+ 
+ export interface DailyTakings {
+   readonly day: string;
+@@ -7,8 +8,16 @@ export interface DailyTakings {
+   readonly takings: string;
+ }
+ 
++export interface MechanicTakings {
++  readonly mechanic: string;
++  readonly takings: string;
++}
++
+ export class TakingsService {
+-  constructor(private readonly jobs: JobGateway) {}
++  constructor(
++    private readonly jobs: JobGateway,
++    private readonly mechanics: MechanicService,
++  ) {}
+ 
+   /** Jobs closed on the day and what they brought in. */
+   dailyTakings(day: string): DailyTakings {
+@@ -16,4 +25,17 @@ export class TakingsService {
+     const cents = closed.reduce((sum, j) => sum + jobTotalCents(j.labourMinutes, j.partsCents), 0);
+     return { day, jobs: closed.length, takings: formatCents(cents) };
+   }
++
++  /** What each mechanic's jobs closed in the month (YYYY-MM) brought in, highest first, then by name. */
++  takingsByMechanic(month: string): MechanicTakings[] {
++    const closed = this.jobs.all().filter((j) => j.closedOn !== null && j.closedOn.startsWith(`${month}-`));
++    const rows = this.mechanics.all().flatMap((m) => {
++      const mine = closed.filter((j) => j.mechanicId === m.id);
++      if (mine.length === 0) return [];
++      const cents = mine.reduce((sum, j) => sum + jobTotalCents(j.labourMinutes, j.partsCents), 0);
++      return [{ mechanic: m.name, cents }];
++    });
++    rows.sort((a, b) => b.cents - a.cents || (a.mechanic < b.mechanic ? -1 : a.mechanic > b.mechanic ? 1 : 0));
++    return rows.map((r) => ({ mechanic: r.mechanic, takings: formatCents(r.cents) }));
++  }
+ }
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 203680979..834bfd855 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -22,6 +22,6 @@ export function createApp(options: AppOptions = {}) {
+   const jobs = new JobService(jobGateway, mechanics);
+   return {
+     workshop: new WorkshopController(mechanics, jobs, today),
+-    reports: new ReportsController(new TakingsService(jobGateway),new WorkloadService(jobGateway, mechanics)),
++    reports: new ReportsController(new TakingsService(jobGateway, mechanics), new WorkloadService(jobGateway, mechanics)),
+   };
+ }
+diff --git a/a/src/presentation/ReportsController.ts b/b/src/presentation/ReportsController.ts
+index 809bdf6f7..e6d2f857b 100644
+--- a/a/src/presentation/ReportsController.ts
++++ b/b/src/presentation/ReportsController.ts
+@@ -14,6 +14,11 @@ export class ReportsController {
+     return handle(() => this.takings.dailyTakings(day));
+   }
+ 
++  /** Each mechanic's takings for the month (YYYY-MM), highest first. */
++  takingsByMechanic(month: string): HttpResponse {
++    return handle(() => this.takings.takingsByMechanic(month));
++  }
++
+   /** Every mechanic's open jobs, busiest first. */
+   workload(): HttpResponse {
+     return handle(() => this.workloadBoard.workload());

@@ -1,0 +1,169 @@
+diff --git a/b/src/bookings/application/SettleBooking.ts b/b/src/bookings/application/SettleBooking.ts
+new file mode 100644
+index 000000000..5e44eb7ac
+--- /dev/null
++++ b/b/src/bookings/application/SettleBooking.ts
+@@ -0,0 +1,16 @@
++import { BookingError } from '../domain/BookingError';
++import type { BookingRepository } from '../domain/booking/BookingRepository';
++import { BookingId } from '../domain/booking/value-objects/BookingId';
++
++/** Records whether the sailing gave the booking its seats. */
++export class SettleBooking {
++  constructor(private readonly bookings: BookingRepository) {}
++
++  execute(bookingId: string, seatsTaken: boolean): void {
++    const booking = this.bookings.byId(BookingId.of(bookingId));
++    if (booking === undefined) throw new BookingError(`no booking ${bookingId}`);
++    if (seatsTaken) booking.confirm();
++    else booking.reject();
++    this.bookings.save(booking);
++  }
++}
+diff --git a/a/src/bookings/domain/booking/Booking.ts b/b/src/bookings/domain/booking/Booking.ts
+index 138de67b0..20d19864c 100644
+--- a/a/src/bookings/domain/booking/Booking.ts
++++ b/b/src/bookings/domain/booking/Booking.ts
+@@ -3,7 +3,7 @@ import { BookingError } from '../BookingError';
+ import { BookingRequested } from './events/BookingRequested';
+ import type { BookingId } from './value-objects/BookingId';
+ 
+-export type BookingStatus = 'requested';
++export type BookingStatus = 'requested' | 'confirmed' | 'rejected';
+ 
+ /** Seats one passenger asks for on one sailing. */
+ const MAX_SEATS = 9;
+@@ -44,6 +44,16 @@ export class Booking {
+     return this.current;
+   }
+ 
++  confirm(): void {
++    if (this.current !== 'requested') throw new BookingError(`booking is already ${this.current}`);
++    this.current = 'confirmed';
++  }
++
++  reject(): void {
++    if (this.current !== 'requested') throw new BookingError(`booking is already ${this.current}`);
++    this.current = 'rejected';
++  }
++
+   state(): BookingState {
+     return { id: this.id, passenger: this.passenger, sailingId: this.sailingId, seats: this.seats, status: this.current };
+   }
+diff --git a/a/src/bookings/index.ts b/b/src/bookings/index.ts
+index 25b4eb68c..d643e0488 100644
+--- a/a/src/bookings/index.ts
++++ b/b/src/bookings/index.ts
+@@ -1,5 +1,6 @@
+ import { GetBooking } from './application/GetBooking';
+ import { RequestBooking } from './application/RequestBooking';
++import { SettleBooking } from './application/SettleBooking';
+ import type { SailingDirectory } from './application/ports/SailingDirectory';
+ import type { BookingView } from './contracts/BookingView';
+ import type { BookingRepository } from './domain/booking/BookingRepository';
+@@ -10,11 +11,13 @@ export type { BookingView } from './contracts/BookingView';
+ export interface BookingsModule {
+   book(passenger: string, sailingId: string, seats: number): string;
+   booking(bookingId: string): BookingView | undefined;
++  settle(bookingId: string, seatsTaken: boolean): void;
+ }
+ 
+ export function createBookings(bookings: BookingRepository, sailings: SailingDirectory): BookingsModule {
+   return {
+     book: (passenger, sailingId, seats) => new RequestBooking(bookings, sailings).execute(passenger, sailingId, seats),
+     booking: (bookingId) => new GetBooking(bookings).execute(bookingId),
++    settle: (bookingId, seatsTaken) => new SettleBooking(bookings).execute(bookingId, seatsTaken),
+   };
+ }
+diff --git a/a/src/main.ts b/b/src/main.ts
+index edf9bbfc3..390bf2f7c 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,6 +1,7 @@
+ import { SailingsDirectory } from './bookings/acl/SailingsDirectory';
+ import { NotifyDesk } from './bookings/application/NotifyDesk';
+ import { createBookings } from './bookings';
++import type { BookingRequested } from './bookings/domain/booking/events/BookingRequested';
+ import { InMemoryBookingRepository } from './bookings/infrastructure/InMemoryBookingRepository';
+ import { InMemoryDeskNotices } from './bookings/infrastructure/InMemoryDeskNotices';
+ import { EventRelay } from './messaging/EventRelay';
+@@ -17,6 +18,12 @@ export function createApp() {
+   const relay = new EventRelay([sailingStore, bookingStore]);
+   const notifyDesk = new NotifyDesk(notices);
+   relay.on('BookingRequested', (e) => notifyDesk.handle(e));
++  // Each step is its own command on one aggregate; the relay finishes the chain before book returns.
++  relay.on('BookingRequested', (e) => {
++    const requested = e as BookingRequested;
++    const taken = sailings.takeSeats(requested.sailingId, requested.bookingId, requested.seats);
++    bookings.settle(requested.bookingId, taken);
++  });
+   const command = <T>(run: () => T): T => {
+     const result = run();
+     relay.deliverPending();
+diff --git a/b/src/sailings/application/TakeSeats.ts b/b/src/sailings/application/TakeSeats.ts
+new file mode 100644
+index 000000000..e75984701
+--- /dev/null
++++ b/b/src/sailings/application/TakeSeats.ts
+@@ -0,0 +1,16 @@
++import { SailingError } from '../domain/SailingError';
++import type { SailingRepository } from '../domain/sailing/SailingRepository';
++import { SailingId } from '../domain/sailing/value-objects/SailingId';
++
++/** Takes seats for a booking if the sailing has them left. */
++export class TakeSeats {
++  constructor(private readonly sailings: SailingRepository) {}
++
++  execute(sailingId: string, holder: string, seats: number): boolean {
++    const sailing = this.sailings.byId(SailingId.of(sailingId));
++    if (sailing === undefined) throw new SailingError(`no sailing ${sailingId}`);
++    if (!sailing.tryTake(holder, seats)) return false;
++    this.sailings.save(sailing);
++    return true;
++  }
++}
+diff --git a/a/src/sailings/domain/sailing/Sailing.ts b/b/src/sailings/domain/sailing/Sailing.ts
+index 8c302b60f..41506ae5f 100644
+--- a/a/src/sailings/domain/sailing/Sailing.ts
++++ b/b/src/sailings/domain/sailing/Sailing.ts
+@@ -50,6 +50,13 @@ export class Sailing {
+     this.holds = { ...this.holds, [holder]: seats };
+   }
+ 
++  /** Takes the seats if enough are left and reports whether it did; nothing changes otherwise. */
++  tryTake(holder: string, seats: number): boolean {
++    if (!Number.isInteger(seats) || seats <= 0 || this.holds[holder] !== undefined || seats > this.seatsLeft()) return false;
++    this.holds = { ...this.holds, [holder]: seats };
++    return true;
++  }
++
+   release(holder: string): void {
+     if (this.holds[holder] === undefined) throw new SailingError(`no seats are held for ${holder}`);
+     const { [holder]: _released, ...rest } = this.holds;
+diff --git a/a/src/sailings/index.ts b/b/src/sailings/index.ts
+index 5803169b5..d83c782ee 100644
+--- a/a/src/sailings/index.ts
++++ b/b/src/sailings/index.ts
+@@ -2,6 +2,7 @@ import { GetSailing } from './application/GetSailing';
+ import { HoldSeats } from './application/HoldSeats';
+ import { ReleaseSeats } from './application/ReleaseSeats';
+ import { ScheduleSailing } from './application/ScheduleSailing';
++import { TakeSeats } from './application/TakeSeats';
+ import type { SailingView } from './contracts/SailingView';
+ import type { SailingRepository } from './domain/sailing/SailingRepository';
+ import { InMemorySailingRepository } from './infrastructure/InMemorySailingRepository';
+@@ -14,6 +15,7 @@ export interface SailingsModule {
+   sailing(sailingId: string): SailingView | undefined;
+   holdSeats(sailingId: string, holder: string, seats: number): void;
+   releaseSeats(sailingId: string, holder: string): void;
++  takeSeats(sailingId: string, holder: string, seats: number): boolean;
+ }
+ 
+ export function createSailings(sailings: SailingRepository = new InMemorySailingRepository()): SailingsModule {
+@@ -22,5 +24,6 @@ export function createSailings(sailings: SailingRepository = new InMemorySailing
+     sailing: (sailingId) => new GetSailing(sailings).execute(sailingId),
+     holdSeats: (sailingId, holder, seats) => new HoldSeats(sailings).execute(sailingId, holder, seats),
+     releaseSeats: (sailingId, holder) => new ReleaseSeats(sailings).execute(sailingId, holder),
++    takeSeats: (sailingId, holder, seats) => new TakeSeats(sailings).execute(sailingId, holder, seats),
+   };
+ }

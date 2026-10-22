@@ -1,0 +1,129 @@
+diff --git a/a/src/adapters/inbound/http/ShippingController.ts b/b/src/adapters/inbound/http/ShippingController.ts
+index 8460aabb5..3179ab330 100644
+--- a/a/src/adapters/inbound/http/ShippingController.ts
++++ b/b/src/adapters/inbound/http/ShippingController.ts
+@@ -1,5 +1,6 @@
+ import type { QuoteShipment } from '../../../application/ports/in/QuoteShipment';
+ import type { TrackShipment } from '../../../application/ports/in/TrackShipment';
++import { QuoteUnavailableError } from '../../../domain/errors/ShippingError';
+ 
+ export interface HttpResponse {
+   readonly status: number;
+@@ -18,6 +19,7 @@ export class ShippingController {
+       const body = await this.quotes.quote({ from: query.from ?? '', to: query.to ?? '', weightGrams: Number(query.grams) });
+       return { status: 200, body };
+     } catch (e) {
++      if (e instanceof QuoteUnavailableError) return { status: 503, body: { error: e.message } };
+       return { status: 400, body: { error: e instanceof Error ? e.message : String(e) } };
+     }
+   }
+diff --git a/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+new file mode 100644
+index 000000000..9407c9bfe
+--- /dev/null
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -0,0 +1,23 @@
++import { FastshipUnavailableError } from 'fastship-sdk';
++import type { FastshipClient, FastshipRate } from 'fastship-sdk';
++import type { RatePort } from '../../../application/ports/out/RatePort';
++import { QuoteUnavailableError } from '../../../domain/errors/ShippingError';
++import type { Parcel } from '../../../domain/model/Parcel';
++
++export class FastshipRateAdapter implements RatePort {
++  constructor(private readonly client: FastshipClient) {}
++
++  async rates(parcel: Parcel): Promise<FastshipRate[]> {
++    try {
++      const response = await this.client.rates({
++        origin: { country: parcel.from },
++        destination: { country: parcel.to },
++        parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
++      });
++      return response.rates;
++    } catch (e) {
++      if (e instanceof FastshipUnavailableError) throw new QuoteUnavailableError('Fastship is unavailable');
++      throw e;
++    }
++  }
++}
+diff --git a/b/src/application/ports/out/RatePort.ts b/b/src/application/ports/out/RatePort.ts
+new file mode 100644
+index 000000000..92f162df1
+--- /dev/null
++++ b/b/src/application/ports/out/RatePort.ts
+@@ -0,0 +1,6 @@
++import type { FastshipRate } from 'fastship-sdk';
++import type { Parcel } from '../../../domain/model/Parcel';
++
++export interface RatePort {
++  rates(parcel: Parcel): Promise<FastshipRate[]>;
++}
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 757ab0897..629801bb6 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,13 +1,24 @@
++import { QuoteUnavailableError } from '../../domain/errors/ShippingError';
++import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
+-import { PriceTable } from '../../domain/services/PriceTable';
+ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteShipment';
++import type { RatePort } from '../ports/out/RatePort';
++
++const CURRENCY = 'EUR';
++const HANDLING_FEE = Money.of(1.5, CURRENCY);
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+-  constructor(private readonly table: PriceTable = new PriceTable()) {}
++  constructor(private readonly rates: RatePort) {}
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const quote = this.table.quote(parcel);
+-    return { amount: quote.price.amount(), currency: quote.price.currency, service: quote.service };
++    const priced = (await this.rates.rates(parcel)).map((rate) => ({
++      rate,
++      price: Money.of(Number(rate.amount.value), rate.amount.currency),
++    }));
++    if (priced.length === 0) throw new QuoteUnavailableError('no Fastship service for this parcel');
++    const cheapest = priced.reduce((best, p) => (p.price.isLessThan(best.price) ? p : best));
++    const total = cheapest.price.plus(HANDLING_FEE);
++    return { amount: total.amount(), currency: total.currency, service: cheapest.rate.serviceName };
+   }
+ }
+diff --git a/a/src/config/container.ts b/b/src/config/container.ts
+index 6713beaa3..04bfe635c 100644
+--- a/a/src/config/container.ts
++++ b/b/src/config/container.ts
+@@ -1,5 +1,6 @@
+ import { FastshipClient } from 'fastship-sdk';
+ import { ShippingController } from '../adapters/inbound/http/ShippingController';
++import { FastshipRateAdapter } from '../adapters/outbound/fastship/FastshipRateAdapter';
+ import { FastshipTrackingAdapter } from '../adapters/outbound/fastship/FastshipTrackingAdapter';
+ import { QuoteShipmentService } from '../application/services/QuoteShipmentService';
+ import { TrackShipmentService } from '../application/services/TrackShipmentService';
+@@ -7,7 +8,7 @@ import { TrackShipmentService } from '../application/services/TrackShipmentServi
+ /** Composition root. The Fastship key comes from FASTSHIP_API_KEY. */
+ export function createApp() {
+   const fastship = new FastshipClient({ apiKey: process.env.FASTSHIP_API_KEY ?? '' });
+-  const quotes = new QuoteShipmentService();
++  const quotes = new QuoteShipmentService(new FastshipRateAdapter(fastship));
+   const tracking = new TrackShipmentService(new FastshipTrackingAdapter(fastship));
+   const http = new ShippingController(quotes, tracking);
+   return {
+diff --git a/a/src/domain/errors/ShippingError.ts b/b/src/domain/errors/ShippingError.ts
+index 2360aa126..8ec410459 100644
+--- a/a/src/domain/errors/ShippingError.ts
++++ b/b/src/domain/errors/ShippingError.ts
+@@ -4,3 +4,11 @@ export class ShippingError extends Error {
+     this.name = 'ShippingError';
+   }
+ }
++
++/** The carrier could not give us a price right now. */
++export class QuoteUnavailableError extends ShippingError {
++  constructor(message: string) {
++    super(message);
++    this.name = 'QuoteUnavailableError';
++  }
++}

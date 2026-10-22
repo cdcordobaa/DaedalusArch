@@ -293,6 +293,25 @@ is not separable at n = 5.
   - 0 confirms on the legit precision fixtures, 1 true D4 rejected (`saveAudited`), 37/37 confirms grounded.
 - **One fix (r2, post-hoc):** a rule text that names unowned set invariants confirms the lock form 5/5. It also confirms the pre-lock step 1 and the P10 legit fixture, so the boundary moved rather than sharpened. Step 1 and step 2 hold the same invariant, and the label separates them only by what the agent introduced.
 - **Reading (dev):** S3 is ready to feed the rules where a spec is silent (the facts contract for U1). S2 needs a decision on what D5 means for set invariants before the confirmation step can help. That is a construct question for the author, not a prompt to tune.
+### 18. PUZZLE-04: the tool arms on every trapping puzzle (2026-10-22)
+`Docs/DiagnosticRuns/puzzle-04-2026-10-23.md`, `experiments/puzzle-04/`, `results/v1.4-puzzle-04/`:
+- **Built first (zero calls):** the edit-gate hub also runs the frozen layer rules FF-S01–S03 (`check_diff` fast path,
+  delta against the seed). The pull sentence now names `check_file` and `check_diff` (hint audit 0 FAIL). Unit tests
+  20/20. On the baseline trees the extended hub flags P1 5/5, P2 4/5, P3r 0/5, P5 5/5 and P6 5/5.
+- **Runs** (`claude-sonnet-5-5`, CLI 2.1.308, 109 of 121 calls, no redraw, isolation achieved with the clone only
+  chmod-closed): `gate` on P1, P2, P5, P6 and P3r (blind control); `pull` on P5 and P6.
+- **Clean solves, registered (provisional until the hand read):**
+  - P6: 5/5 under both arms (baseline 0/5): the only extreme split.
+  - P5: 0/5 under both, but every run fails only the under-specified step-3 test. The oracles pass in 4/5 (gate) and
+    5/5 (pull), against 0/5 at baseline.
+  - P1 gate 2/5 and P2 gate 2/5. P1 is 5/5 under the new P1-SG1-c (an unused `saveAll` left on the port). P2 is 4/5
+    under the categories entry 15 accepted (P2-SG2-a + P2-SG1-b), and 5/5 with the new P2-SG1-e. PUZZLE-02's pull,
+    after its hand read: P1 4/5, P2 3/5.
+  - P3r gate 0/5, with 0 gate replies (the blind control held).
+- **Mechanism:** 28 gate keys shown, 28 resolved, mostly within the turn; 0 fail-open; hub p95 451 ms. Under pull, P5
+  agents wrote the relay design without a finding (4/5).
+- **Blind spot found:** P5 gate c07 moved a cross-context write into the composition root's facade, where
+  `check_consistency` does not look.
 
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
@@ -306,8 +325,10 @@ is not separable at n = 5.
 - [x] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10). Approved as written, with a cap of 64; run in entry 16.
 - [ ] Author: COMPREHEND-01 key decision on P2-P1 (sales-side handler), whether a ×3 variance run is worth it, and graph revisions 1–2 (entry 16).
 - [ ] Author: decide whether an unowned set invariant (the lock form) is D5 and whether a pre-existing copy counts. This decides S2's next step (entry 17).
+- [ ] Author: hand read of the PUZZLE-04 cases (`results/v1.4-puzzle-04/oracle-verdicts-to-read.md`; new categories P1-SG1-c and P2-SG1-e decide P1 and P2 for the gate) (entry 18).
 
 ## Changelog
+- 2026-10-22: entry 18 (PUZZLE-04).
 - 2026-10-22: entry 17 (v1.5 U4 S3 facts and S2 confirmation).
 - 2026-10-22: entry 16 (COMPREHEND-01 pilot).
 - 2026-10-22: entry 15 (hand reads: PUZZLE-03 baseline, PUZZLE-02 tool arm).

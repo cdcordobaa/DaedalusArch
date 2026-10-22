@@ -1,0 +1,45 @@
+diff --git a/a/src/business/services/JobService.ts b/b/src/business/services/JobService.ts
+index b440e5118..099ba2e66 100644
+--- a/a/src/business/services/JobService.ts
++++ b/b/src/business/services/JobService.ts
+@@ -27,6 +27,16 @@ export class JobService {
+     return toView(closed);
+   }
+ 
++  reassign(jobId: string, mechanicId: string): JobView {
++    const job = this.jobs.byId(jobId);
++    if (job === undefined) throw new WorkshopError(`no job ${jobId}`);
++    if (job.closedOn !== null) throw new WorkshopError(`job ${jobId} is closed`);
++    this.mechanics.mechanic(mechanicId);
++    const moved = { ...job, mechanicId };
++    this.jobs.update(moved);
++    return toView(moved);
++  }
++
+   job(jobId: string): JobView {
+     const job = this.jobs.byId(jobId);
+     if (job === undefined) throw new WorkshopError(`no job ${jobId}`);
+diff --git a/a/src/presentation/WorkshopController.ts b/b/src/presentation/WorkshopController.ts
+index caf0efe0c..c0a6d2c17 100644
+--- a/a/src/presentation/WorkshopController.ts
++++ b/b/src/presentation/WorkshopController.ts
+@@ -2,7 +2,7 @@ import type { JobService } from '../business/services/JobService';
+ import type { MechanicService } from '../business/services/MechanicService';
+ import { handle, type HttpResponse } from './HttpResponse';
+ 
+-/** POST /mechanics, POST /jobs, POST /jobs/:id/close, GET /jobs/:id. */
++/** POST /mechanics, POST /jobs, POST /jobs/:id/close, POST /jobs/:id/reassign,GET /jobs/:id. */
+ export class WorkshopController {
+   constructor(
+     private readonly mechanics: MechanicService,
+@@ -22,6 +22,10 @@ export class WorkshopController {
+     return handle(() => this.jobs.close(jobId, labourMinutes, partsCents, this.today()));
+   }
+ 
++  reassignJob(jobId: string, mechanicId: string): HttpResponse {
++    return handle(() => this.jobs.reassign(jobId, mechanicId));
++  }
++
+   job(jobId: string): HttpResponse {
+     return handle(() => this.jobs.job(jobId));
+   }

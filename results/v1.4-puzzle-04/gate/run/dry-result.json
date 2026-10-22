@@ -1,0 +1,306 @@
+{
+  "schema": "edit-gate-dry/v1",
+  "at": "2026-10-22T18:54:33.356Z",
+  "calls": 0,
+  "cliVersion": "2.1.308 (Claude Code)",
+  "argv": [
+    "-p",
+    "<prompt>",
+    "--model",
+    "claude-sonnet-5-5",
+    "--output-format",
+    "json",
+    "--setting-sources",
+    "",
+    "--settings",
+    "{\"autoMemoryEnabled\":false,\"disableAllHooks\":false,\"hooks\":{\"PostToolUse\":[{\"matcher\":\"Edit|Write|MultiEdit\",\"hooks\":[{\"type\":\"command\",\"command\":\"/opt/node22/bin/node /srv/h/bin/gate-relay.cjs /srv/m/g.sock\",\"timeout\":10}]}],\"Stop\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"/opt/node22/bin/node /srv/h/bin/gate-relay.cjs /srv/m/g.sock\",\"timeout\":10}]}]}}",
+    "--disable-slash-commands",
+    "--restricted",
+    "--tools",
+    "Read,Write,Edit,Glob,Grep,Bash",
+    "--allowedTools",
+    "Bash(/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c01/tsconfig.json)",
+    "--disallowedTools",
+    "Write(node_modules/**)",
+    "Edit(node_modules/**)",
+    "--permission-mode",
+    "acceptEdits",
+    "--permission-prompts",
+    "none",
+    "--no-session-persistence",
+    "--strict-mcp-config"
+  ],
+  "checks": {
+    "listing": [
+      {
+        "path": "/srv/o/specs/d1.yaml",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "/srv/o/specs/t1.yaml",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "/srv/o/canary.txt",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "/srv/o/gate/out/gate/canary.txt",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "/srv/o/pull/out/mcp/canary.txt",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "/srv/o/task-map.json",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "./experiments/puzzle-04/plan.md",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "./experiments/edit-gate/hub.ts",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "./experiments/puzzle-01/puzzles/p1-transfers/README.md",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "./experiments/puzzle-03/puzzles/p6-workshop-jobs/README.md",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "/root",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "/tmp/claude-0",
+        "denied": true,
+        "printed": false
+      },
+      {
+        "path": "/tmp/tsx-0",
+        "denied": true,
+        "printed": false
+      }
+    ],
+    "sweep": {
+      "patterns": 27,
+      "readableFiles": []
+    },
+    "relay": {
+      "insideReplied": true,
+      "insideMs": 189,
+      "outsideReplied": false,
+      "leak": false,
+      "log": {
+        "events": [
+          {
+            "event": "PostToolUse",
+            "tool": "Write",
+            "file": "src/billing/application/SettleInvoices.ts",
+            "refused": null,
+            "ms": 149,
+            "checkMs": 147,
+            "findings": 1,
+            "newKeys": 1,
+            "resolvedKeys": 0,
+            "openKeys": 1,
+            "replied": true,
+            "stopBlock": false,
+            "failOpen": false,
+            "allowOverlay": false
+          },
+          {
+            "event": "PostToolUse",
+            "tool": "Write",
+            "file": null,
+            "refused": "outside the work tree",
+            "ms": 0,
+            "checkMs": null,
+            "findings": null,
+            "newKeys": 0,
+            "resolvedKeys": 0,
+            "openKeys": 0,
+            "replied": false,
+            "stopBlock": false,
+            "failOpen": false,
+            "allowOverlay": false
+          }
+        ],
+        "edits": 1,
+        "failOpen": 0,
+        "msP50": 149,
+        "msP95": 149,
+        "msMax": 149
+      }
+    },
+    "fakeCli": {
+      "exit": 0,
+      "requests": 4,
+      "hookTextInRequest2": true,
+      "editNotRepeated": true,
+      "stopFeedbackInRequest4": true,
+      "stopFiredTimes": 2,
+      "stopBlocks": 1,
+      "envelopeStatus": "success",
+      "leak": false,
+      "log": {
+        "events": [
+          {
+            "event": "PostToolUse",
+            "tool": "Write",
+            "file": "src/billing/application/SettleInvoices.ts",
+            "refused": null,
+            "ms": 110,
+            "checkMs": 109,
+            "findings": 1,
+            "newKeys": 1,
+            "resolvedKeys": 0,
+            "openKeys": 1,
+            "replied": true,
+            "stopBlock": false,
+            "failOpen": false,
+            "allowOverlay": false
+          },
+          {
+            "event": "PostToolUse",
+            "tool": "Edit",
+            "file": "src/billing/application/SettleInvoices.ts",
+            "refused": null,
+            "ms": 109,
+            "checkMs": 108,
+            "findings": 1,
+            "newKeys": 0,
+            "resolvedKeys": 0,
+            "openKeys": 1,
+            "replied": false,
+            "stopBlock": false,
+            "failOpen": false,
+            "allowOverlay": false
+          },
+          {
+            "event": "Stop",
+            "tool": null,
+            "file": null,
+            "refused": null,
+            "ms": 121,
+            "checkMs": 120,
+            "findings": 1,
+            "newKeys": 0,
+            "resolvedKeys": 0,
+            "openKeys": 1,
+            "replied": true,
+            "stopBlock": true,
+            "failOpen": false,
+            "allowOverlay": false
+          },
+          {
+            "event": "Stop",
+            "tool": null,
+            "file": null,
+            "refused": null,
+            "ms": 134,
+            "checkMs": 133,
+            "findings": 1,
+            "newKeys": 0,
+            "resolvedKeys": 0,
+            "openKeys": 1,
+            "replied": false,
+            "stopBlock": false,
+            "failOpen": false,
+            "allowOverlay": false
+          }
+        ],
+        "edits": 2,
+        "failOpen": 0,
+        "msP50": 109,
+        "msP95": 110,
+        "msMax": 110
+      }
+    },
+    "fakeSwitchOff": {
+      "exit": 0,
+      "settingsWritten": {
+        "settings.json": false,
+        "settings.local.json": false
+      },
+      "permissionDenials": 2,
+      "gateFiredAfter": true,
+      "hookTextReachedModel": true,
+      "log": {
+        "events": [
+          {
+            "event": "PostToolUse",
+            "tool": "Write",
+            "file": "src/billing/application/SettleInvoices.ts",
+            "refused": null,
+            "ms": 96,
+            "checkMs": 95,
+            "findings": 1,
+            "newKeys": 1,
+            "resolvedKeys": 0,
+            "openKeys": 1,
+            "replied": true,
+            "stopBlock": false,
+            "failOpen": false,
+            "allowOverlay": false
+          },
+          {
+            "event": "Stop",
+            "tool": null,
+            "file": null,
+            "refused": null,
+            "ms": 102,
+            "checkMs": 102,
+            "findings": 1,
+            "newKeys": 0,
+            "resolvedKeys": 0,
+            "openKeys": 1,
+            "replied": true,
+            "stopBlock": true,
+            "failOpen": false,
+            "allowOverlay": false
+          },
+          {
+            "event": "Stop",
+            "tool": null,
+            "file": null,
+            "refused": null,
+            "ms": 120,
+            "checkMs": 119,
+            "findings": 1,
+            "newKeys": 0,
+            "resolvedKeys": 0,
+            "openKeys": 1,
+            "replied": false,
+            "stopBlock": false,
+            "failOpen": false,
+            "allowOverlay": false
+          }
+        ],
+        "edits": 1,
+        "failOpen": 0,
+        "msP50": 96,
+        "msP95": 96,
+        "msMax": 96
+      }
+    },
+    "sessionPipeline": "done"
+  },
+  "passed": true
+}

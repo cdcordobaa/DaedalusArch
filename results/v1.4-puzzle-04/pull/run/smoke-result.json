@@ -1,0 +1,47 @@
+{
+  "schema": "puzzle-04-pull-smoke/v1",
+  "cliVersion": "2.1.308",
+  "turn": {
+    "status": "completed",
+    "attempts": 1,
+    "permissionDenials": 0
+  },
+  "modelUsageIds": [
+    "claude-sonnet-5-5"
+  ],
+  "serverListed": true,
+  "agentNamesTool": false,
+  "serverConfined": true,
+  "checkConsistencyCalls": [
+    {
+      "isError": false,
+      "status": "not-applicable"
+    }
+  ],
+  "toolsListed": [
+    "get_architecture_spec",
+    "which_layer",
+    "check_import",
+    "evaluate_project",
+    "explain_violation",
+    "check_file",
+    "check_diff",
+    "suggest_placement",
+    "infer_spec",
+    "explain_finding",
+    "propose_spec",
+    "check_consistency"
+  ],
+  "calls": {
+    "smoke": 1,
+    "probes": 0,
+    "sessions": 0,
+    "total": 1
+  },
+  "passed": false,
+  "verdictAmendment": {
+    "at": "2026-10-22T19:56:00Z",
+    "passedOnPlanCriteria": true,
+    "reason": "The driver also requires the agent's final reply to name check_consistency (agentNamesTool). As in PUZZLE-02, that cannot be observed: the envelope keeps only the final message, which answers the prompt's second half (the returned status). Plan section 4 and section 5 criteria all hold: the server lists all 12 tools including check_file and check_diff, every connection ran with --confine, the agent called check_consistency once (not-applicable on the skeleton-only cell), status completed with 0 permission denials, model claude-sonnet-5-5. No extra call was made."
+  }
+}

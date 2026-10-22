@@ -1,0 +1,83 @@
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 639aa381d..5b9ec7c6e 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -2,6 +2,7 @@ import { createMembership } from './membership';
+ import { InMemoryMemberRepository } from './membership/infrastructure/InMemoryMemberRepository';
+ import { MembershipDirectory } from './sales/acl/MembershipDirectory';
+ import { EventRelay } from './sales/application/EventRelay';
++import type { OrderPlaced } from './sales/domain/order/events/OrderPlaced';
+ import { PlaceOrder, type LineRequest, type PlacedOrder } from './sales/application/PlaceOrder';
+ import { ReceiptFooter } from './sales/application/ReceiptFooter';
+ import { SendReceipt } from './sales/application/SendReceipt';
+@@ -16,6 +17,11 @@ export function createApp() {
+   const receipts = new InMemoryReceipts();
+   const relay = new EventRelay(orders);
+   const sendReceipt = new SendReceipt(receipts, new ReceiptFooter(members));
++  // Points first, so the receipt footer shows the balance including this order.
++  relay.on('OrderPlaced', (e) => {
++    const placed = e as OrderPlaced;
++    if (placed.memberId !== null) membership.earnPointsFromPurchase(placed.memberId, placed.totalCents);
++  });
+   relay.on('OrderPlaced', (e) => sendReceipt.handle(e));
+   const command = <T>(run: () => T): T => {
+     const result = run();
+diff --git a/b/src/membership/application/EarnPointsFromPurchase.ts b/b/src/membership/application/EarnPointsFromPurchase.ts
+new file mode 100644
+index 000000000..a8946bd3e
+--- /dev/null
++++ b/b/src/membership/application/EarnPointsFromPurchase.ts
+@@ -0,0 +1,16 @@
++import type { MemberRepository } from '../domain/member/MemberRepository';
++import { MemberId } from '../domain/member/value-objects/MemberId';
++
++/** One point per whole currency unit paid; amounts under one unit earn nothing. */
++export class EarnPointsFromPurchase {
++  constructor(private readonly members: MemberRepository) {}
++
++  execute(memberId: string, paidCents: number): void {
++    const points = Math.floor(paidCents / 100);
++    if (points <= 0) return;
++    const member = this.members.byId(MemberId.of(memberId));
++    if (member === undefined) throw new Error(`no member ${memberId}`);
++    member.award(points);
++    this.members.save(member);
++  }
++}
+diff --git a/a/src/membership/index.ts b/b/src/membership/index.ts
+index 350e2064e..a03386952 100644
+--- a/a/src/membership/index.ts
++++ b/b/src/membership/index.ts
+@@ -1,5 +1,6 @@
+ import { AwardPoints } from './application/AwardPoints';
+ import { EnrolMember } from './application/EnrolMember';
++import { EarnPointsFromPurchase } from './application/EarnPointsFromPurchase';
+ import { GetMemberCard } from './application/GetMemberCard';
+ import type { MemberCard } from './contracts/MemberCard';
+ import type { MemberRepository } from './domain/member/MemberRepository';
+@@ -12,6 +13,7 @@ export interface MembershipModule {
+   enrol(name: string): string;
+   awardPoints(memberId: string, points: number): void;
+   card(memberId: string): MemberCard | undefined;
++  earnPointsFromPurchase(memberId: string, paidCents: number): void;
+ }
+ 
+ export function createMembership(members: MemberRepository = new InMemoryMemberRepository()): MembershipModule {
+@@ -19,5 +21,6 @@ export function createMembership(members: MemberRepository = new InMemoryMemberR
+     enrol: (name) => new EnrolMember(members).execute(name),
+     awardPoints: (memberId, points) => new AwardPoints(members).execute(memberId, points),
+     card: (memberId) => new GetMemberCard(members).execute(memberId),
++    earnPointsFromPurchase: (memberId, paidCents) => new EarnPointsFromPurchase(members).execute(memberId, paidCents),
+   };
+ }
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 870ac1911..f2f12a0c8 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -2,5 +2,4 @@
+ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** Percentage taken off every order of this member. */
+-  discountPercent(memberId: string): number;
+-}
++  discountPercent(memberId: string): number;}

@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Customers can now move money between two of their accounts that hold the same currency. Expose it as transfer(fromAccountId, toAccountId, amount), next to deposit and withdraw. The two balances change together or not at all: a customer must never find the money gone from both accounts or present in both. A transfer that would take the sending account below zero is refused with the usual insufficient-funds message, and so are transfers between different currencies and transfers to an account that does not exist; a refused transfer changes nothing.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c06/tsconfig.json

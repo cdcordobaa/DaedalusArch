@@ -3096,3 +3096,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 CONSTRUCTION, U4 (exploratory, DEV material); gate S3 pass, S2 fail; the D5 set-invariant question goes to the author
 
 ---
+---
+
+## PUZZLE-04 — tool arms (gate, pull) on every trapping puzzle
+**Timestamp**: 2026-10-22T20:26:10Z
+**User Input**: "Asked for the edit gate on P1, P2, P5, P6 and P3r as a blind control, and the MCP pull arm on P5 and P6 (claude-sonnet-5-5, 5 runs x 3 steps, 0 repair turns, baseline frame and seeds, baseline isolation without moving the clone), after first extending both arms to the frozen layer rules (hub unit tests, latency, hint audit) and committing a plan with predictions; hard cap 121 calls with a ledger; zero-call scoring per puzzle x arm against the baselines and the PUZZLE-02 pull results; a hand-read list; a report, a research-log entry, and a PR merged on green Build & Test."
+**AI Response**: "Hub extended with the frozen check_diff layer rules FF-S01-S03 (delta against the seed); pull sentence names check_file and check_diff (hint audit 0 FAIL); unit tests 20/20; plan and build pushed before any call (b1e0a2ad). Clone closed with chmod 700 only. 109 of 121 calls, no redraw, every turn claude-sonnet-5-5 on the first attempt. Clean solves (provisional): P6 5/5 under both arms; P5 0/5 under both (oracles pass 4/5 and 5/5; one under-specified test fails in every run); P1 gate 2/5 and P2 gate 2/5 (5/5 each under the proposed labels, two new categories); P3r gate 0/5 with the gate silent. One checker blind spot found (cross-context write in the composition root). Report Docs/DiagnosticRuns/puzzle-04-2026-10-23.md; research-log entry 18. Nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, the freeze tag or any Study 2b artefact changed."
+**Context**: PUZZLE-04 (exploratory v1.5-exp, DEV split); 109 generator calls
