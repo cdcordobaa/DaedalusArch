@@ -1,6 +1,6 @@
-# v1.5 Semantic Instrument: Requirements (standard depth, DRAFT)
+# v1.5 Semantic Instrument: Requirements (standard depth)
 
-**Cycle:** AI-DLC v1.5, the "semantic instrument" cycle. **Started:** 2026-10-22. **Depth:** standard. The intent is clear, and the design work exists in `ops/`. Some scope choices are open, and they are asked in `requirements-questions.md`.
+**Cycle:** AI-DLC v1.5, the "semantic instrument" cycle. **Started:** 2026-10-22. **Depth:** standard. The intent is clear, and the design work exists in `ops/`. Scope choices are settled in `requirements-questions.md`, all answered with the recommended options.
 
 ## 1. Intent
 
@@ -56,9 +56,16 @@ At the end of the cycle, a final confirmatory study is designed. It is not regis
 - **NFR-4, security baseline** (extension enabled since v1.2): MCP confinement (`--confine`), no secrets in records, no personal paths in committed files, and least-privilege generator isolation in agent pilots.
 - **NFR-5, records:** every run has a report under `Docs/DiagnosticRuns/` with exact numbers, so THESIS-SYNC can pick it up. Decisions are recorded neutrally.
 
-## 4. Open questions
+## 4. Settled scope (from `requirements-questions.md`)
 
-See [`requirements-questions.md`](requirements-questions.md).
+1. **Order:** semantic first. Pilots S1–S3 run on development material, then the symbolic DETECT-02 work is promoted.
+2. **Code location:** code lives under `experiments/` until each part passes its own test, then moves into `src/`.
+3. **Vendor:** Claude now. Gemini follows as a swap arm after its quota resets.
+4. **Spec inference (S4):** a full part of v1.5, with its hidden-spec test.
+5. **Delivery:** v1.5 ships both pull and the edit gate. The pilots decide the default.
+6. **Final study:** a design draft is a deliverable of this cycle. Registration waits until v1.5 is trusted.
+7. **Security Baseline:** stays enabled.
 
 ## Changelog
-- 2026-10-22: draft, before the author's answers.
+- 2026-10-22: questions answered (recommended options, standing delegation); requirements final.
+- 2026-10-22: draft, before the answers.

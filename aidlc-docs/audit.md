@@ -2955,3 +2955,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 INCEPTION, Requirements Analysis
 
 ---
+
+## v1.5 — Requirements Analysis (complete)
+**Timestamp**: 2026-10-22T05:45:00Z
+**User Input**: "Asked the coordinator to settle the remaining scope questions, as the cycle's direction is already set."
+**AI Response**: "Answered the seven questions with the recommended options under the author's standing delegation for gate-level calls (semantic first; experiments/ until each part passes; Claude now, Gemini later; spec inference in scope; pull and edit gate; final-study design as a deliverable; Security Baseline enabled). Requirements marked final."
+**Context**: v1.5 INCEPTION, Requirements Analysis approved under delegation
+
+---
+
+## v1.5 — Workflow Planning (complete)
+**Timestamp**: 2026-10-22T05:46:00Z
+**User Input**: "(standing delegation)"
+**AI Response**: "Wrote aidlc-docs/inception/v1.5/workflow-plan.md: User Stories, NFR and Infrastructure stages skipped; Application Design (minimal) and Units Generation execute; seven units in semantic-first order (U3 S1 calibration, U4 S3/S2, U6 evaluation and puzzles, U1 graph and rules into src, U2 delivery, U5 spec inference, U7 release and final-study draft), with call estimates and gates. Until the usage reset, only cloud-credit pilots and zero-call work run."
+**Context**: v1.5 INCEPTION, Workflow Planning approved under delegation
+
+---

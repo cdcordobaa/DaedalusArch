@@ -145,8 +145,8 @@
 
 ### v1.5 SEMANTIC-INSTRUMENT CYCLE (started 2026-10-22T05:25Z) — semantic layer, agent-violation detection, delivery, spec inference
 - [x] Workspace Detection — brownfield; reverse-engineering artifacts exist and are not refreshed; resumes from the v1.4 cycle (Study 2b closed at v1.4)
-- [ ] Requirements Analysis — IN PROGRESS: draft `inception/v1.5/requirements.md` (14 FR, 5 NFR); questions `inception/v1.5/requirements-questions.md` await the author
-- [ ] Workflow Planning
+- [x] Requirements Analysis — COMPLETE: `inception/v1.5/requirements.md` (14 FR, 5 NFR); questions answered with the recommended options under the author's standing delegation
+- [x] Workflow Planning — COMPLETE: `inception/v1.5/workflow-plan.md` (User Stories, NFR and Infrastructure stages SKIP; 7 units, semantic first)
 - [ ] Application Design (expected: EXECUTE, new components)
 - [ ] Units Generation (expected: EXECUTE)
-- Extension: Security Baseline — Enabled carried over from v1.2; re-confirmed in question 7
+- Extension: Security Baseline — Enabled (carried over from v1.2; re-confirmed, question 7)
