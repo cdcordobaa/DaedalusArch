@@ -1,0 +1,18 @@
+{
+ "split": "dev",
+ "case": 2,
+ "family": "D4",
+ "provenance": {
+  "branch": "pilot/hexddd-01",
+  "pilotCommit": "c1805364",
+  "task": "s1-hotel-bookings",
+  "step": 3,
+  "runSnapshotCommit": "d3e503765ab927f693661191a9d3edbc5db78440",
+  "diff": "results/pilot-hexddd-01/diffs/s1-hotel-bookings/step-03.diff",
+  "handReadRow": "src/application/ports/out/BookingRepository.ts:11"
+ },
+ "positive": "pos",
+ "twin": "twin",
+ "note": "pos: saveAudited(booking, entries) writes Booking and identity-bearing AuditEntry records as one unit. twin: audit entries are value objects inside the Booking aggregate; one save. The hand read flags this as a violation only if AuditRecord is its own aggregate; the positive makes that explicit (own id, read on its own).",
+ "deviation": "In the pilot tree AuditEntry is an interface without an id (AuditRecord extends it with the id the store adds, src/domain/model/AuditRecord.ts at step 3); the fixture makes AuditEntry a class with its own id. X1b's identity test was extended to interfaces (own id, or a sub-interface adding one) after the pilot tree was missed; see the report."
+}

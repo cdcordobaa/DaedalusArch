@@ -1,0 +1,17 @@
+{
+ "split": "dev",
+ "case": 8,
+ "family": "D4",
+ "provenance": {
+  "branch": "pilot/hexddd-01",
+  "pilotCommit": "c1805364",
+  "task": "s2-orders-invoices",
+  "step": 5,
+  "runSnapshotCommit": "5d16cf62a96536d467ba8a73fec243cc23da5671",
+  "diff": "results/pilot-hexddd-01/diffs/s2-orders-invoices/step-05.diff",
+  "handReadRow": "src/billing/application/IssueInvoice.ts:20"
+ },
+ "positive": "pos",
+ "twin": "twin",
+ "note": "pos: IssueInvoice reads the order through a query ACL (reads must not count), saves the Invoice, then synchronously marks the Order invoiced (OrderInvoicedNotifier -> OrderingInvoicedAcl -> MarkOrderInvoiced -> OrderRepository.save). twin: InvoiceIssued goes to an outbox; an ordering subscriber marks the order later. The planted cross-context import of the pilot seed is left out (it is not this case)."
+}

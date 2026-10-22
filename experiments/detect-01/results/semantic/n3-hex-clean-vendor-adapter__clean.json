@@ -1,0 +1,28 @@
+{
+ "id": "n3-hex-clean-vendor-adapter/clean",
+ "family": "H5",
+ "role": "clean",
+ "target": "n3-hex-clean-vendor-adapter/clean",
+ "files": [
+  "src/adapters/outbound/persistence/PostgresRoomRepository.ts",
+  "src/application/ports/in/RoomView.ts",
+  "src/application/ports/out/RoomRepository.ts",
+  "src/application/services/ListRoomsService.ts",
+  "src/domain/model/Room.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "c80911e62e16ecd2b00e45d976961375196aa89589165c1cdbe686d38dce98f5",
+ "ok": true,
+ "raw": "{\"verdict\":\"absent\",\"evidence\":[],\"rationale\":\"The RoomRepository port exposes only `page(offset: number, limit: number): Promise<Room[]>`, using domain types and primitives. Offset/limit paging is a generic application-level need, not SQL-specific. The Queryable/QueryResult vendor types and SQL appear only in the Postgres adapter, not in the port.\"}",
+ "answer": {
+  "verdict": "absent",
+  "evidence": [],
+  "rationale": "The RoomRepository port exposes only `page(offset: number, limit: number): Promise<Room[]>`, using domain types and primitives. Offset/limit paging is a generic application-level need, not SQL-specific. The Queryable/QueryResult vendor types and SQL appear only in the Postgres adapter, not in the port."
+ },
+ "grounding": {
+  "cited": 0,
+  "grounded": 0,
+  "details": []
+ }
+}

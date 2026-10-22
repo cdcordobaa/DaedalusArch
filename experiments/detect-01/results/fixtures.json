@@ -1,0 +1,456 @@
+{
+ "schema": "detect-01-fixtures-v1",
+ "split": "dev",
+ "modelCalls": 0,
+ "rules": [
+  {
+   "id": "X1",
+   "family": "D4",
+   "title": "one application flow writes two aggregates synchronously, with no outbox, bus or publisher between them",
+   "file": "x1-cross-aggregate-write.cypher"
+  },
+  {
+   "id": "X1b",
+   "family": "D4",
+   "title": "one repository write method takes two or more identity-bearing domain types (two aggregates saved as one unit)",
+   "file": "x1b-repository-writes-two-aggregates.cypher"
+  },
+  {
+   "id": "X2",
+   "family": "H5",
+   "title": "a port method's parameter or return type is a vendor / external-module type",
+   "file": "x2-external-type-in-port.cypher"
+  },
+  {
+   "id": "X2b",
+   "family": "H5",
+   "title": "a port method's parameter or return type is declared in an adapter",
+   "file": "x2b-adapter-type-in-port.cypher"
+  },
+  {
+   "id": "X3a",
+   "family": "D9",
+   "title": "a published contract (contracts/, a context's public index, an inbound port view) names a domain class",
+   "file": "x3a-domain-type-in-contract.cypher"
+  },
+  {
+   "id": "X3b",
+   "family": "D9",
+   "title": "a public domain method returns an anonymous object shaped exactly like a published contract type",
+   "file": "x3b-view-shape-in-domain.cypher"
+  },
+  {
+   "id": "X4",
+   "family": "D5",
+   "title": "an application method throws under a numeric domain-rule guard on a value it then hands to the domain",
+   "file": "x4-domain-guard-in-application.cypher"
+  }
+ ],
+ "perFamily": {
+  "D4": {
+   "rules": [
+    "X1",
+    "X1b"
+   ],
+   "tp": 3,
+   "fp": 0,
+   "fn": 0,
+   "tn": 22,
+   "pairs": [
+    {
+     "fixture": "c2-s1-d4-saveaudited",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "fixture": "c5-s2-d4-recordpayment",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "fixture": "c8-s2-d4-issueinvoice",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "D5": {
+   "rules": [
+    "X4"
+   ],
+   "tp": 2,
+   "fp": 0,
+   "fn": 1,
+   "tn": 22,
+   "pairs": [
+    {
+     "fixture": "c1-s1-d5-lock",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    },
+    {
+     "fixture": "c6-s2-d5-placeorder",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "fixture": "c7-s2-d5-settaxrate",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "D9": {
+   "rules": [
+    "X3a",
+    "X3b"
+   ],
+   "tp": 2,
+   "fp": 0,
+   "fn": 0,
+   "tn": 23,
+   "pairs": [
+    {
+     "fixture": "c9-s2-d9-lineviews",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "fixture": "c9v-d9-entity-in-contract",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H5": {
+   "rules": [
+    "X2",
+    "X2b"
+   ],
+   "tp": 1,
+   "fp": 0,
+   "fn": 1,
+   "tn": 23,
+   "pairs": [
+    {
+     "fixture": "c4-s1-h5-lockport",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    },
+    {
+     "fixture": "c4v-h5-vendor-type",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  }
+ },
+ "rows": [
+  {
+   "fixture": "c1-s1-d5-lock",
+   "variant": "pos",
+   "case": 1,
+   "expectedFamily": "D5",
+   "findings": []
+  },
+  {
+   "fixture": "c1-s1-d5-lock",
+   "variant": "twin",
+   "case": 1,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c2-s1-d4-saveaudited",
+   "variant": "pos",
+   "case": 2,
+   "expectedFamily": "D4",
+   "findings": [
+    {
+     "rule": "X1b",
+     "family": "D4",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "subject": "BookingRepository.saveAudited",
+     "evidence": "AuditEntry + Booking",
+     "line": 8,
+     "path": []
+    }
+   ]
+  },
+  {
+   "fixture": "c2-s1-d4-saveaudited",
+   "variant": "twin",
+   "case": 2,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c3-s1-d3-revenue",
+   "variant": "pos",
+   "case": 3,
+   "expectedFamily": "D3",
+   "findings": []
+  },
+  {
+   "fixture": "c3-s1-d3-revenue",
+   "variant": "twin",
+   "case": 3,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c4-s1-h5-lockport",
+   "variant": "pos",
+   "case": 4,
+   "expectedFamily": "H5",
+   "findings": []
+  },
+  {
+   "fixture": "c4-s1-h5-lockport",
+   "variant": "twin",
+   "case": 4,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c4v-h5-vendor-type",
+   "variant": "pos",
+   "case": "4v",
+   "expectedFamily": "H5",
+   "findings": [
+    {
+     "rule": "X2",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "subject": "BookingRepository.findByRoom",
+     "evidence": "sqlwell:Transaction",
+     "line": 6,
+     "path": []
+    },
+    {
+     "rule": "X2",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "subject": "BookingRepository.save",
+     "evidence": "sqlwell:Transaction",
+     "line": 7,
+     "path": []
+    },
+    {
+     "rule": "X2",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "subject": "BookingRepository.inTransaction",
+     "evidence": "sqlwell:Transaction",
+     "line": 9,
+     "path": []
+    }
+   ]
+  },
+  {
+   "fixture": "c4v-h5-vendor-type",
+   "variant": "twin",
+   "case": "4v",
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c5-s2-d4-recordpayment",
+   "variant": "pos",
+   "case": 5,
+   "expectedFamily": "D4",
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "subject": "RecordPayment.execute",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 8,
+     "path": [
+      "RecordPayment.execute",
+      "OrderPaidNotifier.orderPaid",
+      "OrderingPaidAcl.orderPaid",
+      "OrderPaidCommand.markPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ]
+    }
+   ]
+  },
+  {
+   "fixture": "c5-s2-d4-recordpayment",
+   "variant": "twin",
+   "case": 5,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c6-s2-d5-placeorder",
+   "variant": "pos",
+   "case": 6,
+   "expectedFamily": "D5",
+   "findings": [
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.quantity) || l.quantity <= 0 [duplicated in domain]",
+     "line": 21,
+     "path": []
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0 [duplicated in domain]",
+     "line": 22,
+     "path": []
+    }
+   ]
+  },
+  {
+   "fixture": "c6-s2-d5-placeorder",
+   "variant": "twin",
+   "case": 6,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c7-s2-d5-settaxrate",
+   "variant": "pos",
+   "case": 7,
+   "expectedFamily": "D5",
+   "findings": [
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts",
+     "subject": "SetTaxRate.execute",
+     "evidence": "typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1",
+     "line": 8,
+     "path": []
+    }
+   ]
+  },
+  {
+   "fixture": "c7-s2-d5-settaxrate",
+   "variant": "twin",
+   "case": 7,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c8-s2-d4-issueinvoice",
+   "variant": "pos",
+   "case": 8,
+   "expectedFamily": "D4",
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts",
+     "subject": "IssueInvoice.execute",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 11,
+     "path": [
+      "IssueInvoice.execute",
+      "OrderInvoicedNotifier.orderInvoiced",
+      "OrderingInvoicedAcl.orderInvoiced",
+      "OrderInvoicedCommand.markInvoiced",
+      "MarkOrderInvoiced.markInvoiced",
+      "OrderRepository.save"
+     ]
+    }
+   ]
+  },
+  {
+   "fixture": "c8-s2-d4-issueinvoice",
+   "variant": "twin",
+   "case": 8,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c9-s2-d9-lineviews",
+   "variant": "pos",
+   "case": 9,
+   "expectedFamily": "D9",
+   "findings": [
+    {
+     "rule": "X3b",
+     "family": "D9",
+     "file": "src/ordering/domain/order/Order.ts",
+     "subject": "Order.lineViews",
+     "evidence": "shape of OrderLineSummary (src/ordering/contracts/OrderSummary.ts)",
+     "line": 20,
+     "path": []
+    }
+   ]
+  },
+  {
+   "fixture": "c9-s2-d9-lineviews",
+   "variant": "twin",
+   "case": 9,
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "c9v-d9-entity-in-contract",
+   "variant": "pos",
+   "case": "9v",
+   "expectedFamily": "D9",
+   "findings": [
+    {
+     "rule": "X3a",
+     "family": "D9",
+     "file": "src/ordering/contracts/OrderSummary.ts",
+     "subject": "OrderSummary.lines",
+     "evidence": "OrderLine (src/ordering/domain/order/OrderLine.ts)",
+     "line": 7,
+     "path": []
+    }
+   ]
+  },
+  {
+   "fixture": "c9v-d9-entity-in-contract",
+   "variant": "twin",
+   "case": "9v",
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "n1-hex-clean-guests",
+   "variant": "clean",
+   "case": "negative",
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "n2-ddd-clean-outbox",
+   "variant": "clean",
+   "case": "negative",
+   "expectedFamily": null,
+   "findings": []
+  },
+  {
+   "fixture": "n3-hex-clean-vendor-adapter",
+   "variant": "clean",
+   "case": "negative",
+   "expectedFamily": null,
+   "findings": []
+  }
+ ]
+}

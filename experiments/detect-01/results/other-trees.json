@@ -1,0 +1,521 @@
+{
+ "schema": "detect-01-trees-v1",
+ "modelCalls": 0,
+ "rows": [
+  {
+   "label": "layered-mcp-L2__ice-rink__rep1__step-05",
+   "style": "layered",
+   "note": "partial reconstruction from C1d/C4 cassette excerpts (imports and leading type declarations mostly missing)",
+   "stats": {
+    "GUARDS": 5,
+    "XCALL": 17,
+    "nodes": 89,
+    "relationships": 106
+   },
+   "findings": []
+  },
+  {
+   "label": "layered-none-L2__hive-health__rep1__step-05",
+   "style": "layered",
+   "note": "partial reconstruction from C1d/C4 cassette excerpts (imports and leading type declarations mostly missing)",
+   "stats": {
+    "XCALL": 7,
+    "GUARDS": 6,
+    "nodes": 85,
+    "relationships": 99
+   },
+   "findings": []
+  },
+  {
+   "label": "layered-none-L3__ice-rink__rep1__step-05",
+   "style": "layered",
+   "note": "partial reconstruction from C1d/C4 cassette excerpts (imports and leading type declarations mostly missing)",
+   "stats": {
+    "XCALL": 19,
+    "GUARDS": 6,
+    "nodes": 70,
+    "relationships": 89
+   },
+   "findings": []
+  },
+  {
+   "label": "layered-reference",
+   "style": "layered",
+   "note": "complete: tests/fixtures/v1.3-reference/layered/project",
+   "stats": {
+    "PROP_TYPE": 3,
+    "XCALL": 44,
+    "GUARDS": 1,
+    "nodes": 105,
+    "relationships": 311
+   },
+   "findings": []
+  },
+  {
+   "label": "market-vendors-gate (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "XCALL": 93,
+    "GUARDS": 3,
+    "PROP_TYPE": 16,
+    "DISPATCH": 51,
+    "nodes": 194,
+    "relationships": 506
+   },
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.bookPitch",
+     "evidence": "BookingRepository.add + AuditLogRepository.add",
+     "line": 247,
+     "path": [
+      "MarketService.bookPitch",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.cancelBooking",
+     "evidence": "AuditLogRepository.add + BookingRepository.update",
+     "line": 287,
+     "path": [
+      "MarketService.cancelBooking",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.setCommissionRate",
+     "evidence": "VendorRepository.update + AuditLogRepository.add",
+     "line": 339,
+     "path": [
+      "MarketService.setCommissionRate",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleMarketDay",
+     "evidence": "MarketDayRepository.update + AuditLogRepository.add",
+     "line": 361,
+     "path": [
+      "MarketService.settleMarketDay",
+      "MarketService.doSettle",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleMarketDay",
+     "evidence": "SettlementRepository.add + AuditLogRepository.add",
+     "line": 361,
+     "path": [
+      "MarketService.settleMarketDay",
+      "MarketService.doSettle",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleMarketDay",
+     "evidence": "SettlementRepository.add + MarketDayRepository.update",
+     "line": 361,
+     "path": [
+      "MarketService.settleMarketDay",
+      "MarketService.doSettle",
+      "SettlementRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.doSettle",
+     "evidence": "MarketDayRepository.update + AuditLogRepository.add",
+     "line": 365,
+     "path": [
+      "MarketService.doSettle",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.doSettle",
+     "evidence": "SettlementRepository.add + AuditLogRepository.add",
+     "line": 365,
+     "path": [
+      "MarketService.doSettle",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.doSettle",
+     "evidence": "SettlementRepository.add + MarketDayRepository.update",
+     "line": 365,
+     "path": [
+      "MarketService.doSettle",
+      "SettlementRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.recordSale",
+     "evidence": "CardSaleRepository.add + AuditLogRepository.add",
+     "line": 432,
+     "path": [
+      "MarketService.recordSale",
+      "MarketService.storeSale",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.recordTillWaveSale",
+     "evidence": "CardSaleRepository.add + AuditLogRepository.add",
+     "line": 467,
+     "path": [
+      "MarketService.recordTillWaveSale",
+      "MarketService.storeSale",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.pollTillWave",
+     "evidence": "CardSaleRepository.add + AuditLogRepository.add",
+     "line": 490,
+     "path": [
+      "MarketService.pollTillWave",
+      "MarketService.recordTillWaveSale",
+      "MarketService.storeSale",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.storeSale",
+     "evidence": "CardSaleRepository.add + AuditLogRepository.add",
+     "line": 516,
+     "path": [
+      "MarketService.storeSale",
+      "MarketService.record",
+      "AuditLogRepository.add"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "market-vendors-none (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "XCALL": 100,
+    "GUARDS": 3,
+    "PROP_TYPE": 12,
+    "DISPATCH": 1,
+    "nodes": 126,
+    "relationships": 340
+   },
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.setVendorCommission",
+     "evidence": "VendorRepository.save + AuditRepository.add",
+     "line": 129,
+     "path": [
+      "MarketService.setVendorCommission",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.cancelBooking",
+     "evidence": "BookingRepository.save + AuditRepository.add",
+     "line": 143,
+     "path": [
+      "MarketService.cancelBooking",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleMarketDay",
+     "evidence": "MarketDayRepository.save + AuditRepository.add",
+     "line": 167,
+     "path": [
+      "MarketService.settleMarketDay",
+      "MarketService.settleInTransaction",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleMarketDay",
+     "evidence": "VendorRepository.save + AuditRepository.add",
+     "line": 167,
+     "path": [
+      "MarketService.settleMarketDay",
+      "MarketService.settleInTransaction",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleMarketDay",
+     "evidence": "VendorRepository.save + MarketDayRepository.save",
+     "line": 167,
+     "path": [
+      "MarketService.settleMarketDay",
+      "MarketService.settleInTransaction",
+      "VendorRepository.save"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleInTransaction",
+     "evidence": "MarketDayRepository.save + AuditRepository.add",
+     "line": 171,
+     "path": [
+      "MarketService.settleInTransaction",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleInTransaction",
+     "evidence": "VendorRepository.save + AuditRepository.add",
+     "line": 171,
+     "path": [
+      "MarketService.settleInTransaction",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.settleInTransaction",
+     "evidence": "VendorRepository.save + MarketDayRepository.save",
+     "line": 171,
+     "path": [
+      "MarketService.settleInTransaction",
+      "VendorRepository.save"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.bookPitch",
+     "evidence": "BookingRepository.add + AuditRepository.add",
+     "line": 298,
+     "path": [
+      "MarketService.bookPitch",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.recordTillWaveSales",
+     "evidence": "CardSaleRepository.add + AuditRepository.add",
+     "line": 368,
+     "path": [
+      "MarketService.recordTillWaveSales",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/market-service.ts",
+     "subject": "MarketService.recordSale",
+     "evidence": "CardSaleRepository.add + AuditRepository.add",
+     "line": 416,
+     "path": [
+      "MarketService.recordSale",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/application/tillwave-sync.ts",
+     "subject": "TillWaveSync.poll",
+     "evidence": "CardSaleRepository.add + AuditRepository.add",
+     "line": 20,
+     "path": [
+      "TillWaveSync.poll",
+      "MarketService.recordTillWaveSales",
+      "MarketService.record",
+      "AuditRepository.add"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "relief-volunteers-gate (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "XCALL": 74,
+    "PROP_TYPE": 4,
+    "GUARDS": 2,
+    "DISPATCH": 19,
+    "nodes": 151,
+    "relationships": 389
+   },
+   "findings": []
+  },
+  {
+   "label": "relief-volunteers-none (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "XCALL": 60,
+    "PROP_TYPE": 6,
+    "DISPATCH": 20,
+    "nodes": 151,
+    "relationships": 365
+   },
+   "findings": []
+  },
+  {
+   "label": "repair-cafe-none (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "PROP_TYPE": 5,
+    "XCALL": 56,
+    "DISPATCH": 38,
+    "nodes": 152,
+    "relationships": 375
+   },
+   "findings": []
+  },
+  {
+   "label": "school-bus-none (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "XCALL": 51,
+    "PROP_TYPE": 3,
+    "DISPATCH": 24,
+    "nodes": 134,
+    "relationships": 318
+   },
+   "findings": []
+  },
+  {
+   "label": "shelter-adoptions-gate (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "XCALL": 83,
+    "GUARDS": 4,
+    "PROP_TYPE": 9,
+    "DISPATCH": 28,
+    "nodes": 183,
+    "relationships": 537
+   },
+   "findings": []
+  },
+  {
+   "label": "shelter-adoptions-none (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "XCALL": 93,
+    "PROP_TYPE": 2,
+    "DISPATCH": 17,
+    "nodes": 181,
+    "relationships": 463
+   },
+   "findings": []
+  },
+  {
+   "label": "vineyard-harvest-none (final step)",
+   "style": "hexddd",
+   "note": "final snapshot of an in-repo loop run (snapshots.git, master)",
+   "stats": {
+    "XCALL": 92,
+    "GUARDS": 4,
+    "PROP_TYPE": 3,
+    "DISPATCH": 27,
+    "nodes": 219,
+    "relationships": 572
+   },
+   "findings": [
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/cellar/application/cellar-service.ts",
+     "subject": "CellarService.recordSugar",
+     "evidence": "!Number.isInteger(tag) || tag <= 0 [duplicated in domain]",
+     "line": 73,
+     "path": []
+    }
+   ]
+  }
+ ]
+}

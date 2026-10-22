@@ -1,0 +1,28 @@
+{
+ "id": "c4-s1-h5-lockport/twin",
+ "family": "H5",
+ "role": "twin",
+ "target": "c4-s1-h5-lockport/twin",
+ "files": [
+  "src/application/ports/out/RoomScheduleRepository.ts",
+  "src/application/services/BookRoomService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts",
+  "src/domain/model/RoomSchedule.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "4b94b1d5879f9fbc4cff4d71b684d726775cfeabfed3207827003975b1cacdc5",
+ "ok": true,
+ "raw": "{\"verdict\":\"absent\",\"evidence\":[],\"rationale\":\"RoomScheduleRepository exposes forRoom, save and nextBookingId, which are application-level needs. No lock, transaction, connection, SQL, HTTP or vendor types appear in its signatures. The `version` field on RoomSchedule hints at optimistic concurrency, but it is a domain attribute, not a port-level mechanism.\"}",
+ "answer": {
+  "verdict": "absent",
+  "evidence": [],
+  "rationale": "RoomScheduleRepository exposes forRoom, save and nextBookingId, which are application-level needs. No lock, transaction, connection, SQL, HTTP or vendor types appear in its signatures. The `version` field on RoomSchedule hints at optimistic concurrency, but it is a domain attribute, not a port-level mechanism."
+ },
+ "grounding": {
+  "cited": 0,
+  "grounded": 0,
+  "details": []
+ }
+}

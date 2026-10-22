@@ -1,0 +1,28 @@
+{
+ "id": "c6-s2-d5-placeorder/twin",
+ "family": "D5",
+ "role": "twin",
+ "target": "c6-s2-d5-placeorder/twin",
+ "files": [
+  "src/ordering/application/PlaceOrder.ts",
+  "src/ordering/domain/order/Order.ts",
+  "src/ordering/domain/order/OrderRepository.ts",
+  "src/ordering/domain/value-objects/Quantity.ts",
+  "src/shared-kernel/value-objects/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "217fbae01381b08983bc654915319fb57a0deb78c33223a4ccaf77c37d65dbaa",
+ "ok": true,
+ "raw": "{\"verdict\":\"absent\",\"evidence\":[],\"rationale\":\"Invariants live in the domain: Quantity validates positive integers, Money.of validates non-negative cents, and Order.addLine enforces currency match. PlaceOrder only orchestrates construction, delegates to these, and wraps errors with line context. It has no duplicated checks or locks guarding domain rules.\"}",
+ "answer": {
+  "verdict": "absent",
+  "evidence": [],
+  "rationale": "Invariants live in the domain: Quantity validates positive integers, Money.of validates non-negative cents, and Order.addLine enforces currency match. PlaceOrder only orchestrates construction, delegates to these, and wraps errors with line context. It has no duplicated checks or locks guarding domain rules."
+ },
+ "grounding": {
+  "cited": 0,
+  "grounded": 0,
+  "details": []
+ }
+}
