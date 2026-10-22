@@ -2947,3 +2947,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Study 2b closure; exploratory thread bookkeeping
 
 ---
+
+## V15-PLAN steps 2 and 3 — edit-gate design note and final-study draft (documentation only)
+**Timestamp**: 2026-10-22T04:40:00Z
+**User Input**: "(coordinator brief) Write the edit-gate design note and a first draft of the final confirmatory study of instrument v1.5, zero calls, and link both from the V15 plan."
+**AI Response**: "Added ops/notes/v15-edit-gate-design.md (DRAFT): mechanism options (PostToolUse hook through a root-side relay, recommended, with a Stop hook; harness injection between turns as fallback), checks, message format and de-duplication, latency budget, confinement, scenarios, predictions against the PUZZLE-01 baseline and the pull arm, measures, a 38-call pilot plan and failure criteria. Added ops/notes/v15-final-study-draft.md (DRAFT v0): research questions, a spec × tool 2×2 per style (Layered and DDD), a task-grain power sketch with candidate grids, outcomes including D_sem, a second vendor and an optional brownfield arm, v1.5 gates before registration, threats, rough cost and open decisions. Linked both from ops/notes/v15-plan.md under a Notes line."
+**Context**: V15-PLAN first three steps (steps 2 and 3); zero model calls; nothing run or built; not part of Study 2b
+
+---
