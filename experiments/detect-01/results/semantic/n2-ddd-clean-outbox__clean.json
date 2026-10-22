@@ -1,0 +1,36 @@
+{
+ "id": "n2-ddd-clean-outbox/clean",
+ "family": "D4",
+ "role": "clean",
+ "target": "n2-ddd-clean-outbox/clean",
+ "files": [
+  "src/billing/application/OnOrderPlaced.ts",
+  "src/billing/domain/account/Account.ts",
+  "src/billing/domain/account/AccountRepository.ts",
+  "src/ordering/application/GetOrderSummary.ts",
+  "src/ordering/application/PlaceOrder.ts",
+  "src/ordering/application/ports/Outbox.ts",
+  "src/ordering/contracts/OrderSummary.ts",
+  "src/ordering/domain/order/Order.ts",
+  "src/ordering/domain/order/OrderRepository.ts",
+  "src/ordering/domain/value-objects/Quantity.ts",
+  "src/ordering/index.ts",
+  "src/shared-kernel/DomainEvent.ts",
+  "src/shared-kernel/value-objects/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "54bfc069c3a2971d00fe404e1f190a6d65f9ae6234ba56861d5ee16a387f20be",
+ "ok": true,
+ "raw": "{\"verdict\":\"absent\",\"evidence\":[],\"rationale\":\"PlaceOrder saves only the Order aggregate and appends its events to an outbox. OnOrderPlaced, in billing, modifies and saves only the Account aggregate, and it runs as a separate handler for the event. No single request flow persists two aggregates synchronously.\"}",
+ "answer": {
+  "verdict": "absent",
+  "evidence": [],
+  "rationale": "PlaceOrder saves only the Order aggregate and appends its events to an outbox. OnOrderPlaced, in billing, modifies and saves only the Account aggregate, and it runs as a separate handler for the event. No single request flow persists two aggregates synchronously."
+ },
+ "grounding": {
+  "cited": 0,
+  "grounded": 0,
+  "details": []
+ }
+}

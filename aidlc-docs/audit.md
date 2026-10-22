@@ -2821,6 +2821,22 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## EXPLORE-01 — research log for the exploratory thread
+**Timestamp**: 2026-10-21T00:58:00Z
+**User Input**: "Asked that the exploratory investigation (HEXDDD-01 pilot and hand read, detection coverage, architecture puzzles, case bank) be recorded in the repository."
+**AI Response**: "Added ops/notes/explore-01-research-log.md (entries: HEXDDD-01 design, pilot run, blind hand read, DETECT-01 and PUZZLE-01 launched as cloud routines on unmerged branches, the case-bank proposal; guardrails and open items), linked it from ops/00-overview.md and ops/README.md. Documentation only; no model call, no frozen path, no Study 2b file touched."
+**Context**: exploratory thread alongside Study 2b; dev material only
+
+---
+
+## Study 2b — the author's go for the run
+**Timestamp**: 2026-10-20T18:55:00Z
+**User Input**: "(coordinator brief) The author gave the go for the confirmatory Study 2b run after reviewing the readiness-gate verdict (GO-READY-FOR-AUTHOR; D10 green with the OSF deposit). Record the go, run the pre-run checks at the run commit (hashes, frozen inputs, zero-call re-checks, live S4 re-run for both arms), then run the 40 blocks per the runbook and write a counts-only collection report."
+**AI Response**: "Recorded the go as GO-2B-RUN in ops/decisions.md (gate rule 4, GO-2B), before the pre-run checks and before any 2b call. The run session proceeds per Docs/v1.4/study2b-runbook.md with addenda A-D."
+**Context**: v1.4 Study 2b, drift record order step: run; the time is the approximate time of the go as given by the coordinator
+
+---
+
 ## PUZZLE-01 baseline — agent alone, arm none (plan, before any generator call)
 **Timestamp**: 2026-10-21T02:12:29Z
 **User Input**: "(coordinator brief) Run the exploratory PUZZLE-01 baseline (arm none only, DEV split, not Study 2b): repair the gaps an adversarial review found (restore the ignored ports/out files, add declared house rules to each seed, repair two oracles and pre-register hand-read categories, keep tests and all puzzle material out of the generator's reach), commit the plan before any call, then smoke, probes, 5 runs per puzzle, zero-call scoring with oracle and instrument visibility, a report and an unmerged PR."
@@ -2829,10 +2845,50 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Study 2b — run collected (counts only, not scored)
+**Timestamp**: 2026-10-21T02:17:25Z
+**User Input**: "(coordinator brief) After the go: pre-run checks at the run commit (hashes, frozen inputs, zero-call re-checks, live S4 re-run, 9 calls), then the 40-block run per the runbook, replicate by replicate, two lanes; stop only on an integrity failure; no scoring; archive the out-roots path-free and write a counts-only collection report."
+**AI Response**: "Pre-run checks green at 0b17d601 (sealed tasks.json, MANIFEST and pinned CLI hashes match; frozen-path diff empty; instrument tree equals the tag; dry run of the real plans 30/30; S4 re-run PASS 9/9). Run 2026-10-20T19:07:04Z to 2026-10-21T02:17:25Z: 40 of 40 blocks complete in each of none@L2, none@L3 and mcp@L2; 520 step turns; 0 pauses; 0 redraws; CLI 2.1.304; served model claude-sonnet-5-5 only; no harness failure and no stop. In-run checks: 0 evaluation errors, telemetry as expected, 0 denials naming HOME or the sealed folder. 30 out-roots archived and verified; tarball hashes and pointers committed, full manifests kept with the tarballs until scoring. Report: Docs/DiagnosticRuns/v1.4-study2b-collection-2026-10-20.md."
+**Context**: v1.4 Study 2b, drift record order step: run (collection); scoring follows in a later session
+
+---
+
 ## PUZZLE-01 baseline — run and zero-call scoring
 **Timestamp**: 2026-10-21T02:54:04Z
 **User Input**: "(coordinator brief, continued) Run the baseline under the committed plan, score it with zero calls, report and open an unmerged PR."
 **AI Response**: "54 of 72 generator calls (smoke 1, probes 5, baseline 48); isolation achieved (unprivileged generator user, root-only directories, 0 readable fingerprints, READ probe denied all paths); one whole-session redraw after a container restart. Clean solves: P1 0/5, P2 0/5 by the oracle (1/5 if the pre-registered over-rejection case is accepted), P4 5/5; no functional failure; the frozen instrument and the DETECT-01 prototypes flag none of the 12 agent-tree oracle failures. Section 9 band not met; P4 at 5/5 calls for a harder visible puzzle before any tool arm. Counts provisional until the author's hand read."
 **Context**: Exploratory PUZZLE-01 baseline, run and scoring; no frozen path or Study 2b file changed
+
+---
+
+## Study 2b — registered scoring pass
+**Timestamp**: 2026-10-21T03:28:06Z
+**User Input**: "(coordinator brief) After PRs #330 and #337 merged, run the single registered scoring pass of Study 2b at the freeze tag: hash checks, re-score, D and D-dagger, the registered tests via study2b-analyse.ts, and the registered post-run checks; C4 / D_sem not in this pass."
+**AI Response**: "Hashes verified (pre-registration, 27 registered artefacts, OSF package 8/8; instrument tree equals the tag blob for blob; frozen-path diff empty; sealed hashes match). Scored at X with zero model calls: 600 snapshots, 0 evaluation failures; D8 parity 30/30 identical on one capped Neo4j; coverage, post-run acceptance, exposure, telemetry and seeded recall run; analysis run once. H1 and H2 rejected after Holm with the predicted sign and supported under D and D-dagger; H3 not rejected; E fails; V4 part B passes. Implementation choices DA9-DA12 recorded in addendum 3 before the figures were read (DA12 before the analysis ran). Report Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md."
+**Context**: v1.4 Study 2b, drift record order step: run (scoring); C4 / D_sem is the next registered step with its own precondition
+
+---
+
+## DETECT-01 — coverage map and prototype detectors (exploratory)
+**Timestamp**: 2026-10-21T01:20:00Z
+**User Input**: "(scheduled task) Map which Hexagonal and DDD violation families the instrument detects, classify the nine hand-read misses of the HEXDDD-01 pilot, and prototype symbolic and semantic detections for the gaps under experiments/detect-01/, without touching the frozen instrument or any Study 2b path; cap of 40 model calls."
+**AI Response**: "Wrote ops/notes/detect-01-coverage-map.md before any code (6 of 9 misses symbolically reachable, 3 semantic only). Built 25 development fixture variants, an experimental extractor and 7 Cypher rules run on cypher-interp; on the rebuilt pilot trees the rules found all 6 reachable cases at the logged step, with no finding on Layered or Hexagonal comparison trees. Semantic questions: 32 of 40 calls, every citation grounded, twin discrimination 9 of 11 fixture pairs. Report: Docs/DiagnosticRuns/detect-01-2026-10-21.md; promotion candidates listed for after the 2b scoring, never retroactive."
+**Context**: Exploratory follow-up to HEXDDD-01; instrument unchanged; branch explore/detect-01, PR not to be merged
+
+---
+
+## Inventory — open tracks and built capabilities
+**Timestamp**: 2026-10-21T05:30:00Z
+**User Input**: "Asked for a compilation of all open tracks (to tag as future work or as work that can continue after a first chapter draft) and of all capabilities built for the instrument, at the start of chapter drafting."
+**AI Response**: "Added ops/06-open-tracks-and-capabilities.md: Part A, open tracks in eight groups with status, evidence path, remaining work and a tag (FRIDAY / DRAFT-NEXT / FUTURE-WORK / DROPPED), plus eight status files that disagree; Part B, built capabilities by instrument plane with evidence and maturity (VALIDATED / DEV / PROTOTYPE / SPEC-ONLY); the strongest supportable claims and a chapter-to-evidence map. Linked from ops/README.md and ops/00-overview.md. Documentation only; no model call, no frozen path."
+**Context**: start of chapter drafting, after the Study 2b scoring pass
+
+---
+
+## Status refresh and sources ledger (documentation only)
+**Timestamp**: 2026-10-21T22:08:23Z
+**User Input**: "Asked for every status document to be brought up to date with the facts as of 2026-10-21 (Study 2b collected and scored once), fixing the eight disagreeing status files listed in the inventory, and for the literature and evidence sources to be consolidated into one ledger for thesis writing."
+**AI Response**: "Fixed the eight conflicts listed at the end of Part A of ops/06-open-tracks-and-capabilities.md: rewrote ops/00-overview.md to the current state; marked X-1 and SO3-a declared in ops/notes/deviations-v14.md to agree with ops/decisions.md D8; recorded the F3 rewording as adopted in Docs/v1.3/contribution-statement.md and added Study 2b with its registered scope (FF-S03, Layered, one generator, 4 tasks); in the compendium README, marked the construct questions answered (ADR-V13-03 accepted under delegation, V1 GREEN), repaired the merged SO5 table row and added 2b scope-limit rows pointing at M175-M186; in ops/decisions.md, marked the 9 adjudication rows done (desk 61/61) and pointed the hold-out changelog entries to DELEG-H4 and DELEG5; added a dated note to the hold-out run report (not spent; the author chooses between a spec-format fix addendum and reporting it as not scored); added progress ticks and the registered 520-turn budget to the Friday plan; updated status lines with dated changelog entries in track-1, track-2, the build list, the north star and TRUST-01 (L3, L4, L5, L7). Re-anchored 14 ledger citations whose lines moved and marked one row (C6453) superseded. Added Docs/sources/ (README, sources-ledger.md with 308 rows, sources.bib), harvested from ops/notes, Docs, papers/*/refs.bib, the exploratory branches and a search-session list; 31 figures attributed to sources the ledger cannot verify are flagged. Zero model calls; no registered Study 2b artefact, src/, presets/, scripts/lib/ or scripts/v1.3/ file was changed; no sealed path was read."
+**Context**: documentation upkeep at the start of chapter drafting; no new measurement, no decision taken
 
 ---

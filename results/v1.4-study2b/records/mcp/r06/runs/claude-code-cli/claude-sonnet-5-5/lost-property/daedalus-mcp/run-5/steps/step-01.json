@@ -1,0 +1,195 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/lost-property/daedalus-mcp/run-5",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "lost-property",
+    "arm": "daedalus-mcp",
+    "runIndex": 5
+  },
+  "stepIndex": 0,
+  "stepId": "found-and-lost",
+  "startedAt": "2026-10-20T23:00:29.019Z",
+  "finishedAt": "2026-10-20T23:01:10.619Z",
+  "turns": [
+    {
+      "turnId": "step-01",
+      "kind": "step",
+      "promptSha256": "29cdfaf66c66a5588ee186316ef1f67839a2bebcc79b4fa643538f454010711a",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.10537450000000001,
+          "inputTokens": 10,
+          "outputTokens": 6523,
+          "cacheReadTokens": 38165,
+          "cacheCreationTokens": 9077,
+          "numTurns": 13,
+          "durationMs": 39986
+        },
+        "wallMs": 40949,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T23:00:29.020Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-l2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-l2/runs/claude-code-cli/claude-sonnet-5-5/lost-property/none/run-5/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-01.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "625b15326e3b032ea7b3af51552c1afadae4493d",
+        "sourceFiles": [
+          "business/emailNotifier.ts",
+          "business/errors.ts",
+          "business/lostPropertyService.ts",
+          "business/matching.ts",
+          "persistence/models.ts",
+          "persistence/repositories.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 8,
+        "loc": 260,
+        "diff": {
+          "added": 8,
+          "modified": 0,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.695,
+          "blockingAhs": 0.667,
+          "verdict": "fail",
+          "violationCount": 12,
+          "blockingViolationCount": 1,
+          "advisoryViolationCount": 11,
+          "blockingByRule": {
+            "FF-S03": 1
+          },
+          "advisoryByRule": {
+            "FF-C03": 2,
+            "FF-C06": 1,
+            "FF-CV05": 8
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-f06d7ae883970eaa",
+              "filePath": "src/presentation/app.ts",
+              "line": 6,
+              "target": "src/persistence/repositories.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+            }
+          ],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 1,
+          "durationMs": 2,
+          "testFileSha256": "3430bfe9a54b5ef9c9423a5a31a54f19fdd324e161e844f8473521e290b1b789",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "e90515e77b427e6ba13c8724075e952f713fd53a0a4dfb3b58ca327dec0c64ab",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 1,
+    "durationMs": 2,
+    "testFileSha256": "3430bfe9a54b5ef9c9423a5a31a54f19fdd324e161e844f8473521e290b1b789",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "e90515e77b427e6ba13c8724075e952f713fd53a0a4dfb3b58ca327dec0c64ab",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "625b15326e3b032ea7b3af51552c1afadae4493d",
+  "cost": {
+    "costUsd": 0.10537450000000001,
+    "inputTokens": 10,
+    "outputTokens": 6523,
+    "wallMs": 40949
+  },
+  "inherited": {
+    "sourceRunId": "claude-code-cli/claude-sonnet-5-5/lost-property/none/run-5",
+    "sourceSpec": {
+      "adapterId": "claude-code-cli",
+      "modelId": "claude-sonnet-5-5",
+      "taskId": "lost-property",
+      "arm": "none",
+      "runIndex": 5
+    },
+    "sourceStepRecordSha256": "15df79f5c54802e924d650a55f3c9723be1fbab73264838338a654065ec10317"
+  }
+}

@@ -1,0 +1,40 @@
+{
+ "id": "c4-s1-h5-lockport/pos",
+ "family": "H5",
+ "role": "positive",
+ "target": "c4-s1-h5-lockport/pos",
+ "files": [
+  "src/application/ports/out/BookingRepository.ts",
+  "src/application/services/BookRoomService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "a197b8ac156ec64c41ddbf75ab97e2d82a7b3a2a478f9e482b81fb3887a4cec3",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/ports/out/BookingRepository.ts\",\"line\":12,\"quote\":\"withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T>;\"}],\"rationale\":\"The BookingRepository port exposes a locking/transactional mechanism via withRoomLock, whose callback receives a transactional repository (named 'tx' in the service). This is a concurrency/persistence technique leaking into the port instead of an application-level need such as 'reserve room if free'.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 12,
+    "quote": "withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T>;"
+   }
+  ],
+  "rationale": "The BookingRepository port exposes a locking/transactional mechanism via withRoomLock, whose callback receives a transactional repository (named 'tx' in the service). This is a concurrency/persistence technique leaking into the port instead of an application-level need such as 'reserve room if free'."
+ },
+ "grounding": {
+  "cited": 1,
+  "grounded": 1,
+  "details": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 12,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

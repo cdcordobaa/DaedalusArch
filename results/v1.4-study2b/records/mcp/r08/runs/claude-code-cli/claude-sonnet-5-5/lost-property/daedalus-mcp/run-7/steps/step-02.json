@@ -1,0 +1,223 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/lost-property/daedalus-mcp/run-7",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "lost-property",
+    "arm": "daedalus-mcp",
+    "runIndex": 7
+  },
+  "stepIndex": 1,
+  "stepId": "courier-returns",
+  "startedAt": "2026-10-21T00:40:19.218Z",
+  "finishedAt": "2026-10-21T00:41:20.188Z",
+  "turns": [
+    {
+      "turnId": "step-02",
+      "kind": "step",
+      "promptSha256": "27911ae1f887d3dd6fdd0455b679cde4cc4dc4d1d34db1da984a05b7475a67b8",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.21788629999999998,
+          "inputTokens": 10,
+          "outputTokens": 11090,
+          "cacheReadTokens": 90743,
+          "cacheCreationTokens": 24473,
+          "numTurns": 16,
+          "durationMs": 58866
+        },
+        "wallMs": 60195,
+        "attempts": [
+          {
+            "startedAt": "2026-10-21T00:40:19.220Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-a/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-a/runs/claude-code-cli/claude-sonnet-5-5/lost-property/daedalus-mcp/run-7/tsconfig.json)",
+          "mcp__daedalus-arch__get_architecture_spec",
+          "mcp__daedalus-arch__which_layer",
+          "mcp__daedalus-arch__check_import",
+          "mcp__daedalus-arch__explain_violation",
+          "mcp__daedalus-arch__check_file",
+          "mcp__daedalus-arch__check_diff",
+          "mcp__daedalus-arch__suggest_placement",
+          "mcp__daedalus-arch__infer_spec",
+          "mcp__daedalus-arch__explain_finding",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "mcp__daedalus-arch__evaluate_project",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config",
+          "--mcp-config",
+          "<shared>/daedalus-study2b/run/h-a/runs/claude-code-cli/claude-sonnet-5-5/lost-property/daedalus-mcp/run-7/mcp-daedalus-mcp.json"
+        ],
+        "envelopePath": "envelope-step-02.json",
+        "permissionDenials": 1
+      },
+      "snapshot": {
+        "commit": "3f5bd8b5eb3a837c001f50b7bf342ee4b3bbb6a6",
+        "sourceFiles": [
+          "business/deliveryService.ts",
+          "business/errors.ts",
+          "business/lostPropertyService.ts",
+          "business/services.ts",
+          "persistence/deliveryStore.ts",
+          "persistence/hurrydropClient.ts",
+          "persistence/postwingClient.ts",
+          "persistence/store.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 11,
+        "loc": 463,
+        "diff": {
+          "added": 4,
+          "modified": 3,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.814,
+          "blockingAhs": 1,
+          "verdict": "pass",
+          "violationCount": 14,
+          "blockingViolationCount": 0,
+          "advisoryViolationCount": 14,
+          "blockingByRule": {},
+          "advisoryByRule": {
+            "FF-C03": 2,
+            "FF-C06": 1,
+            "FF-CV05": 10,
+            "FF-SO01": 1
+          },
+          "blockingFindings": [],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 2,
+          "durationMs": 5,
+          "testFileSha256": "3a367b6bf694877b4f33b26af2fba0fd288252117e41a9e8ea11ae2ad878bd49",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "e90515e77b427e6ba13c8724075e952f713fd53a0a4dfb3b58ca327dec0c64ab",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            },
+            {
+              "file": "step-02.test.mjs",
+              "sha256": "fc024f0ee3eaee287a7b81f9a3e1e06659c2c534f24106631a28f5ad100e51db",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "process": {
+    "schema": "loop-process/v1",
+    "logs": [
+      "calls/step-02.jsonl"
+    ],
+    "logFound": true,
+    "calls": 1,
+    "errors": 0,
+    "callsByTool": {
+      "get_architecture_spec": 1
+    },
+    "firstCallAt": "2026-10-21T00:40:22.557Z",
+    "firstCallBeforeFirstWrite": true,
+    "firstWriteEvidence": "server-fingerprint",
+    "latencyMs": {
+      "p50": 19,
+      "p95": 19
+    }
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 2,
+    "durationMs": 5,
+    "testFileSha256": "3a367b6bf694877b4f33b26af2fba0fd288252117e41a9e8ea11ae2ad878bd49",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "e90515e77b427e6ba13c8724075e952f713fd53a0a4dfb3b58ca327dec0c64ab",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      },
+      {
+        "file": "step-02.test.mjs",
+        "sha256": "fc024f0ee3eaee287a7b81f9a3e1e06659c2c534f24106631a28f5ad100e51db",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "3f5bd8b5eb3a837c001f50b7bf342ee4b3bbb6a6",
+  "cost": {
+    "costUsd": 0.21788629999999998,
+    "inputTokens": 10,
+    "outputTokens": 11090,
+    "wallMs": 60195
+  }
+}

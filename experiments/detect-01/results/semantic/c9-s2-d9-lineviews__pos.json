@@ -1,0 +1,43 @@
+{
+ "id": "c9-s2-d9-lineviews/pos",
+ "family": "D9",
+ "role": "positive",
+ "target": "c9-s2-d9-lineviews/pos",
+ "files": [
+  "src/ordering/application/GetOrderSummary.ts",
+  "src/ordering/contracts/OrderSummary.ts",
+  "src/ordering/domain/order/Order.ts",
+  "src/ordering/domain/order/OrderLine.ts",
+  "src/ordering/domain/order/OrderRepository.ts",
+  "src/ordering/index.ts",
+  "src/shared-kernel/value-objects/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "cac5d4cc519f37cc23da8cfee2f35bf168d564b127d0b9db09aaf98ad93f0698",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/ordering/domain/order/Order.ts\",\"line\":20,\"quote\":\"lineViews(): { lineNo: number; productId: string; grossCents: number; discountCents: number; discountReason: string | null; subtotalCents: number }[] {\"}],\"rationale\":\"The Order domain entity exposes a lineViews() method returning a DTO-shaped structure that mirrors the published OrderLineSummary contract (primitive cents fields, discountReason, subtotalCents). GetOrderSummary passes it straight into the contract, so the domain model is shaped around the published language.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/ordering/domain/order/Order.ts",
+    "line": 20,
+    "quote": "lineViews(): { lineNo: number; productId: string; grossCents: number; discountCents: number; discountReason: string | null; subtotalCents: number }[] {"
+   }
+  ],
+  "rationale": "The Order domain entity exposes a lineViews() method returning a DTO-shaped structure that mirrors the published OrderLineSummary contract (primitive cents fields, discountReason, subtotalCents). GetOrderSummary passes it straight into the contract, so the domain model is shaped around the published language."
+ },
+ "grounding": {
+  "cited": 1,
+  "grounded": 1,
+  "details": [
+   {
+    "file": "src/ordering/domain/order/Order.ts",
+    "line": 20,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

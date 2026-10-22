@@ -1,0 +1,62 @@
+{
+ "id": "c4v-h5-vendor-type/pos",
+ "family": "H5",
+ "role": "positive",
+ "target": "c4v-h5-vendor-type/pos",
+ "files": [
+  "src/application/ports/out/BookingRepository.ts",
+  "src/application/services/BookRoomService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "296d754fa909f7736d88228021baa13a00bcb5569fea8da529bdcfbf7319c11e",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/ports/out/BookingRepository.ts\",\"line\":1,\"quote\":\"import type { Transaction } from 'sqlwell';\"},{\"file\":\"src/application/ports/out/BookingRepository.ts\",\"line\":6,\"quote\":\"findByRoom(roomId: string, tx?: Transaction): Promise<Booking[]>;\"},{\"file\":\"src/application/ports/out/BookingRepository.ts\",\"line\":9,\"quote\":\"inTransaction<T>(task: (tx: Transaction) => Promise<T>): Promise<T>;\"}],\"rationale\":\"The BookingRepository port imports a vendor Transaction type from 'sqlwell' and exposes it in method parameters (tx) and in an inTransaction method. This leaks a database transaction mechanism into the application-level port, and BookRoomService must manage it.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 1,
+    "quote": "import type { Transaction } from 'sqlwell';"
+   },
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 6,
+    "quote": "findByRoom(roomId: string, tx?: Transaction): Promise<Booking[]>;"
+   },
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 9,
+    "quote": "inTransaction<T>(task: (tx: Transaction) => Promise<T>): Promise<T>;"
+   }
+  ],
+  "rationale": "The BookingRepository port imports a vendor Transaction type from 'sqlwell' and exposes it in method parameters (tx) and in an inTransaction method. This leaks a database transaction mechanism into the application-level port, and BookRoomService must manage it."
+ },
+ "grounding": {
+  "cited": 3,
+  "grounded": 3,
+  "details": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 1,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 6,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 9,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

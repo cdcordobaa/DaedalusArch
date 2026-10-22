@@ -1,0 +1,404 @@
+{
+ "schema": "detect-01-trees-v1",
+ "modelCalls": 0,
+ "rows": [
+  {
+   "label": "s1-hotel-bookings/step-00",
+   "style": "hexddd",
+   "stats": {
+    "PROP_TYPE": 3,
+    "XCALL": 34,
+    "GUARDS": 1,
+    "DISPATCH": 14,
+    "nodes": 116,
+    "relationships": 329
+   },
+   "findings": []
+  },
+  {
+   "label": "s1-hotel-bookings/step-01",
+   "style": "hexddd",
+   "stats": {
+    "PROP_TYPE": 3,
+    "XCALL": 45,
+    "GUARDS": 1,
+    "DISPATCH": 17,
+    "nodes": 129,
+    "relationships": 369
+   },
+   "findings": []
+  },
+  {
+   "label": "s1-hotel-bookings/step-02",
+   "style": "hexddd",
+   "stats": {
+    "PROP_TYPE": 3,
+    "XCALL": 47,
+    "GUARDS": 1,
+    "DISPATCH": 17,
+    "nodes": 131,
+    "relationships": 380
+   },
+   "findings": []
+  },
+  {
+   "label": "s1-hotel-bookings/step-03",
+   "style": "hexddd",
+   "stats": {
+    "PROP_TYPE": 4,
+    "XCALL": 53,
+    "GUARDS": 1,
+    "DISPATCH": 21,
+    "nodes": 159,
+    "relationships": 462
+   },
+   "findings": [
+    {
+     "rule": "X1b",
+     "family": "D4",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "subject": "BookingRepository.saveAudited",
+     "evidence": "AuditEntry + Booking",
+     "line": 11,
+     "path": []
+    }
+   ]
+  },
+  {
+   "label": "s1-hotel-bookings/step-04",
+   "style": "hexddd",
+   "stats": {
+    "PROP_TYPE": 7,
+    "XCALL": 57,
+    "GUARDS": 1,
+    "DISPATCH": 22,
+    "nodes": 172,
+    "relationships": 501
+   },
+   "findings": [
+    {
+     "rule": "X1b",
+     "family": "D4",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "subject": "BookingRepository.saveAudited",
+     "evidence": "AuditEntry + Booking",
+     "line": 11,
+     "path": []
+    }
+   ]
+  },
+  {
+   "label": "s1-hotel-bookings/step-05",
+   "style": "hexddd",
+   "stats": {
+    "PROP_TYPE": 7,
+    "XCALL": 68,
+    "GUARDS": 1,
+    "DISPATCH": 35,
+    "nodes": 205,
+    "relationships": 618
+   },
+   "findings": [
+    {
+     "rule": "X1b",
+     "family": "D4",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "subject": "BookingRepository.saveAudited",
+     "evidence": "AuditEntry + Booking",
+     "line": 11,
+     "path": []
+    }
+   ]
+  },
+  {
+   "label": "s2-orders-invoices/step-00",
+   "style": "hexddd",
+   "stats": {
+    "XCALL": 32,
+    "GUARDS": 2,
+    "DISPATCH": 7,
+    "nodes": 110,
+    "relationships": 310
+   },
+   "findings": []
+  },
+  {
+   "label": "s2-orders-invoices/step-01",
+   "style": "hexddd",
+   "stats": {
+    "XCALL": 64,
+    "GUARDS": 3,
+    "DISPATCH": 13,
+    "nodes": 161,
+    "relationships": 482
+   },
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "subject": "RecordPayment.execute",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 9,
+     "path": [
+      "RecordPayment.execute",
+      "OrderPaidNotifier.orderPaid",
+      "OrderingPaidAcl.orderPaid",
+      "OrderPaidCommand.markPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "s2-orders-invoices/step-02",
+   "style": "hexddd",
+   "stats": {
+    "XCALL": 64,
+    "GUARDS": 6,
+    "DISPATCH": 13,
+    "nodes": 164,
+    "relationships": 485
+   },
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "subject": "RecordPayment.execute",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 9,
+     "path": [
+      "RecordPayment.execute",
+      "OrderPaidNotifier.orderPaid",
+      "OrderingPaidAcl.orderPaid",
+      "OrderPaidCommand.markPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ]
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.quantity) || l.quantity <= 0 [duplicated in domain]",
+     "line": 35,
+     "path": []
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0 [duplicated in domain]",
+     "line": 36,
+     "path": []
+    }
+   ]
+  },
+  {
+   "label": "s2-orders-invoices/step-03",
+   "style": "hexddd",
+   "stats": {
+    "XCALL": 80,
+    "GUARDS": 6,
+    "DISPATCH": 17,
+    "nodes": 191,
+    "relationships": 578
+   },
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "subject": "RecordPayment.execute",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 9,
+     "path": [
+      "RecordPayment.execute",
+      "OrderPaidNotifier.orderPaid",
+      "OrderingPaidAcl.orderPaid",
+      "OrderPaidCommand.markPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ]
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.quantity) || l.quantity <= 0 [duplicated in domain]",
+     "line": 35,
+     "path": []
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0 [duplicated in domain]",
+     "line": 36,
+     "path": []
+    }
+   ]
+  },
+  {
+   "label": "s2-orders-invoices/step-04",
+   "style": "hexddd",
+   "stats": {
+    "XCALL": 88,
+    "GUARDS": 8,
+    "DISPATCH": 19,
+    "nodes": 209,
+    "relationships": 626
+   },
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "subject": "RecordPayment.execute",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 9,
+     "path": [
+      "RecordPayment.execute",
+      "OrderPaidNotifier.orderPaid",
+      "OrderingPaidAcl.orderPaid",
+      "OrderPaidCommand.markPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ]
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.quantity) || l.quantity <= 0 [duplicated in domain]",
+     "line": 37,
+     "path": []
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0 [duplicated in domain]",
+     "line": 38,
+     "path": []
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts",
+     "subject": "SetTaxRate.execute",
+     "evidence": "typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1",
+     "line": 8,
+     "path": []
+    }
+   ]
+  },
+  {
+   "label": "s2-orders-invoices/step-05",
+   "style": "hexddd",
+   "stats": {
+    "XCALL": 116,
+    "GUARDS": 10,
+    "PROP_TYPE": 1,
+    "DISPATCH": 21,
+    "nodes": 241,
+    "relationships": 744
+   },
+   "findings": [
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts",
+     "subject": "IssueInvoice.execute",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 13,
+     "path": [
+      "IssueInvoice.execute",
+      "OrderInvoicedNotifier.orderInvoiced",
+      "OrderingInvoicedAcl.orderInvoiced",
+      "OrderInvoicedCommand.markInvoiced",
+      "MarkOrderInvoiced.markInvoiced",
+      "OrderRepository.save"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts",
+     "subject": "IssueInvoice.executeFor",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 23,
+     "path": [
+      "IssueInvoice.executeFor",
+      "IssueInvoice.execute",
+      "OrderInvoicedNotifier.orderInvoiced",
+      "OrderingInvoicedAcl.orderInvoiced",
+      "OrderInvoicedCommand.markInvoiced",
+      "MarkOrderInvoiced.markInvoiced",
+      "OrderRepository.save"
+     ]
+    },
+    {
+     "rule": "X1",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "subject": "RecordPayment.execute",
+     "evidence": "OrderRepository.save + InvoiceRepository.save",
+     "line": 9,
+     "path": [
+      "RecordPayment.execute",
+      "OrderPaidNotifier.orderPaid",
+      "OrderingPaidAcl.orderPaid",
+      "OrderPaidCommand.markPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ]
+    },
+    {
+     "rule": "X3b",
+     "family": "D9",
+     "file": "src/ordering/domain/order/Order.ts",
+     "subject": "Order.lineViews",
+     "evidence": "shape of OrderLineSummary (src/ordering/contracts/OrderSummary.ts)",
+     "line": 89,
+     "path": []
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.quantity) || l.quantity <= 0 [duplicated in domain]",
+     "line": 37,
+     "path": []
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "subject": "PlaceOrder.execute",
+     "evidence": "!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0 [duplicated in domain]",
+     "line": 38,
+     "path": []
+    },
+    {
+     "rule": "X4",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts",
+     "subject": "SetTaxRate.execute",
+     "evidence": "typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1",
+     "line": 8,
+     "path": []
+    }
+   ]
+  }
+ ]
+}

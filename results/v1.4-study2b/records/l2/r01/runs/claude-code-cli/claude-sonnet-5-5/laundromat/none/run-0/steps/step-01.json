@@ -1,0 +1,193 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/laundromat/none/run-0",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "laundromat",
+    "arm": "none",
+    "runIndex": 0
+  },
+  "stepIndex": 0,
+  "stepId": "machines-and-wallets",
+  "startedAt": "2026-10-20T19:07:05.606Z",
+  "finishedAt": "2026-10-20T19:08:24.707Z",
+  "turns": [
+    {
+      "turnId": "step-01",
+      "kind": "step",
+      "promptSha256": "1d25d1d0b2b4e86db4248d623f99d217880bb74980e446c710370ca837934b60",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.1927766,
+          "inputTokens": 14,
+          "outputTokens": 11958,
+          "cacheReadTokens": 84366,
+          "cacheCreationTokens": 16183,
+          "numTurns": 15,
+          "durationMs": 77031
+        },
+        "wallMs": 78055,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T19:07:05.608Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-l2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-l2/runs/claude-code-cli/claude-sonnet-5-5/laundromat/none/run-0/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-01.json",
+        "permissionDenials": 3
+      },
+      "snapshot": {
+        "commit": "df9cc81f8e2ae189e3c9e81eac2315f9f13d9646",
+        "sourceFiles": [
+          "business/errors.ts",
+          "business/services.ts",
+          "business/validation.ts",
+          "persistence/models.ts",
+          "persistence/repositories.ts",
+          "persistence/rinselyClient.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 9,
+        "loc": 262,
+        "diff": {
+          "added": 9,
+          "modified": 0,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.753,
+          "blockingAhs": 0.667,
+          "verdict": "fail",
+          "violationCount": 12,
+          "blockingViolationCount": 2,
+          "advisoryViolationCount": 10,
+          "blockingByRule": {
+            "FF-S03": 2
+          },
+          "advisoryByRule": {
+            "FF-C03": 2,
+            "FF-CV05": 8
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-4f07716284ada5cb",
+              "filePath": "src/presentation/app.ts",
+              "line": 5,
+              "target": "src/persistence/repositories.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-703976c3b3a96277",
+              "filePath": "src/presentation/app.ts",
+              "line": 11,
+              "target": "src/persistence/rinselyClient.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/rinselyClient.ts (persistence)"
+            }
+          ],
+          "durationMs": 11,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 1,
+          "durationMs": 3,
+          "testFileSha256": "670855e10a820a4c3a1a00d5ec14d32a4706ec2c62e117a4c9ee0b8c1901998c",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "64d30a86bb08ff61c0f31a8a82d687190d46bc32fd13f72e5849a718a92e1952",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 1,
+    "durationMs": 3,
+    "testFileSha256": "670855e10a820a4c3a1a00d5ec14d32a4706ec2c62e117a4c9ee0b8c1901998c",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "64d30a86bb08ff61c0f31a8a82d687190d46bc32fd13f72e5849a718a92e1952",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "df9cc81f8e2ae189e3c9e81eac2315f9f13d9646",
+  "cost": {
+    "costUsd": 0.1927766,
+    "inputTokens": 14,
+    "outputTokens": 11958,
+    "wallMs": 78055
+  }
+}

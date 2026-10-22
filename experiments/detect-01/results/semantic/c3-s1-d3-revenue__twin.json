@@ -1,0 +1,42 @@
+{
+ "id": "c3-s1-d3-revenue/twin",
+ "family": "D3",
+ "role": "twin",
+ "target": "c3-s1-d3-revenue/twin",
+ "files": [
+  "src/application/ports/in/NightRevenueView.ts",
+  "src/application/ports/out/BookingRepository.ts",
+  "src/application/services/OccupancyReportService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts",
+  "src/domain/model/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "07da32471004cc8b37bf62da32174b7b70da6b4ab92761a03bf8d89a3d6a54c4",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/services/OccupancyReportService.ts\",\"line\":16,\"quote\":\"if (slot >= 0 && slot < nights) perNight[slot]! += share.cents;\"}],\"rationale\":\"Booking owns the split of a total into nightly shares, but OccupancyReportService does the allocation of those shares onto calendar days. It computes day offsets and sums raw cents, bypassing Money.add. This revenue-per-night calculation could live on Booking (e.g. revenueOn(date)) or a domain service.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 16,
+    "quote": "if (slot >= 0 && slot < nights) perNight[slot]! += share.cents;"
+   }
+  ],
+  "rationale": "Booking owns the split of a total into nightly shares, but OccupancyReportService does the allocation of those shares onto calendar days. It computes day offsets and sums raw cents, bypassing Money.add. This revenue-per-night calculation could live on Booking (e.g. revenueOn(date)) or a domain service."
+ },
+ "grounding": {
+  "cited": 1,
+  "grounded": 1,
+  "details": [
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 16,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}
