@@ -2860,3 +2860,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory follow-up to HEXDDD-01; instrument unchanged; branch explore/detect-01, PR not to be merged
 
 ---
+
+## Inventory — open tracks and built capabilities
+**Timestamp**: 2026-10-21T05:30:00Z
+**User Input**: "Asked for a compilation of all open tracks (to tag as future work or as work that can continue after a first chapter draft) and of all capabilities built for the instrument, at the start of chapter drafting."
+**AI Response**: "Added ops/06-open-tracks-and-capabilities.md: Part A, open tracks in eight groups with status, evidence path, remaining work and a tag (FRIDAY / DRAFT-NEXT / FUTURE-WORK / DROPPED), plus eight status files that disagree; Part B, built capabilities by instrument plane with evidence and maturity (VALIDATED / DEV / PROTOTYPE / SPEC-ONLY); the strongest supportable claims and a chapter-to-evidence map. Linked from ops/README.md and ops/00-overview.md. Documentation only; no model call, no frozen path."
+**Context**: start of chapter drafting, after the Study 2b scoring pass
+
+---
+
+## Status refresh and sources ledger (documentation only)
+**Timestamp**: 2026-10-21T22:08:23Z
+**User Input**: "Asked for every status document to be brought up to date with the facts as of 2026-10-21 (Study 2b collected and scored once), fixing the eight disagreeing status files listed in the inventory, and for the literature and evidence sources to be consolidated into one ledger for thesis writing."
+**AI Response**: "Fixed the eight conflicts listed at the end of Part A of ops/06-open-tracks-and-capabilities.md: rewrote ops/00-overview.md to the current state; marked X-1 and SO3-a declared in ops/notes/deviations-v14.md to agree with ops/decisions.md D8; recorded the F3 rewording as adopted in Docs/v1.3/contribution-statement.md and added Study 2b with its registered scope (FF-S03, Layered, one generator, 4 tasks); in the compendium README, marked the construct questions answered (ADR-V13-03 accepted under delegation, V1 GREEN), repaired the merged SO5 table row and added 2b scope-limit rows pointing at M175-M186; in ops/decisions.md, marked the 9 adjudication rows done (desk 61/61) and pointed the hold-out changelog entries to DELEG-H4 and DELEG5; added a dated note to the hold-out run report (not spent; the author chooses between a spec-format fix addendum and reporting it as not scored); added progress ticks and the registered 520-turn budget to the Friday plan; updated status lines with dated changelog entries in track-1, track-2, the build list, the north star and TRUST-01 (L3, L4, L5, L7). Re-anchored 14 ledger citations whose lines moved and marked one row (C6453) superseded. Added Docs/sources/ (README, sources-ledger.md with 308 rows, sources.bib), harvested from ops/notes, Docs, papers/*/refs.bib, the exploratory branches and a search-session list; 31 figures attributed to sources the ledger cannot verify are flagged. Zero model calls; no registered Study 2b artefact, src/, presets/, scripts/lib/ or scripts/v1.3/ file was changed; no sealed path was read."
+**Context**: documentation upkeep at the start of chapter drafting; no new measurement, no decision taken
+
+---

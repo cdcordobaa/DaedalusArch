@@ -1,6 +1,6 @@
 # Main contribution: draft statement (gap G2)
 
-**2026-10-16. Status: draft for the author's edit.** This note answers gap G2 of
+**2026-10-16. Status: draft for the author's edit.** *(Update 2026-10-21: the F3 rewording in the last-but-one section was signed on 2026-10-19 (`ops/decisions.md` D8) and replaces the F3 row and sentence below; Study 2b is added in the last section with its registered scope.)* This note answers gap G2 of
 `Docs/v1.3/research/distinction-readiness.md` (PR #178, `origin/v1.3-distinction-readiness`). The wording is a
 proposal. Whether the thesis adopts it, and in which language, is for the author to decide
 (`Docs/v1.3/distinction-author-questions.md`, Q2). Every number below is traced in `Docs/v1.3/claims-ledger.md`.
@@ -21,7 +21,7 @@ a negative control. On the rules that established tools can also express, the ga
 tools. Third, a language-model judge is given a bounded role beside the deterministic rules: it catches most of the
 seeded defects that the rules cannot see, and its limits are reported, including a null result on vote unanimity.
 The tooling that made these measurements possible (agent tools over MCP, the in-process query interpreter, reports)
-is engineering in support of the contribution and is not claimed as a contribution in itself.
+is engineering in support of the contribution and is not claimed as a contribution in itself. *(The "Third, …" sentence is superseded by the signed sentence in the F3 section below; a fourth part, Study 2b, is added at the end.)*
 
 ## The three supporting findings
 
@@ -29,7 +29,7 @@ is engineering in support of the contribution and is not claimed as a contributi
 |---|---|---|---|
 | F1 | The specification level affects the architecture score in the reverse direction (`none` best; Holm p = 0.0003). The effect survives density per KLOC and an ln LOC adjustment, disappears per file (p 0.95), and runs through size. At equal size, `full-aac` beats `minimal-prose` (δ 0.52). No cell has a structural finding; under v1.3 scoring, 0 of 65 E1 cells has a blocking finding. | Registered test (Study 1); the size decomposition is post-hoc except density per KLOC (registered, exploratory) | `results/e1-grid/agg/so5_tests.csv`; `Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md` §6; `Docs/DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md` §1 |
 | F2 | Detection is accurate: SO4 held-out recall 0.893 [0.787, 0.974] (strict, registered); 283/283 blocking findings correct on human code [0.987, 1.000], with a 500/500 negative control; κ = 0.913 to 1.000 against three tools, with no disagreement classed as a bug of ours. | Registered held-out seeds; external (not development, not hold-out); development plus external | `papers/paper2-tool/main.tex` (Table `tab:so4`); PR #167; `Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md` |
-| F3 | The judge has a bounded, complementary role: it catches 22/26 = 0.85 [0.66, 0.94] of the planted seeds that the rules do not flag, at 2/48 = 0.04 false fails on units the rules pass; pooled catch is 16/21 = 0.76; unanimity of its three runs does not predict correctness. | Development | PR #179; `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md`; PR #165 |
+| F3 | *(Superseded 2026-10-19 by the signed F3 row below; kept for history.)* The judge has a bounded, complementary role: it catches 22/26 = 0.85 [0.66, 0.94] of the planted seeds that the rules do not flag, at 2/48 = 0.04 false fails on units the rules pass; pooled catch is 16/21 = 0.76; unanimity of its three runs does not predict correctness. | Development | PR #179; `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md`; PR #165 |
 
 ## Wording constraints for the chapters
 
@@ -38,10 +38,10 @@ is engineering in support of the contribution and is not claimed as a contributi
   are clustered: three of them hold 214 of the 283 findings (PR #167).
 - **F3 is development-set evidence.** The rubric was tuned on part of the items, and judge v2.2 was NOT CANDIDATE
   on CHECK-2 (PR #191). The claim is a description of the judge's role, not a validity estimate.
-- **The v1.3 hold-out has not been run.** Until it runs (gap G3), any v1.3 figure in the statement carries the
+- **The v1.3 hold-out has not been run.** *(Update 2026-10-21: it was attempted three times on 2026-10-20 and not scored; the attempts do not spend it, DELEG-H4; fallback F-RF applies to 2b.)* Until it runs (gap G3), any v1.3 figure in the statement carries the
   development or external label given in the ledger. The SO4 figure in F2 belongs to the registered v1.2E study.
 - **Study 2 is not part of the statement.** If it runs and reports, the author may add it as a bounded extension of
-  F1 (gap G4).
+  F1 (gap G4). *(Superseded 2026-10-21: Study 2b ran and scored once; it is added in the last section, with its scope.)*
 
 ## What is demoted
 
@@ -49,7 +49,7 @@ Per G2, the following go to appendices or Future Work and get at most one defenc
 the cheap proxies (Paper 4), the HTML report, the CI gate, npx mode, the dogfooding run, the OpenSpec demo, the
 in-process interpreter and the MCP tool surface.
 
-## Proposed change, 2026-10-19: F3 around C4 + C1d (decision F3) — NOT ADOPTED UNTIL SIGNED
+## Change of 2026-10-19: F3 around C4 + C1d (decision F3) — ADOPTED, signed 2026-10-19 (decision D8)
 
 **Why.** The author decided that F3 is rewritten around C4 + C1d: models supply facts and interpretation, replacing
 the judge (`ops/decisions.md:30`). Today F3 *is* the judge (row F3 above, line 32), while the judge is dropped from
@@ -57,7 +57,7 @@ Study 2 (V7 waived, `Docs/v1.4/study2-deviation-2026-10-19-drift.md` §7) and TR
 (`ops/notes/trust-01-path-to-a-trusted-instrument.md:42`). REV-05 flags the contradiction
 (`ops/notes/rev-05-first-study-fable.md:115-116`, `:178`). The text below follows C4-01 §2.1
 (`ops/notes/c4-01-interpretation-design.md`, branch `v14/c4-mean02-design`). Everything above this section is
-unchanged until the author signs.
+unchanged until the author signs. *(Signed 2026-10-19, so the rows below are in force. Status on 2026-10-21: C4 and C1d are built (PR #282) and ran once, exploratory, on the 2a sample (`Docs/DiagnosticRuns/v1.4-exploratory-semantic-claude-2026-10-20.md`); the C4 pilot and the six-case runs have not run against a seeded key, so the brackets stay empty.)*
 
 **Proposed F3 row (replaces the F3 row above):**
 
@@ -81,3 +81,40 @@ unchanged until the author signs.
   judges, passes or fails code.
 
 > AUTHOR: signed — F3 rewording adopted as proposed. Signed by the author (recorded by the coordinator) Date: 2026-10-19
+
+## Study 2b, added 2026-10-21: a bounded confirmatory extension of F1
+
+**Why.** The wording constraint above allows Study 2 to be added as a bounded extension of F1 once it runs and
+reports. Study 2b ran once (collection `Docs/DiagnosticRuns/v1.4-study2b-collection-2026-10-20.md`, PR #337) and was
+scored once at the freeze tag (`Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md`, PR #339). Every number below
+is a ledger row (C8035–C8064) and every limit a null row (M175–M186). The wording is a proposal; the author may edit it.
+
+**Statement sentence (added after the F3 sentence):**
+
+> Fourth, a pre-registered confirmatory study (Study 2b) finds that, for one generator on four sealed Layered tasks,
+> giving the agent either a richer specification or the gate as an MCP tool reduces the new blocking violations it
+> introduces over a multi-step task. Every counted violation is one rule, composition-root wiring, so the claim is
+> scoped to that rule; whether the two treatments differ from each other is not resolved.
+
+**Row S2b:**
+
+| # | Finding | Evidence class | Main source |
+|---|---|---|---|
+| S2b | Against `none@L2`, both `none@L3` (H1: RR 0.62 [0.38, 0.86], exact sign-flip p 0.0132) and `mcp@L2` (H2: RR 0.48 [0.32, 0.65], exact p 0.0001) reduce D, the new blocking identities at steps 2–5; both rejected after Holm and supported (D and D† agree). H3 (`none@L3` vs `mcp@L2`) is not rejected (p 0.4257) and equivalence E fails. 100 % of counted identities are FF-S03. | Registered confirmatory test (OSF osf.io/wctnh, run once) | `Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md` §3; ledger C8035–C8064 |
+
+**Registered scope (state it in the same sentence as the result):**
+- **One rule:** FF-S03, composition-root wiring (G12). D without FF-S03 is identically 0 (M175); FF-S01 and FF-S02
+  were exercised and never violated (M176).
+- **One style:** Layered, 4 sealed tasks treated as fixed effects; the task-cluster intervals rest on 4 clusters (M179).
+- **One generator:** Claude Sonnet (`claude-sonnet-5-5`), the same vendor as the authoring sessions (M179).
+- **N = 40 blocks per cell**, 520 step turns, zero redraws.
+
+**Wording constraints:**
+- **No ranking of the two treatments.** H3 is not rejected and E fails, so neither "the tool beats the spec" nor "they
+  are equivalent" is claimed (M177). H2 tests delivery plus checking together (M178).
+- **The effect is uneven over time:** it shrinks across the run order, without a sign reversal (M180).
+- **Absolute D is an under-count of unknown size.** Layered recall is characterised on the development set, not
+  validated on a hold-out (fallback F-RF; M181).
+- **Not run in the scoring pass:** D_sem, evasion items 4 and 5 (M185). No human label backs a 2b claim (M186).
+- **Not generalised** to other styles, rules, generators or brownfield code. DDD is a beta instrument and is not part
+  of the study.
