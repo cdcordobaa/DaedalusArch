@@ -314,7 +314,7 @@ is not separable at n = 5.
   `check_consistency` does not look.
 
 ### 19. DRIFT-01: the Study 2b drift protocol on DDD and Hexagonal seeds (2026-10-22)
-Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Docs/DiagnosticRuns/drift-01-rescores-2026-10-23.md` (Part A, zero calls) and `Docs/DiagnosticRuns/drift-01-pilot-2026-10-23.md`. Records: `results/v1.5-exp-drift-01/`.
+Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Docs/DiagnosticRuns/drift-01-rescores-2026-10-23.md` (Part A, zero calls) and `Docs/DiagnosticRuns/drift-01-pilot-2026-10-23.md`. Records: `results/v1.4-drift-01/`.
 - **Part A, re-score of HEXDDD-01** with the frozen rules plus R-D4 and R-XCTX:
   - D_v15 is 2 on both S1 (inferred roots) and S2, against a frozen D of 0;
   - the per-step new identities are S1 0/0/2/0/0 and S2 2/0/0/0/2;

@@ -2,7 +2,7 @@
 
 **Exploratory, DEV split, NOT Study 2b.** Design: `ops/notes/drift-01-design.md` (committed before any generator
 call). Part A report: `Docs/DiagnosticRuns/drift-01-rescores-2026-10-23.md`. Pilot report:
-`Docs/DiagnosticRuns/drift-01-pilot-2026-10-23.md`. Records: `results/v1.5-exp-drift-01/`.
+`Docs/DiagnosticRuns/drift-01-pilot-2026-10-23.md`. Records: `results/v1.4-drift-01/`.
 
 | File | Role |
 |---|---|
@@ -21,5 +21,5 @@ npx tsx experiments/drift-01/run-drift.ts --dry      --input /srv/o/input.json
 npx tsx experiments/drift-01/run-drift.ts --checks   --input /srv/o/input.json
 npx tsx experiments/drift-01/run-drift.ts --sessions --input /srv/o/input.json
 sh experiments/drift-01/setup-sandbox.sh --open
-npx tsx experiments/drift-01/score-drift.ts --manifest <blocks.json> --node-modules /srv/h/skeleton-install/node_modules --out results/v1.5-exp-drift-01/score
+npx tsx experiments/drift-01/score-drift.ts --manifest <blocks.json> --node-modules /srv/h/skeleton-install/node_modules --out results/v1.4-drift-01/score
 ```

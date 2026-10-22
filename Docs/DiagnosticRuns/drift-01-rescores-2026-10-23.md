@@ -3,7 +3,7 @@
 **Exploratory (v1.5-exp), development material only. NOT Study 2b.** Zero model calls. Nothing under `src/`,
 `presets/`, `scripts/lib/`, `scripts/v1.3/`, the tag `v1.4-freeze-2026-10-20` or any registered Study 2b artefact was
 changed. Design of the drift outcome: `ops/notes/drift-01-design.md` §5 (written before any DRIFT-01 call).
-Records: `results/v1.5-exp-drift-01/rescore-hexddd/scores.json`. Scorer: `experiments/drift-01/score-drift.ts`, with
+Records: `results/v1.4-drift-01/rescore-hexddd/scores.json`. Scorer: `experiments/drift-01/score-drift.ts`, with
 the identity and exposure code in `experiments/drift-01/lib/v15-identity.ts` (7/7 unit tests,
 `experiments/drift-01/test/unit.ts`).
 
@@ -118,7 +118,7 @@ is the closest committed evidence.
 ```
 node experiments/pilot-hexddd-01/seeds/build-seeds.mjs && node experiments/pilot-hexddd-01/seeds/build-seeds.mjs --check
 # per task: copy the seed to step-00, then for k in 1..5: copy step-0(k-1) to step-0k and git apply diffs/<task>/step-0k.diff
-npx tsx experiments/drift-01/score-drift.ts --manifest <blocks.json> --node-modules <harness>/skeleton-install/node_modules --out results/v1.5-exp-drift-01/rescore-hexddd
+npx tsx experiments/drift-01/score-drift.ts --manifest <blocks.json> --node-modules <harness>/skeleton-install/node_modules --out results/v1.4-drift-01/rescore-hexddd
 npx tsx experiments/drift-01/test/unit.ts
 ```
 
