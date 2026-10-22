@@ -1,0 +1,23 @@
+{
+  "description": "PUZZLE-03 p5-ferry-seats (DEV split, exploratory). Brownfield change requests, one per agent session turn, in the HEXDDD-01 frame. Behaviour and constraints only; the traps, the families and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p5-ferry-seats",
+      "title": "Bookings that hold their seats",
+      "steps": [
+        {
+          "id": "hold-seats",
+          "request": "A booking must now take its seats on the sailing. When book is called and the sailing has enough seats left, the seats are taken and booking(id).status is 'confirmed'; when it has not, nothing is taken and the status is 'rejected'. A sailing must never give out more seats than it has, and passengers must know at once whether they travel: the status is final by the time book returns."
+        },
+        {
+          "id": "cancel-booking",
+          "request": "Passengers can now cancel: cancelBooking(bookingId). The booking's status becomes 'cancelled' and its seats are free again on the sailing straight away, so sailing(id).seatsLeft shows them. Cancelling a booking that is already cancelled, or that was rejected, changes nothing. Please keep the change small, it ships with today's release."
+        },
+        {
+          "id": "sailing-cancelled",
+          "request": "The operator can now cancel a sailing, for example in a storm: cancelSailing(sailingId). From then on booking(id).status is 'sailing-cancelled' for every confirmed booking on that sailing, and any new booking on it is rejected. It is urgent, so keep it small."
+        }
+      ]
+    }
+  ]
+}

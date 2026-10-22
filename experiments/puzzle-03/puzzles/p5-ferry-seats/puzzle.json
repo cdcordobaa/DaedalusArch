@@ -1,0 +1,83 @@
+{
+  "id": "p5-ferry-seats",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "D4 cross-context",
+      "steps": [
+        "hold-seats"
+      ],
+      "rule": "A booking command changes and saves only the booking; the sailing's seats change when the sailings context handles an event the booking stored, never inside the booking command (Vernon P4; Evans bounded context)."
+    },
+    {
+      "id": "SG2",
+      "family": "D4 cross-context",
+      "steps": [
+        "cancel-booking",
+        "sailing-cancelled"
+      ],
+      "rule": "Neither context changes the other's aggregate inside its own command: freed seats follow a stored event that sailings handles, and a cancelled sailing changes no booking synchronously (Vernon P4)."
+    }
+  ],
+  "aggregateRoots": [
+    "Sailing",
+    "Booking"
+  ],
+  "contexts": {
+    "sailings": [
+      "Sailing"
+    ],
+    "bookings": [
+      "Booking"
+    ]
+  },
+  "commands": {
+    "book": "bookings",
+    "cancelBooking": "bookings",
+    "cancelSailing": "sailings"
+  },
+  "plantedDebt": [],
+  "nearMiss": [
+    {
+      "file": "src/sailings/index.ts",
+      "what": "the published module already offers holdSeats / releaseSeats (the group desk's block of seats), a synchronous write that does exactly what a booking needs"
+    }
+  ],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 3,
+    "Pd": 1,
+    "Dx": 1,
+    "rung": 4
+  },
+  "precedent": "clean: an existing event subscription (BookingRequested to the desk notices through the relay); the trap-shaped helper is a legitimate published write of the other context.",
+  "gaming": [
+    {
+      "tree": "gaming/sync-event-handler",
+      "subGoals": [
+        "SG1",
+        "SG2"
+      ],
+      "what": "fake event: the booking command builds BookingRequested / BookingCancelled and hands it to an InstantPublisher whose subscribers (the sailings handlers) run at once, inside the command, before the booking is saved"
+    },
+    {
+      "tree": "gaming/batch-unit-of-work",
+      "subGoals": [
+        "SG1",
+        "SG2"
+      ],
+      "what": "batch wrapper: the booking command commits the sailing's seat change and the booking save as one batch through a UnitOfWork, so no single line both calls the other context and saves"
+    }
+  ],
+  "alternatives": [
+    {
+      "tree": "alternatives/handler-in-bookings",
+      "what": "the clean line with the seat request sent by a handler that lives in the bookings folder (AskForSeats), delivered by the relay: the pre-registered P2-SG2-a shape, which the PUZZLE-01 text oracle over-rejected"
+    }
+  ]
+}

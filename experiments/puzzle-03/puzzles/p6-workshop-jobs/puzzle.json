@@ -1,0 +1,44 @@
+{
+  "id": "p6-workshop-jobs",
+  "split": "dev",
+  "style": "layered",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H7 layer skip / upward dependency",
+      "steps": [
+        "workload",
+        "reassign",
+        "monthly-takings"
+      ],
+      "rule": "Each layer uses only the layer directly below it: presentation reaches persistence only through business code, and no lower layer uses an upper one (Buschmann et al. 1996, closed layering)."
+    }
+  ],
+  "plantedDebt": [
+    {
+      "file": "src/presentation/ReportsController.ts",
+      "family": "H7 skip",
+      "what": "the takings report reads JobGateway (persistence) directly from the presentation layer; allowed only as in the seed: its import of persistence/JobGateway, in its constructor and in dailyTakings"
+    }
+  ],
+  "ladder": {
+    "T": 1,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 2,
+    "Dx": 0,
+    "rung": 3
+  },
+  "precedent": "trap-shaped: the only existing report reads the persistence gateway from the controller, and two of the three requests ask to build the new report the way the existing one is built.",
+  "gaming": [
+    {
+      "tree": "gaming/renamed-gateways",
+      "subGoals": [
+        "SG1"
+      ],
+      "what": "rename: the business layer re-exports JobGateway and MechanicGateway as JobSource and StaffSource, and the reports controller imports them from there, so no import crosses from presentation to persistence"
+    }
+  ]
+}

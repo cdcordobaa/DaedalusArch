@@ -1,0 +1,16 @@
+id: p5-ferry-seats
+kind: puzzle
+split: dev
+family: [D4]
+source_sentence: "One aggregate per transaction; other aggregates, and other contexts, follow through domain events (Vernon P4)."
+provenance:
+  origin: authored
+  commit: "PUZZLE-03 build, branch claude/puzzle-03-architecture-traps-lsmp3m"
+judge:
+  method: oracle
+  confidence: medium
+  spot_check: pending
+instrument:
+  verdict: invisible
+  rules: []
+notes: "Two-way cross-context exchange (request, then held or refused). The frozen instrument sees nothing; DETECT-02 check_consistency flags the trap (R-D4+R-XCTX) but not the gaming fixture (a fake event handled inside the command). Runtime oracle on the call stack."
