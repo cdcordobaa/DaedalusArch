@@ -38,7 +38,7 @@ export const S2_SCHEMA = {
 } as const;
 
 interface Answer { verdict: 'confirm' | 'reject' | 'abstain'; evidence: { file: string; line: number; quote: string }[]; rationale: string }
-const s2Problem = (a: unknown): string | null => {
+export const s2Problem = (a: unknown): string | null => {
   if (typeof a !== 'object' || a === null) return 'not an object';
   const x = a as Record<string, unknown>;
   if (!['confirm', 'reject', 'abstain'].includes(String(x['verdict']))) return 'verdict';
