@@ -1,0 +1,38 @@
+{
+  "description": "HEXDDD-01 exploratory pilot (NOT Study 2b, not registered). Design: ops/notes/hexddd-01-violation-elicitation-design.md section 5 (2-case pilot: S1-debt Hexagonal, S2-debt DDD). Arm none, claude-sonnet-5-5 through the Claude CLI, 1 replicate per task = 2 runs x 5 steps = 10 step turns, 0 repair turns. Hard cap 12 generator calls (one infrastructure redraw per run), enforced by the pilot driver's call ledger (run-pilot.ts), not by the loop harness. Run with run-pilot.ts, which reuses the loop harness (scripts/lib/loop) unchanged and adds only the seed start and the brownfield frame (design section 8 items 1 and 2). The taskProfiles style fields select the evaluator spec only: the driver replaces the harness frame, so no style, layer or folder sentence reaches the agent.",
+  "tasksFile": "experiments/pilot-hexddd-01/tasks.json",
+  "adapters": [{ "adapterId": "claude-code-cli", "modelId": "claude-sonnet-5-5", "cliVersion": "2.1.304" }],
+  "arms": ["none"],
+  "runs": 1,
+  "orderSeed": 20261020,
+  "outRoot": "<local>",
+  "binary": "<local>",
+  "harnessRoot": "<local>",
+  "allowBash": true,
+  "timeoutMs": 1200000,
+  "engine": "cypher-interp",
+  "taskProfiles": {
+    "s1-hotel-bookings": {
+      "style": "hexagonal",
+      "specMode": "static",
+      "evaluatorSpec": "experiments/pilot-hexddd-01/specs/s1-hexagonal.yaml",
+      "specSha256": "f35cdbc3ef1176d9eb1089ca3d70ad045c60e7fac5122296bafbf632565ee1f4"
+    },
+    "s2-orders-invoices": {
+      "style": "ddd",
+      "specMode": "static",
+      "evaluatorSpec": "experiments/pilot-hexddd-01/specs/s2-ddd.yaml",
+      "specSha256": "b317788c7e6f5e60edbb2d087df1865300bbf12f233b666c36143a6db963e460",
+      "contexts": [
+        { "root": "src/ordering/", "part": "ordering" },
+        { "root": "src/billing/", "part": "billing" }
+      ]
+    }
+  },
+  "callBudget": { "runs": 2, "stepTurns": 10, "maxRepairTurns": 0, "maxCalls": 10 },
+  "hardCap": { "smoke": 1, "probes": 5, "pilot": 12, "pilotPerRun": 6, "total": 18 },
+  "seeds": {
+    "s1-hotel-bookings": { "dir": "experiments/pilot-hexddd-01/seeds/s1-hex-debt", "treeSha256": "e3cfa16ce21fe4cf039cff269e02204efb1cdcf86699d3f2978c86a7635d5700" },
+    "s2-orders-invoices": { "dir": "experiments/pilot-hexddd-01/seeds/s2-ddd-debt", "treeSha256": "5caf330d09bd8a884339bde12c8c9011fac2b63b74dcfb538e3f05c99cb670e2" }
+  }
+}

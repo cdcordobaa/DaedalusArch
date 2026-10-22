@@ -1,0 +1,368 @@
+# s1-hotel-bookings step-01: tree after the step against the tree before it (14 files changed, 147 insertions(+), 30 deletions(-))
+diff --git a/src/adapters/inbound/http/BookingController.ts b/src/adapters/inbound/http/BookingController.ts
+index 867409a..d3a9d9b 100644
+--- a/src/adapters/inbound/http/BookingController.ts
++++ b/src/adapters/inbound/http/BookingController.ts
+@@ -20,6 +20,7 @@ export class BookingController {
+         checkIn: String(request.body['checkIn']),
+         checkOut: String(request.body['checkOut']),
+         guests: Number(request.body['guests'] ?? 1),
++        ...(request.body['idempotencyKey'] !== undefined && { idempotencyKey: String(request.body['idempotencyKey']) }),
+       });
+       return { status: 201, body: view };
+     } catch (error) {
+@@ -35,8 +36,27 @@ export class BookingController {
+     }
+   }
+ 
++  async refundFailures(): Promise<HttpResponse> {
++    try {
++      return { status: 200, body: await this.cancelBooking.listRefundFailures() };
++    } catch (error) {
++      return this.toResponse(error);
++    }
++  }
++
++  async retryRefund(request: HttpRequest): Promise<HttpResponse> {
++    try {
++      return { status: 200, body: await this.cancelBooking.retryRefund(String(request.params['id'])) };
++    } catch (error) {
++      return this.toResponse(error);
++    }
++  }
++
+   private toResponse(error: unknown): HttpResponse {
+-    if (error instanceof BookingError) return { status: STATUS[error.reason], body: { error: error.message } };
++    if (error instanceof BookingError) {
++      const body = error.declineCode === undefined ? { error: error.message } : { error: error.message, declineCode: error.declineCode };
++      return { status: STATUS[error.reason], body };
++    }
+     return { status: 500, body: { error: 'Internal error' } };
+   }
+ }
+diff --git a/src/adapters/outbound/payment/FakePaymentGateway.ts b/src/adapters/outbound/payment/FakePaymentGateway.ts
+deleted file mode 100644
+index 8903c9d..0000000
+--- a/src/adapters/outbound/payment/FakePaymentGateway.ts
++++ /dev/null
+@@ -1,21 +0,0 @@
+-import { PaymentGateway } from '../../../application/ports/out/PaymentGateway';
+-import { BookingError } from '../../../domain/errors/BookingError';
+-import { Money } from '../../../domain/model/Money';
+-
+-export const PAYMENT_FEE_CENTS = 150;
+-
+-/** Driven adapter standing in for a card processor; declines charges above a fixed limit. */
+-export class FakePaymentGateway implements PaymentGateway {
+-  private readonly charges = new Map<string, number>();
+-
+-  async charge(guestId: string, amount: Money): Promise<string> {
+-    if (amount.cents > 500_000) throw new BookingError('payment-declined', `Charge for ${guestId} declined`);
+-    const ref = `pay-${this.charges.size + 1}`;
+-    this.charges.set(ref, amount.cents);
+-    return ref;
+-  }
+-
+-  async refund(paymentRef: string): Promise<void> {
+-    this.charges.delete(paymentRef);
+-  }
+-}
+diff --git a/src/adapters/outbound/payment/PaystreamPaymentGateway.ts b/src/adapters/outbound/payment/PaystreamPaymentGateway.ts
+new file mode 100644
+index 0000000..41bbb1d
+--- /dev/null
++++ b/src/adapters/outbound/payment/PaystreamPaymentGateway.ts
+@@ -0,0 +1,34 @@
++import { Paystream } from '@paystream/node';
++import { PaymentGateway } from '../../../application/ports/out/PaymentGateway';
++import { BookingError } from '../../../domain/errors/BookingError';
++import { Money } from '../../../domain/model/Money';
++
++const CURRENCY = 'USD';
++
++/** Driven adapter that charges and refunds cards through Paystream. */
++export class PaystreamPaymentGateway implements PaymentGateway {
++  private readonly client: Paystream;
++
++  constructor(apiKey: string) {
++    this.client = new Paystream({ apiKey });
++  }
++
++  async charge(guestId: string, amount: Money, idempotencyKey: string): Promise<string> {
++    const charge = await this.client.charges.create({
++      amountMinor: amount.cents,
++      currency: CURRENCY,
++      customerRef: guestId,
++      idempotencyKey,
++    });
++    if (charge.status === 'declined') {
++      const code = charge.declineCode ?? 'declined';
++      throw new BookingError('payment-declined', `Payment declined: ${code}`, code);
++    }
++    return charge.id;
++  }
++
++  async refund(paymentRef: string): Promise<void> {
++    const refund = await this.client.refunds.create({ chargeId: paymentRef, idempotencyKey: `refund-${paymentRef}` });
++    if (refund.status === 'failed') throw new Error(`Refund ${refund.id} for charge ${paymentRef} failed`);
++  }
++}
+diff --git a/src/adapters/outbound/persistence/InMemoryBookingRepository.ts b/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
+index 484971a..49716ac 100644
+--- a/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
++++ b/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
+@@ -17,6 +17,10 @@ export class InMemoryBookingRepository implements BookingRepository {
+     return [...this.rows.values()].filter((b) => b.isActive);
+   }
+ 
++  async findAll(): Promise<Booking[]> {
++    return [...this.rows.values()];
++  }
++
+   async save(booking: Booking): Promise<void> {
+     this.rows.set(booking.id, booking);
+   }
+diff --git a/src/application/ports/in/BookRoom.ts b/src/application/ports/in/BookRoom.ts
+index bfafcde..3c69a3a 100644
+--- a/src/application/ports/in/BookRoom.ts
++++ b/src/application/ports/in/BookRoom.ts
+@@ -6,6 +6,8 @@ export interface BookRoomCommand {
+   checkIn: string;
+   checkOut: string;
+   guests: number;
++  /** Supplied by the caller so a retried request is never charged twice; derived from the request when absent. */
++  idempotencyKey?: string;
+ }
+ 
+ /** Driving port (Cockburn 2005): what the outside world may ask the application to do. */
+diff --git a/src/application/ports/in/BookingView.ts b/src/application/ports/in/BookingView.ts
+index be6e778..9d188fd 100644
+--- a/src/application/ports/in/BookingView.ts
++++ b/src/application/ports/in/BookingView.ts
+@@ -7,6 +7,7 @@ export interface BookingView {
+   checkOut: string;
+   totalCents: number;
+   status: string;
++  refundStatus: string;
+ }
+ 
+ export function toBookingView(booking: Booking): BookingView {
+@@ -17,5 +18,6 @@ export function toBookingView(booking: Booking): BookingView {
+     checkOut: booking.stay.checkOut.toISOString(),
+     totalCents: booking.total.cents,
+     status: booking.status,
++    refundStatus: booking.refundStatus,
+   };
+ }
+diff --git a/src/application/ports/in/CancelBooking.ts b/src/application/ports/in/CancelBooking.ts
+index 116b546..5b73cab 100644
+--- a/src/application/ports/in/CancelBooking.ts
++++ b/src/application/ports/in/CancelBooking.ts
+@@ -2,4 +2,7 @@ import { BookingView } from './BookingView';
+ 
+ export interface CancelBooking {
+   cancel(bookingId: string): Promise<BookingView>;
++  /** Cancelled bookings whose refund failed, for the front desk to retry. */
++  listRefundFailures(): Promise<BookingView[]>;
++  retryRefund(bookingId: string): Promise<BookingView>;
+ }
+diff --git a/src/application/ports/out/BookingRepository.ts b/src/application/ports/out/BookingRepository.ts
+index 0d87bfa..0b70b3c 100644
+--- a/src/application/ports/out/BookingRepository.ts
++++ b/src/application/ports/out/BookingRepository.ts
+@@ -5,6 +5,7 @@ export interface BookingRepository {
+   findById(id: string): Promise<Booking | undefined>;
+   findByRoom(roomId: string): Promise<Booking[]>;
+   findActive(): Promise<Booking[]>;
++  findAll(): Promise<Booking[]>;
+   save(booking: Booking): Promise<void>;
+   nextId(): string;
+ }
+diff --git a/src/application/ports/out/PaymentGateway.ts b/src/application/ports/out/PaymentGateway.ts
+index b82d7f6..080420c 100644
+--- a/src/application/ports/out/PaymentGateway.ts
++++ b/src/application/ports/out/PaymentGateway.ts
+@@ -2,6 +2,8 @@ import { Money } from '../../../domain/model/Money';
+ 
+ /** Driven port (Cockburn 2005): charges and refunds payments, implemented by an outbound adapter. */
+ export interface PaymentGateway {
+-  charge(guestId: string, amount: Money): Promise<string>;
++  /** Returns the payment reference; throws BookingError('payment-declined') when the processor declines. */
++  charge(guestId: string, amount: Money, idempotencyKey: string): Promise<string>;
++  /** Throws when the refund could not be made. */
+   refund(paymentRef: string): Promise<void>;
+ }
+diff --git a/src/application/services/BookRoomService.ts b/src/application/services/BookRoomService.ts
+index a542dab..ec9902b 100644
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -31,12 +31,32 @@ export class BookRoomService implements BookRoom {
+     if (!room.fits(command.guests)) throw new BookingError('invalid', `Room ${room.number} sleeps ${room.capacity}`);
+ 
+     const stay = DateRange.parse(command.checkIn, command.checkOut);
+-    if (!this.availability.isAvailable(room, stay, await this.bookings.findByRoom(room.id))) {
++    const existing = await this.bookings.findByRoom(room.id);
++
++    // A retried request must neither charge nor book twice: replay the booking it already produced.
++    let idempotencyKey = command.idempotencyKey;
++    if (idempotencyKey !== undefined) {
++      const replay = existing.find((b) => b.idempotencyKey === idempotencyKey);
++      if (replay !== undefined) return toBookingView(replay);
++    } else {
++      const sameRequest = existing.filter(
++        (b) =>
++          b.guestId === guest.id &&
++          b.stay.checkIn.getTime() === stay.checkIn.getTime() &&
++          b.stay.checkOut.getTime() === stay.checkOut.getTime(),
++      );
++      const active = sameRequest.find((b) => b.isActive);
++      if (active !== undefined) return toBookingView(active);
++      // Earlier cancelled bookings were charged under earlier keys, so a re-booking gets a fresh one.
++      idempotencyKey = [room.id, guest.id, command.checkIn, command.checkOut, command.guests, sameRequest.length].join('|');
++    }
++
++    if (!this.availability.isAvailable(room, stay, existing)) {
+       throw new BookingError('unavailable', `Room ${room.number} is taken for these dates`);
+     }
+     const total = this.pricing.quote(room, stay);
+-    const paymentRef = await this.payments.charge(guest.id, total);
+-    const booking = new Booking(this.bookings.nextId(), room.id, guest.id, stay, total, paymentRef);
++    const paymentRef = await this.payments.charge(guest.id, total, idempotencyKey);
++    const booking = new Booking(this.bookings.nextId(), room.id, guest.id, stay, total, paymentRef, idempotencyKey);
+     await this.bookings.save(booking);
+     await this.notifications.send(guest.email, `Room ${room.number} is booked (${booking.id})`);
+     return toBookingView(booking);
+diff --git a/src/application/services/CancelBookingService.ts b/src/application/services/CancelBookingService.ts
+index d4fe1ae..cc8e985 100644
+--- a/src/application/services/CancelBookingService.ts
++++ b/src/application/services/CancelBookingService.ts
+@@ -1,4 +1,5 @@
+ import { BookingError } from '../../domain/errors/BookingError';
++import { Booking } from '../../domain/model/Booking';
+ import { CancelBooking } from '../ports/in/CancelBooking';
+ import { BookingView, toBookingView } from '../ports/in/BookingView';
+ import { BookingRepository } from '../ports/out/BookingRepository';
+@@ -18,10 +19,34 @@ export class CancelBookingService implements CancelBooking {
+     const booking = await this.bookings.findById(bookingId);
+     if (booking === undefined) throw new BookingError('not-found', `No booking ${bookingId}`);
+     booking.cancel();
+-    await this.payments.refund(booking.paymentRef);
+     await this.bookings.save(booking);
++    await this.refund(booking);
+     const guest = await this.guests.findById(booking.guestId);
+     if (guest !== undefined) await this.notifications.send(guest.email, `Booking ${booking.id} is cancelled`);
+     return toBookingView(booking);
+   }
++
++  async listRefundFailures(): Promise<BookingView[]> {
++    const all = await this.bookings.findAll();
++    return all.filter((b) => b.needsRefundRetry).map(toBookingView);
++  }
++
++  async retryRefund(bookingId: string): Promise<BookingView> {
++    const booking = await this.bookings.findById(bookingId);
++    if (booking === undefined) throw new BookingError('not-found', `No booking ${bookingId}`);
++    if (!booking.needsRefundRetry) throw new BookingError('invalid', `Booking ${bookingId} has no failed refund`);
++    await this.refund(booking);
++    return toBookingView(booking);
++  }
++
++  /** A failed refund never undoes the cancellation; the booking is flagged for the front desk instead. */
++  private async refund(booking: Booking): Promise<void> {
++    try {
++      await this.payments.refund(booking.paymentRef);
++      booking.markRefunded();
++    } catch {
++      booking.markRefundFailed();
++    }
++    await this.bookings.save(booking);
++  }
+ }
+diff --git a/src/config/container.ts b/src/config/container.ts
+index b96d232..9d5aa52 100644
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -2,7 +2,7 @@ import { BookingCli } from '../adapters/inbound/cli/BookingCli';
+ import { BookingController } from '../adapters/inbound/http/BookingController';
+ import { RoomController } from '../adapters/inbound/http/RoomController';
+ import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';
+-import { FakePaymentGateway } from '../adapters/outbound/payment/FakePaymentGateway';
++import { PaystreamPaymentGateway } from '../adapters/outbound/payment/PaystreamPaymentGateway';
+ import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';
+ import { InMemoryGuestRepository } from '../adapters/outbound/persistence/InMemoryGuestRepository';
+ import { InMemoryRoomRepository } from '../adapters/outbound/persistence/InMemoryRoomRepository';
+@@ -21,7 +21,9 @@ export function createContainer(): Container {
+   const rooms = new InMemoryRoomRepository();
+   const bookings = new InMemoryBookingRepository();
+   const guests = new InMemoryGuestRepository();
+-  const payments = new FakePaymentGateway();
++  const apiKey = process.env['PAYSTREAM_API_KEY'];
++  if (!apiKey) throw new Error('PAYSTREAM_API_KEY is not set');
++  const payments = new PaystreamPaymentGateway(apiKey);
+   const notifications = new OutboxNotificationAdapter();
+ 
+   const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications);
+diff --git a/src/domain/errors/BookingError.ts b/src/domain/errors/BookingError.ts
+index 0c08169..0554f55 100644
+--- a/src/domain/errors/BookingError.ts
++++ b/src/domain/errors/BookingError.ts
+@@ -1,5 +1,9 @@
+ export class BookingError extends Error {
+-  constructor(readonly reason: 'not-found' | 'unavailable' | 'invalid' | 'payment-declined', message: string) {
++  constructor(
++    readonly reason: 'not-found' | 'unavailable' | 'invalid' | 'payment-declined',
++    message: string,
++    readonly declineCode?: string,
++  ) {
+     super(message);
+     this.name = 'BookingError';
+   }
+diff --git a/src/domain/model/Booking.ts b/src/domain/model/Booking.ts
+index 9ed0e4f..71de37a 100644
+--- a/src/domain/model/Booking.ts
++++ b/src/domain/model/Booking.ts
+@@ -3,9 +3,11 @@ import { DateRange } from './DateRange';
+ import { Money } from './Money';
+ 
+ export type BookingStatus = 'confirmed' | 'cancelled';
++export type RefundStatus = 'none' | 'refunded' | 'failed';
+ 
+ export class Booking {
+   private bookingStatus: BookingStatus = 'confirmed';
++  private refund: RefundStatus = 'none';
+ 
+   constructor(
+     readonly id: string,
+@@ -14,6 +16,7 @@ export class Booking {
+     readonly stay: DateRange,
+     readonly total: Money,
+     readonly paymentRef: string,
++    readonly idempotencyKey: string = '',
+   ) {}
+ 
+   get status(): BookingStatus {
+@@ -24,8 +27,24 @@ export class Booking {
+     return this.bookingStatus === 'confirmed';
+   }
+ 
++  get refundStatus(): RefundStatus {
++    return this.refund;
++  }
++
++  get needsRefundRetry(): boolean {
++    return this.bookingStatus === 'cancelled' && this.refund === 'failed';
++  }
++
+   cancel(): void {
+     if (!this.isActive) throw new BookingError('invalid', `Booking ${this.id} is already cancelled`);
+     this.bookingStatus = 'cancelled';
+   }
++
++  markRefunded(): void {
++    this.refund = 'refunded';
++  }
++
++  markRefundFailed(): void {
++    this.refund = 'failed';
++  }
+ }

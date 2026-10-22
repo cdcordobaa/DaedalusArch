@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Rooms, guests and bookings must survive a restart: store them in the hotel's PostgreSQL database through the sqlwell client, which is already available in this project, with the connection string read from DATABASE_URL. When DATABASE_URL is not set, keep the current in-memory storage, so local runs and tests still work without a database. Creating a booking and recording its charge happen in one database transaction, and the no-overlap rule for a room must still hold when two servers handle requests at the same time.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+<H>/bin/tsc --noEmit --incremental false -p <H>/runs/claude-code-cli/claude-sonnet-5-5/s1-hotel-bookings/none/run-0/tsconfig.json

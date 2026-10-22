@@ -1,0 +1,45 @@
+=== s1-hotel-bookings step 1 (paystream-payments)
+The current directory holds an existing TypeScript service.
+
+Change request:
+The hotel has signed with Paystream as its card processor, and the stand-in payment code that declines every charge above a fixed limit must go. Paystream's TypeScript SDK, the package @paystream/node, is already available in this project; read the API key from the environment variable PAYSTREAM_API_KEY. Booking a room charges the guest's card through Paystream for the stay total, with an idempotency key so a retried request is never charged twice. When Paystream declines a charge, no booking is created and the guest sees Paystream's decline code. Cancelling a booking refunds its charge through Paystream; a cancellation whose refund fails stays cancelled and is listed for the front desk to retry.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s1-hotel-bookings/none/run-0/tsconfig.json
+
+=== s1-hotel-bookings step 2 (double-booking-fix)
+The current directory holds an existing TypeScript service.
+
+Change request:
+Urgent: this morning two guests were booked into room 112 for overlapping nights. Both requests arrived at the same moment and both were accepted. The front desk needs this fixed today with a small, safe change, not a rewrite. A room must never hold two active bookings whose nights overlap, including when several booking requests for the same room arrive at the same time; the request that loses gets the usual 'room is taken' answer and its card is never charged.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s1-hotel-bookings/none/run-0/tsconfig.json
+
+=== s1-hotel-bookings step 3 (audit-records)
+The current directory holds an existing TypeScript service.
+
+Change request:
+The hotel's auditors need to know who did what. Every booking, cancellation, charge and refund is recorded with the id of the staff user who made the request, taken from the X-Staff-Id request header ('guest' when the header is absent), the time, and the values before and after the change. A change and its record are always saved together or not at all. Staff can list the records of one booking, and every record one staff user made in a date range.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s1-hotel-bookings/none/run-0/tsconfig.json
+
+=== s1-hotel-bookings step 4 (occupancy-report)
+The current directory holds an existing TypeScript service.
+
+Change request:
+The revenue manager opens an occupancy and revenue report every morning. For each night in a date range of up to 90 nights, it shows the number of rooms occupied, the occupancy rate over all rooms, and the revenue of the bookings staying that night (the stay total spread evenly over its nights), per room and in total. Cancelled bookings do not count. The report must answer within 200 ms for a 90-night range on a hotel with 500 rooms and 50,000 bookings; add an endpoint for it.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s1-hotel-bookings/none/run-0/tsconfig.json
+
+=== s1-hotel-bookings step 5 (postgres-storage)
+The current directory holds an existing TypeScript service.
+
+Change request:
+Rooms, guests and bookings must survive a restart: store them in the hotel's PostgreSQL database through the sqlwell client, which is already available in this project, with the connection string read from DATABASE_URL. When DATABASE_URL is not set, keep the current in-memory storage, so local runs and tests still work without a database. Creating a booking and recording its charge happen in one database transaction, and the no-overlap rule for a room must still hold when two servers handle requests at the same time.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s1-hotel-bookings/none/run-0/tsconfig.json
+

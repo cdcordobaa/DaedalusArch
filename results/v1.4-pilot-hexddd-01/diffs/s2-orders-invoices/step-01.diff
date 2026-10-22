@@ -1,0 +1,545 @@
+# s2-orders-invoices step-01: tree after the step against the tree before it (28 files changed, 234 insertions(+), 13 deletions(-))
+diff --git a/src/billing/acl/OrderingAcl.ts b/src/billing/acl/OrderingAcl.ts
+index 8bafb37..94e33ab 100644
+--- a/src/billing/acl/OrderingAcl.ts
++++ b/src/billing/acl/OrderingAcl.ts
+@@ -8,6 +8,6 @@ export class OrderingAcl implements OrderSource {
+   async billableOrder(orderId: string): Promise<BillableOrder | null> {
+     const summary = await this.ordering.summaryOf(orderId);
+     if (summary === null) return null;
+-    return { orderId: summary.orderId, amountCents: summary.totalCents, currency: summary.currency };
++    return { orderId: summary.orderId, customerId: summary.customerId, amountCents: summary.totalCents, currency: summary.currency };
+   }
+ }
+diff --git a/src/billing/acl/OrderingPaidAcl.ts b/src/billing/acl/OrderingPaidAcl.ts
+new file mode 100644
+index 0000000..4391a5f
+--- /dev/null
++++ b/src/billing/acl/OrderingPaidAcl.ts
+@@ -0,0 +1,10 @@
++import type { OrderPaidCommand } from '../../ordering/index.js';
++import type { OrderPaidNotifier } from '../application/ports/OrderPaid.js';
++
++export class OrderingPaidAcl implements OrderPaidNotifier {
++  constructor(private readonly ordering: OrderPaidCommand) {}
++
++  orderPaid(orderId: string): Promise<void> {
++    return this.ordering.markPaid(orderId);
++  }
++}
+diff --git a/src/billing/api/InvoiceController.ts b/src/billing/api/InvoiceController.ts
+index af761b0..01aecb7 100644
+--- a/src/billing/api/InvoiceController.ts
++++ b/src/billing/api/InvoiceController.ts
+@@ -1,14 +1,20 @@
+ import type { InvoiceView } from '../contracts/InvoiceView.js';
+ import type { IssueInvoice } from '../application/IssueInvoice.js';
++import type { RecordPayment } from '../application/RecordPayment.js';
+ 
+ export class InvoiceController {
+-  constructor(private readonly issueInvoice: IssueInvoice) {}
++  constructor(private readonly issueInvoice: IssueInvoice, private readonly recordPayment: RecordPayment) {}
+ 
+   async post(body: { invoiceId: string; orderId: string }): Promise<{ status: number; location: string }> {
+     await this.issueInvoice.execute(body.invoiceId, body.orderId);
+     return { status: 201, location: `/invoices/${body.invoiceId}` };
+   }
+ 
++  async postPayment(body: { invoiceId: string; amountCents: number; paidOn: string }): Promise<{ status: number }> {
++    await this.recordPayment.execute(body.invoiceId, body.amountCents, new Date(body.paidOn));
++    return { status: 201 };
++  }
++
+   describe(view: InvoiceView): string {
+     return `${view.invoiceId}: ${String(view.totalCents)} ${view.currency}`;
+   }
+diff --git a/src/billing/application/IssueInvoice.ts b/src/billing/application/IssueInvoice.ts
+index b093a0e..1eccfaf 100644
+--- a/src/billing/application/IssueInvoice.ts
++++ b/src/billing/application/IssueInvoice.ts
+@@ -12,7 +12,7 @@ export class IssueInvoice {
+   async execute(invoiceId: string, orderId: string): Promise<void> {
+     const order = await this.orders.billableOrder(orderId);
+     if (order === null) throw new Error('Unknown order');
+-    const invoice = new Invoice(new InvoiceId(invoiceId), order.orderId, order.currency);
++    const invoice = new Invoice(new InvoiceId(invoiceId), order.orderId, order.currency, order.customerId);
+     invoice.charge(`order ${order.orderId}`, Money.of(order.amountCents, order.currency));
+     invoice.issue(this.taxRate);
+     await this.invoices.save(invoice);
+diff --git a/src/billing/application/RecordPayment.ts b/src/billing/application/RecordPayment.ts
+new file mode 100644
+index 0000000..b18e492
+--- /dev/null
++++ b/src/billing/application/RecordPayment.ts
+@@ -0,0 +1,18 @@
++import { Money } from '../../shared-kernel/value-objects/Money.js';
++import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository.js';
++import { InvoiceId } from '../domain/invoice/value-objects/InvoiceId.js';
++import type { OrderPaidNotifier } from './ports/OrderPaid.js';
++
++export class RecordPayment {
++  constructor(private readonly invoices: InvoiceRepository, private readonly orders: OrderPaidNotifier) {}
++
++  async execute(invoiceId: string, amountCents: number, paidOn: Date): Promise<void> {
++    const invoice = await this.invoices.byId(new InvoiceId(invoiceId));
++    if (invoice === null) throw new Error('Unknown invoice');
++    invoice.recordPayment(Money.of(amountCents, invoice.currency), paidOn);
++    await this.invoices.save(invoice);
++    for (const e of invoice.pullEvents()) {
++      if (e.name === 'billing.invoice-paid') await this.orders.orderPaid(invoice.orderId);
++    }
++  }
++}
+diff --git a/src/billing/application/UnpaidBalance.ts b/src/billing/application/UnpaidBalance.ts
+new file mode 100644
+index 0000000..dabcbce
+--- /dev/null
++++ b/src/billing/application/UnpaidBalance.ts
+@@ -0,0 +1,12 @@
++import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository.js';
++import type { UnpaidBalanceQuery } from '../contracts/UnpaidBalanceQuery.js';
++
++/** Sum of outstanding amounts on a customer's issued invoices in one currency. */
++export class UnpaidBalance implements UnpaidBalanceQuery {
++  constructor(private readonly invoices: InvoiceRepository) {}
++
++  async unpaidCents(customerId: string, currency: string): Promise<number> {
++    const all = await this.invoices.byCustomer(customerId);
++    return all.filter((i) => i.isIssued() && i.currency === currency).reduce((s, i) => s + i.outstanding().cents, 0);
++  }
++}
+diff --git a/src/billing/application/ports/OrderPaid.ts b/src/billing/application/ports/OrderPaid.ts
+new file mode 100644
+index 0000000..4b61484
+--- /dev/null
++++ b/src/billing/application/ports/OrderPaid.ts
+@@ -0,0 +1,4 @@
++/** Port: billing tells the order side that an order is fully paid. */
++export interface OrderPaidNotifier {
++  orderPaid(orderId: string): Promise<void>;
++}
+diff --git a/src/billing/application/ports/OrderSource.ts b/src/billing/application/ports/OrderSource.ts
+index 6778417..0be0224 100644
+--- a/src/billing/application/ports/OrderSource.ts
++++ b/src/billing/application/ports/OrderSource.ts
+@@ -1,6 +1,7 @@
+ /** Port: what billing needs to know about an order, in billing's own terms. */
+ export interface BillableOrder {
+   readonly orderId: string;
++  readonly customerId: string;
+   readonly amountCents: number;
+   readonly currency: string;
+ }
+diff --git a/src/billing/contracts/UnpaidBalanceQuery.ts b/src/billing/contracts/UnpaidBalanceQuery.ts
+new file mode 100644
+index 0000000..d988fd5
+--- /dev/null
++++ b/src/billing/contracts/UnpaidBalanceQuery.ts
+@@ -0,0 +1,4 @@
++/** Published language of billing. */
++export interface UnpaidBalanceQuery {
++  unpaidCents(customerId: string, currency: string): Promise<number>;
++}
+diff --git a/src/billing/domain/invoice/Invoice.ts b/src/billing/domain/invoice/Invoice.ts
+index a84f012..ada4e48 100644
+--- a/src/billing/domain/invoice/Invoice.ts
++++ b/src/billing/domain/invoice/Invoice.ts
+@@ -3,6 +3,8 @@ import { Money } from '../../../shared-kernel/value-objects/Money.js';
+ import { InvoiceLine } from './InvoiceLine.js';
+ import { InvoiceId } from './value-objects/InvoiceId.js';
+ import { InvoiceIssued } from './events/InvoiceIssued.js';
++import { InvoicePaid } from './events/InvoicePaid.js';
++import { Payment } from './Payment.js';
+ 
+ /** Aggregate root of billing. The tax rule lives here, not in the application service. */
+ export class Invoice {
+@@ -10,7 +12,9 @@ export class Invoice {
+   private readonly events: DomainEvent[] = [];
+   private issued = false;
+ 
+-  constructor(readonly id: InvoiceId, readonly orderId: string, readonly currency: string) {}
++  private readonly payments: Payment[] = [];
++
++  constructor(readonly id: InvoiceId, readonly orderId: string, readonly currency: string, readonly customerId: string) {}
+ 
+   charge(description: string, amount: Money): void {
+     if (this.issued) throw new Error('An issued invoice cannot change');
+@@ -33,6 +37,33 @@ export class Invoice {
+     return this.lines.reduce((s, l) => s.add(l.amount), Money.of(0, this.currency));
+   }
+ 
++  isIssued(): boolean {
++    return this.issued;
++  }
++
++  paid(): Money {
++    return this.payments.reduce((s, p) => s.add(p.amount), Money.of(0, this.currency));
++  }
++
++  outstanding(): Money {
++    return Money.of(this.total().cents - this.paid().cents, this.currency);
++  }
++
++  isPaid(): boolean {
++    return this.issued && this.outstanding().cents === 0;
++  }
++
++  /** Records a (possibly partial) payment; never beyond the invoice total. */
++  recordPayment(amount: Money, paidOn: Date): void {
++    if (!this.issued) throw new Error('Only an issued invoice can be paid');
++    if (amount.currency !== this.currency) throw new Error('Currency mismatch');
++    if (amount.cents <= 0) throw new Error('Payment must be positive');
++    if (Number.isNaN(paidOn.getTime())) throw new Error('Invalid payment date');
++    if (amount.cents > this.outstanding().cents) throw new Error('Payment exceeds the amount outstanding');
++    this.payments.push(new Payment(this.payments.length + 1, amount, paidOn));
++    if (this.isPaid()) this.events.push(new InvoicePaid(this.id.value, this.orderId));
++  }
++
+   pullEvents(): DomainEvent[] {
+     return this.events.splice(0, this.events.length);
+   }
+diff --git a/src/billing/domain/invoice/InvoiceRepository.ts b/src/billing/domain/invoice/InvoiceRepository.ts
+index 5d852d8..0010e3b 100644
+--- a/src/billing/domain/invoice/InvoiceRepository.ts
++++ b/src/billing/domain/invoice/InvoiceRepository.ts
+@@ -3,5 +3,6 @@ import type { InvoiceId } from './value-objects/InvoiceId.js';
+ 
+ export interface InvoiceRepository {
+   byId(id: InvoiceId): Promise<Invoice | null>;
++  byCustomer(customerId: string): Promise<Invoice[]>;
+   save(invoice: Invoice): Promise<void>;
+ }
+diff --git a/src/billing/domain/invoice/Payment.ts b/src/billing/domain/invoice/Payment.ts
+new file mode 100644
+index 0000000..208ce08
+--- /dev/null
++++ b/src/billing/domain/invoice/Payment.ts
+@@ -0,0 +1,6 @@
++import type { Money } from '../../../shared-kernel/value-objects/Money.js';
++
++/** Inner entity of the Invoice aggregate: one payment received against it. */
++export class Payment {
++  constructor(readonly paymentNo: number, readonly amount: Money, readonly paidOn: Date) {}
++}
+diff --git a/src/billing/domain/invoice/events/InvoicePaid.ts b/src/billing/domain/invoice/events/InvoicePaid.ts
+new file mode 100644
+index 0000000..b04f385
+--- /dev/null
++++ b/src/billing/domain/invoice/events/InvoicePaid.ts
+@@ -0,0 +1,8 @@
++import type { DomainEvent } from '../../../../shared-kernel/DomainEvent.js';
++
++export class InvoicePaid implements DomainEvent {
++  readonly name = 'billing.invoice-paid';
++  readonly occurredAt = new Date();
++
++  constructor(readonly invoiceId: string, readonly orderId: string) {}
++}
+diff --git a/src/billing/index.ts b/src/billing/index.ts
+index 9142ffe..e71fe39 100644
+--- a/src/billing/index.ts
++++ b/src/billing/index.ts
+@@ -1,2 +1,3 @@
+ // Public API of the billing context.
++export type { UnpaidBalanceQuery } from './contracts/UnpaidBalanceQuery.js';
+ export type { InvoiceView } from './contracts/InvoiceView.js';
+diff --git a/src/billing/infrastructure/InMemoryInvoiceRepository.ts b/src/billing/infrastructure/InMemoryInvoiceRepository.ts
+index e37e180..b4e4328 100644
+--- a/src/billing/infrastructure/InMemoryInvoiceRepository.ts
++++ b/src/billing/infrastructure/InMemoryInvoiceRepository.ts
+@@ -9,6 +9,10 @@ export class InMemoryInvoiceRepository implements InvoiceRepository {
+     return this.rows.get(id.value) ?? null;
+   }
+ 
++  async byCustomer(customerId: string): Promise<Invoice[]> {
++    return [...this.rows.values()].filter((i) => i.customerId === customerId);
++  }
++
+   async save(invoice: Invoice): Promise<void> {
+     this.rows.set(invoice.id.value, invoice);
+   }
+diff --git a/src/main.ts b/src/main.ts
+index 5ad5e8b..0842c87 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -1,19 +1,30 @@
+ // Composition root: outside every bounded context, wires both contexts.
+ import { PlaceOrder } from './ordering/application/PlaceOrder.js';
+ import { GetOrderSummary } from './ordering/application/GetOrderSummary.js';
++import { MarkOrderPaid } from './ordering/application/MarkOrderPaid.js';
++import { SetCreditLimit } from './ordering/application/SetCreditLimit.js';
+ import { InMemoryOrderRepository } from './ordering/infrastructure/InMemoryOrderRepository.js';
+ import { InMemoryCustomerRepository } from './ordering/infrastructure/InMemoryCustomerRepository.js';
+ import { OrderController } from './ordering/api/OrderController.js';
++import { CustomerController } from './ordering/api/CustomerController.js';
++import { BillingAcl } from './ordering/acl/BillingAcl.js';
+ import { IssueInvoice } from './billing/application/IssueInvoice.js';
++import { RecordPayment } from './billing/application/RecordPayment.js';
++import { UnpaidBalance } from './billing/application/UnpaidBalance.js';
+ import { OrderingAcl } from './billing/acl/OrderingAcl.js';
++import { OrderingPaidAcl } from './billing/acl/OrderingPaidAcl.js';
+ import { InMemoryInvoiceRepository } from './billing/infrastructure/InMemoryInvoiceRepository.js';
+ import { InvoiceController } from './billing/api/InvoiceController.js';
+ 
+-export function compose(): { orders: OrderController; invoices: InvoiceController } {
++export function compose(): { orders: OrderController; invoices: InvoiceController; customers: CustomerController } {
+   const orderRepo = new InMemoryOrderRepository();
+-  const customers = new InMemoryCustomerRepository(new Map());
+-  const orders = new OrderController(new PlaceOrder(orderRepo, customers));
++  const customerRepo = new InMemoryCustomerRepository(new Map());
++  const invoiceRepo = new InMemoryInvoiceRepository();
++  const billingAcl = new BillingAcl(new UnpaidBalance(invoiceRepo));
++  const orders = new OrderController(new PlaceOrder(orderRepo, customerRepo, billingAcl));
++  const customers = new CustomerController(new SetCreditLimit(customerRepo));
+   const acl = new OrderingAcl(new GetOrderSummary(orderRepo));
+-  const invoices = new InvoiceController(new IssueInvoice(acl, new InMemoryInvoiceRepository(), 0.2));
+-  return { orders, invoices };
++  const paidAcl = new OrderingPaidAcl(new MarkOrderPaid(orderRepo));
++  const invoices = new InvoiceController(new IssueInvoice(acl, invoiceRepo, 0.2), new RecordPayment(invoiceRepo, paidAcl));
++  return { orders, invoices, customers };
+ }
+diff --git a/src/ordering/acl/BillingAcl.ts b/src/ordering/acl/BillingAcl.ts
+new file mode 100644
+index 0000000..a32646b
+--- /dev/null
++++ b/src/ordering/acl/BillingAcl.ts
+@@ -0,0 +1,11 @@
++import type { UnpaidBalanceQuery } from '../../billing/index.js';
++import type { UnpaidInvoices } from '../application/PlaceOrder.js';
++
++/** Anti-corruption layer: ordering's view of billing's unpaid balance. */
++export class BillingAcl implements UnpaidInvoices {
++  constructor(private readonly billing: UnpaidBalanceQuery) {}
++
++  unpaidCents(customerId: string, currency: string): Promise<number> {
++    return this.billing.unpaidCents(customerId, currency);
++  }
++}
+diff --git a/src/ordering/api/CustomerController.ts b/src/ordering/api/CustomerController.ts
+new file mode 100644
+index 0000000..0f9d771
+--- /dev/null
++++ b/src/ordering/api/CustomerController.ts
+@@ -0,0 +1,11 @@
++import type { SetCreditLimit } from '../application/SetCreditLimit.js';
++
++/** Inbound adapter for finance. */
++export class CustomerController {
++  constructor(private readonly setCreditLimit: SetCreditLimit) {}
++
++  async putCreditLimit(body: { customerId: string; limitCents: number }): Promise<{ status: number }> {
++    await this.setCreditLimit.execute(body.customerId, body.limitCents);
++    return { status: 204 };
++  }
++}
+diff --git a/src/ordering/application/GetOrderSummary.ts b/src/ordering/application/GetOrderSummary.ts
+index 6f804b5..932ae16 100644
+--- a/src/ordering/application/GetOrderSummary.ts
++++ b/src/ordering/application/GetOrderSummary.ts
+@@ -10,6 +10,6 @@ export class GetOrderSummary implements OrderSummaryQuery {
+     const order = await this.orders.byId(new OrderId(orderId));
+     if (order === null) return null;
+     const total = order.total();
+-    return { orderId, customerId: order.customerId.value, totalCents: total.cents, currency: total.currency, lineCount: order.lineCount() };
++    return { orderId, customerId: order.customerId.value, totalCents: total.cents, currency: total.currency, lineCount: order.lineCount(), paid: order.isPaid() };
+   }
+ }
+diff --git a/src/ordering/application/MarkOrderPaid.ts b/src/ordering/application/MarkOrderPaid.ts
+new file mode 100644
+index 0000000..2c26a97
+--- /dev/null
++++ b/src/ordering/application/MarkOrderPaid.ts
+@@ -0,0 +1,14 @@
++import type { OrderPaidCommand } from '../contracts/OrderSummary.js';
++import type { OrderRepository } from '../domain/order/OrderRepository.js';
++import { OrderId } from '../domain/order/value-objects/OrderId.js';
++
++export class MarkOrderPaid implements OrderPaidCommand {
++  constructor(private readonly orders: OrderRepository) {}
++
++  async markPaid(orderId: string): Promise<void> {
++    const order = await this.orders.byId(new OrderId(orderId));
++    if (order === null) throw new Error('Unknown order');
++    order.markPaid();
++    await this.orders.save(order);
++  }
++}
+diff --git a/src/ordering/application/PlaceOrder.ts b/src/ordering/application/PlaceOrder.ts
+index 890f0be..594ee55 100644
+--- a/src/ordering/application/PlaceOrder.ts
++++ b/src/ordering/application/PlaceOrder.ts
+@@ -6,6 +6,11 @@ import type { CustomerRepository } from '../domain/customer/CustomerRepository.j
+ import { CustomerId } from '../domain/customer/value-objects/CustomerId.js';
+ import { Quantity } from '../domain/value-objects/Quantity.js';
+ 
++/** Port: the customer's issued-but-unpaid invoice balance in a currency, in minor units. */
++export interface UnpaidInvoices {
++  unpaidCents(customerId: string, currency: string): Promise<number>;
++}
++
+ export interface PlaceOrderCommand {
+   readonly orderId: string;
+   readonly customerId: string;
+@@ -15,13 +20,19 @@ export interface PlaceOrderCommand {
+ 
+ /** Application service: loads, delegates to the aggregate, saves. No business rule lives here. */
+ export class PlaceOrder {
+-  constructor(private readonly orders: OrderRepository, private readonly customers: CustomerRepository) {}
++  constructor(
++    private readonly orders: OrderRepository,
++    private readonly customers: CustomerRepository,
++    private readonly unpaid: UnpaidInvoices,
++  ) {}
+ 
+   async execute(cmd: PlaceOrderCommand): Promise<void> {
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+     if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');
+     const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
+     for (const l of cmd.lines) order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
++    const unpaidCents = await this.unpaid.unpaidCents(cmd.customerId, cmd.currency);
++    customer.checkCredit(unpaidCents, order.total());
+     order.place();
+     await this.orders.save(order);
+   }
+diff --git a/src/ordering/application/SetCreditLimit.ts b/src/ordering/application/SetCreditLimit.ts
+new file mode 100644
+index 0000000..8d2ae5b
+--- /dev/null
++++ b/src/ordering/application/SetCreditLimit.ts
+@@ -0,0 +1,13 @@
++import type { CustomerRepository } from '../domain/customer/CustomerRepository.js';
++import { CustomerId } from '../domain/customer/value-objects/CustomerId.js';
++
++export class SetCreditLimit {
++  constructor(private readonly customers: CustomerRepository) {}
++
++  async execute(customerId: string, limitCents: number): Promise<void> {
++    const customer = await this.customers.byId(new CustomerId(customerId));
++    if (customer === null) throw new Error('Unknown customer');
++    customer.setCreditLimit(limitCents);
++    await this.customers.save(customer);
++  }
++}
+diff --git a/src/ordering/contracts/OrderSummary.ts b/src/ordering/contracts/OrderSummary.ts
+index 82f1cf9..2ca45e3 100644
+--- a/src/ordering/contracts/OrderSummary.ts
++++ b/src/ordering/contracts/OrderSummary.ts
+@@ -5,6 +5,12 @@ export interface OrderSummary {
+   readonly totalCents: number;
+   readonly currency: string;
+   readonly lineCount: number;
++  readonly paid: boolean;
++}
++
++/** Published command: billing tells ordering that an order's invoice is fully paid. */
++export interface OrderPaidCommand {
++  markPaid(orderId: string): Promise<void>;
+ }
+ 
+ export interface OrderSummaryQuery {
+diff --git a/src/ordering/domain/customer/Customer.ts b/src/ordering/domain/customer/Customer.ts
+index ea93ff3..3634ec8 100644
+--- a/src/ordering/domain/customer/Customer.ts
++++ b/src/ordering/domain/customer/Customer.ts
+@@ -1,8 +1,13 @@
++import type { Money } from '../../../shared-kernel/value-objects/Money.js';
+ import { CustomerId } from './value-objects/CustomerId.js';
+ 
++/** 5,000.00 in minor units of the order currency. */
++export const DEFAULT_CREDIT_LIMIT_CENTS = 500000;
++
+ /** Aggregate root with no inner entity. */
+ export class Customer {
+   private active = true;
++  private creditLimitCents: number | null = null;
+ 
+   constructor(readonly id: CustomerId, readonly name: string) {}
+ 
+@@ -13,4 +18,22 @@ export class Customer {
+   deactivate(): void {
+     this.active = false;
+   }
++
++  /** Finance sets a customer-specific limit, in minor units of the order currency. */
++  setCreditLimit(cents: number): void {
++    if (!Number.isInteger(cents) || cents < 0) throw new Error('Credit limit must be a non-negative whole amount');
++    this.creditLimitCents = cents;
++  }
++
++  creditLimit(): number {
++    return this.creditLimitCents ?? DEFAULT_CREDIT_LIMIT_CENTS;
++  }
++
++  /** Refuses an order that would take unpaid invoices plus the new total over the limit. */
++  checkCredit(unpaidCents: number, orderTotal: Money): void {
++    const excess = unpaidCents + orderTotal.cents - this.creditLimit();
++    if (excess > 0) {
++      throw new Error(`Credit limit exceeded by ${(excess / 100).toFixed(2)} ${orderTotal.currency}`);
++    }
++  }
+ }
+diff --git a/src/ordering/domain/customer/CustomerRepository.ts b/src/ordering/domain/customer/CustomerRepository.ts
+index e8f2ba1..c4f9e93 100644
+--- a/src/ordering/domain/customer/CustomerRepository.ts
++++ b/src/ordering/domain/customer/CustomerRepository.ts
+@@ -3,4 +3,5 @@ import type { CustomerId } from './value-objects/CustomerId.js';
+ 
+ export interface CustomerRepository {
+   byId(id: CustomerId): Promise<Customer | null>;
++  save(customer: Customer): Promise<void>;
+ }
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index d05f4a0..437e8ae 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -10,6 +10,7 @@ import { OrderPlaced } from './events/OrderPlaced.js';
+ export class Order {
+   private readonly lines: OrderLine[] = [];
+   private placed = false;
++  private paid = false;
+   private readonly events: DomainEvent[] = [];
+ 
+   constructor(readonly id: OrderId, readonly customerId: CustomerId, readonly currency: string) {}
+@@ -28,6 +29,15 @@ export class Order {
+     this.events.push(new OrderPlaced(this.id.value, this.total().cents));
+   }
+ 
++  markPaid(): void {
++    if (!this.placed) throw new Error('Only a placed order can be paid');
++    this.paid = true;
++  }
++
++  isPaid(): boolean {
++    return this.paid;
++  }
++
+   total(): Money {
+     return this.lines.reduce((sum, l) => sum.add(l.subtotal()), Money.of(0, this.currency));
+   }
+diff --git a/src/ordering/index.ts b/src/ordering/index.ts
+index eb25f35..e9cf70d 100644
+--- a/src/ordering/index.ts
++++ b/src/ordering/index.ts
+@@ -1,2 +1,2 @@
+ // Public API of the ordering context: the only files other contexts may import.
+-export type { OrderSummary, OrderSummaryQuery } from './contracts/OrderSummary.js';
++export type { OrderSummary, OrderSummaryQuery, OrderPaidCommand } from './contracts/OrderSummary.js';
+diff --git a/src/ordering/infrastructure/InMemoryCustomerRepository.ts b/src/ordering/infrastructure/InMemoryCustomerRepository.ts
+index cf426e5..0570c3f 100644
+--- a/src/ordering/infrastructure/InMemoryCustomerRepository.ts
++++ b/src/ordering/infrastructure/InMemoryCustomerRepository.ts
+@@ -3,9 +3,13 @@ import type { CustomerRepository } from '../domain/customer/CustomerRepository.j
+ import type { CustomerId } from '../domain/customer/value-objects/CustomerId.js';
+ 
+ export class InMemoryCustomerRepository implements CustomerRepository {
+-  constructor(private readonly rows: ReadonlyMap<string, Customer>) {}
++  constructor(private readonly rows: Map<string, Customer>) {}
+ 
+   async byId(id: CustomerId): Promise<Customer | null> {
+     return this.rows.get(id.value) ?? null;
+   }
++
++  async save(customer: Customer): Promise<void> {
++    this.rows.set(customer.id.value, customer);
++  }
+ }
