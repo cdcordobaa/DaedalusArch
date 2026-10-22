@@ -2926,3 +2926,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Study 2b closure; registered secondaries
 
 ---
+
+## Study 2b — evasion item 4 computed, item 5 packet prepared, three exploratory analyses
+**Timestamp**: 2026-10-22T04:36:05Z
+**User Input**: "(coordinator brief) Under addendum 4 (DA15, DA16), and after it merged: compute evasion item 4 with a zero-call literal-view driver run at the freeze tag, with its hash recorded before the run; prepare, without classifying, the blind item 5 packet; write the three exploratory analyses as a separate, exploratory report."
+**AI Response**: "Item 4 (DA15): scripts/v1.4/study2b-literal-view.ts and its lib, tested on a tiny fixture; sha256 committed in 8f3dc895f before the run; ran from a worktree of v1.4-freeze-2026-10-20 at 04:29–04:35Z after PR #347 merged and the registered hashes verified. 600 snapshots, 0 failures. Mean per-block gap (literal − default D) is 0 in all three cells, so it is not flagged against the registered bar. Default D reproduces the committed D in 120 of 120 runs. Results are in results/v1.4-study2b/evasion/item4/. Item 5 (DA16): the 20-diff packet, its reader sheet, the key and the two spot-check ids were built by scripts/v1.4/study2b-item5-packet.ts (seeds 20261021 and 20261022). They are kept outside the repository and not committed until the read is scored; nothing was classified. Exploratory: Docs/DiagnosticRuns/v1.4-study2b-exploratory-analyses-2026-10-22.md, labelled not registered. Zero model calls; nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, and no registered artefact, changed."
+**Context**: Study 2b closure; evasion items 4 and 5 (DA15, DA16); exploratory analyses
+
+---
