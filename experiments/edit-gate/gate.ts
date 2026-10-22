@@ -2,7 +2,8 @@
  * Edit gate (v1.5-exp, exploratory; never the Study 2b instrument), the pure part: finding keys, per-session
  * de-duplication, the message text, the hook replies and the work-tree path check. No I/O except `insideTree`'s
  * `realpath`. Design: `ops/notes/v15-edit-gate-design.md` §2 and §4. The checks themselves are DETECT-02's
- * `check_consistency` (R-D4, R-XCTX), imported read-only by the hub (`hub.ts`).
+ * `check_consistency` (R-D4, R-XCTX), imported read-only by the hub (`hub.ts`), and, when the hub runs with `layers`
+ * (PUZZLE-04), the frozen `check_diff` layer rules FF-S01–S03 (`layers.ts`).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -23,7 +24,12 @@ export interface KeyedFinding extends ConsistencyFinding {
   readonly aggregates: readonly string[];
 }
 
+/** Frozen layer rules the hub can add (`layers.ts`): the label is the id and the preset's rule name. */
+const LAYER_LABELS: Readonly<Record<string, string>> = { 'FF-S01': 'FF-S01 dependency-direction', 'FF-S02': 'FF-S02 no-cyclic-deps', 'FF-S03': 'FF-S03 no-layer-skip' };
+
 export function ruleLabel(rule: string): string {
+  const layer = LAYER_LABELS[rule];
+  if (layer !== undefined) return layer;
   return rule === 'R-D4' ? 'one aggregate per command' : rule === 'R-XCTX' ? 'cross-context write' : 'one aggregate per command; cross-context write';
 }
 
