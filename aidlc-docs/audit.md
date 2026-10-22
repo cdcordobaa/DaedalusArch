@@ -3040,3 +3040,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 CONSTRUCTION, U3 code generation and pilot; gate decision
 
 ---
+
+## v1.5 — CONSTRUCTION, U4 thinking note (not run)
+**Timestamp**: 2026-10-22T07:55:00Z
+**User Input**: "Asked for the U4 thinking note (S3 aggregate and ownership facts on the 13 human DDD repositories; S2 confirmation of the D5 candidates and the precision fixtures) with design, scenarios, predictions and a call cap, with zero calls and without running U4."
+**AI Response**: "Wrote ops/notes/v15-u4-facts-confirmation-note.md. Two design consequences recorded: S3 is measured three ways (R1–R3 inferred roots, model facts, declared roots), since R3 already removed the 12 false hits symbolically; and pure confirmation cannot raise D5 recall (the 5 lock-form misses have no candidate, 0 false positives to remove), so S2 adds a relaxed symbolic proposer frozen before any call. Scenarios S3-a to S3-d and S2-a to S2-d, predictions, failure criteria, hard cap 75 (planned ~70), own ledger; the sealed DETECT-02 held-out stays unopened. U4 not run; zero calls."
+**Context**: v1.5 CONSTRUCTION, U4 functional design (thinking note); no run
+
+---
