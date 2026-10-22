@@ -1,0 +1,143 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:dcea076f600ac767",
+    "finding": {
+      "id": "c4f:dcea076f600ac767",
+      "origin": "sem",
+      "tier": "blocking",
+      "message": "SEM-MISPLACED: a responsibility sits in a layer other than the one it naturally belongs to",
+      "rule": "SEM-MISPLACED",
+      "sites": [
+        "ee110f001f97012a"
+      ],
+      "files": [
+        "src/notifications/application/order-notification.service.ts"
+      ],
+      "edge": null,
+      "context": null,
+      "facts": [
+        "fact:866fa21d504a10f3"
+      ],
+      "sem": {
+        "verified": null,
+        "policy": "agreed-only"
+      }
+    },
+    "c3Verdict": {
+      "rule": "SEM-MISPLACED",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "OrderNotificationService, an application-layer service in the notifications context, computes the order discount and payable amount itself. It reads the subtotal from the ordering domain's Order and applies a 10% discount when there are more than three lines. Pricing is a domain responsibility, so SEM-MISPLACED flags it as sitting in the wrong layer. ADR-0003 is Accepted and says this service computes the preview discount for the confirmation e-mail on purpose. It calls this an accepted exception to keeping pricing rules in the domain layer. The e-mail shows an estimate, and the binding discount is computed in the ordering domain at invoicing. So the ADR grants this exact case, and the finding is consistent with the declared intent.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/adr/0003-preview-discount.md:7",
+                "docs/adr/0003-preview-discount.md:9"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "docs/adr/0003-preview-discount.md",
+                "startLine": 9,
+                "endLine": 9,
+                "quote": "This is an accepted exception to keeping pricing rules in the domain layer."
+              },
+              "scope": "OrderNotificationService computing the preview discount shown in the confirmation e-mail (an estimate; the binding discount stays in the ordering domain)."
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/notifications/application/order-notification.service.ts:9",
+              "docs/adr/0003-preview-discount.md:3",
+              "docs/adr/0003-preview-discount.md:7",
+              "docs/adr/0003-preview-discount.md:8",
+              "docs/adr/0003-preview-discount.md:9"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "9eb26344b9a8b3df4ccae297b38e5e37db53643cfb4d8bed8d06d10e92f15d3d",
+        "date": "2026-10-22T06:26:14.998Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "OrderNotificationService, in the notifications application layer, computes the order discount and payable amount (line 9-10). That is pricing logic whose natural home is the ordering domain, so the rule flags it as a misplaced responsibility. ADR-0003 is Accepted and says this service computes the preview discount for the confirmation e-mail on purpose. It also says the binding discount is computed in the ordering domain at invoicing, and it calls this an accepted exception to keeping pricing rules in the domain layer. The finding is therefore consistent with the declared intent, and the ADR grants this case.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/adr/0003-preview-discount.md:3",
+                "docs/adr/0003-preview-discount.md:7",
+                "docs/adr/0003-preview-discount.md:9"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "docs/adr/0003-preview-discount.md",
+                "startLine": 9,
+                "endLine": 9,
+                "quote": "This is an accepted exception to keeping pricing rules in the domain layer."
+              },
+              "scope": "OrderNotificationService computing the preview discount shown in the confirmation e-mail (non-binding estimate); the binding discount stays in the ordering domain."
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/notifications/application/order-notification.service.ts:9",
+              "src/notifications/application/order-notification.service.ts:10",
+              "docs/adr/0003-preview-discount.md:3",
+              "docs/adr/0003-preview-discount.md:7",
+              "docs/adr/0003-preview-discount.md:8",
+              "docs/adr/0003-preview-discount.md:9"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "9eb26344b9a8b3df4ccae297b38e5e37db53643cfb4d8bed8d06d10e92f15d3d",
+        "date": "2026-10-22T06:26:20.451Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": true,
+        "stability": "agreed",
+        "citation": {
+          "path": "docs/adr/0003-preview-discount.md",
+          "startLine": 9,
+          "endLine": 9,
+          "quote": "This is an accepted exception to keeping pricing rules in the domain layer."
+        },
+        "scope": "OrderNotificationService computing the preview discount shown in the confirmation e-mail (an estimate; the binding discount stays in the ordering domain)."
+      },
+      "intentMatch": {
+        "status": "consistent-with-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "low",
+        "stability": "agreed"
+      },
+      "explanation": "OrderNotificationService, an application-layer service in the notifications context, computes the order discount and payable amount itself. It reads the subtotal from the ordering domain's Order and applies a 10% discount when there are more than three lines. Pricing is a domain responsibility, so SEM-MISPLACED flags it as sitting in the wrong layer. ADR-0003 is Accepted and says this service computes the preview discount for the confirmation e-mail on purpose. It calls this an accepted exception to keeping pricing rules in the domain layer. The e-mail shows an estimate, and the binding discount is computed in the ordering domain at invoicing. So the ADR grants this exact case, and the finding is consistent with the declared intent.",
+      "validRuns": 2
+    }
+  }
+}

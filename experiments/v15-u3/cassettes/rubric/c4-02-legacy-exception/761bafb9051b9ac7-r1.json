@@ -1,0 +1,39 @@
+{
+  "arm": "rubric",
+  "project": "c4-02-legacy-exception",
+  "findingId": "c4f:7d27750869350472",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "a4dcc2d74236bb2fb244023740d6de563a12deb9116740f58d1a16356eb69452",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:24:28.522Z",
+  "answer": {
+    "explanation": "Order is a domain entity, and it imports the typeorm package for the @Entity() decorator. That ties the domain model to a persistence framework. FF-DT04 flags this because domain code should stay free of infrastructure and framework dependencies. The project documents this case on purpose: a comment in Order.ts and a row in docs/legacy-exceptions.md allow the TypeORM decorator on Order until 2026-12-31. The reason given is that the ORM mapping moves to infrastructure in the persistence split. Today is 2026-10-22, so the exception has not expired. The README points to that file as the list of known exceptions.",
+    "intentMatch": {
+      "status": "consistent-with-declared-intent",
+      "cites": [
+        "docs/legacy-exceptions.md:7",
+        "src/ordering/domain/order/Order.ts:1",
+        "README.md:3"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": true,
+      "citation": {
+        "path": "docs/legacy-exceptions.md",
+        "startLine": 7,
+        "endLine": 7,
+        "quote": "| src/ordering/domain/order/Order.ts | domain purity: TypeORM decorator on Order | 2026-12-31 | the ORM mapping moves to infrastructure in the persistence split |"
+      },
+      "scope": "TypeORM @Entity decorator on Order in src/ordering/domain/order/Order.ts, allowed until 2026-12-31"
+    },
+    "severityClass": "low",
+    "cites": [
+      "docs/legacy-exceptions.md:7",
+      "src/ordering/domain/order/Order.ts:1",
+      "src/ordering/domain/order/Order.ts:2",
+      "README.md:3"
+    ]
+  }
+}

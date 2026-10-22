@@ -1,0 +1,38 @@
+{
+  "arm": "rubric",
+  "project": "c4-04t-superseded-adr",
+  "findingId": "c4f:946c078397fd4f21",
+  "runIndex": 0,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "de4135334b83ee5cd38548ecd58b0a88ff6a173d85da171839c9e2e9ff80e6e7",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:25:34.282Z",
+  "answer": {
+    "explanation": "The domain class Subscription imports the outbound adapter SystemClock (src/domain/subscription.ts:1) and instantiates it directly (line 4) to read the time in isActive. This makes the domain core depend on an adapter and on system I/O (the clock), which FF-S04 forbids. ADR-0002 once permitted this, but it is Superseded. The current ADR-0009 is Accepted and says the core must not import SystemClock or any adapter. Instead it must use a Clock port in src/domain that the adapter implements. The code therefore does what the current decision forbids.",
+    "intentMatch": {
+      "status": "contradicts-declared-intent",
+      "cites": [
+        "docs/adr/0009-clock-port.md:3",
+        "docs/adr/0009-clock-port.md:5",
+        "docs/adr/0009-clock-port.md:8",
+        "docs/adr/0002-core-uses-system-clock.md:3"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "high",
+    "cites": [
+      "src/domain/subscription.ts:1",
+      "src/domain/subscription.ts:4",
+      "docs/adr/0009-clock-port.md:3",
+      "docs/adr/0009-clock-port.md:5",
+      "docs/adr/0009-clock-port.md:8",
+      "docs/adr/0002-core-uses-system-clock.md:3",
+      "docs/adr/0002-core-uses-system-clock.md:7"
+    ]
+  }
+}

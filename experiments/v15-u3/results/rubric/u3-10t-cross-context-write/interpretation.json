@@ -1,0 +1,127 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:d6e0c54804467a0b",
+    "finding": {
+      "id": "c4f:d6e0c54804467a0b",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/billing/application/pay-invoice.ts (src/billing/) imports src/ordering/domain/order/OrderRepository.ts, which is not in the public API of src/ordering/",
+      "rule": "FF-DS02",
+      "sites": [
+        "04de43eae03bc40c"
+      ],
+      "files": [
+        "src/billing/application/pay-invoice.ts",
+        "src/ordering/domain/order/OrderRepository.ts"
+      ],
+      "edge": {
+        "file": "src/billing/application/pay-invoice.ts",
+        "line": 2,
+        "target": "src/ordering/domain/order/OrderRepository.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-DS02",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "PayInvoice, in the billing context, injects ordering's internal OrderRepository (a domain-layer port, not part of ordering's public API). It uses it to load an Order, call Order.markPaid() and save it. That reaches into ordering's internals and changes state ordering owns. FF-DS02 flags this because a context should only depend on another context's public API. The context map says ordering owns orders and billing is downstream and owns invoices. It describes ownership and the upstream/downstream relationship but states no rule about imports or public APIs, and it grants no exception. So nothing is declared on this case. Ranked by what the dependency does, billing mutates and saves an aggregate owned by another context, which puts it in the high tier.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "docs/context-map.md:3",
+                "docs/context-map.md:4"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "src/billing/application/pay-invoice.ts:2",
+              "src/billing/application/pay-invoice.ts:5",
+              "src/billing/application/pay-invoice.ts:10",
+              "src/billing/application/pay-invoice.ts:11",
+              "docs/context-map.md:3",
+              "docs/context-map.md:4"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "229a338eb84c8cff3fc40ec9a64b76542d34d167410059fa41c9d64d6e727d9f",
+        "date": "2026-10-22T06:28:27.393Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "PayInvoice in billing's application layer injects ordering's internal OrderRepository interface (a domain port outside ordering's public API). It uses it to load an Order, call Order.markPaid and save it. That changes state owned by the ordering context, and it bypasses ordering's public API. FF-DS02 flags imports of another context's non-public internals. The context map says ordering owns orders and billing is downstream and owns invoices. That states ownership but not a rule against this import or a grant for it, so no intent is declared on the dependency itself.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "docs/context-map.md:3",
+                "docs/context-map.md:4"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "src/billing/application/pay-invoice.ts:2",
+              "src/billing/application/pay-invoice.ts:9",
+              "src/billing/application/pay-invoice.ts:10",
+              "src/billing/application/pay-invoice.ts:11",
+              "docs/context-map.md:3"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "229a338eb84c8cff3fc40ec9a64b76542d34d167410059fa41c9d64d6e727d9f",
+        "date": "2026-10-22T06:28:34.617Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "no-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "high",
+        "stability": "agreed"
+      },
+      "explanation": "PayInvoice, in the billing context, injects ordering's internal OrderRepository (a domain-layer port, not part of ordering's public API). It uses it to load an Order, call Order.markPaid() and save it. That reaches into ordering's internals and changes state ordering owns. FF-DS02 flags this because a context should only depend on another context's public API. The context map says ordering owns orders and billing is downstream and owns invoices. It describes ownership and the upstream/downstream relationship but states no rule about imports or public APIs, and it grants no exception. So nothing is declared on this case. Ranked by what the dependency does, billing mutates and saves an aggregate owned by another context, which puts it in the high tier.",
+      "validRuns": 2
+    }
+  }
+}

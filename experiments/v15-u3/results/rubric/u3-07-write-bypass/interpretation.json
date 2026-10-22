@@ -1,0 +1,116 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:f618c4af591d7c1c",
+    "finding": {
+      "id": "c4f:f618c4af591d7c1c",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/presentation/shipment.controller.ts (presentation) skips layers to import src/persistence/shipment.repository.ts (persistence)",
+      "rule": "FF-S03",
+      "sites": [
+        "1f607016d17b066c"
+      ],
+      "files": [
+        "src/presentation/shipment.controller.ts",
+        "src/persistence/shipment.repository.ts"
+      ],
+      "edge": {
+        "file": "src/presentation/shipment.controller.ts",
+        "line": 2,
+        "target": "src/persistence/shipment.repository.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "ShipmentController (presentation) imports and is constructor-injected with ShipmentRepository (persistence), skipping the business layer. It calls repo.markReturned directly in registerReturn, so a state change happens in the controller without going through ShipmentService. FF-S03 flags presentation reaching persistence without passing through the layer between them. The material provided has no docs, ADRs or comments declaring a layering rule or an exception for this case.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": []
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "medium",
+            "cites": [
+              "src/presentation/shipment.controller.ts:2",
+              "src/presentation/shipment.controller.ts:7",
+              "src/presentation/shipment.controller.ts:15"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "23e289eb4dd534b9da88f24a9bb0dc4c5964d987235ec042660ecfe6593d1cf3",
+        "date": "2026-10-22T06:26:38.177Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "ShipmentController, in the presentation layer, imports and is constructor-injected with ShipmentRepository from the persistence layer. It calls repo.markReturned directly in registerReturn. That skips the business layer (ShipmentService), which the controller already uses for create. FF-S03 flags this because presentation should reach persistence only through the business layer. Here the shortcut changes state (marks a shipment as returned) and so puts business logic in the controller instead of a service. No docs, ADRs or comments were provided that declare a rule or grant an exception for this case.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": []
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "medium",
+            "cites": [
+              "src/presentation/shipment.controller.ts:2",
+              "src/presentation/shipment.controller.ts:7",
+              "src/presentation/shipment.controller.ts:15"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "23e289eb4dd534b9da88f24a9bb0dc4c5964d987235ec042660ecfe6593d1cf3",
+        "date": "2026-10-22T06:26:43.661Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "no-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "medium",
+        "stability": "agreed"
+      },
+      "explanation": "ShipmentController (presentation) imports and is constructor-injected with ShipmentRepository (persistence), skipping the business layer. It calls repo.markReturned directly in registerReturn, so a state change happens in the controller without going through ShipmentService. FF-S03 flags presentation reaching persistence without passing through the layer between them. The material provided has no docs, ADRs or comments declaring a layering rule or an exception for this case.",
+      "validRuns": 2
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "arm": "rubric",
+  "project": "u3-10-value-type",
+  "findingId": "c4f:c2fcd82bc21ea344",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "f48ea34f3149916880710b324489871c135112d30955d2041d124466f80eb662",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:28:20.646Z",
+  "answer": {
+    "explanation": "Invoice, in the billing domain, imports Money straight from ordering's internal domain/value-objects folder. It uses it as a field type and calls Money.plus. Money is not in ordering's public API, so billing is coupled to ordering's internal structure. FF-DS02 flags this: a context should only reach another through its public API, so a move or change inside ordering could break billing. The context map says ordering is upstream and billing is downstream, so a dependency from billing to ordering is expected in direction. It does not say billing may use ordering's internals or grant an exception for Money. The dependency is on a plain value type, and one file can undo it, for example by giving billing its own money type or by having ordering export Money through its public API.",
+    "intentMatch": {
+      "status": "no-declared-intent",
+      "cites": [
+        "docs/context-map.md:3",
+        "docs/context-map.md:4"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "low",
+    "cites": [
+      "src/billing/domain/invoice/Invoice.ts:1",
+      "src/billing/domain/invoice/Invoice.ts:10",
+      "docs/context-map.md:3",
+      "docs/context-map.md:4"
+    ]
+  }
+}

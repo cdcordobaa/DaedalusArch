@@ -149,6 +149,7 @@
 - [x] Workflow Planning — COMPLETE: `inception/v1.5/workflow-plan.md` (User Stories, NFR and Infrastructure stages SKIP; 7 units, semantic first)
 - [x] Application Design — COMPLETE (minimal): `inception/v1.5/application-design.md` (S1–S5, the edit gate, the spec-inference pipeline and the three-arm harness; contracts with C1d, C4, the MCP server and the fitness compiler); approved under the author's standing delegation for gate-level calls
 - [x] Units Generation — COMPLETE: `inception/v1.5/unit-of-work.md` (7 units U3, U4, U6, U1, U2, U5, U7, each with its FRs, inputs, outputs, own test and gate; dependencies; FR coverage); approved under the same delegation
-- [ ] CONSTRUCTION — U3 (S1 severity calibration) next: thinking note `ops/notes/v15-u3-severity-note.md` before any call; cap 60
+- [x] CONSTRUCTION — U3 (S1 severity calibration): gate PASSED on development material (24/24 targets correct in both runs on the six-case set and six new pairs; 52 of 60 calls; `Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md`); code stays in `experiments/v15-u3/` until promotion
+- [ ] CONSTRUCTION — U4 (S3 facts, S2 confirmation) next: thinking note `ops/notes/v15-u4-facts-confirmation-note.md` before any call
 - Extension: Security Baseline — Enabled (carried over from v1.2; re-confirmed, question 7)
 - **Current Stage** (updated 2026-10-22T06:05Z): INCEPTION complete; CONSTRUCTION starts with U3 (S1 severity calibration). Every unit runs on development material under `experiments/` until it passes its own test; no sealed or held-out set; the v1.4 tag and the registered 2b artefacts unchanged.

@@ -1,0 +1,122 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:54a08caaebaceb64",
+    "finding": {
+      "id": "c4f:54a08caaebaceb64",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "Core file src/domain/ticket.ts imports from src/adapters/outbound/uuid-generator.ts in adapters-outbound",
+      "rule": "FF-S04",
+      "sites": [
+        "cfaa00f3923a46ef"
+      ],
+      "files": [
+        "src/domain/ticket.ts",
+        "src/adapters/outbound/uuid-generator.ts"
+      ],
+      "edge": {
+        "file": "src/domain/ticket.ts",
+        "line": 1,
+        "target": "src/adapters/outbound/uuid-generator.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S04",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "src/domain/ticket.ts imports UuidGenerator from the outbound adapter layer (line 1) and instantiates it in the constructor (line 8). The domain core therefore depends directly on an adapter, which FF-S04 flags because the core should depend only on ports it owns, not on adapter implementations. The only related document, ADR-0005, has Status: Proposed. It would allow this import, but a proposed decision grants no exception and declares no rule. No current doc or comment declares anything on this dependency, so no intent is declared. By the rubric, the domain core depending on an adapter ranks high.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "docs/adr/0005-ticket-ids.md:3"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "src/domain/ticket.ts:1",
+              "src/domain/ticket.ts:8",
+              "docs/adr/0005-ticket-ids.md:3",
+              "docs/adr/0005-ticket-ids.md:7"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "6ef0fd0fc3ac655f47e47044641c73daa95ca6c79f0a834c6e991a664c8a64c6",
+        "date": "2026-10-22T06:27:58.981Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "The domain entity Ticket imports the concrete UuidGenerator from the outbound adapters layer and instantiates it in its constructor. This makes the domain core depend on an adapter, not on a port, so the dependency points the wrong way. FF-S04 flags core code importing from adapters-outbound. ADR-0005 would permit this import, but its status is Proposed, so it is not a current decision. It grants no exception and declares no intent. No other doc or comment declares a rule on this. Because nothing current is declared, severity is ranked by what the dependency does: the domain core depends on an adapter, which is high.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "docs/adr/0005-ticket-ids.md:3"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "src/domain/ticket.ts:1",
+              "src/domain/ticket.ts:8",
+              "docs/adr/0005-ticket-ids.md:3",
+              "docs/adr/0005-ticket-ids.md:7"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "6ef0fd0fc3ac655f47e47044641c73daa95ca6c79f0a834c6e991a664c8a64c6",
+        "date": "2026-10-22T06:28:05.912Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "no-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "high",
+        "stability": "agreed"
+      },
+      "explanation": "src/domain/ticket.ts imports UuidGenerator from the outbound adapter layer (line 1) and instantiates it in the constructor (line 8). The domain core therefore depends directly on an adapter, which FF-S04 flags because the core should depend only on ports it owns, not on adapter implementations. The only related document, ADR-0005, has Status: Proposed. It would allow this import, but a proposed decision grants no exception and declares no rule. No current doc or comment declares anything on this dependency, so no intent is declared. By the rubric, the domain core depending on an adapter ranks high.",
+      "validRuns": 2
+    }
+  }
+}

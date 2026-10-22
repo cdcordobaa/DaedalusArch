@@ -1,0 +1,39 @@
+{
+  "arm": "rubric",
+  "project": "c4-06-sem-documented",
+  "findingId": "c4f:dcea076f600ac767",
+  "runIndex": 0,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "9eb26344b9a8b3df4ccae297b38e5e37db53643cfb4d8bed8d06d10e92f15d3d",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:26:14.998Z",
+  "answer": {
+    "explanation": "OrderNotificationService, an application-layer service in the notifications context, computes the order discount and payable amount itself. It reads the subtotal from the ordering domain's Order and applies a 10% discount when there are more than three lines. Pricing is a domain responsibility, so SEM-MISPLACED flags it as sitting in the wrong layer. ADR-0003 is Accepted and says this service computes the preview discount for the confirmation e-mail on purpose. It calls this an accepted exception to keeping pricing rules in the domain layer. The e-mail shows an estimate, and the binding discount is computed in the ordering domain at invoicing. So the ADR grants this exact case, and the finding is consistent with the declared intent.",
+    "intentMatch": {
+      "status": "consistent-with-declared-intent",
+      "cites": [
+        "docs/adr/0003-preview-discount.md:7",
+        "docs/adr/0003-preview-discount.md:9"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": true,
+      "citation": {
+        "path": "docs/adr/0003-preview-discount.md",
+        "startLine": 9,
+        "endLine": 9,
+        "quote": "This is an accepted exception to keeping pricing rules in the domain layer."
+      },
+      "scope": "OrderNotificationService computing the preview discount shown in the confirmation e-mail (an estimate; the binding discount stays in the ordering domain)."
+    },
+    "severityClass": "low",
+    "cites": [
+      "src/notifications/application/order-notification.service.ts:9",
+      "docs/adr/0003-preview-discount.md:3",
+      "docs/adr/0003-preview-discount.md:7",
+      "docs/adr/0003-preview-discount.md:8",
+      "docs/adr/0003-preview-discount.md:9"
+    ]
+  }
+}

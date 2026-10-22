@@ -174,6 +174,12 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - **Calls:** 2 of 4. The smoke passed: the model quoted the finding's file, line and label. The probe passed: 0 canaries leaked, and the gate still fired after the switch-off attempt.
 - **Latency:** hub p50 130–145 ms on P1 and P2 trees, p95 171–204 ms. No puzzle session was run.
 
+### 12. v1.5 U3: the C4 severity rubric (2026-10-22)
+- **Why:** every v1.4 six-case miss was the severity field. The frozen prompt asks C4 only to "rank the work", so it ranked by the size of the fix, while the manifests meant how far the code departs from declared intent (`ops/notes/v15-u3-severity-note.md`).
+- **What:** a rubric as a prompt variant (`experiments/v15-u3/`, `c4-v0.2+u3-r1`: grant → low; declared rule broken → high; otherwise by what the dependency does). It was run on the six-case set plus six new pairs whose answers were written first, with `claude-sonnet-5-5`, 2 runs each.
+- **Result:** 24/24 targets correct in both runs, on both sets. Severity, exception and intent were all stable; 0 false claims and 0 hallucinated citations. A 4-call control with the frozen prompt reproduces case 5's severity miss and shows an intent-label slip ("consistent" read as "the rule matches the docs") that the rubric removes. 52 of 60 calls (`Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md`).
+- **Caveat:** this is a ceiling on a designed set. The same session wrote the rubric and the cases, and severity follows from intent on 14 of the 24 targets. The next checks are the non-author row, a Gemini arm and the non-target findings.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -184,6 +190,7 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
+- 2026-10-22: entry 12 (v1.5 U3 severity rubric).
 - 2026-10-22: entry 11 (edit gate built and smoke-tested).
 - 2026-10-22: entry 10 (COMPREHEND-01 built, not run).
 - 2026-10-22: entries 8 (puzzle baseline, DETECT-02 tool, precision) and 9 (Study 2b closed).

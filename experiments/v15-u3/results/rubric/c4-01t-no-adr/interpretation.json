@@ -1,0 +1,122 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:9b4c6178c70b8d4c",
+    "finding": {
+      "id": "c4f:9b4c6178c70b8d4c",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/presentation/order.controller.ts (presentation) skips layers to import src/persistence/order-read.repository.ts (persistence)",
+      "rule": "FF-S03",
+      "sites": [
+        "099dcaf263962444"
+      ],
+      "files": [
+        "src/presentation/order.controller.ts",
+        "src/persistence/order-read.repository.ts"
+      ],
+      "edge": {
+        "file": "src/presentation/order.controller.ts",
+        "line": 2,
+        "target": "src/persistence/order-read.repository.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "OrderController in the presentation layer imports and is constructor-injected with OrderReadRepository from the persistence layer. It calls findSummaries directly in list(), so it skips the business layer. FF-S03 flags this because the layering runs presentation -> business -> persistence, and presentation should not reach persistence directly. The README only says the service has three layers. It states no rule about skipping them and grants no exception. The dependency is a read-only query, and routing it through a business-layer service would remove it.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "README.md:3"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/presentation/order.controller.ts:2",
+              "src/presentation/order.controller.ts:7",
+              "src/presentation/order.controller.ts:15",
+              "README.md:3"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "4d07d5a52de12dde6ed34c7fbb1936bdd30910f6d37e68f21616f32764dbd152",
+        "date": "2026-10-22T06:24:12.240Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "OrderController in the presentation layer imports and is constructor-injected with OrderReadRepository from the persistence layer. It calls findSummaries directly in list(), so it skips the business layer. FF-S03 flags this because calls should go presentation -> business -> persistence. The README says the service has three layers (presentation, business, persistence). It does not say that layers may not be skipped, and it grants no exception for read paths. Nothing declared covers this case. The dependency is a read-only shortcut (findSummaries) that one file can undo by routing the call through a business-layer service.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "README.md:3"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/presentation/order.controller.ts:2",
+              "src/presentation/order.controller.ts:7",
+              "src/presentation/order.controller.ts:15",
+              "README.md:3"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "4d07d5a52de12dde6ed34c7fbb1936bdd30910f6d37e68f21616f32764dbd152",
+        "date": "2026-10-22T06:24:16.850Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "no-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "low",
+        "stability": "agreed"
+      },
+      "explanation": "OrderController in the presentation layer imports and is constructor-injected with OrderReadRepository from the persistence layer. It calls findSummaries directly in list(), so it skips the business layer. FF-S03 flags this because the layering runs presentation -> business -> persistence, and presentation should not reach persistence directly. The README only says the service has three layers. It states no rule about skipping them and grants no exception. The dependency is a read-only query, and routing it through a business-layer service would remove it.",
+      "validRuns": 2
+    }
+  }
+}

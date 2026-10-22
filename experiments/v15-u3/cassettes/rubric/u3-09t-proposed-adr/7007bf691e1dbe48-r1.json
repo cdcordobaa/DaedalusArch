@@ -1,0 +1,32 @@
+{
+  "arm": "rubric",
+  "project": "u3-09t-proposed-adr",
+  "findingId": "c4f:54a08caaebaceb64",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "6ef0fd0fc3ac655f47e47044641c73daa95ca6c79f0a834c6e991a664c8a64c6",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:28:05.912Z",
+  "answer": {
+    "explanation": "The domain entity Ticket imports the concrete UuidGenerator from the outbound adapters layer and instantiates it in its constructor. This makes the domain core depend on an adapter, not on a port, so the dependency points the wrong way. FF-S04 flags core code importing from adapters-outbound. ADR-0005 would permit this import, but its status is Proposed, so it is not a current decision. It grants no exception and declares no intent. No other doc or comment declares a rule on this. Because nothing current is declared, severity is ranked by what the dependency does: the domain core depends on an adapter, which is high.",
+    "intentMatch": {
+      "status": "no-declared-intent",
+      "cites": [
+        "docs/adr/0005-ticket-ids.md:3"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "high",
+    "cites": [
+      "src/domain/ticket.ts:1",
+      "src/domain/ticket.ts:8",
+      "docs/adr/0005-ticket-ids.md:3",
+      "docs/adr/0005-ticket-ids.md:7"
+    ]
+  }
+}

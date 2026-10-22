@@ -1,0 +1,34 @@
+{
+  "arm": "rubric",
+  "project": "u3-10t-cross-context-write",
+  "findingId": "c4f:d6e0c54804467a0b",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "229a338eb84c8cff3fc40ec9a64b76542d34d167410059fa41c9d64d6e727d9f",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:28:34.617Z",
+  "answer": {
+    "explanation": "PayInvoice in billing's application layer injects ordering's internal OrderRepository interface (a domain port outside ordering's public API). It uses it to load an Order, call Order.markPaid and save it. That changes state owned by the ordering context, and it bypasses ordering's public API. FF-DS02 flags imports of another context's non-public internals. The context map says ordering owns orders and billing is downstream and owns invoices. That states ownership but not a rule against this import or a grant for it, so no intent is declared on the dependency itself.",
+    "intentMatch": {
+      "status": "no-declared-intent",
+      "cites": [
+        "docs/context-map.md:3",
+        "docs/context-map.md:4"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "high",
+    "cites": [
+      "src/billing/application/pay-invoice.ts:2",
+      "src/billing/application/pay-invoice.ts:9",
+      "src/billing/application/pay-invoice.ts:10",
+      "src/billing/application/pay-invoice.ts:11",
+      "docs/context-map.md:3"
+    ]
+  }
+}

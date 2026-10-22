@@ -1,0 +1,41 @@
+{
+  "arm": "rubric",
+  "project": "c4-04-accepted-adr",
+  "findingId": "c4f:946c078397fd4f21",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "31cef895bb70ed6e5439c0a5f7a751d3859d17e3a27e1ae6e88c716e2cc2b23f",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:25:25.864Z",
+  "answer": {
+    "explanation": "The domain class Subscription imports and instantiates the concrete SystemClock from the outbound adapters layer (src/domain/subscription.ts:1, :4) and calls clock.now() in isActive. FF-S04 flags this because core code must not depend on adapters or I/O; time should come in through a port. However, an accepted ADR explicitly permits the domain core to import SystemClock directly from that adapter file and says no Clock port is introduced for now. The finding is therefore consistent with the declared intent, and the ADR grants this exact case.",
+    "intentMatch": {
+      "status": "consistent-with-declared-intent",
+      "cites": [
+        "docs/adr/0002-core-uses-system-clock.md:3",
+        "docs/adr/0002-core-uses-system-clock.md:7",
+        "docs/adr/0002-core-uses-system-clock.md:8"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": true,
+      "citation": {
+        "path": "docs/adr/0002-core-uses-system-clock.md",
+        "startLine": 7,
+        "endLine": 7,
+        "quote": "The domain core is permitted to import SystemClock from src/adapters/outbound/system-clock.ts directly."
+      },
+      "scope": "Domain core importing SystemClock directly from src/adapters/outbound/system-clock.ts (no Clock port)."
+    },
+    "severityClass": "low",
+    "cites": [
+      "src/domain/subscription.ts:1",
+      "src/domain/subscription.ts:4",
+      "src/domain/subscription.ts:9",
+      "docs/adr/0002-core-uses-system-clock.md:3",
+      "docs/adr/0002-core-uses-system-clock.md:7",
+      "docs/adr/0002-core-uses-system-clock.md:8"
+    ]
+  }
+}
