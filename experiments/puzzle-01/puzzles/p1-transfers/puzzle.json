@@ -1,0 +1,15 @@
+{
+  "id": "p1-transfers",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D4", "steps": ["transfers", "statements"], "rule": "One command changes one aggregate instance; other aggregates follow through stored events (Vernon P4)." },
+    { "id": "SG2", "family": "D5", "steps": ["daily-limit"], "rule": "The daily transfer limit is an invariant of the account and is enforced inside the account aggregate (Vernon P4)." }
+  ],
+  "aggregateRoots": ["Account"],
+  "plantedDebt": [],
+  "ladder": { "T": 2, "S": 3, "Dst": 1, "Pd": 1, "Dx": 0, "rung": 4 },
+  "precedent": "clean only: the account store already saves pending events with the account (outbox) and a relay delivers them after each command (welcome notice)."
+}

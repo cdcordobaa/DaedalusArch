@@ -1,0 +1,23 @@
+{
+  "description": "PUZZLE-01 p1-transfers (DEV split, exploratory). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p1-transfers",
+      "title": "Account transfers",
+      "steps": [
+        {
+          "id": "transfers",
+          "request": "Customers can now move money between two of their accounts that hold the same currency. Expose it as transfer(fromAccountId, toAccountId, amount), next to deposit and withdraw. The two balances change together or not at all: a customer must never find the money gone from both accounts or present in both. A transfer that would take the sending account below zero is refused with the usual insufficient-funds message, and so are transfers between different currencies and transfers to an account that does not exist; a refused transfer changes nothing."
+        },
+        {
+          "id": "daily-limit",
+          "request": "Urgent, from the fraud team: yesterday one account sent out forty transfers in an hour. From today an account can send at most 1,000.00 per calendar day by transfer; withdrawals do not count. A transfer over what is left for the day is refused with a message that says how much is left, for example 'daily transfer limit reached: EUR 200.00 left today'. Please keep the change small, it has to ship this afternoon."
+        },
+        {
+          "id": "statements",
+          "request": "Customers want a statement for each account: every movement, newest first, with its amount and, for transfers, the other account's id. Expose it as statement(accountId), returning items { kind, amount, counterpart } where kind is 'deposit', 'withdrawal', 'transfer-out' or 'transfer-in' and counterpart is null when there is none."
+        }
+      ]
+    }
+  ]
+}

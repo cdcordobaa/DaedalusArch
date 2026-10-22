@@ -1,0 +1,51 @@
+{
+ "id": "pilot-s1-case3/step-04",
+ "family": "D3",
+ "role": "pilot-after",
+ "target": "pilot:s1-hotel-bookings/step-04",
+ "files": [
+  "src/application/services/OccupancyReportService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts",
+  "src/domain/model/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "840396fe40f85e718765ae899c372f717b40b7c4d6e761c8f445a595382b2932",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/services/OccupancyReportService.ts\",\"line\":39,\"quote\":\"// Spread the total evenly in whole cents; the first `extra` nights carry the odd cents so the parts sum exactly.\"},{\"file\":\"src/application/services/OccupancyReportService.ts\",\"line\":40,\"quote\":\"const base = Math.floor(booking.total.cents / stayNights);\"}],\"rationale\":\"The application service computes per-night revenue allocation (even split with remainder cents) and stay/range overlap from Booking's total and stay data. This allocation and overlap logic could live on Booking, DateRange or Money, or in a domain service, rather than in the application layer.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 39,
+    "quote": "// Spread the total evenly in whole cents; the first `extra` nights carry the odd cents so the parts sum exactly."
+   },
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 40,
+    "quote": "const base = Math.floor(booking.total.cents / stayNights);"
+   }
+  ],
+  "rationale": "The application service computes per-night revenue allocation (even split with remainder cents) and stay/range overlap from Booking's total and stay data. This allocation and overlap logic could live on Booking, DateRange or Money, or in a domain service, rather than in the application layer."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 39,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/services/OccupancyReportService.ts",
+    "line": 40,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

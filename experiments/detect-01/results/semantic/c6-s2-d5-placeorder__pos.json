@@ -1,0 +1,52 @@
+{
+ "id": "c6-s2-d5-placeorder/pos",
+ "family": "D5",
+ "role": "positive",
+ "target": "c6-s2-d5-placeorder/pos",
+ "files": [
+  "src/ordering/application/PlaceOrder.ts",
+  "src/ordering/domain/order/Order.ts",
+  "src/ordering/domain/order/OrderRepository.ts",
+  "src/ordering/domain/value-objects/Quantity.ts",
+  "src/shared-kernel/value-objects/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "fb9eab734233c43115b4da8f299223633f7f2b64b4ddbcce195458c1cc3d6488",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/ordering/application/PlaceOrder.ts\",\"line\":21,\"quote\":\"if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new Error(`${where}: quantity must be a positive whole number, got ${l.quantity}`);\"},{\"file\":\"src/ordering/application/PlaceOrder.ts\",\"line\":22,\"quote\":\"if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throw new Error(`${where}: unit price must be a non-negative whole number of cents, got ${l.unitPriceCents}`);\"}],\"rationale\":\"PlaceOrder re-checks the positive-integer quantity and non-negative-cents price invariants in the application layer. Quantity and Money already enforce both, so these checks duplicate domain value-object rules.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 21,
+    "quote": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new Error(`${where}: quantity must be a positive whole number, got ${l.quantity}`);"
+   },
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 22,
+    "quote": "if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throw new Error(`${where}: unit price must be a non-negative whole number of cents, got ${l.unitPriceCents}`);"
+   }
+  ],
+  "rationale": "PlaceOrder re-checks the positive-integer quantity and non-negative-cents price invariants in the application layer. Quantity and Money already enforce both, so these checks duplicate domain value-object rules."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 21,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 22,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

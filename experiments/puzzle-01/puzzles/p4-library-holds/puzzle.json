@@ -1,0 +1,14 @@
+{
+  "id": "p4-library-holds",
+  "split": "dev",
+  "style": "layered",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "H7 (layered: upward dependency, layer cycle)", "steps": ["overdue-suspends"], "rule": "Dependencies point downwards only: presentation -> business -> persistence; the store never calls the business rules that use it." }
+  ],
+  "plantedDebt": [],
+  "ladder": { "T": 1, "S": 3, "Dst": 1, "Pd": 0, "Dx": 0, "rung": 1 },
+  "precedent": "none trap-shaped; the business layer already reuses MemberService.suspend for staff suspensions.",
+  "role": "positive control: the trap is an import-level violation the instrument is expected to see"
+}

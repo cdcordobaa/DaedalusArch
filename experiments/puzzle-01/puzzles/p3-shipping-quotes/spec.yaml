@@ -1,0 +1,324 @@
+# PUZZLE-01 p3-shipping-quotes (DEV split): evaluator spec. presets/hexagonal.yaml at the build commit, verbatim,
+# except one entry added to FF-P01 forbidden_imports (the vendor SDK, a spec parameter as in HEXDDD-01 S1).
+# presets/hexagonal.yaml sha256 d085d6b9badca2e79ade19b12fcfff96d1317df139d646772871266f0ed20ab7
+# Architectonic Firewall — Hexagonal (Ports and Adapters) Preset (v1.3, SO1)
+# Layers form a dependency GRAPH, not a total order: `architecture.allowed_dependencies` lists every import an
+# adapter, use case or the composition root may make. Everything else is a violation:
+#   - an import against an allowed edge  -> dependency-direction-graph (FF-S01)
+#   - an import with no edge either way  -> layer-skip-graph (FF-S03), e.g. inbound adapter -> outbound adapter
+#   - the core importing anything outward -> core-isolation (FF-S04)
+# Ports (interfaces) live in `domain` or `application`; outbound adapters implement them (port-adapter-pattern,
+# FF-P03) and use cases depend on them (port-dependency-inversion, FF-P02).
+# Layer kinds bind the templates: domain -> domain (the core), application -> use cases / ports and the composition
+# root, presentation -> inbound adapters, infrastructure -> outbound adapters. The composition root (`config`) is the
+# layer no edge points to that may import every other layer; it is taken out of the use-case layers when binding.
+# Only the hexagonal style reads `allowed_dependencies`. FR-07 values and thresholds equal presets/layered.yaml.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: hexagonal
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/domain/**
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - port
+
+    - name: application
+      kind: application
+      directories:
+        - src/application/**
+      roles:
+        - use-case
+        - port
+        - application-service
+
+    - name: adapters-inbound
+      kind: presentation
+      directories:
+        - src/adapters/inbound/**
+      roles:
+        - controller
+        - cli-command
+        - message-consumer
+
+    - name: adapters-outbound
+      kind: infrastructure
+      directories:
+        - src/adapters/outbound/**
+      roles:
+        - repository
+        - gateway
+        - external-api-client
+
+    # Composition root: wires adapters to ports. kind application is only a placeholder for the kind resolver.
+    - name: config
+      kind: application
+      directories:
+        - src/config/**
+      roles:
+        - composition-root
+        - module
+
+  # `from` may import each layer in `to`; any other cross-layer import is a violation.
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: adapters-inbound
+      to: [application, domain]
+    - from: adapters-outbound
+      to: [application, domain]
+    - from: config
+      to: [domain, application, adapters-inbound, adapters-outbound]
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+
+  - id: FF-S04
+    name: core-isolation
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+
+  # ── PATTERN ──
+
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - fastship-sdk
+
+  - id: FF-P02
+    name: port-dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    threshold: 0.85
+
+  - id: FF-P03
+    name: port-adapter-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+
+
+  # FR-21 (U3-R6; BR-U3-22..24): domain class holding infrastructure state (FLOWS_TO | CONSTRUCTOR_INJECTS)
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+
+  # ── COUPLING ──
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 10
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 15
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+
+  # ── SOLID ──
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+
+  # ── CONVENTION ──
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # ── NEURONAL ──
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

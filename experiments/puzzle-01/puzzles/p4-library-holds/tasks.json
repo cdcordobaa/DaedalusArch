@@ -1,0 +1,23 @@
+{
+  "description": "PUZZLE-01 p4-library-holds (DEV split, exploratory; positive control). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p4-library-holds",
+      "title": "Overdue loans",
+      "steps": [
+        {
+          "id": "overdue-suspends",
+          "request": "When the nightly run finds that a loan has become overdue, the member who holds it is suspended straight away, exactly as when staff suspend someone, with the notice 'Your borrowing is suspended: book <book id> is overdue.' Members who are already suspended get no second notice."
+        },
+        {
+          "id": "reinstate-on-return",
+          "request": "When a member suspended for overdue books returns the last of their overdue books, their borrowing opens again automatically, with the usual notice. A suspension made by staff is not lifted by returning books."
+        },
+        {
+          "id": "loan-list",
+          "request": "The list of a member's open loans should show the earliest due loan first, so members see what to bring back first; each loan still says whether it is overdue."
+        }
+      ]
+    }
+  ]
+}

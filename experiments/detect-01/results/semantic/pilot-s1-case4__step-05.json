@@ -1,0 +1,39 @@
+{
+ "id": "pilot-s1-case4/step-05",
+ "family": "H5",
+ "role": "pilot-after",
+ "target": "pilot:s1-hotel-bookings/step-05",
+ "files": [
+  "src/application/ports/out/BookingRepository.ts",
+  "src/application/ports/out/RoomRepository.ts",
+  "src/application/ports/out/PaymentGateway.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "2a91c9a39a80bf33a7771200a87bb5c1f4f3a0275625550b5645abcf5806d8a5",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/ports/out/BookingRepository.ts\",\"line\":16,\"quote\":\"withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T>;\"}],\"rationale\":\"BookingRepository exposes a locking mechanism (withRoomLock) and a unit-of-work/transaction concept (the doc comment cites an exclusive claim across servers and one unit of work) in its method name and signature. These are technology/deployment concerns rather than a plain application need such as 'reserve a room safely'.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 16,
+    "quote": "withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T>;"
+   }
+  ],
+  "rationale": "BookingRepository exposes a locking mechanism (withRoomLock) and a unit-of-work/transaction concept (the doc comment cites an exclusive claim across servers and one unit of work) in its method name and signature. These are technology/deployment concerns rather than a plain application need such as 'reserve a room safely'."
+ },
+ "grounding": {
+  "cited": 1,
+  "grounded": 1,
+  "details": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 16,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

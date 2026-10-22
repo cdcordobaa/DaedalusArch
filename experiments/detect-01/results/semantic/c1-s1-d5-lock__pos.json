@@ -1,0 +1,51 @@
+{
+ "id": "c1-s1-d5-lock/pos",
+ "family": "D5",
+ "role": "positive",
+ "target": "c1-s1-d5-lock/pos",
+ "files": [
+  "src/application/ports/out/BookingRepository.ts",
+  "src/application/services/BookRoomService.ts",
+  "src/domain/model/Booking.ts",
+  "src/domain/model/DateRange.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "ae0efb6897527178dad5dee01d9d8fa4ac53786b1f3ad22cf9a52379c27e8505",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/application/services/BookRoomService.ts\",\"line\":14,\"quote\":\"if (existing.some((b) => b.isActive() && b.stay.overlaps(stay))) throw new Error(`Room ${roomId} is already booked`);\"},{\"file\":\"src/application/services/BookRoomService.ts\",\"line\":12,\"quote\":\"return this.withRoomLock(roomId, async () => {\"}],\"rationale\":\"The invariant that a room cannot have overlapping active bookings is enforced in BookRoomService, not in a domain object. The service checks overlap itself and uses a per-room in-memory lock to keep that rule true under concurrency. Booking cannot enforce it because it only knows its own state.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 14,
+    "quote": "if (existing.some((b) => b.isActive() && b.stay.overlaps(stay))) throw new Error(`Room ${roomId} is already booked`);"
+   },
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 12,
+    "quote": "return this.withRoomLock(roomId, async () => {"
+   }
+  ],
+  "rationale": "The invariant that a room cannot have overlapping active bookings is enforced in BookRoomService, not in a domain object. The service checks overlap itself and uses a per-room in-memory lock to keep that rule true under concurrency. Booking cannot enforce it because it only knows its own state."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 14,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 12,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

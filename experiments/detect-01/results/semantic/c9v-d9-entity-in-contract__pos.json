@@ -1,0 +1,54 @@
+{
+ "id": "c9v-d9-entity-in-contract/pos",
+ "family": "D9",
+ "role": "positive",
+ "target": "c9v-d9-entity-in-contract/pos",
+ "files": [
+  "src/ordering/application/GetOrderSummary.ts",
+  "src/ordering/contracts/OrderSummary.ts",
+  "src/ordering/domain/order/Order.ts",
+  "src/ordering/domain/order/OrderLine.ts",
+  "src/ordering/domain/order/OrderRepository.ts",
+  "src/ordering/index.ts",
+  "src/shared-kernel/value-objects/Money.ts"
+ ],
+ "model": "claude-sonnet-5-5",
+ "promptVersion": "detect01-sem-v1",
+ "promptSha256": "fe99ab9814a5cddb012a0bbd26f5d4f4fba4ceae17f3897d8020d9f3752fb65e",
+ "ok": true,
+ "raw": "{\"verdict\":\"present\",\"evidence\":[{\"file\":\"src/ordering/contracts/OrderSummary.ts\",\"line\":7,\"quote\":\"readonly lines: readonly OrderLine[];\"},{\"file\":\"src/ordering/contracts/OrderSummary.ts\",\"line\":1,\"quote\":\"import type { OrderLine } from '../domain/order/OrderLine.js';\"}],\"rationale\":\"The published contract OrderSummary exposes the domain entity type OrderLine in its lines field, instead of the OrderLineSummary DTO defined beside it. GetOrderSummary returns order.allLines() directly, so domain objects leak through the published language and blur the boundary.\"}",
+ "answer": {
+  "verdict": "present",
+  "evidence": [
+   {
+    "file": "src/ordering/contracts/OrderSummary.ts",
+    "line": 7,
+    "quote": "readonly lines: readonly OrderLine[];"
+   },
+   {
+    "file": "src/ordering/contracts/OrderSummary.ts",
+    "line": 1,
+    "quote": "import type { OrderLine } from '../domain/order/OrderLine.js';"
+   }
+  ],
+  "rationale": "The published contract OrderSummary exposes the domain entity type OrderLine in its lines field, instead of the OrderLineSummary DTO defined beside it. GetOrderSummary returns order.allLines() directly, so domain objects leak through the published language and blur the boundary."
+ },
+ "grounding": {
+  "cited": 2,
+  "grounded": 2,
+  "details": [
+   {
+    "file": "src/ordering/contracts/OrderSummary.ts",
+    "line": 7,
+    "ok": true,
+    "why": "quote on line"
+   },
+   {
+    "file": "src/ordering/contracts/OrderSummary.ts",
+    "line": 1,
+    "ok": true,
+    "why": "quote on line"
+   }
+  ]
+ }
+}

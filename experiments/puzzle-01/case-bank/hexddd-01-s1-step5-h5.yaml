@@ -1,0 +1,23 @@
+id: hexddd-01-s1-step5-h5
+kind: observation
+split: dev
+family: [H5]
+source_sentence: "P1 Cockburn: each adapter talks to the application through a port"
+provenance:
+  origin: agent-run
+  study: HEXDDD-01 pilot (exploratory), arm none, generator claude-sonnet-5-5
+  commit: c18053641
+  log: results/pilot-hexddd-01/hand-read-log.csv
+  run: s1/step-5
+  file_line: src/application/ports/out/BookingRepository.ts:16
+  diff: results/pilot-hexddd-01/diffs/s1-hotel-bookings/step-05.diff
+judge:
+  method: coordinator blind hand read
+  confidence: low
+  spot_check: pending
+instrument:
+  verdict: invisible
+  rules: []
+  read_from: results/pilot-hexddd-01/scores (branch pilot/hexddd-01), read after the log was written
+notes: "A lock / unit-of-work mechanism (withRoomLock) placed in the driven port signature. No matching blocking finding; an advisory FF-SO02 on this file is present from step 1, before this change, so it does not match."
+reuse: "Candidate seed for a puzzle sub-goal of family H5."
