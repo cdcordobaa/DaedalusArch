@@ -1,0 +1,445 @@
+{
+ "schema": "comprehend-01-graph-check/v1",
+ "modelCalls": 0,
+ "bankSha256": "be803d5b1a5add8a956a7e0afb64bfd720f7983348b25594a5b0aed230f63ae2",
+ "byClass": {
+  "G": {
+   "items": 16,
+   "graphAnswered": 16,
+   "graphCorrect": 16
+  },
+  "X": {
+   "items": 7,
+   "graphAnswered": 0,
+   "graphCorrect": 0
+  },
+  "S": {
+   "items": 4,
+   "graphAnswered": 3,
+   "graphCorrect": 3
+  },
+  "Gw": {
+   "items": 3,
+   "graphAnswered": 3,
+   "graphCorrect": 0
+  }
+ },
+ "classLabelMismatches": [],
+ "rows": [
+  {
+   "id": "P1-C1",
+   "tree": "p1-seed",
+   "type": "C",
+   "class": "G",
+   "via": "trace Deposit.execute",
+   "graphAnswer": {
+    "chain": [
+     "Deposit.execute",
+     "InMemoryAccountRepository.save"
+    ],
+    "endFile": "src/ledger/infrastructure/InMemoryAccountRepository.ts"
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "2/2 required hops in order; endFile ok"
+  },
+  {
+   "id": "P1-R1",
+   "tree": "p1-seed",
+   "type": "R",
+   "class": "X",
+   "graph": "n/a"
+  },
+  {
+   "id": "P1-R2",
+   "tree": "p1-seed",
+   "type": "R",
+   "class": "X",
+   "graph": "n/a"
+  },
+  {
+   "id": "P1-P1",
+   "tree": "p1-seed",
+   "type": "P",
+   "class": "X",
+   "graph": "n/a"
+  },
+  {
+   "id": "P2-O1",
+   "tree": "p2-seed",
+   "type": "O",
+   "class": "S",
+   "via": "context_map",
+   "graphAnswer": {
+    "context": "membership"
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact"
+  },
+  {
+   "id": "P2-W1",
+   "tree": "p2-seed",
+   "type": "W",
+   "class": "G",
+   "via": "who_writes over every aggregate (context_map)",
+   "graphAnswer": {
+    "aggregates": [
+     "Order"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "P2-C1",
+   "tree": "p2-seed",
+   "type": "C",
+   "class": "G",
+   "via": "trace PlaceOrder.execute",
+   "graphAnswer": {
+    "chain": [
+     "PlaceOrder.execute",
+     "MembershipDirectory.exists",
+     "{}.card",
+     "GetMemberCard.execute",
+     "InMemoryMemberRepository.byId"
+    ],
+    "endFile": "src/membership/infrastructure/InMemoryMemberRepository.ts"
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "4/4 required hops in order; endFile ok"
+  },
+  {
+   "id": "P2-I1",
+   "tree": "p2-seed",
+   "type": "I",
+   "class": "G",
+   "via": "impact on each non-published membership file",
+   "graphAnswer": {
+    "files": [
+     "src/sales/application/ReceiptFooter.ts"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "P2-R1",
+   "tree": "p2-seed",
+   "type": "R",
+   "class": "X",
+   "graph": "n/a"
+  },
+  {
+   "id": "P2-P1",
+   "tree": "p2-seed",
+   "type": "P",
+   "class": "X",
+   "graph": "n/a"
+  },
+  {
+   "id": "P4-I1",
+   "tree": "p4-seed",
+   "type": "I",
+   "class": "G",
+   "via": "impact src/persistence/LoanGateway.ts",
+   "graphAnswer": {
+    "files": [
+     "src/business/services/LoanService.ts",
+     "src/main.ts"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "P4-C1",
+   "tree": "p4-seed",
+   "type": "C",
+   "class": "G",
+   "via": "trace LibraryController.borrow",
+   "graphAnswer": {
+    "chain": [
+     "LibraryController.borrow",
+     "LoanService.borrow",
+     "LoanGateway.insert"
+    ],
+    "endFile": "src/persistence/LoanGateway.ts"
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "3/3 required hops in order; endFile ok"
+  },
+  {
+   "id": "P4-R1",
+   "tree": "p4-seed",
+   "type": "R",
+   "class": "S",
+   "graph": "n/a"
+  },
+  {
+   "id": "FX05-W1",
+   "tree": "fx-p05-positive",
+   "type": "W",
+   "class": "G",
+   "via": "who_writes over every aggregate (context_map)",
+   "graphAnswer": {
+    "aggregates": [
+     "Order",
+     "Product"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "FX07-W1",
+   "tree": "fx-p07-positive",
+   "type": "W",
+   "class": "G",
+   "via": "who_writes over every aggregate (context_map)",
+   "graphAnswer": {
+    "aggregates": [
+     "Order",
+     "FulfilmentSaga"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "FX08-R1",
+   "tree": "fx-p08-positive",
+   "type": "R",
+   "class": "G",
+   "via": "impact src/sales/application/PlaceOrder.ts (current findings)",
+   "graphAnswer": {
+    "rules": [
+     "R-D4",
+     "R-XCTX"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "FX09-W1",
+   "tree": "fx-p09-legit",
+   "type": "W",
+   "class": "G",
+   "via": "who_writes over every aggregate (context_map)",
+   "graphAnswer": {
+    "aggregates": [
+     "Order"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "LH-W1",
+   "tree": "lucashang-ddd-payday",
+   "type": "W",
+   "class": "G",
+   "via": "who_writes over every aggregate (context_map)",
+   "graphAnswer": {
+    "aggregates": [
+     "Account",
+     "User"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "LH-WW1",
+   "tree": "lucashang-ddd-payday",
+   "type": "W",
+   "class": "Gw",
+   "via": "who_writes Account",
+   "graphAnswer": {
+    "commands": [
+     "CreateAccountUseCase.execute",
+     "CreateUserUseCase.execute"
+    ]
+   },
+   "primary": 0,
+   "secondary": 0.5,
+   "detail": "got [createaccountusecase.execute, createuserusecase.execute]"
+  },
+  {
+   "id": "LH-C1",
+   "tree": "lucashang-ddd-payday",
+   "type": "C",
+   "class": "G",
+   "via": "trace CreateUserUseCase.execute",
+   "graphAnswer": {
+    "chain": [
+     "CreateUserUseCase.execute",
+     "CreateAccountUseCase.execute",
+     "FakeAccountRepository.insert"
+    ],
+    "endFile": "src/modules/accounts/repositories/implementations/fake/fakeAccountRepository.ts"
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "3/3 required hops in order; endFile ok"
+  },
+  {
+   "id": "LH-I1",
+   "tree": "lucashang-ddd-payday",
+   "type": "I",
+   "class": "G",
+   "via": "impact src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+   "graphAnswer": {
+    "files": [
+     "src/modules/accounts/useCases/createAccount/index.ts",
+     "src/modules/users/useCases/createUser/CreateUserUseCase.ts"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "MT-WW1",
+   "tree": "meetinger",
+   "type": "W",
+   "class": "Gw",
+   "via": "who_writes Meeting",
+   "graphAnswer": {
+    "commands": [
+     "EditMeetingUseCase.execute",
+     "JoinMeetingUseCase.execute",
+     "LeaveMeetingUseCase.execute"
+    ]
+   },
+   "primary": 0,
+   "secondary": 0.75,
+   "detail": "got [editmeetingusecase.execute, joinmeetingusecase.execute, leavemeetingusecase.execute]"
+  },
+  {
+   "id": "MT-O1",
+   "tree": "meetinger",
+   "type": "O",
+   "class": "S",
+   "via": "context_map",
+   "graphAnswer": {
+    "context": "meetings"
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact"
+  },
+  {
+   "id": "MT-C1",
+   "tree": "meetinger",
+   "type": "C",
+   "class": "G",
+   "via": "trace LeaveMeetingUseCase.execute",
+   "graphAnswer": {
+    "chain": [
+     "LeaveMeetingUseCase.execute",
+     "DynamoDBMeetingRepo.save"
+    ],
+    "endFile": "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts"
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "2/2 required hops in order; endFile ok"
+  },
+  {
+   "id": "MT-P1",
+   "tree": "meetinger",
+   "type": "P",
+   "class": "X",
+   "graph": "n/a"
+  },
+  {
+   "id": "DF-WW1",
+   "tree": "ddd-forum",
+   "type": "W",
+   "class": "G",
+   "via": "who_writes Member",
+   "graphAnswer": {
+    "commands": [
+     "CreateMember.execute"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "DF-C1",
+   "tree": "ddd-forum",
+   "type": "C",
+   "class": "Gw",
+   "via": "trace CreateUserUseCase.execute (target not reached)",
+   "graphAnswer": {
+    "chain": [],
+    "endFile": ""
+   },
+   "primary": 0,
+   "secondary": 0,
+   "detail": "0/6 required hops in order; endFile wrong"
+  },
+  {
+   "id": "DF-I1",
+   "tree": "ddd-forum",
+   "type": "I",
+   "class": "G",
+   "via": "impact src/modules/forum/repos/postRepo.ts",
+   "graphAnswer": {
+    "files": [
+     "src/modules/forum/repos/implementations/sequelizePostRepo.ts",
+     "src/modules/forum/useCases/comments/downvoteComment/DownvoteComment.ts",
+     "src/modules/forum/useCases/comments/replyToComment/ReplyToComment.ts",
+     "src/modules/forum/useCases/comments/replyToPost/ReplyToPost.ts",
+     "src/modules/forum/useCases/comments/upvoteComment/UpvoteComment.ts",
+     "src/modules/forum/useCases/post/createPost/CreatePost.ts",
+     "src/modules/forum/useCases/post/downvotePost/DownvotePost.ts",
+     "src/modules/forum/useCases/post/editPost/EditPost.ts",
+     "src/modules/forum/useCases/post/getPopularPosts/GetPopularPosts.ts",
+     "src/modules/forum/useCases/post/getPostBySlug/GetPostBySlug.ts",
+     "src/modules/forum/useCases/post/getRecentPosts/GetRecentPosts.ts",
+     "src/modules/forum/useCases/post/updatePostStats/UpdatePostStats.ts",
+     "src/modules/forum/useCases/post/upvotePost/UpvotePost.ts"
+    ]
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact set"
+  },
+  {
+   "id": "DF-O1",
+   "tree": "ddd-forum",
+   "type": "O",
+   "class": "S",
+   "via": "context_map",
+   "graphAnswer": {
+    "context": "forum"
+   },
+   "primary": 1,
+   "secondary": 1,
+   "detail": "exact"
+  },
+  {
+   "id": "DF-P1",
+   "tree": "ddd-forum",
+   "type": "P",
+   "class": "X",
+   "graph": "n/a"
+  }
+ ]
+}

@@ -150,7 +150,23 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - **Evasion items 4 and 5:** not flagged.
 - Results report §7; addendum 4. The C4 severity calibration goes to the v1.5 semantic track (`ops/notes/v15-plan.md` §2).
 
-### 10. Edit gate built and smoke-tested (2026-10-22)
+### 10. COMPREHEND-01 built, not run (2026-10-22)
+**Question:** does the property graph help agents understand an architecture: more accurately, more cheaply, or both?
+Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build report:
+`Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md`. Zero model calls.
+- **Tools:** four symbolic graph tools (`context_map`, `who_writes`, `trace`, `impact`) in a separate experimental
+  server (`experiments/detect-02/mcp/`), 15 tests. The first call builds the index in 0.1–1.9 s (ddd-forum, 250 files,
+  is the slowest); warm calls take ≤ 9 ms.
+- **Bank:** 30 questions over P1, P2 and P4, four precision fixtures and three human DDD repositories with declared
+  specs. Keys were hand-checked and committed before any tool ran.
+- **Cross-check:** the tools answer 16/16 G items correctly after one display fix (T1), and 0/3 of the Gw items, as
+  predicted. All three misses are coverage gaps: a mapped-type parameter, an untyped result from an uninstalled
+  package, and an ORM hook with a callback registry.
+- **Dry run:** a scripted fake model ran both arms. The plan, re-run, cap, confinement, scoring and ledger all behave
+  as scripted (63 fake spawns, 0 calls).
+- **Next:** the author reads the design note and approves or changes the pilot (62 sessions, cap 66).
+
+### 11. Edit gate built and smoke-tested (2026-10-22)
 **Edit gate** (`experiments/edit-gate/`, `Docs/DiagnosticRuns/edit-gate-build-2026-10-23.md`, `experiments/edit-gate/results/`): the push delivery of `ops/notes/v15-edit-gate-design.md`.
 - **Mechanism:** option A works on CLI 2.1.308. PostToolUse and Stop hooks, passed inline through the arm's `--settings`, fire under the frozen argv, with the CLI running as the generator user. A root-side hub runs `check_consistency` and replies with the new findings only. The fallback was not needed.
 - **Zero calls:** 12/12 unit tests pass. The real CLI was run against a scripted API: the hook text reaches the next request, de-duplication holds, the Stop hook blocks once, and a switch-off attempt fails.
@@ -165,9 +181,11 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - [ ] Fix the S1 seed `.gitignore` gap on `pilot/hexddd-01`; update the case-bank cards with the entry 6 verdicts.
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
+- [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
-- 2026-10-22: entry 10 (edit gate built and smoke-tested).
+- 2026-10-22: entry 11 (edit gate built and smoke-tested).
+- 2026-10-22: entry 10 (COMPREHEND-01 built, not run).
 - 2026-10-22: entries 8 (puzzle baseline, DETECT-02 tool, precision) and 9 (Study 2b closed).
 - 2026-10-21: the sources this thread cites (HEXDDD-01, DETECT-01 and PUZZLE-01 literature, plus the search-session list) are consolidated in `Docs/sources/sources-ledger.md` (keys in `Docs/sources/sources.bib`).
 - 2026-10-21: entry 7 (DETECT-01 and PUZZLE-01 results).
