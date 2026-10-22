@@ -1,0 +1,27 @@
+{
+ "key": "11f67423f58bb292f0f99632f7314ea3341f46bedebe8e0a17b6adfefc22f2d8",
+ "part": "S2",
+ "item": "precision/p07-saga-own-state/positive/declared#D4#src/sales/application/CompleteShipment.ts:8",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:59:01.732Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/sales/application/CompleteShipment.ts",
+    "line": 14,
+    "quote": "await this.sagas.save(saga);"
+   },
+   {
+    "file": "src/sales/application/CompleteShipment.ts",
+    "line": 15,
+    "quote": "await this.orders.save(order);"
+   }
+  ],
+  "rationale": "The command modifies and saves two distinct aggregates, FulfilmentSaga and Order, synchronously in one execute call. The Order update should instead be triggered by a domain event handler reacting to the saga change, or the reverse."
+ },
+ "invalidReason": null
+}

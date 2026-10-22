@@ -13,13 +13,13 @@ decides, and every count touching a case below is **provisional** until then. Co
 | c04 | P1 | SG1: `AccountRepository.saveAll` (port, line 10) and `InMemoryAccountRepository.saveAll` (line 29) take several aggregate roots | none | **new, P1-SG1-c**: an unused multi-root write left declared on the port and its adapter. The gate's R-D4 finding was shown at step 1 and stayed open to the end of that turn; at step 2 the transfer was changed to save only the sending account (credit by event), and nothing calls `saveAll` any more. The oracle's declaration clause fails the port by design | legit-clean on the rule's content (no command writes two aggregates); the author decides whether the leftover port counts |
 | c08 | P1 | SG1: the same two `saveAll` declarations | none | new, P1-SG1-c (same shape) | legit-clean (proposal) |
 | c11 | P1 | SG1: the same two `saveAll` declarations | none | new, P1-SG1-c (same shape) | legit-clean (proposal) |
-| c09 | P2 | SG2: a sales handler (`CreditPoints.handle`) calls membership's published `awardPoints` through the ACL; SG1: `placed.pointsEarned <= 0` in that handler | none (the gate never fired in this session) | **P2-SG2-a** and **P2-SG1-b** | legit-clean |
-| c16 | P2 | SG2: the same shape (`AwardOrderPoints.handle`); SG1: `placed.pointsEarned <= 0` | none (never fired) | P2-SG2-a and P2-SG1-b | legit-clean |
+| c09 | P2 | SG2: a sales handler (`CreditPoints.handle`) calls membership's published `awardPoints` through the ACL; SG1: `placed.pointsEarned <= 0` in that handler | none (the gate never fired in this session) | **P2-SG2-a** and **P2-SG1-b** (accepted in research-log entry 15) | legit-clean |
+| c16 | P2 | SG2: the same shape (`AwardOrderPoints.handle`); SG1: `placed.pointsEarned <= 0` | none (never fired) | P2-SG2-a and P2-SG1-b (accepted in entry 15) | legit-clean |
 | c18 | P2 | SG1: `PlaceOrder.discountPercentFor` calls `this.directory.tier(memberId)`, a sales port whose ACL returns `membership.card(memberId)?.tier`; sales keeps its tier → discount table | none (R-D4+R-XCTX shown at step 1, then resolved) | **new, P2-SG1-e**: sales reads the tier that membership decides, through its own port. Not a re-implementation of the tier rule; the oracle's `tier()` call clause flags it | legit-clean (proposal) |
 | c22 | P3r | SG1: `RatePort.ts:5` uses the vendor symbol `FastshipRate`; `serviceCode === 'FREIGHT'` in the service | none (blind control) | trap (the PUZZLE-03 c02 shape) | trap |
 | c23 | P3r | SG1: the same shape | none (blind control) | trap | trap |
 | c01, c12, c24 | P3r | functional failure: "when the carrier is down the quote comes from our table, marked estimated" (the handling fee added to the fallback price); both oracles pass | none | the PUZZLE-03 fee-on-fallback reading of the unchanged request | functional failure (sensitivity below) |
-| c05, c10, c17, c21 | P5 | functional failure: "bookings on a cancelled sailing show it, and new bookings on it are rejected" (a booking on a cancelled sailing throws `sailing … is cancelled` instead of returning status `rejected`); both oracles pass | none | the PUZZLE-03 throw-instead-of-reject reading of the unchanged step 3 | functional failure (sensitivity below) |
+| c05, c10, c17, c21 | P5 | functional failure: "bookings on a cancelled sailing show it, and new bookings on it are rejected" (a booking on a cancelled sailing throws `sailing … is cancelled` instead of returning status `rejected`); both oracles pass | none | the PUZZLE-03 hand read's functional miss (`book` throws on a cancelled sailing; entry 15) | functional failure (sensitivity below) |
 | c07 | P5 | the same functional failure, and **SG2**: during `cancelBooking`, `Sailing.release` and the sailing store change with no event delivery on the stack | none | **new, P5-SG2-a**: the cross-context write moved into the composition root's app facade (`main.ts`: cancel the booking, then `sailings.releaseSeats(...)` in the same command). `check_consistency` does not treat the facade as a command, so the gate stayed silent: a checker blind spot | trap (proposal) |
 
 No final tree of P6 fails an oracle or a test.
@@ -28,16 +28,16 @@ No final tree of P6 fails an oracle or a test.
 
 | Session | Puzzle | What fails | Proposed category | Proposed label |
 |---|---|---|---|---|
-| c01, c05, c06, c09, c10 | P5 | functional failure: the same cancelled-sailing test (throw instead of `rejected`); both oracles pass | the PUZZLE-03 throw-instead-of-reject reading | functional failure (sensitivity below) |
+| c01, c05, c06, c09, c10 | P5 | functional failure: the same cancelled-sailing test (throw instead of `rejected`); both oracles pass | the PUZZLE-03 hand read's functional miss (entry 15) | functional failure (sensitivity below) |
 
 No P5 or P6 pull tree fails an oracle; no P6 tree fails a test.
 
 ## Counts under the proposed labels (sensitivity, not the registered outcome)
 
-| Puzzle × arm | Registered (oracle + tests) | If the proposed legit-clean labels are accepted | If the PUZZLE-03 request readings are also accepted |
+| Puzzle × arm | Registered (oracle + tests) | If the proposed legit-clean labels are accepted | If the two functional failure classes are also discounted (P3r fee on fallback; P5 throw) |
 |---|---|---|---|
 | P1 gate | 2/5 | 5/5 (P1-SG1-c) | 5/5 |
-| P2 gate | 2/5 | 5/5 (c09, c16 by P2-SG2-a + P2-SG1-b; c18 by P2-SG1-e) | 5/5 |
+| P2 gate | 2/5 | 4/5 under the accepted P2-SG2-a + P2-SG1-b (c09, c16); 5/5 with P2-SG1-e (c18) | 5/5 |
 | P3r gate | 0/5 | 0/5 | 3/5 (fee on fallback: c01, c12, c24) |
 | P5 gate | 0/5 | 0/5 | 4/5 (throw accepted: c05, c10, c17, c21; c07 stays trapped) |
 | P5 pull | 0/5 | 0/5 | 5/5 |

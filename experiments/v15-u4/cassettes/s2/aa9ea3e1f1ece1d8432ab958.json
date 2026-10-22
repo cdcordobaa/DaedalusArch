@@ -1,0 +1,16 @@
+{
+ "key": "aa9ea3e1f1ece1d8432ab95859a8650d52b729afcf625fc7cb8edef18442fdf2",
+ "part": "S2",
+ "item": "r2:pilot/s2-orders-invoices/step-00#D5#src/ordering/application/PlaceOrder.ts:22",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1+u4-r2",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T19:03:37.221Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The rule that a customer may order lives in Customer.canOrder(), a domain method. PlaceOrder only asks the aggregate and fails if the answer is no. It doesn't copy the active-state logic or compute the invariant itself. The null check is a lookup guard. Order has no access to customer state, so this orchestration across aggregates is not a duplicated business rule."
+ },
+ "invalidReason": null
+}

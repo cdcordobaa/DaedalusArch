@@ -1,0 +1,413 @@
+{
+ "key": "9a29143f0506da521177f51b7a02a5722c1e078698611b28f2f895b52c908ca6",
+ "part": "S3",
+ "item": "meetinger/(outside every context) + connection + meetings + users",
+ "run": 0,
+ "promptVersion": "u4-s3-facts-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:52:29.973Z",
+ "answer": {
+  "types": [
+   {
+    "name": "AggregateRoot",
+    "path": "src/shared/domain/AggregateRoot.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "DomainEvent",
+    "path": "src/shared/domain/DomainEvent.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Entity",
+    "path": "src/shared/domain/entity.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "EventListener",
+    "path": "src/shared/domain/EventListener.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "EventPublisher",
+    "path": "src/shared/domain/EventPublisher.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Identifier",
+    "path": "src/shared/domain/identifier.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "UniqueID",
+    "path": "src/shared/domain/uniqueId.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "ValueObject",
+    "path": "src/shared/domain/valueObject.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "WatchedList",
+    "path": "src/shared/domain/WatchedList.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Connection",
+    "path": "src/modules/connection/domain/connection.ts",
+    "verdict": "abstain",
+    "context": "connection",
+    "cites": []
+   },
+   {
+    "name": "Attendee",
+    "path": "src/modules/meetings/domain/Attendee.ts",
+    "verdict": "root",
+    "context": "meetings",
+    "cites": [
+     {
+      "path": "src/modules/meetings/domain/Attendee.ts",
+      "line": 21,
+      "quote": "export class Attendee extends AggregateRoot<AttendeeProps>"
+     },
+     {
+      "path": "src/modules/meetings/repos/AttendeeRepo.ts",
+      "line": 10,
+      "quote": "fetch(username: UserName, meetingID: MeetingID): Promise<[Attendee, number]>;"
+     }
+    ]
+   },
+   {
+    "name": "AttendeeDetails",
+    "path": "src/modules/meetings/domain/AttendeeDetails.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Attendees",
+    "path": "src/modules/meetings/domain/Attendees.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "AttendeeJoined",
+    "path": "src/modules/meetings/domain/events/AttendeeJoined.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "AttendeeLeft",
+    "path": "src/modules/meetings/domain/events/AttendeeLeft.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingChanged",
+    "path": "src/modules/meetings/domain/events/MeetingChanged.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingCreated",
+    "path": "src/modules/meetings/domain/events/MeetingCreated.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Meeting",
+    "path": "src/modules/meetings/domain/Meeting.ts",
+    "verdict": "root",
+    "context": "meetings",
+    "cites": [
+     {
+      "path": "src/modules/meetings/domain/Meeting.ts",
+      "line": 41,
+      "quote": "export class Meeting extends AggregateRoot<MeetingProps>"
+     },
+     {
+      "path": "src/modules/meetings/repos/MeetingRepo.ts",
+      "line": 11,
+      "quote": "fetchMeetingByID(meetingID: MeetingID): Promise<[Meeting, number]>;"
+     }
+    ]
+   },
+   {
+    "name": "MeetingAddress",
+    "path": "src/modules/meetings/domain/MeetingAddress.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingAvailableSeats",
+    "path": "src/modules/meetings/domain/MeetingAvailableSeats.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingCategory",
+    "path": "src/modules/meetings/domain/MeetingCategory.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingDescription",
+    "path": "src/modules/meetings/domain/MeetingDescription.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingID",
+    "path": "src/modules/meetings/domain/MeetingID.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingItemView",
+    "path": "src/modules/meetings/domain/MeetingItemView.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingPlace",
+    "path": "src/modules/meetings/domain/MeetingPlace.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingRemainingSeats",
+    "path": "src/modules/meetings/domain/MeetingRemainingSeats.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingTitle",
+    "path": "src/modules/meetings/domain/MeetingTitle.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingView",
+    "path": "src/modules/meetings/domain/MeetingView.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "RegisteredMeetingView",
+    "path": "src/modules/meetings/domain/RegisteredMeetingView.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "AttendeeNotFoundError",
+    "path": "src/modules/meetings/errors/AttendeeErrors.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingNotFoundError",
+    "path": "src/modules/meetings/errors/MeetingErrors.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingFullyBooked",
+    "path": "src/modules/meetings/errors/MeetingErrors.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "OrganizerCannotLeaveError",
+    "path": "src/modules/meetings/errors/MeetingErrors.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingStartingDateInvalid",
+    "path": "src/modules/meetings/errors/MeetingErrors.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "RemoteMeetingCannotHaveAddress",
+    "path": "src/modules/meetings/errors/MeetingErrors.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingAlreadyStarted",
+    "path": "src/modules/meetings/errors/MeetingErrors.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "AttendeeJoinedEvent",
+    "path": "src/modules/meetings/integrationEvents/AttendeeJoinedEvent.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "AttendeeLeftEvent",
+    "path": "src/modules/meetings/integrationEvents/AttendeeLeftEvent.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingChangedEvent",
+    "path": "src/modules/meetings/integrationEvents/MeetingChangedEvent.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "MeetingCreatedEvent",
+    "path": "src/modules/meetings/integrationEvents/MeetingCreatedEvent.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "User",
+    "path": "src/modules/users/domain/User.ts",
+    "verdict": "root",
+    "context": "users",
+    "cites": [
+     {
+      "path": "src/modules/users/domain/User.ts",
+      "line": 18,
+      "quote": "export class User extends AggregateRoot<UserProps>"
+     },
+     {
+      "path": "src/modules/users/repos/UserRepo.ts",
+      "line": 6,
+      "quote": "findByUserName(username: UserName): Promise<User>;"
+     }
+    ]
+   },
+   {
+    "name": "UserEmail",
+    "path": "src/modules/users/domain/UserEmail.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "UserFullName",
+    "path": "src/modules/users/domain/UserFullName.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "UserIntroduction",
+    "path": "src/modules/users/domain/UserIntroduction.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "UserName",
+    "path": "src/modules/users/domain/UserName.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   }
+  ],
+  "stores": [
+   {
+    "name": "ConnectionRepo",
+    "path": "src/modules/connection/repos/connectionRepo.ts",
+    "ownedBy": "connection",
+    "loads": "Connection"
+   },
+   {
+    "name": "DynamoDBConnectionRepo",
+    "path": "src/modules/connection/repos/implementations/dynamoDBConnectionRepo.ts",
+    "ownedBy": "connection",
+    "loads": "Connection"
+   },
+   {
+    "name": "AttendeeRepo",
+    "path": "src/modules/meetings/repos/AttendeeRepo.ts",
+    "ownedBy": "meetings",
+    "loads": "Attendee"
+   },
+   {
+    "name": "DynamoDBAttendeeRepo",
+    "path": "src/modules/meetings/repos/implementations/DynamoDBAttendeeRepo.ts",
+    "ownedBy": "meetings",
+    "loads": "Attendee"
+   },
+   {
+    "name": "DynamoDBMeetingRepo",
+    "path": "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts",
+    "ownedBy": "meetings",
+    "loads": "Meeting"
+   },
+   {
+    "name": "MeetingRepo",
+    "path": "src/modules/meetings/repos/MeetingRepo.ts",
+    "ownedBy": "meetings",
+    "loads": "Meeting"
+   },
+   {
+    "name": "DynamoDBUserRepo",
+    "path": "src/modules/users/repos/implementations/DynamoDBUserRepo.ts",
+    "ownedBy": "users",
+    "loads": "User"
+   },
+   {
+    "name": "UserRepo",
+    "path": "src/modules/users/repos/UserRepo.ts",
+    "ownedBy": "users",
+    "loads": "User"
+   }
+  ]
+ },
+ "invalidReason": null
+}

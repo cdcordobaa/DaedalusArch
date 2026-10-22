@@ -1,0 +1,16 @@
+{
+ "key": "d5364f1b959a3edd7a25474dd86c3388b43d3491097c929b2d079d17301bf43a",
+ "part": "S2",
+ "item": "pilot/s1-hotel-bookings/step-05#D5#src/application/services/BookRoomService.ts:74",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:56:42.225Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The availability rule is not duplicated in the application service. It calls the domain service AvailabilityChecker.isAvailable, so the rule lives in the domain layer. The service only loads the room's bookings under a lock and throws the error. Checking a room's availability against other bookings spans several aggregates, so it is not an invariant of a single Booking."
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,27 @@
+{
+ "key": "e1959f0f30e9d69adf21b5ac42b1bd53aea8979503c59655021adbac178c80a9",
+ "part": "S2",
+ "item": "precision/p08-read-only-cross-context/positive/declared#D4#src/sales/application/PlaceOrder.ts:9",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:59:10.700Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/sales/application/PlaceOrder.ts",
+    "line": 13,
+    "quote": "this.members.award(memberId, Math.floor(totalCents / 100));"
+   },
+   {
+    "file": "src/sales/application/PlaceOrder.ts",
+    "line": 12,
+    "quote": "await this.orders.save(order);"
+   }
+  ],
+  "rationale": "PlaceOrder.execute saves an Order, then synchronously calls MemberDirectory.award. Per the analyser's path, that reaches AwardPoints.execute, which loads, changes and saves a Member. One command thus changes two aggregates, one in another bounded context. This should be an OrderPlaced event handler. The MemberDirectory adapter was not shown, so that link relies on the analyser's path."
+ },
+ "invalidReason": null
+}

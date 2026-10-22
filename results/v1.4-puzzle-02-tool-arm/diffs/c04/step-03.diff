@@ -1,0 +1,70 @@
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 639aa381..c1c28050 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,6 +1,8 @@
+ import { createMembership } from './membership';
+ import { InMemoryMemberRepository } from './membership/infrastructure/InMemoryMemberRepository';
+ import { MembershipDirectory } from './sales/acl/MembershipDirectory';
++import { MembershipPoints } from './sales/acl/MembershipPoints';
++import { AwardOrderPoints } from './sales/application/AwardOrderPoints';
+ import { EventRelay } from './sales/application/EventRelay';
+ import { PlaceOrder, type LineRequest, type PlacedOrder } from './sales/application/PlaceOrder';
+ import { ReceiptFooter } from './sales/application/ReceiptFooter';
+@@ -16,6 +18,8 @@ export function createApp() {
+   const receipts = new InMemoryReceipts();
+   const relay = new EventRelay(orders);
+   const sendReceipt = new SendReceipt(receipts, new ReceiptFooter(members));
++  const awardOrderPoints = new AwardOrderPoints(new MembershipPoints(membership));
++  relay.on('OrderPlaced', (e) => awardOrderPoints.handle(e));
+   relay.on('OrderPlaced', (e) => sendReceipt.handle(e));
+   const command = <T>(run: () => T): T => {
+     const result = run();
+diff --git a/b/src/sales/acl/MembershipPoints.ts b/b/src/sales/acl/MembershipPoints.ts
+new file mode 100644
+index 00000000..06060712
+--- /dev/null
++++ b/b/src/sales/acl/MembershipPoints.ts
+@@ -0,0 +1,11 @@
++import type { MembershipModule } from '../../membership';
++import type { MemberPoints } from '../application/ports/MemberPoints';
++
++/** Translates point awards into the membership module's published call. */
++export class MembershipPoints implements MemberPoints {
++  constructor(private readonly membership: MembershipModule) {}
++
++  award(memberId: string, points: number): void {
++    this.membership.awardPoints(memberId, points);
++  }
++}
+diff --git a/b/src/sales/application/AwardOrderPoints.ts b/b/src/sales/application/AwardOrderPoints.ts
+new file mode 100644
+index 00000000..fb13f5c9
+--- /dev/null
++++ b/b/src/sales/application/AwardOrderPoints.ts
+@@ -0,0 +1,15 @@
++import type { DomainEvent } from '../../shared-kernel/DomainEvent';
++import type { OrderPlaced } from '../domain/order/events/OrderPlaced';
++import type { MemberPoints } from './ports/MemberPoints';
++
++/** One point per whole 1.00 paid after the discount; guests earn nothing. */
++export class AwardOrderPoints {
++  constructor(private readonly points: MemberPoints) {}
++
++  handle(event: DomainEvent): void {
++    const placed = event as OrderPlaced;
++    if (placed.memberId === null) return;
++    const earned = Math.floor(placed.totalCents / 100);
++    if (earned > 0) this.points.award(placed.memberId, earned);
++  }
++}
+diff --git a/b/src/sales/application/ports/MemberPoints.ts b/b/src/sales/application/ports/MemberPoints.ts
+new file mode 100644
+index 00000000..024eae57
+--- /dev/null
++++ b/b/src/sales/application/ports/MemberPoints.ts
+@@ -0,0 +1,4 @@
++/** Credits loyalty points to a member's card. */
++export interface MemberPoints {
++  award(memberId: string, points: number): void;
++}

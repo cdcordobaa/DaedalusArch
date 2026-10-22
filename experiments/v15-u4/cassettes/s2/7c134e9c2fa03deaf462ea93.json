@@ -1,0 +1,22 @@
+{
+ "key": "7c134e9c2fa03deaf462ea939a51b635d49f389a5f6b0c8ff1ea6d5bd1ff3d74",
+ "part": "S2",
+ "item": "fixture/c6-s2-d5-placeorder/pos#D5#src/ordering/application/PlaceOrder.ts:21",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:30.504Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 21,
+    "quote": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new Error("
+   }
+  ],
+  "rationale": "The application service duplicates the Quantity invariant (positive integer), which Quantity's constructor already enforces. The check on line 21 is a copy of that rule in the application layer. The unit-price check on line 22 is a similar copy of a rule that belongs in Money. It is not pure input parsing, because it enforces the domain rule \"> 0\" and \"non-negative\"."
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,22 @@
+{
+ "key": "373b807de4aae1ea38504d5962fffee47a6f3d445c424dc50ce37d7ab3ae9ac1",
+ "part": "S2",
+ "item": "puzzle/p1-transfers/c10/step-02#D5#src/ledger/application/Transfer.ts:24",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:55:32.341Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ledger/application/Transfer.ts",
+    "line": 24,
+    "quote": "if (from.currency !== to.currency) throw new LedgerError(`currency mismatch: ${from.currency} vs ${to.currency}`);"
+   }
+  ],
+  "rationale": "The currency-match rule for a transfer is enforced in the application service by comparing two accounts' state. Account.deposit and withdraw never check the Money currency against the account's own currency, so the aggregate doesn't own this invariant. It is a business rule, not input parsing or a uniqueness check, so it belongs in the domain."
+ },
+ "invalidReason": null
+}

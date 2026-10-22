@@ -1,0 +1,22 @@
+{
+ "key": "e782c0077643b9273fe0aaaec2b91fa6a25f9acb2bf3ee8d54993d236f459510",
+ "part": "S2",
+ "item": "puzzle/p1-transfers/c10/step-02#D5#src/ledger/application/Transfer.ts:23",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:55:25.109Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ledger/application/Transfer.ts",
+    "line": 23,
+    "quote": "if (from.id.value === to.id.value) throw new LedgerError('cannot transfer to the same account');"
+   }
+  ],
+  "rationale": "The same-account and currency-mismatch checks are business rules about Account state, decided in the application service instead of inside the aggregate. The daily transfer limit is also enforced there. The same-account check compares two aggregates, but it is a domain invariant of a transfer and not a uniqueness check or input parsing. It belongs in the domain."
+ },
+ "invalidReason": null
+}

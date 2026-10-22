@@ -1,0 +1,22 @@
+{
+ "key": "833a37c3fcfc712cde9df107a99804f2ff43ccc2a347b7fbbe4eb074d2387a6e",
+ "part": "S2",
+ "item": "r2:pilot/s1-hotel-bookings/step-01#D5#src/application/services/BookRoomService.ts:54",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1+u4-r2",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T19:03:04.255Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 54,
+    "quote": "if (!this.availability.isAvailable(room, stay, existing)) {"
+   }
+  ],
+  "rationale": "The no-overlap rule across a room's active bookings must hold at every commit. No aggregate owns that set: Booking is a single instance and Room is not shown owning bookings. The application service loads the bookings and enforces the rule, only calling a domain helper to compute it. Under D5 this is still a violation."
+ },
+ "invalidReason": null
+}

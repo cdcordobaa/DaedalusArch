@@ -1,0 +1,22 @@
+{
+ "key": "b30f6549c80a8f87cb7a5ac2b5852bb1ebf150a469cd1299cdf305b85236bfdb",
+ "part": "S2",
+ "item": "precision/p06-declared-batch/positive/declared#D4#src/sales/application/ImportCustomers.ts:13",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:58.684Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/sales/application/ImportCustomers.ts",
+    "line": 15,
+    "quote": "await this.customers.saveAll(created);"
+   }
+  ],
+  "rationale": "The single command ImportCustomers.execute creates and saves multiple distinct Customer aggregate instances synchronously via saveAll. The rule requires one command to change and save one aggregate instance. A bulk import is a plausible exception, but under this rule it is a violation."
+ },
+ "invalidReason": null
+}

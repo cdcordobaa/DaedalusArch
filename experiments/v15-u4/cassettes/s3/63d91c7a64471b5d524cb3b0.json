@@ -1,0 +1,130 @@
+{
+ "key": "63d91c7a64471b5d524cb3b038dee4f8b4a1e99e86439b801abed7b658d21112",
+ "part": "S3",
+ "item": "lucashang-ddd-payday/(outside every context) + accounts + users",
+ "run": 1,
+ "promptVersion": "u4-s3-facts-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:54:24.960Z",
+ "answer": {
+  "types": [
+   {
+    "name": "Entity",
+    "path": "src/core/domain/Entity.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Identifier",
+    "path": "src/core/domain/Identifier.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "UniqueEntityID",
+    "path": "src/core/domain/UniqueEntityID.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "UseCase",
+    "path": "src/core/domain/UseCase.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "ValueObject",
+    "path": "src/core/domain/ValueObject.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Account",
+    "path": "src/modules/accounts/domain/account.ts",
+    "verdict": "root",
+    "context": "accounts",
+    "cites": [
+     {
+      "path": "src/modules/accounts/repositories/IAccountRepository.ts",
+      "line": 9,
+      "quote": "findByIdOrError(id: string): Promise<Result<InvalidParam, Account>>;"
+     }
+    ]
+   },
+   {
+    "name": "AccountBalance",
+    "path": "src/modules/accounts/domain/accountBalance.ts",
+    "verdict": "not-root",
+    "context": "accounts",
+    "cites": []
+   },
+   {
+    "name": "User",
+    "path": "src/modules/users/domain/user.ts",
+    "verdict": "root",
+    "context": "users",
+    "cites": [
+     {
+      "path": "src/modules/users/repositories/IUserRepository.ts",
+      "line": 7,
+      "quote": "findByIdOrError(id: string): Promise<Result<InvalidParam, User>>;"
+     }
+    ]
+   },
+   {
+    "name": "UserAge",
+    "path": "src/modules/users/domain/userAge.ts",
+    "verdict": "not-root",
+    "context": "users",
+    "cites": []
+   },
+   {
+    "name": "UserEmail",
+    "path": "src/modules/users/domain/userEmail.ts",
+    "verdict": "not-root",
+    "context": "users",
+    "cites": []
+   },
+   {
+    "name": "UserPassword",
+    "path": "src/modules/users/domain/userPassword.ts",
+    "verdict": "not-root",
+    "context": "users",
+    "cites": []
+   }
+  ],
+  "stores": [
+   {
+    "name": "IAccountRepository",
+    "path": "src/modules/accounts/repositories/IAccountRepository.ts",
+    "ownedBy": "accounts",
+    "loads": "Account"
+   },
+   {
+    "name": "FakeAccountRepository",
+    "path": "src/modules/accounts/repositories/implementations/fake/fakeAccountRepository.ts",
+    "ownedBy": "accounts",
+    "loads": "Account"
+   },
+   {
+    "name": "FakeUserRepository",
+    "path": "src/modules/users/repositories/implementations/fake/fakeUserRepository.ts",
+    "ownedBy": "users",
+    "loads": "User"
+   },
+   {
+    "name": "IUserRepository",
+    "path": "src/modules/users/repositories/IUserRepository.ts",
+    "ownedBy": "users",
+    "loads": "User"
+   }
+  ]
+ },
+ "invalidReason": null
+}
