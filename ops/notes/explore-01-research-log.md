@@ -166,6 +166,14 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
   as scripted (63 fake spawns, 0 calls).
 - **Next:** the author reads the design note and approves or changes the pilot (62 sessions, cap 66).
 
+### 11. Edit gate built and smoke-tested (2026-10-22)
+**Edit gate** (`experiments/edit-gate/`, `Docs/DiagnosticRuns/edit-gate-build-2026-10-23.md`, `experiments/edit-gate/results/`): the push delivery of `ops/notes/v15-edit-gate-design.md`.
+- **Mechanism:** option A works on CLI 2.1.308. PostToolUse and Stop hooks, passed inline through the arm's `--settings`, fire under the frozen argv, with the CLI running as the generator user. A root-side hub runs `check_consistency` and replies with the new findings only. The fallback was not needed.
+- **Zero calls:** 12/12 unit tests pass. The real CLI was run against a scripted API: the hook text reaches the next request, de-duplication holds, the Stop hook blocks once, and a switch-off attempt fails.
+- **Isolation:** 0 readable fingerprint files, after closing root's `tsx` cache, which had been readable.
+- **Calls:** 2 of 4. The smoke passed: the model quoted the finding's file, line and label. The probe passed: 0 canaries leaked, and the gate still fired after the switch-off attempt.
+- **Latency:** hub p50 130–145 ms on P1 and P2 trees, p95 171–204 ms. No puzzle session was run.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -176,6 +184,7 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
+- 2026-10-22: entry 11 (edit gate built and smoke-tested).
 - 2026-10-22: entry 10 (COMPREHEND-01 built, not run).
 - 2026-10-22: entries 8 (puzzle baseline, DETECT-02 tool, precision) and 9 (Study 2b closed).
 - 2026-10-21: the sources this thread cites (HEXDDD-01, DETECT-01 and PUZZLE-01 literature, plus the search-session list) are consolidated in `Docs/sources/sources-ledger.md` (keys in `Docs/sources/sources.bib`).
