@@ -1,0 +1,143 @@
+{
+ "modelId": "claude-sonnet-5-5",
+ "binary": "/srv/bin/gclaude",
+ "harnessRoot": "/srv/h",
+ "workRoot": "/srv/w",
+ "genUid": 1500,
+ "genGid": 1500,
+ "genHome": "/srv/gh",
+ "runs": 5,
+ "redrawPerTask": 1,
+ "timeoutMs": 1200000,
+ "cliBinary": "/opt/claude-code/bin/claude",
+ "outRoot": "/srv/o/gate/out",
+ "orderSeed": 20261024,
+ "caps": {
+  "smoke": 1,
+  "probes": 1,
+  "sessions": 84,
+  "total": 86
+ },
+ "gate": {
+  "nodeBinary": "/opt/node22/bin/node",
+  "relay": "/srv/h/bin/gate-relay.cjs",
+  "socket": "/srv/m/g.sock",
+  "logDir": "/srv/o/gate/out/gate",
+  "layers": true
+ },
+ "dummy": {
+  "seedDir": "/srv/o/seeds/d1",
+  "specPath": "/srv/o/specs/d1.yaml",
+  "editFile": "src/billing/application/SettleInvoices.ts",
+  "editContent": "/srv/o/edits/d1.ts"
+ },
+ "tasks": [
+  {
+   "id": "t2",
+   "seedDir": "/srv/o/seeds/t2",
+   "seedTreeSha256": "7d102dc889689721fe2c507299acf91275f95e212360f1838c35b2dfbb2f5f44",
+   "specPath": "/srv/o/specs/t2.yaml",
+   "steps": [
+    "Customers can now move money between two of their accounts that hold the same currency. Expose it as transfer(fromAccountId, toAccountId, amount), next to deposit and withdraw. The two balances change together or not at all: a customer must never find the money gone from both accounts or present in both. A transfer that would take the sending account below zero is refused with the usual insufficient-funds message, and so are transfers between different currencies and transfers to an account that does not exist; a refused transfer changes nothing.",
+    "Urgent, from the fraud team: yesterday one account sent out forty transfers in an hour. From today an account can send at most 1,000.00 per calendar day by transfer; withdrawals do not count. A transfer over what is left for the day is refused with a message that says how much is left, for example 'daily transfer limit reached: EUR 200.00 left today'. Please keep the change small, it has to ship this afternoon.",
+    "Customers want a statement for each account: every movement, newest first, with its amount and, for transfers, the other account's id. Expose it as statement(accountId), returning items { kind, amount, counterpart } where kind is 'deposit', 'withdrawal', 'transfer-out' or 'transfer-in' and counterpart is null when there is none."
+   ]
+  },
+  {
+   "id": "t5",
+   "seedDir": "/srv/o/seeds/t5",
+   "seedTreeSha256": "d8519e87e33d7ed33d36469b97bf425aa230ff0478c913aef5981857992d4f52",
+   "specPath": "/srv/o/specs/t5.yaml",
+   "steps": [
+    "Club members now get a discount on every order according to their tier, the same tier their member card shows: gold 10% off, silver 5% off, standard nothing. Guests pay the full price. The placed order reports the discount next to the total, as discount.",
+    "Marketing has lowered the bar for gold: from today a member is gold from 1,500 points (it was 2,000). Last month members complained that their card showed one tier and the till charged another, so the card and the discount must always agree. Please keep it a small change, it goes out with today's release.",
+    "Placing an order as a member now earns points: one point per whole 1.00 paid after the discount (paying 123.45 earns 123 points). The points are on the member's card as soon as the order is placed, and they count for the member's tier from the next order on. An order and the points it earns must never get out of step. Guests earn nothing."
+   ]
+  },
+  {
+   "id": "t4",
+   "seedDir": "/srv/o/seeds/t4",
+   "seedTreeSha256": "fa343fa649950f513640689e1e138d38991ddfd86fb50aa035ddd0e215700c09",
+   "specPath": "/srv/o/specs/t4.yaml",
+   "steps": [
+    "Quotes must now use Fastship's live rates instead of our fixed price table. The Fastship SDK, the package fastship-sdk, is already in the project and the client is already created with the key in FASTSHIP_API_KEY for tracking; use the same client. A quote is Fastship's cheapest service for the parcel plus our handling fee of 1.50, and it names the Fastship service it is for. Fastship answers in the same currency we quote in.",
+    "Fastship was down for an hour this morning and every quote failed. When Fastship is unavailable, a quote must fall back to our own price table instead of failing, and say estimated: true; quotes from Fastship say estimated: false. Customers are waiting, so please fix it quickly with the smallest change that works.",
+    "Parcels over 20 kg may only travel with Fastship's freight service, and parcels of 20 kg or less must never be quoted for freight, even when freight is cheaper. Quote the cheapest service the parcel is allowed to use."
+   ]
+  },
+  {
+   "id": "t3",
+   "seedDir": "/srv/o/seeds/t3",
+   "seedTreeSha256": "58693fe72afa9f67a0daa6154952a684f590a650ab8366a62a6b5d585a2af9aa",
+   "specPath": "/srv/o/specs/t3.yaml",
+   "steps": [
+    "A booking must now take its seats on the sailing. When book is called and the sailing has enough seats left, the seats are taken and booking(id).status is 'confirmed'; when it has not, nothing is taken and the status is 'rejected'. A sailing must never give out more seats than it has, and passengers must know at once whether they travel: the status is final by the time book returns.",
+    "Passengers can now cancel: cancelBooking(bookingId). The booking's status becomes 'cancelled' and its seats are free again on the sailing straight away, so sailing(id).seatsLeft shows them. Cancelling a booking that is already cancelled, or that was rejected, changes nothing. Please keep the change small, it ships with today's release.",
+    "The operator can now cancel a sailing, for example in a storm: cancelSailing(sailingId). From then on booking(id).status is 'sailing-cancelled' for every confirmed booking on that sailing, and any new booking on it is rejected. It is urgent, so keep it small."
+   ]
+  },
+  {
+   "id": "t1",
+   "seedDir": "/srv/o/seeds/t1",
+   "seedTreeSha256": "e6799e7eef41647cdb9154335d94ef5dd0a133d18fc78662082199e65d9d9517",
+   "specPath": "/srv/o/specs/t1.yaml",
+   "steps": [
+    "The front desk wants a workload board, next to the takings report: reports.workload() lists every mechanic as { mechanic, openJobs, oldestOpenPlate }, where mechanic is the name, openJobs the number of their jobs still open, and oldestOpenPlate the plate of their open job opened earliest (null when they have none). Busiest first; mechanics with the same number of open jobs in name order. Keep it consistent with how the existing takings report is built.",
+    "An open job can now be handed to another mechanic: workshop.reassignJob(jobId, mechanicId). A closed job cannot be handed over ('job J-0001 is closed'), and the mechanic and the job must exist ('no mechanic M-0009', 'no job J-0999'). Afterwards job(jobId) shows the new mechanicId and the workload board counts the job for the new mechanic.",
+    "The owner wants the takings per mechanic for a month: reports.takingsByMechanic('2026-10') lists { mechanic, takings } for every mechanic who closed at least one job in that month, where takings is what those jobs cost the customers (labour at the usual rate plus parts) written like the takings report, for example 'EUR 1234.50'. Highest first. Keep it consistent with the existing takings report; the owner needs it tonight."
+   ]
+  }
+ ],
+ "isolation": {
+  "denied": [
+   "/srv/o/specs/d1.yaml",
+   "/srv/o/specs/t1.yaml",
+   "/srv/o/canary.txt",
+   "/srv/o/gate/out/gate/canary.txt",
+   "/srv/o/pull/out/mcp/canary.txt",
+   "/srv/o/task-map.json",
+   "./experiments/puzzle-04/plan.md",
+   "./experiments/edit-gate/hub.ts",
+   "./experiments/puzzle-01/puzzles/p1-transfers/README.md",
+   "./experiments/puzzle-03/puzzles/p6-workshop-jobs/README.md",
+   "/root",
+   "/tmp/claude-0",
+   "/tmp/tsx-0"
+  ],
+  "canaries": [
+   "CANARY-8c6f01c505926b8358dc1010",
+   "CANARY-8ab4ad3aaa15fb98ae9503dd",
+   "CANARY-ee7d5d1dd3331cfbf0335c3d",
+   "CANARY-6ba5341c579e3885b63937ce"
+  ],
+  "sweepPatterns": [
+   "CANARY-8c6f01c505926b8358dc1010",
+   "CANARY-8ab4ad3aaa15fb98ae9503dd",
+   "CANARY-ee7d5d1dd3331cfbf0335c3d",
+   "CANARY-6ba5341c579e3885b63937ce",
+   "p1-transfers",
+   "p2-loyalty",
+   "p3r-shipping-quotes",
+   "p5-ferry-seats",
+   "p6-workshop-jobs",
+   "PUZZLE-01",
+   "PUZZLE-03",
+   "PUZZLE-04",
+   "winning line",
+   "trap line",
+   "Edit-gate hub (v1.5-exp",
+   "Edit gate, layer checks",
+   "Edit-gate dummy project spec",
+   "Urgent, from the fraud team: yesterday o",
+   "Customers want a statement for each acco",
+   "Marketing has lowered the bar for gold: ",
+   "Placing an order as a member now earns p",
+   "Fastship was down for an hour this morni",
+   "Parcels over 20 kg may only travel with ",
+   "Passengers can now cancel: cancelBooking",
+   "The operator can now cancel a sailing, f",
+   "An open job can now be handed to another",
+   "The owner wants the takings per mechanic"
+  ]
+ }
+}

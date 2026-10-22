@@ -1,0 +1,117 @@
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 588a5088d..67184aa75 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -8,4 +8,8 @@ export class MembershipDirectory implements MemberDirectory {
+   exists(memberId: string): boolean {
+     return this.membership.card(memberId) !== undefined;
+   }
++
++  tier(memberId: string): string | undefined {
++    return this.membership.card(memberId)?.tier;
++  }
+ }
+diff --git a/a/src/sales/application/PlaceOrder.ts b/b/src/sales/application/PlaceOrder.ts
+index 8e2c747a3..19f039961 100644
+--- a/a/src/sales/application/PlaceOrder.ts
++++ b/b/src/sales/application/PlaceOrder.ts
+@@ -12,8 +12,11 @@ export interface LineRequest {
+ export interface PlacedOrder {
+   readonly orderId: string;
+   readonly total: number;
++  readonly discount: number;
+ }
+ 
++const TIER_DISCOUNT_PERCENT: Readonly<Record<string, number>> = { gold: 10, silver: 5, standard: 0 };
++
+ export class PlaceOrder {
+   constructor(
+     private readonly orders: OrderRepository,
+@@ -22,8 +25,14 @@ export class PlaceOrder {
+ 
+   execute(memberId: string | null, lines: readonly LineRequest[], currency = 'EUR'): PlacedOrder {
+     if (memberId !== null && !this.directory.exists(memberId)) throw new Error(`no member ${memberId}`);
+-    const order = Order.place(this.orders.nextId(), memberId, lines.map((l) => ({ sku: l.sku, quantity: l.quantity, unitPrice: Money.of(l.unitPrice, currency) })));
++    const order = Order.place(this.orders.nextId(), memberId, lines.map((l) => ({ sku: l.sku, quantity: l.quantity, unitPrice: Money.of(l.unitPrice, currency) })), this.discountPercentFor(memberId));
+     this.orders.save(order);
+-    return { orderId: order.id.value, total: order.total().amount() };
++    return { orderId: order.id.value, total: order.total().amount(), discount: order.discount().amount() };
++  }
++
++  private discountPercentFor(memberId: string | null): number {
++    if (memberId === null) return 0;
++    const tier = this.directory.tier(memberId);
++    return tier === undefined ? 0 : (TIER_DISCOUNT_PERCENT[tier] ?? 0);
+   }
+ }
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 98731a5e5..16c769862 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -1,4 +1,6 @@
+ /** What this part of the system needs to know about club members. */
+ export interface MemberDirectory {
+   exists(memberId: string): boolean;
++  /** The member's current tier, as shown on their member card. */
++  tier(memberId: string): string | undefined;
+ }
+diff --git a/a/src/sales/domain/order/Order.ts b/b/src/sales/domain/order/Order.ts
+index ed124a701..b9774afe2 100644
+--- a/a/src/sales/domain/order/Order.ts
++++ b/b/src/sales/domain/order/Order.ts
+@@ -13,6 +13,7 @@ export interface OrderState {
+   readonly id: OrderId;
+   readonly memberId: string | null;
+   readonly lines: readonly OrderLine[];
++  readonly discountPercent?: number;
+ }
+ 
+ /** A placed order. Every line has a positive whole quantity and a non-negative price. */
+@@ -23,30 +24,42 @@ export class Order {
+     readonly id: OrderId,
+     readonly memberId: string | null,
+     readonly lines: readonly OrderLine[],
++    readonly discountPercent: number = 0,
+   ) {}
+ 
+-  static place(id: OrderId, memberId: string | null, lines: readonly OrderLine[]): Order {
++  static place(id: OrderId, memberId: string | null, lines: readonly OrderLine[], discountPercent = 0): Order {
++    if (discountPercent < 0 || discountPercent > 100) throw new Error('discount must be between 0 and 100 percent');
+     if (lines.length === 0) throw new Error('an order needs at least one line');
+     for (const line of lines) {
+       if (!Number.isInteger(line.quantity) || line.quantity <= 0) throw new Error(`line ${line.sku}: quantity must be a positive whole number`);
+       if (line.unitPrice.isNegative()) throw new Error(`line ${line.sku}: price must not be negative`);
+     }
+-    const order = new Order(id, memberId, lines);
++    const order = new Order(id, memberId, lines, discountPercent);
+     order.pending.push(new OrderPlaced(id.value, memberId, order.total().cents, order.total().currency));
+     return order;
+   }
+ 
+   static restore(state: OrderState): Order {
+-    return new Order(state.id, state.memberId, state.lines);
++    return new Order(state.id, state.memberId, state.lines, state.discountPercent ?? 0);
+   }
+ 
+-  total(): Money {
++  /** The price of the lines before any discount. */
++  subtotal(): Money {
+     const currency = this.lines[0]?.unitPrice.currency ?? 'EUR';
+     return this.lines.reduce((sum, l) => sum.plus(l.unitPrice.times(l.quantity)), Money.zero(currency));
+   }
+ 
++  discount(): Money {
++    return this.subtotal().times(this.discountPercent / 100);
++  }
++
++  /** What the customer pays: the subtotal less the discount. */
++  total(): Money {
++    return this.subtotal().minus(this.discount());
++  }
++
+   state(): OrderState {
+-    return { id: this.id, memberId: this.memberId, lines: this.lines };
++    return { id: this.id, memberId: this.memberId, lines: this.lines, discountPercent: this.discountPercent };
+   }
+ 
+   pullEvents(): DomainEvent[] {

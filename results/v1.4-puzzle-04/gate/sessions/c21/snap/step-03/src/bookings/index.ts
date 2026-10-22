@@ -1,0 +1,32 @@
+import { CancelBooking } from './application/CancelBooking';
+import { GetBooking } from './application/GetBooking';
+import { MarkSailingCancelled } from './application/MarkSailingCancelled';
+import { RequestBooking } from './application/RequestBooking';
+import { SettleBooking } from './application/SettleBooking';
+import type { SailingDirectory } from './application/ports/SailingDirectory';
+import type { BookingView } from './contracts/BookingView';
+import type { BookingRepository } from './domain/booking/BookingRepository';
+
+export type { BookingView } from './contracts/BookingView';
+
+/** What the rest of the system may call. */
+export interface BookingsModule {
+  book(passenger: string, sailingId: string, seats: number): string;
+  booking(bookingId: string): BookingView | undefined;
+  settle(bookingId: string, seated: boolean): void;
+  cancel(bookingId: string): void;
+  /** Ids of the bookings on a sailing. */
+  onSailing(sailingId: string): string[];
+  sailingCancelled(bookingId: string): void;
+}
+
+export function createBookings(bookings: BookingRepository, sailings: SailingDirectory): BookingsModule {
+  return {
+    book: (passenger, sailingId, seats) => new RequestBooking(bookings, sailings).execute(passenger, sailingId, seats),
+    booking: (bookingId) => new GetBooking(bookings).execute(bookingId),
+    settle: (bookingId, seated) => new SettleBooking(bookings).execute(bookingId, seated),
+    cancel: (bookingId) => new CancelBooking(bookings).execute(bookingId),
+    onSailing: (sailingId) => bookings.bySailing(sailingId).map((b) => b.id.value),
+    sailingCancelled: (bookingId) => new MarkSailingCancelled(bookings).execute(bookingId),
+  };
+}

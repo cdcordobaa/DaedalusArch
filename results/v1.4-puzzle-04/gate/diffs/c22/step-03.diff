@@ -1,0 +1,22 @@
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 2e2105e1b..bc2de0ead 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -6,6 +6,7 @@ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteSh
+ import type { RatePort } from '../ports/out/RatePort';
+ 
+ const CURRENCY = 'EUR';
++const FREIGHT_THRESHOLD_GRAMS = 20000;
+ const HANDLING_FEE = Money.of(1.5, CURRENCY);
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+@@ -23,7 +24,9 @@ export class QuoteShipmentService implements QuoteShipment {
+     }
+ 
+     let cheapest: { price: Money; service: string } | undefined;
++    const freightOnly = parcel.weightGrams > FREIGHT_THRESHOLD_GRAMS;
+     for (const rate of rates) {
++      if ((rate.serviceCode === 'FREIGHT') !== freightOnly) continue;
+       const value = Number(rate.amount.value);
+       if (!Number.isFinite(value)) continue;
+       const price = Money.of(value, rate.amount.currency);

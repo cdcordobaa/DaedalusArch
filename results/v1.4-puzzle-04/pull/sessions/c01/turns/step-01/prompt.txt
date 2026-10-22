@@ -1,0 +1,9 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+A booking must now take its seats on the sailing. When book is called and the sailing has enough seats left, the seats are taken and booking(id).status is 'confirmed'; when it has not, nothing is taken and the status is 'rejected'. A sailing must never give out more seats than it has, and passengers must know at once whether they travel: the status is final by the time book returns.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c01/tsconfig.json
+
+An architecture tool is available to you as an MCP server. Its check_consistency tool finds where a command breaks a consistency boundary of the domain model, and its check_file and check_diff tools find where a file or a change breaks a layer rule of the architecture; each finding gives the file, the rule and a suggested change. Call check_consistency after you change code that saves data or code that calls another part of the system, call check_file on each file you change, and call both always before you finish. If they find anything, address it before you finish.

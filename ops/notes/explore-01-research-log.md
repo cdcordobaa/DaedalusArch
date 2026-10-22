@@ -199,6 +199,25 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - **Reading (dev):** P6 is the first puzzle the frozen instrument sees that the agent alone fails at 2/5 or below.
   The condition for sizing an `mcp` arm is met, and P5 meets it for a DETECT-02 arm.
 
+### 14. PUZZLE-04: the tool arms on every trapping puzzle (2026-10-22)
+`Docs/DiagnosticRuns/puzzle-04-2026-10-23.md`, `experiments/puzzle-04/`, `results/v1.4-puzzle-04/`:
+- **Built first (zero calls):** the edit-gate hub also runs the frozen layer rules FF-S01–S03 (`check_diff` fast path,
+  delta against the seed). The pull sentence now names `check_file` and `check_diff` (hint audit 0 FAIL). Unit tests
+  20/20. On the baseline trees the extended hub flags P1 5/5, P2 4/5, P3r 0/5, P5 5/5 and P6 5/5.
+- **Runs** (`claude-sonnet-5-5`, CLI 2.1.308, 109 of 121 calls, no redraw, isolation achieved with the clone only
+  chmod-closed): `gate` on P1, P2, P5, P6 and P3r (blind control); `pull` on P5 and P6.
+- **Clean solves, registered (provisional until the hand read):**
+  - P6: 5/5 under both arms (baseline 0/5): the only extreme split.
+  - P5: 0/5 under both, but every run fails only the under-specified step-3 test. The oracles pass in 4/5 (gate) and
+    5/5 (pull), against 0/5 at baseline.
+  - P1 gate 2/5 and P2 gate 2/5. Each is 5/5 under the proposed labels: new P1-SG1-c (an unused `saveAll` left on
+    the port), P2-SG2-a + P2-SG1-b, and new P2-SG1-e.
+  - P3r gate 0/5, with 0 gate replies (the blind control held).
+- **Mechanism:** 28 gate keys shown, 28 resolved, mostly within the turn; 0 fail-open; hub p95 451 ms. Under pull, P5
+  agents wrote the relay design without a finding (4/5).
+- **Blind spot found:** P5 gate c07 moved a cross-context write into the composition root's facade, where
+  `check_consistency` does not look.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -207,8 +226,10 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
 - [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
+- [ ] Author: hand read of the PUZZLE-04 cases (`results/v1.4-puzzle-04/oracle-verdicts-to-read.md`; three new categories decide P1 and P2 for the gate) (entry 14).
 
 ## Changelog
+- 2026-10-22: entry 14 (PUZZLE-04).
 - 2026-10-22: entry 13 (PUZZLE-03).
 - 2026-10-22: entry 12 (v1.5 U3 severity rubric).
 - 2026-10-22: entry 11 (edit gate built and smoke-tested).

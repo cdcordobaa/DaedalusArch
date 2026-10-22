@@ -1,0 +1,47 @@
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 639aa381d..a04f1d1b8 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -3,6 +3,7 @@ import { InMemoryMemberRepository } from './membership/infrastructure/InMemoryMe
+ import { MembershipDirectory } from './sales/acl/MembershipDirectory';
+ import { EventRelay } from './sales/application/EventRelay';
+ import { PlaceOrder, type LineRequest, type PlacedOrder } from './sales/application/PlaceOrder';
++import type { OrderPlaced } from './sales/domain/order/events/OrderPlaced';
+ import { ReceiptFooter } from './sales/application/ReceiptFooter';
+ import { SendReceipt } from './sales/application/SendReceipt';
+ import { InMemoryOrderRepository } from './sales/infrastructure/InMemoryOrderRepository';
+@@ -16,6 +17,12 @@ export function createApp() {
+   const receipts = new InMemoryReceipts();
+   const relay = new EventRelay(orders);
+   const sendReceipt = new SendReceipt(receipts, new ReceiptFooter(members));
++  // One point per whole currency unit paid; registered first so the receipt shows the new balance.
++  relay.on('OrderPlaced', (e) => {
++    const placed = e as OrderPlaced;
++    const points = Math.floor(placed.totalCents / 100);
++    if (placed.memberId !== null && points > 0) membership.awardPoints(placed.memberId, points);
++  });
+   relay.on('OrderPlaced', (e) => sendReceipt.handle(e));
+   const command = <T>(run: () => T): T => {
+     const result = run();
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 67184aa75..d251c053c 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -11,5 +11,4 @@ export class MembershipDirectory implements MemberDirectory {
+ 
+   tier(memberId: string): string | undefined {
+     return this.membership.card(memberId)?.tier;
+-  }
+-}
++  }}
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 16c769862..c0cc3cbfc 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -2,5 +2,4 @@
+ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** The member's current tier, as shown on their member card. */
+-  tier(memberId: string): string | undefined;
+-}
++  tier(memberId: string): string | undefined;}

@@ -1,0 +1,36 @@
+diff --git a/a/src/business/services/JobService.ts b/b/src/business/services/JobService.ts
+index b440e5118..d9b93e5d6 100644
+--- a/a/src/business/services/JobService.ts
++++ b/b/src/business/services/JobService.ts
+@@ -27,6 +27,16 @@ export class JobService {
+     return toView(closed);
+   }
+ 
++  reassign(jobId: string, mechanicId: string): JobView {
++    const job = this.jobs.byId(jobId);
++    if (job === undefined) throw new WorkshopError(`no job ${jobId}`);
++    this.mechanics.mechanic(mechanicId);
++    if (job.closedOn !== null) throw new WorkshopError(`job ${jobId} is closed`);
++    const reassigned = { ...job, mechanicId };
++    this.jobs.update(reassigned);
++    return toView(reassigned);
++  }
++
+   job(jobId: string): JobView {
+     const job = this.jobs.byId(jobId);
+     if (job === undefined) throw new WorkshopError(`no job ${jobId}`);
+diff --git a/a/src/presentation/WorkshopController.ts b/b/src/presentation/WorkshopController.ts
+index caf0efe0c..675f9b9d0 100644
+--- a/a/src/presentation/WorkshopController.ts
++++ b/b/src/presentation/WorkshopController.ts
+@@ -22,6 +22,10 @@ export class WorkshopController {
+     return handle(() => this.jobs.close(jobId, labourMinutes, partsCents, this.today()));
+   }
+ 
++  reassignJob(jobId: string, mechanicId: string): HttpResponse {
++    return handle(() => this.jobs.reassign(jobId, mechanicId));
++  }
++
+   job(jobId: string): HttpResponse {
+     return handle(() => this.jobs.job(jobId));
+   }

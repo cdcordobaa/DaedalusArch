@@ -1,0 +1,41 @@
+diff --git a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+index ac846ab62..0ab0a12e8 100644
+--- a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -23,6 +23,7 @@ export class FastshipRateAdapter implements RatePort {
+     }
+     let best: Quote | undefined;
+     for (const rate of rates) {
++      if ((rate.serviceCode === 'FREIGHT') !== parcel.requiresFreight()) continue;
+       const value = Number(rate.amount.value);
+       if (!Number.isFinite(value)) continue;
+       const price = Money.of(value, rate.amount.currency);
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 8ffbd321d..6c37fad21 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -22,6 +22,8 @@ export class QuoteShipmentService implements QuoteShipment {
+       cheapest = await this.rates.cheapest(parcel);
+     } catch (e) {
+       if (!(e instanceof RatesUnavailableError)) throw e;
++      // The house rate is not a freight service, so it cannot stand in for one.
++      if (parcel.requiresFreight()) throw e;
+       cheapest = this.fallback.quote(parcel);
+       estimated = true;
+     }
+diff --git a/a/src/domain/model/Parcel.ts b/b/src/domain/model/Parcel.ts
+index 6003610ad..7e78545f3 100644
+--- a/a/src/domain/model/Parcel.ts
++++ b/b/src/domain/model/Parcel.ts
+@@ -20,6 +20,11 @@ export class Parcel {
+     return this.from === this.to;
+   }
+ 
++  /** Parcels over 20 kg travel by freight only; lighter ones never do. */
++  requiresFreight(): boolean {
++    return this.weightGrams > 20000;
++  }
++
+   band(): WeightBand {
+     if (this.weightGrams <= 1000) return 'up-to-1kg';
+     if (this.weightGrams <= 5000) return 'up-to-5kg';

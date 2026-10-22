@@ -1,0 +1,199 @@
+diff --git a/b/src/ledger/application/ReceiveTransfer.ts b/b/src/ledger/application/ReceiveTransfer.ts
+new file mode 100644
+index 000000000..7569f587f
+--- /dev/null
++++ b/b/src/ledger/application/ReceiveTransfer.ts
+@@ -0,0 +1,19 @@
++import type { DomainEvent } from '../../shared-kernel/DomainEvent';
++import { Money } from '../../shared-kernel/Money';
++import type { AccountRepository } from '../domain/account/AccountRepository';
++import type { TransferSent } from '../domain/account/events/TransferSent';
++import { AccountId } from '../domain/account/value-objects/AccountId';
++import { LedgerError } from '../domain/LedgerError';
++
++/** Credits the receiving account when a transfer has been sent. */
++export class ReceiveTransfer {
++  constructor(private readonly accounts: AccountRepository) {}
++
++  handle(event: DomainEvent): void {
++    const sent = event as TransferSent;
++    const to = this.accounts.byId(AccountId.of(sent.toAccountId));
++    if (to === undefined) throw new LedgerError(`no account ${sent.toAccountId}`);
++    to.receiveTransfer(sent.transferId, Money.of(sent.cents / 100, sent.currency));
++    this.accounts.save(to);
++  }
++}
+diff --git a/a/src/ledger/application/Transfer.ts b/b/src/ledger/application/Transfer.ts
+index 57a14628e..d06a04952 100644
+--- a/a/src/ledger/application/Transfer.ts
++++ b/b/src/ledger/application/Transfer.ts
+@@ -4,7 +4,10 @@ import { AccountId } from '../domain/account/value-objects/AccountId';
+ import { LedgerError } from '../domain/LedgerError';
+ 
+ export class Transfer {
+-  constructor(private readonly accounts: AccountRepository) {}
++  constructor(
++    private readonly accounts: AccountRepository,
++    private readonly today: () => string,
++  ) {}
+ 
+   execute(fromAccountId: string, toAccountId: string, amount: number): void {
+     const from = this.accounts.byId(AccountId.of(fromAccountId));
+@@ -14,8 +17,7 @@ export class Transfer {
+     if (from.id.value === to.id.value) throw new LedgerError('cannot transfer to the same account');
+     if (from.currency !== to.currency) throw new LedgerError(`currency mismatch: ${from.currency} vs ${to.currency}`);
+     const money = Money.of(amount, from.currency);
+-    from.withdraw(money);
+-    to.deposit(money);
+-    this.accounts.saveAll([from, to]);
++    from.sendTransfer(money, this.today(), to.id.value);
++    this.accounts.save(from);
+   }
+ }
+diff --git a/a/src/ledger/domain/account/Account.ts b/b/src/ledger/domain/account/Account.ts
+index 476f6013d..a1bed2005 100644
+--- a/a/src/ledger/domain/account/Account.ts
++++ b/b/src/ledger/domain/account/Account.ts
+@@ -2,6 +2,7 @@ import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
+ import { Money } from '../../../shared-kernel/Money';
+ import { LedgerError } from '../LedgerError';
+ import { AccountOpened } from './events/AccountOpened';
++import { TransferSent } from './events/TransferSent';
+ import type { AccountId } from './value-objects/AccountId';
+ 
+ export interface AccountState {
+@@ -9,8 +10,18 @@ export interface AccountState {
+   readonly owner: string;
+   readonly currency: string;
+   readonly balance: Money;
++  /** Day (YYYY-MM-DD) that `sentToday` refers to. */
++  readonly sentDay?: string;
++  /** Amount sent by transfer on `sentDay`. */
++  readonly sentToday?: Money;
++  /** Number of transfers sent; makes transfer ids unique per account. */
++  readonly sentCount?: number;
++  /** Ids of incoming transfers already applied. */
++  readonly received?: readonly string[];
+ }
+ 
++const DAILY_TRANSFER_LIMIT_CENTS = 100_000;
++
+ /** A customer's account. Its balance never goes below zero. */
+ export class Account {
+   private pending: DomainEvent[] = [];
+@@ -20,6 +31,10 @@ export class Account {
+     readonly owner: string,
+     readonly currency: string,
+     private current: Money,
++    private sentDay: string = '',
++    private sentToday: Money = Money.zero(currency),
++    private sentCount: number = 0,
++    private received: readonly string[] = [],
+   ) {}
+ 
+   static open(id: AccountId, owner: string, currency: string): Account {
+@@ -29,7 +44,7 @@ export class Account {
+   }
+ 
+   static restore(state: AccountState): Account {
+-    return new Account(state.id, state.owner, state.currency, state.balance);
++    return new Account(state.id, state.owner, state.currency, state.balance, state.sentDay, state.sentToday, state.sentCount, state.received);
+   }
+ 
+   get balance(): Money {
+@@ -48,8 +63,44 @@ export class Account {
+     this.current = after;
+   }
+ 
++  /**
++   * Withdraws for an outgoing transfer, enforcing the daily transfer limit, and records
++   * TransferSent so the receiving account is credited by a handler. `day` is YYYY-MM-DD.
++   */
++  sendTransfer(amount: Money, day: string, toAccountId: string): void {
++    const sent = this.sentDay === day ? this.sentToday : Money.zero(this.currency);
++    const total = sent.plus(amount);
++    const limit = Money.of(DAILY_TRANSFER_LIMIT_CENTS / 100, this.currency);
++    if (amount.isPositive() && total.minus(limit).isPositive()) {
++      throw new LedgerError(`daily transfer limit reached: ${limit.minus(sent).format()} left today`);
++    }
++    this.withdraw(amount);
++    this.sentDay = day;
++    this.sentToday = total;
++    this.sentCount += 1;
++    this.pending.push(
++      new TransferSent(`${this.id.value}#${this.sentCount}`, this.id.value, toAccountId, amount.cents, amount.currency),
++    );
++  }
++
++  /** Credits an incoming transfer; a transfer id that was already applied is ignored. */
++  receiveTransfer(transferId: string, amount: Money): void {
++    if (this.received.includes(transferId)) return;
++    this.deposit(amount);
++    this.received = [...this.received, transferId];
++  }
++
+   state(): AccountState {
+-    return { id: this.id, owner: this.owner, currency: this.currency, balance: this.current };
++    return {
++      id: this.id,
++      owner: this.owner,
++      currency: this.currency,
++      balance: this.current,
++      sentDay: this.sentDay,
++      sentToday: this.sentToday,
++      sentCount: this.sentCount,
++      received: this.received,
++    };
+   }
+ 
+   pullEvents(): DomainEvent[] {
+diff --git a/b/src/ledger/domain/account/events/TransferSent.ts b/b/src/ledger/domain/account/events/TransferSent.ts
+new file mode 100644
+index 000000000..447db4670
+--- /dev/null
++++ b/b/src/ledger/domain/account/events/TransferSent.ts
+@@ -0,0 +1,13 @@
++import type { DomainEvent } from '../../../../shared-kernel/DomainEvent';
++
++export class TransferSent implements DomainEvent {
++  readonly type = 'TransferSent';
++
++  constructor(
++    readonly transferId: string,
++    readonly fromAccountId: string,
++    readonly toAccountId: string,
++    readonly cents: number,
++    readonly currency: string,
++  ) {}
++}
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 2670fa582..a8d83a768 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -2,6 +2,7 @@ import { Deposit } from './ledger/application/Deposit';
+ import { EventRelay } from './ledger/application/EventRelay';
+ import { GetBalance } from './ledger/application/GetBalance';
+ import { OpenAccount } from './ledger/application/OpenAccount';
++import { ReceiveTransfer } from './ledger/application/ReceiveTransfer';
+ import { SendWelcomeNotice } from './ledger/application/SendWelcomeNotice';
+ import { Transfer } from './ledger/application/Transfer';
+ import { Withdraw } from './ledger/application/Withdraw';
+@@ -21,7 +22,8 @@ export function createApp(options: AppOptions = {}) {
+   const relay = new EventRelay(accounts);
+   const welcome = new SendWelcomeNotice(notices);
+   relay.on('AccountOpened', (e) => welcome.handle(e));
+-  const command = <T>(run: () => T): T => {
++  relay.on('TransferSent', (e) => new ReceiveTransfer(accounts).handle(e));
++  const command =<T>(run: () => T): T => {
+     const result = run();
+     relay.deliverPending();
+     return result;
+@@ -31,7 +33,7 @@ export function createApp(options: AppOptions = {}) {
+     deposit: (accountId: string, amount: number): void => command(() => new Deposit(accounts).execute(accountId, amount)),
+     withdraw: (accountId: string, amount: number): void => command(() => new Withdraw(accounts).execute(accountId, amount)),
+     transfer: (fromAccountId: string, toAccountId: string, amount: number): void =>
+-      command(() => new Transfer(accounts).execute(fromAccountId, toAccountId, amount)),
++      command(() => new Transfer(accounts, today).execute(fromAccountId, toAccountId, amount)),
+     balanceOf: (accountId: string): number => new GetBalance(accounts).execute(accountId),
+     notices: (): string[] => notices.all(),
+   };

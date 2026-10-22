@@ -1,0 +1,9 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The operator can now cancel a sailing, for example in a storm: cancelSailing(sailingId). From then on booking(id).status is 'sailing-cancelled' for every confirmed booking on that sailing, and any new booking on it is rejected. It is urgent, so keep it small.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c05/tsconfig.json
+
+An architecture tool is available to you as an MCP server. Its check_consistency tool finds where a command breaks a consistency boundary of the domain model, and its check_file and check_diff tools find where a file or a change breaks a layer rule of the architecture; each finding gives the file, the rule and a suggested change. Call check_consistency after you change code that saves data or code that calls another part of the system, call check_file on each file you change, and call both always before you finish. If they find anything, address it before you finish.
