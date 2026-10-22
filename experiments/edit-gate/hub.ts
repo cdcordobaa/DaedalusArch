@@ -21,6 +21,8 @@ export interface GateCell {
   /** Root-only puzzle spec (`/srv/o/specs/tN.yaml` in a run). */
   readonly spec: string;
   readonly project: string;
+  /** Optional: the tree whose files count as unchanged (default: the work tree as it is when the cell opens). */
+  readonly baseline?: string;
 }
 
 /** A tree's files (no `node_modules`) and their sha256, POSIX relative paths. */
@@ -112,7 +114,7 @@ export class GateHub {
   async setCell(cell: GateCell): Promise<void> {
     const scratch = path.join(this.logDir, 'scratch', cell.id);
     fs.mkdirSync(scratch, { recursive: true, mode: 0o700 });
-    this.session = { cell, seed: treeHashes(cell.project), state: new GateState(), scratch };
+    this.session = { cell, seed: treeHashes(cell.baseline ?? cell.project), state: new GateState(), scratch };
     await this.check({ root: cell.project, spec: cell.spec, scratch }).catch(() => undefined);
   }
 
