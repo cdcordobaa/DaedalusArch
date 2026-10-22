@@ -1,0 +1,22 @@
+{
+ "key": "1011275a31758e7f0ee9e6352ecbdc60966df9db8be9a5e80451285ebe8d6d76",
+ "part": "S2",
+ "item": "fixture/c4v-h5-vendor-type/twin#D5#src/application/services/BookRoomService.ts:11",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:23.417Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 11,
+    "quote": "if (existing.some((b) => b.isActive() && b.stay.overlaps(stay))) throw new Error(`Room ${roomId} is already booked`);"
+   }
+  ],
+  "rationale": "The no-overlap rule for active bookings of a room is decided in the application service by reading Booking state (isActive, stay). Booking and DateRange don't own it, and no Room aggregate or domain policy does either. It is a business invariant, not input parsing. Being in a transaction doesn't make it a mere uniqueness check, so the rule is misplaced."
+ },
+ "invalidReason": null
+}

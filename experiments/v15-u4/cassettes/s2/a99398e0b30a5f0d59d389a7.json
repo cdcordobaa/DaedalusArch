@@ -1,0 +1,22 @@
+{
+ "key": "a99398e0b30a5f0d59d389a71d0a7cce50e4e4d28e3e11cc40233b95896f1ab2",
+ "part": "S2",
+ "item": "pilot/s2-orders-invoices/step-04#D5#src/ordering/application/PlaceOrder.ts:37",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:57:17.151Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 37,
+    "quote": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new Error("
+   }
+  ],
+  "rationale": "The quantity rule (positive integer) is already enforced by the Quantity value object. PlaceOrder repeats it before constructing Quantity, so the invariant is duplicated in the application service. The unit price check on line 38 is also a rule about the value that Money should own, though Money's code isn't shown. The quantity duplication alone is a clear violation."
+ },
+ "invalidReason": null
+}

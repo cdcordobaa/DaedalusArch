@@ -1,0 +1,22 @@
+{
+ "key": "183a2beeda2486b8dcd49a1210019be1a01d262512a4e7b0fc2a6fbde27a5889",
+ "part": "S2",
+ "item": "pilot/s2-orders-invoices/step-04#D5#src/ordering/application/SetTaxRate.ts:8",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:57:26.652Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/SetTaxRate.ts",
+    "line": 8,
+    "quote": "if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) throw new Error('Tax rate must be a fraction between 0 and 1');"
+   }
+  ],
+  "rationale": "The range rule (a tax rate must be a fraction between 0 and 1) is a domain invariant on a value the domain receives. It is enforced in the application service, not in a value object or the domain's TaxRates module. The domain only validates the country, so nothing in the domain enforces the rate rule. This is more than input parsing."
+ },
+ "invalidReason": null
+}

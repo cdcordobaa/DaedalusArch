@@ -1,0 +1,16 @@
+{
+ "key": "02d4da39522ff5d71eb4c7b0bc2a5da891ff13399142f58a3dac820977c164ef",
+ "part": "S2",
+ "item": "fixture/c1-s1-d5-lock/pos#D5#src/application/services/BookRoomService.ts:14",
+ "run": 1,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:59:39.260Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The overlap check compares a new stay against all existing Booking aggregates for a room. A single Booking cannot enforce it, so it is a cross-aggregate check like uniqueness, which the rule excludes. The service also holds a per-room lock for concurrency. The domain already owns DateRange.overlaps and Booking.isActive; the service only orchestrates them, so no aggregate invariant is duplicated."
+ },
+ "invalidReason": null
+}

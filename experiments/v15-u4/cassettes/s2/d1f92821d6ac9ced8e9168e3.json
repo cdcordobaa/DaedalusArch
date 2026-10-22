@@ -1,0 +1,16 @@
+{
+ "key": "d1f92821d6ac9ced8e9168e3fc182c5a14c1e5dcad568baf2228636c601b7479",
+ "part": "S2",
+ "item": "pilot/s1-hotel-bookings/step-03#D5#src/application/services/BookRoomService.ts:85",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:56:33.982Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The overlap rule is not copied into the application service. reserve only calls AvailabilityChecker, a domain service. The check compares a room against other bookings of that room, so it is a cross-aggregate check, which the rule excludes. The service merely throws on the result, which is orchestration. Capacity is checked by Room.fits, owned by the aggregate."
+ },
+ "invalidReason": null
+}

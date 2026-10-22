@@ -1,0 +1,22 @@
+{
+ "key": "9de23f4d93668fec7168d11f41d1e3c14ff8804fa2b0ad7fb702b86746f95cae",
+ "part": "S2",
+ "item": "pilot/s1-hotel-bookings/step-05#H5#src/application/ports/out/BookingRepository.ts:16",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:56:36.967Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 16,
+    "quote": "withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T>;"
+   }
+  ],
+  "rationale": "The port exposes a lock mechanism (withRoomLock) and passes a scoped BookingRepository to a callback. This is a lock/unit-of-work scope handed through the port, which the rule forbids, rather than a plain application-level need."
+ },
+ "invalidReason": null
+}

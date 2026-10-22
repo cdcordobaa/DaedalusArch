@@ -1,0 +1,22 @@
+{
+ "key": "1d87e9e562780a8326a3c23a60b08902b017872ffd4264fe0449858bb784bee3",
+ "part": "S2",
+ "item": "fixture/c7-s2-d5-settaxrate/pos#D5#src/ordering/application/SetTaxRate.ts:8",
+ "run": 1,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:59:53.172Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/SetTaxRate.ts",
+    "line": 8,
+    "quote": "if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) throw new Error('Tax rate must be a fraction between 0 and 1');"
+   }
+  ],
+  "rationale": "The rule that a tax rate must be a fraction between 0 and 1 is a domain invariant on a value the domain receives. It is enforced in the application service, not in a value object. TaxRates is only an interface with no validation. The typeof check is input parsing, but the range check is a business rule."
+ },
+ "invalidReason": null
+}

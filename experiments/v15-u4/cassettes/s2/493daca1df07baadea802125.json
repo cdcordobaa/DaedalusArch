@@ -1,0 +1,16 @@
+{
+ "key": "493daca1df07baadea80212553611729d0f6211fcfa2d1af2d59c938a570dd56",
+ "part": "S2",
+ "item": "pilot/s2-orders-invoices/step-00#D5#src/ordering/application/PlaceOrder.ts:22",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:56:50.611Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The invariant (inactive customer cannot order) is owned by Customer.canOrder(). PlaceOrder only calls it and does not duplicate the rule. The null check is a lookup-existence check. The rule spans Customer and Order, so orchestration by an application service that delegates to the domain method is acceptable. No copied invariant."
+ },
+ "invalidReason": null
+}

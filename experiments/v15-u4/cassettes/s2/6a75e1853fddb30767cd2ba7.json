@@ -1,0 +1,22 @@
+{
+ "key": "6a75e1853fddb30767cd2ba75701f341673eb757564c1c6ba178a6fc564f96ca",
+ "part": "S2",
+ "item": "pilot/s2-orders-invoices/step-02#D5#src/ordering/application/PlaceOrder.ts:35",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:57:03.020Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 35,
+    "quote": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new Error("
+   }
+  ],
+  "rationale": "The application service repeats Quantity's invariant (positive integer), which the Quantity value object already enforces in its constructor. The check at line 35 duplicates it and is not cross-aggregate. The unit price check at line 36 is also a domain rule about a value (Money), and the service has no need to own it. Both are redundant copies of domain rules outside the domain."
+ },
+ "invalidReason": null
+}

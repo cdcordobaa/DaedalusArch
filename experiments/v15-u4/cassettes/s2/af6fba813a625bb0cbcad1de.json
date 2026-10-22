@@ -1,0 +1,22 @@
+{
+ "key": "af6fba813a625bb0cbcad1dee23fe9609568aff7dcfb0e3bc94a5a414b6cf25f",
+ "part": "S2",
+ "item": "solution/p1-transfers/trap#D5#src/ledger/application/TransferMoney.ts:19",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:55:40.792Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ledger/application/TransferMoney.ts",
+    "line": 19,
+    "quote": "if (money.cents > left) throw new LedgerError(`daily transfer limit reached"
+   }
+  ],
+  "rationale": "The daily transfer limit is a business invariant on money leaving an account. It is enforced in the application service using a constant defined there (DAILY_LIMIT_CENTS), not in Account.withdraw or a value object. Account only checks positivity and sufficient funds. The sent-today figure comes from the repository, but the decision itself is not a uniqueness-style cross-aggregate check. The aggregate should own this rule."
+ },
+ "invalidReason": null
+}

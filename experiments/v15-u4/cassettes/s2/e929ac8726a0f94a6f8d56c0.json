@@ -1,0 +1,16 @@
+{
+ "key": "e929ac8726a0f94a6f8d56c034b8348223b9b7c874c2dcaebbb38075767e766d",
+ "part": "S2",
+ "item": "solution/p1-transfers/trap#D5#src/ledger/application/TransferMoney.ts:15",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:55:49.806Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "Line 15 checks that the source and destination accounts differ. That rule relates two aggregates, so neither Account instance can enforce it alone. The rule exempts cross-aggregate checks. The check only compares ids and does not read state an Account should guard. The daily limit and currency checks nearby may be separate issues, but they are not what this claim covers."
+ },
+ "invalidReason": null
+}

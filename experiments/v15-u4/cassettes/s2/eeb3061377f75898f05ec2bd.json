@@ -1,0 +1,22 @@
+{
+ "key": "eeb3061377f75898f05ec2bd040ca5a0ec3cdd949b95ee8d991b3ef811f7874e",
+ "part": "S2",
+ "item": "fixture/c2-s1-d4-saveaudited/pos#D4#src/application/services/CancelBookingService.ts:7",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:57:57.275Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/services/CancelBookingService.ts",
+    "line": 12,
+    "quote": "await this.bookings.saveAudited(booking, [entry]);"
+   }
+  ],
+  "rationale": "The cancel command changes Booking and also creates and saves a separate AuditEntry. The entry has its own id and refers to the booking only by id. It is built in the service rather than inside Booking, so it looks like a second aggregate saved in the same unit of work. The rule says a domain-event handler should do this. AuditRecord.ts is not shown, so this is inferred from how the code uses it."
+ },
+ "invalidReason": null
+}

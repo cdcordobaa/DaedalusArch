@@ -1,0 +1,22 @@
+{
+ "key": "281097acf678a49fec74a89a81b393d25e8d80d1219f76521db2a2fb289d51ea",
+ "part": "S2",
+ "item": "fixture/c1-s1-d5-lock/pos#D5#src/application/services/BookRoomService.ts:14",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:57:48.239Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 14,
+    "quote": "if (existing.some((b) => b.isActive() && b.stay.overlaps(stay))) throw new Error(`Room ${roomId} is already booked`);"
+   }
+  ],
+  "rationale": "The no-double-booking invariant (no overlapping active bookings per room) is decided in the application service by combining isActive() and stay.overlaps(). No aggregate owns it, since Booking is per-booking and there is no Room or schedule aggregate. The rule is a business invariant, not just a uniqueness check. The service lock only handles concurrency and does not move the rule into the domain."
+ },
+ "invalidReason": null
+}

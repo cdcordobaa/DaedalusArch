@@ -1,0 +1,22 @@
+{
+ "key": "f2329233ceef8e508a24becbbc5dc95977fd84a262c1ed979e03d4ce29edf878",
+ "part": "S2",
+ "item": "fixture/c4v-h5-vendor-type/pos#D5#src/application/services/BookRoomService.ts:11",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:15.526Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 11,
+    "quote": "if (existing.some((b) => b.isActive() && b.stay.overlaps(stay))) throw new Error(`Room ${roomId} is already booked`);"
+   }
+  ],
+  "rationale": "The no-double-booking rule is decided in the application service. It reads each booking's active state and stay overlap, then throws. Booking only exposes isActive and stay, so it owns none of the rule. The overlap check goes beyond a simple uniqueness check, so the domain decision sits outside the model."
+ },
+ "invalidReason": null
+}
