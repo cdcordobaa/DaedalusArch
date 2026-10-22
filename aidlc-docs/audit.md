@@ -3080,3 +3080,9 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory hand reads; development material only, never applied to Study 2b; no frozen path or oracle changed; zero calls
 
 ---
+
+## COMPREHEND-01 pilot — files only vs files plus graph tools
+**Timestamp**: 2026-10-22T19:20:00Z
+**User Input**: "(coordinator brief) Run the COMPREHEND-01 pilot as the approved design note specifies (about 30 questions x 2 arms, files only vs files plus the four graph tools, claude-sonnet-5-5, 1 run, hard cap 64 calls including one smoke per arm and retries), with the agent unable to read the bank or answers; no tuning after answers; score with zero calls (accuracy per type and arm, tokens, tool calls, wall time, the graph fact behind every wrong graph-arm answer); report, research-log entry, PR, merge on green."
+**AI Response**: "Revision R1 before any call: cap 64 and an isolated layout (generator uid 1500, tree copies, clone closed with chmod only, the graph server started through sudo and a root-only launcher by neutral id); isolation checks passed. The R1 FG smoke showed no MCP server (--safe-mode from EFF-01's argv disables --mcp-config servers); the run was stopped before any question. Revision R2: both arms drop --safe-mode and add --disable-slash-commands; an init check per session. 63 of 64 calls, 0 invalid, 0 re-runs. Accuracy F 0.933, FG 0.900; non-Gw 0.963 each; token ratio FG/F 0.835, wall time -15%, -1.5 tool calls. Wrong FG answers: LH-WW1 and DF-C1 (D2 gaps, both predicted), P2-P1 (placement, no graph call, possible key dispute). F answered all trap-step rule items (PR6). Report Docs/DiagnosticRuns/comprehend-01-pilot-2026-10-23.md; research-log entry 16."
+**Context**: COMPREHEND-01 (exploratory, v1.5-exp, DEV); pilot run; 63 generator calls

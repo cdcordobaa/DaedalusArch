@@ -12,7 +12,8 @@ import { loadBank } from './lib/bank.js';
 import { FakeModelRunner, perturb } from './lib/runners.js';
 import type { FakeBehaviour, FakeScript } from './lib/runners.js';
 import { scorePayload, scoreText } from './lib/score.js';
-import { confinement, PLANNED_SESSIONS, plan, runAll, summarise } from './run.js';
+import { confinement, initCheck, PLANNED_SESSIONS, plan, runAll, summarise } from './run.js';
+import type { Isolation } from './run.js';
 
 const { bank, conventions } = loadBank();
 const IN_REPO = ['p1-seed', 'p2-seed', 'p4-seed', 'fx-p05-positive', 'fx-p07-positive', 'fx-p08-positive', 'fx-p09-legit'];
@@ -118,5 +119,35 @@ describe('runner', () => {
     assert.deepEqual(s.capHits, ['P2-W1-F: turns']);
     assert.deepEqual(s.formatFailures, ['P2-O1-F']);
     assert.equal(s.fgSessionsWithoutGraphCall, 1);
+  });
+  it('R1: runs isolated sessions from the tree copies, with a neutral launcher config in FG', async () => {
+    const runner = new FakeModelRunner(script(() => 'answer'));
+    const root = tmp();
+    const copy = path.join(root, 't02');
+    fs.cpSync('experiments/puzzle-01/puzzles/p2-loyalty/seed', copy, { recursive: true });
+    const iso: Isolation = { treeDirs: { 'p2-seed': copy }, launcher: '/srv/bin/gserver', serverConfigDir: tmp(), clientConfigDir: tmp() };
+    const r = await runAll({ out: tmp(), runner, clones: undefined, harness: tmp(), onlyTrees: ['p2-seed'], isolation: iso });
+    assert.ok(r.rows.length > 0 && r.rows.every((x) => x.valid));
+    const client = fs.readdirSync(iso.clientConfigDir);
+    assert.ok(client.length > 0 && client.every((f) => /^s\d{2}\.json$/.test(f)));
+    const c = JSON.parse(fs.readFileSync(path.join(iso.clientConfigDir, client[0]!), 'utf8')) as { mcpServers: Record<string, { command: string; args: string[] }> };
+    const s = Object.values(c.mcpServers)[0]!;
+    assert.equal(s.command, '/usr/bin/sudo');
+    assert.deepEqual(s.args, ['-n', '/srv/bin/gserver', client[0]!.replace('.json', '')]);
+    const real = JSON.parse(fs.readFileSync(path.join(iso.serverConfigDir, client[0]!), 'utf8')) as { args: string[] };
+    assert.equal(real.args[real.args.indexOf('--project') + 1], copy);
+  });
+  it('R2: drops --safe-mode in both arms and checks the init event\'s MCP servers', () => {
+    for (const arm of ['F', 'FG'] as const) {
+      const a = armArgs(arm, 'p', '/abs/mcp.json');
+      assert.ok(a.ok && !a.args.includes('--safe-mode') && a.args.includes('--disable-slash-commands') && a.args.includes('--restricted'));
+    }
+    const init = (servers: unknown[]): string => `${JSON.stringify({ type: 'system', subtype: 'init', mcp_servers: servers })}\n`;
+    assert.equal(initCheck('F', init([])), null);
+    assert.equal(initCheck('FG', init([{ name: 'daedalus-graph', status: 'connected' }])), null);
+    assert.match(initCheck('FG', init([])) ?? '', /expected/);
+    assert.match(initCheck('FG', init([{ name: 'daedalus-graph', status: 'failed' }])) ?? '', /expected/);
+    assert.match(initCheck('F', init([{ name: 'x', status: 'connected' }])) ?? '', /expected/);
+    assert.equal(initCheck('F', '{}\n'), 'no init event');
   });
 });
