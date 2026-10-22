@@ -1,0 +1,22 @@
+{
+ "key": "63e1af6a7df1aca33dc41dd477ae83b5f17ea0afe8aa01ea107e79f16082a61d",
+ "part": "S2",
+ "item": "r2:pilot/s1-hotel-bookings/step-05#D5#src/application/services/BookRoomService.ts:74",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1+u4-r2",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T19:03:26.029Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 74,
+    "quote": "if (!this.availability.isAvailable(room, stay, existing)) {"
+   }
+  ],
+  "rationale": "The no-overlap rule across a room's bookings is a set invariant that must hold at every commit. No aggregate owns it: Booking holds only its own state. The application service loads the room's bookings under a lock and decides availability. Calling the AvailabilityChecker domain helper does not move ownership into an aggregate, so the rule is broken."
+ },
+ "invalidReason": null
+}

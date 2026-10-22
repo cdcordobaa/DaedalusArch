@@ -1,0 +1,98 @@
+{
+ "schema": "v15-u4-s2-r2-v1",
+ "promptVersion": "detect02-sem-v1+u4-r2",
+ "posthoc": true,
+ "ruleTextD5": "A business invariant of an aggregate (or a rule about a value the domain model receives) is checked inside the aggregate or a value object. A copy of the rule in an application service, controller or adapter, or a decision there that the aggregate should own, breaks it. Pure input parsing (types, formats, required fields) is not a violation, and neither is uniqueness of a key across the whole store. A rule over a set of instances that must hold at every commit (for example: no two active bookings of one room overlap) is an invariant that needs an owning aggregate. If no aggregate owns that set and a service checks it, with or without a lock, the rule is broken, even when the service calls a domain helper to compute it.",
+ "rows": [
+  {
+   "id": "pilot/s1-hotel-bookings/step-01#D5#src/application/services/BookRoomService.ts:54",
+   "label": "pilot/s1-hotel-bookings/step-01",
+   "expected": "fp",
+   "verdict": "confirm",
+   "grounded": true,
+   "cached": false,
+   "key": "833a37c3fcfc712cde9df107",
+   "rationale": "The no-overlap rule across a room's active bookings must hold at every commit. No aggregate owns that set: Booking is a single instance and Room is not shown owning bookings. The application service loads the bookings and enforces the rule, only calling a domain helper to compute it. Under D5 this is still a violation."
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-02#D5#src/application/services/BookRoomService.ts:84",
+   "label": "pilot/s1-hotel-bookings/step-02",
+   "expected": "tp",
+   "verdict": "confirm",
+   "grounded": true,
+   "cached": false,
+   "key": "a0908493bfdf15101150b6c9",
+   "rationale": "The no-overlap rule across a room's bookings must hold at every commit. No aggregate owns that set: Booking is a single instance, and Room isn't given the bookings. BookRoomService checks it under a per-room lock using a domain helper (AvailabilityChecker), which the rule still counts as a violation."
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-03#D5#src/application/services/BookRoomService.ts:85",
+   "label": "pilot/s1-hotel-bookings/step-03",
+   "expected": "tp",
+   "verdict": "confirm",
+   "grounded": true,
+   "cached": false,
+   "key": "7c56efbfc6458c8cdae4f543",
+   "rationale": "The no-overlap rule across active bookings of a room must hold at every commit. No aggregate owns that set of bookings. BookRoomService loads them, checks availability with a domain helper under an in-memory lock, and throws. Booking only guards its own state. This matches the rule's stated violation case."
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-04#D5#src/application/services/BookRoomService.ts:85",
+   "label": "pilot/s1-hotel-bookings/step-04",
+   "expected": "tp",
+   "verdict": "confirm",
+   "grounded": true,
+   "cached": true,
+   "key": "7c56efbfc6458c8cdae4f543",
+   "rationale": "The no-overlap rule across active bookings of a room must hold at every commit. No aggregate owns that set of bookings. BookRoomService loads them, checks availability with a domain helper under an in-memory lock, and throws. Booking only guards its own state. This matches the rule's stated violation case."
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-05#D5#src/application/services/BookRoomService.ts:74",
+   "label": "pilot/s1-hotel-bookings/step-05",
+   "expected": "tp",
+   "verdict": "confirm",
+   "grounded": true,
+   "cached": false,
+   "key": "63e1af6a7df1aca33dc41dd4",
+   "rationale": "The no-overlap rule across a room's bookings is a set invariant that must hold at every commit. No aggregate owns it: Booking holds only its own state. The application service loads the room's bookings under a lock and decides availability. Calling the AvailabilityChecker domain helper does not move ownership into an aggregate, so the rule is broken."
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-00#D5#src/ordering/application/PlaceOrder.ts:22",
+   "label": "pilot/s2-orders-invoices/step-00",
+   "expected": "fp",
+   "verdict": "reject",
+   "grounded": true,
+   "cached": false,
+   "key": "aa9ea3e1f1ece1d8432ab958",
+   "rationale": "The rule that a customer may order lives in Customer.canOrder(), a domain method. PlaceOrder only asks the aggregate and fails if the answer is no. It doesn't copy the active-state logic or compute the invariant itself. The null check is a lookup guard. Order has no access to customer state, so this orchestration across aggregates is not a duplicated business rule."
+  },
+  {
+   "id": "fixture/c1-s1-d5-lock/pos#D5#src/application/services/BookRoomService.ts:14",
+   "label": "fixture/c1-s1-d5-lock/pos",
+   "expected": "tp",
+   "verdict": "confirm",
+   "grounded": true,
+   "cached": false,
+   "key": "19e0320dce201870de10969e",
+   "rationale": "The no-overlap rule across a room's active bookings must hold at every commit. No aggregate owns that set, since Booking is a single instance. The application service checks it under a lock and uses the domain helpers isActive and overlaps only to compute it. The rule names this case as a violation."
+  },
+  {
+   "id": "precision/p10-shared-kernel-types/legit/declared#D5#src/sales/application/PlaceOrder.ts:12",
+   "label": "precision/p10-shared-kernel-types/legit/declared",
+   "expected": "fp",
+   "verdict": "confirm",
+   "grounded": true,
+   "cached": false,
+   "key": "4cb647d588468961a8862f67",
+   "rationale": "The rule that a customer cannot have two open orders with the same total is a rule over a set of Order instances. The application service checks it, not an aggregate. Order.place cannot see sibling orders, and no aggregate owns a customer's open orders. This is not store-wide key uniqueness, so the rule is broken."
+  },
+  {
+   "id": "puzzle/p1-transfers/c10/step-01#D5#src/ledger/application/Transfer.ts:15",
+   "label": "puzzle/p1-transfers/c10/step-01",
+   "expected": "fp",
+   "verdict": "confirm",
+   "grounded": true,
+   "cached": false,
+   "key": "2ee8e54157991b097618d9f7",
+   "rationale": "The currency-match rule is a business invariant, but it is checked in the application service by reading the state of two Account aggregates. Account.deposit and Account.withdraw never check that the Money they receive is in the account's currency, so the domain does not own the rule. The service holds the decision."
+  }
+ ]
+}

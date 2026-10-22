@@ -128,6 +128,18 @@ function s2(): Record<string, unknown> {
   };
 }
 
+/** r2 (post-hoc): the 9 items, against r1 on the same items. */
+function s2r2(): Record<string, unknown> {
+  const r2 = (R('s2-r2-answers.json') as { rows: { id: string; expected: string | null; verdict: string; grounded: boolean }[] }).rows;
+  const r1 = (R('s2-answers.json') as { rows: Row[] }).rows;
+  return {
+    posthoc: true,
+    items: r2.map((x) => ({ id: x.id, expected: x.expected, r1: r1.find((y) => y.id === x.id)?.merged ?? null, r2: x.verdict, grounded: x.grounded })),
+    lockFormConfirmed: { r1: r2.filter((x) => x.expected === 'tp' && r1.find((y) => y.id === x.id)?.merged === 'confirm').length, r2: r2.filter((x) => x.expected === 'tp' && x.verdict === 'confirm' && x.grounded).length, of: r2.filter((x) => x.expected === 'tp').length },
+    negativesConfirmed: { r1: r2.filter((x) => x.expected === 'fp' && r1.find((y) => y.id === x.id)?.merged === 'confirm').length, r2: r2.filter((x) => x.expected === 'fp' && x.verdict === 'confirm').length, of: r2.filter((x) => x.expected === 'fp').length },
+  };
+}
+
 if (process.argv[1]?.endsWith('analyse.ts')) {
   const argv = process.argv.slice(2);
   const i = argv.indexOf('--clones');
@@ -136,7 +148,7 @@ if (process.argv[1]?.endsWith('analyse.ts')) {
   const out = {
     schema: 'v15-u4-metrics-v1', version: 'v1.5-exp', split: 'dev',
     calls: { total: ledger.length, s3: ledger.filter((l) => l.part === 'S3').length, s2: ledger.filter((l) => l.part === 'S2').length, failedAttempts: ledger.filter((l) => !l.ok).length, servedModels: [...new Set(ledger.map((l) => l.model))] },
-    s3: s3(argv[i + 1]!), s2: s2(),
+    s3: s3(argv[i + 1]!), s2: s2(), s2r2: s2r2(),
   };
   fs.writeFileSync(path.join(HERE, 'results', 'metrics.json'), `${JSON.stringify(out, null, 1)}\n`);
   process.stdout.write(`${JSON.stringify({ calls: out.calls, s3: { ...out.s3, perRepo: undefined }, s2: { ...out.s2, d5: { ...(out.s2.d5 as Record<string, unknown>), trees: undefined } } }, null, 1)}\n`);
