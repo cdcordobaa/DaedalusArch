@@ -2953,5 +2953,34 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "(coordinator brief) Write the edit-gate design note and a first draft of the final confirmatory study of instrument v1.5, zero calls, and link both from the V15 plan."
 **AI Response**: "Added ops/notes/v15-edit-gate-design.md (DRAFT): mechanism options (PostToolUse hook through a root-side relay, recommended, with a Stop hook; harness injection between turns as fallback), checks, message format and de-duplication, latency budget, confinement, scenarios, predictions against the PUZZLE-01 baseline and the pull arm, measures, a 38-call pilot plan and failure criteria. Added ops/notes/v15-final-study-draft.md (DRAFT v0): research questions, a spec × tool 2×2 per style (Layered and DDD), a task-grain power sketch with candidate grids, outcomes including D_sem, a second vendor and an optional brownfield arm, v1.5 gates before registration, threats, rough cost and open decisions. Linked both from ops/notes/v15-plan.md under a Notes line."
 **Context**: V15-PLAN first three steps (steps 2 and 3); zero model calls; nothing run or built; not part of Study 2b
+## v1.5 — Workspace Detection
+**Timestamp**: 2026-10-22T05:25:00Z
+**User Input**: "Asked that the v1.5 work (semantic layer, detection of the violations agents commit, delivery, spec inference) be tracked through AI-DLC."
+**AI Response**: "Started the v1.5 cycle. Workspace: brownfield, reverse-engineering artifacts exist (not refreshed); state file resumed; Security Baseline extension enabled since v1.2. Proceeding to Requirements Analysis."
+**Context**: v1.5 INCEPTION, Workspace Detection
+
+---
+
+## v1.5 — Requirements Analysis (questions issued)
+**Timestamp**: 2026-10-22T05:26:00Z
+**User Input**: "Agreed that v1.5 should centre on the semantic layer; agreed to the semantic programme (S1–S5 and the three-arm comparison on development material, no sealed sets until the instrument works)."
+**AI Response**: "Wrote ops/notes/v15-semantic-programme.md, the draft aidlc-docs/inception/v1.5/requirements.md (standard depth: 14 FR, 5 NFR) and aidlc-docs/inception/v1.5/requirements-questions.md (7 questions: order, code location, vendor, spec-inference scope, delivery default, final-study design scope, security extension). Awaiting the author's answers before approval."
+**Context**: v1.5 INCEPTION, Requirements Analysis
+
+---
+
+## v1.5 — Requirements Analysis (complete)
+**Timestamp**: 2026-10-22T05:45:00Z
+**User Input**: "Asked the coordinator to settle the remaining scope questions, as the cycle's direction is already set."
+**AI Response**: "Answered the seven questions with the recommended options under the author's standing delegation for gate-level calls (semantic first; experiments/ until each part passes; Claude now, Gemini later; spec inference in scope; pull and edit gate; final-study design as a deliverable; Security Baseline enabled). Requirements marked final."
+**Context**: v1.5 INCEPTION, Requirements Analysis approved under delegation
+
+---
+
+## v1.5 — Workflow Planning (complete)
+**Timestamp**: 2026-10-22T05:46:00Z
+**User Input**: "(standing delegation)"
+**AI Response**: "Wrote aidlc-docs/inception/v1.5/workflow-plan.md: User Stories, NFR and Infrastructure stages skipped; Application Design (minimal) and Units Generation execute; seven units in semantic-first order (U3 S1 calibration, U4 S3/S2, U6 evaluation and puzzles, U1 graph and rules into src, U2 delivery, U5 spec inference, U7 release and final-study draft), with call estimates and gates. Until the usage reset, only cloud-credit pilots and zero-call work run."
+**Context**: v1.5 INCEPTION, Workflow Planning approved under delegation
 
 ---
