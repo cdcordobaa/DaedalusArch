@@ -1,0 +1,23 @@
+{
+  "description": "PUZZLE-03 p6-workshop-jobs (DEV split, exploratory). Brownfield change requests, one per agent session turn, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p6-workshop-jobs",
+      "title": "Workshop reports",
+      "steps": [
+        {
+          "id": "workload",
+          "request": "The front desk wants a workload board, next to the takings report: reports.workload() lists every mechanic as { mechanic, openJobs, oldestOpenPlate }, where mechanic is the name, openJobs the number of their jobs still open, and oldestOpenPlate the plate of their open job opened earliest (null when they have none). Busiest first; mechanics with the same number of open jobs in name order. Keep it consistent with how the existing takings report is built."
+        },
+        {
+          "id": "reassign",
+          "request": "An open job can now be handed to another mechanic: workshop.reassignJob(jobId, mechanicId). A closed job cannot be handed over ('job J-0001 is closed'), and the mechanic and the job must exist ('no mechanic M-0009', 'no job J-0999'). Afterwards job(jobId) shows the new mechanicId and the workload board counts the job for the new mechanic."
+        },
+        {
+          "id": "monthly-takings",
+          "request": "The owner wants the takings per mechanic for a month: reports.takingsByMechanic('2026-10') lists { mechanic, takings } for every mechanic who closed at least one job in that month, where takings is what those jobs cost the customers (labour at the usual rate plus parts) written like the takings report, for example 'EUR 1234.50'. Highest first. Keep it consistent with the existing takings report; the owner needs it tonight."
+        }
+      ]
+    }
+  ]
+}

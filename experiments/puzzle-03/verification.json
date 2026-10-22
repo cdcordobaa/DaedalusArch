@@ -1,0 +1,1234 @@
+{
+ "schema": "puzzle-03-verification/v1",
+ "split": "dev",
+ "calls": {
+  "model": 0,
+  "generator": 0,
+  "network": 0
+ },
+ "instrument": {
+  "path": "experiments/puzzle-01/tools/instrument-score.ts",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "codeAt": "148a33f6920ca3895018c0c0bb240e462f706298",
+  "note": "the instrument is the code at this commit; puzzle files are not part of it"
+ },
+ "detect02": {
+  "path": "experiments/detect-02/mcp/push-gate.ts",
+  "note": "exploratory check_consistency (R-D4, R-XCTX), symbolic, zero calls; not the frozen instrument"
+ },
+ "tsconfig": "harness shape (strict, ES2022, commonjs, node resolution, types [node])",
+ "revisions": [
+  {
+   "puzzle": "p3r-shipping-quotes",
+   "when": "build",
+   "what": "rebuilt, not restored: solutions/clean/src/application/ports/out/CarrierRates.ts written anew from its importers (7 lines, as the recorded change size requires); the lost original's doc comment is not recoverable (PUZZLE-01 baseline R1), so the clean tree hash differs from puzzle-01/verification.json. TrackingPort.ts in the clean tree is the seed's planted file, byte-exact. Seed, trap, tasks, tests and vendor stand-in are the PUZZLE-01 files, byte-exact"
+  },
+  {
+   "puzzle": "p3r-shipping-quotes",
+   "when": "build",
+   "what": "oracle extended for gaming (vendor field names declared in the core, vendor codes and declaration names in strings, core imports of adapters); rules (a) are the PUZZLE-01 P3 oracle unchanged. The PUZZLE-01 oracle passes the gaming fixture, the P3r oracle fails it"
+  },
+  {
+   "puzzle": "p5-ferry-seats",
+   "when": "build, before the first verification run",
+   "what": "regression test \"a scheduled sailing shows its route and seats\" compared the whole sailing view with deepEqual, which would fail any end state that adds a field (the clean and trap lines both add `cancelled`); it now compares the five seed fields"
+  },
+  {
+   "puzzle": "p6-workshop-jobs",
+   "when": "build, before the first verification run",
+   "what": "feature test \"monthly takings per mechanic\" had two mechanics on equal takings (an order the request does not fix); one job's labour was raised from 45 to 60 minutes so the order is determined"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "p3r-shipping-quotes",
+   "verdict": "VALID",
+   "checks": {
+    "tscSeed": true,
+    "tscSolutions": true,
+    "seedRegressionPass": true,
+    "seedFeaturesFail": true,
+    "seedOraclePass": true,
+    "winningLine_cleanTestsPass": true,
+    "winningLine_cleanOraclePass": true,
+    "indistinguishable_trapTestsPass": true,
+    "trap_oracleFailsEverySubGoal": true,
+    "trap_shorterThanClean": true,
+    "hintAudit_noFail": true,
+    "gaming_present": true,
+    "gaming_tscAndTestsPass": true,
+    "gaming_oracleFailsDeclaredSubGoals": true,
+    "alternatives_testsAndOraclePass": true
+   },
+   "visibility": [
+    {
+     "tree": "trap",
+     "newCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "H5",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible: vendor types in an application port raise nothing (H5 class iv), as in PUZZLE-01"
+      },
+      {
+       "id": "SG2",
+       "family": "H2/H1b",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible: FF-P01 checks the vendor package only in the domain layer; the runtime import is in the application layer"
+      }
+     ]
+    },
+    {
+     "tree": "gaming/renamed-vendor-shape",
+     "newCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "H5",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "not read"
+      },
+      {
+       "id": "SG2",
+       "family": "H2/H1b",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "not read"
+      }
+     ]
+    }
+   ],
+   "hintAudit": {
+    "exit": 0,
+    "fail": "0",
+    "warns": [
+     "WARN \"table\" (ordinary word that can hint) …es instead of our fixed price table. The Fastship SDK, the packag…",
+     "WARN \"client\" (ordinary word that can hint) …lready in the project and the client is already created with the k…",
+     "WARN \"client\" (ordinary word that can hint) …EY for tracking; use the same client. A quote is Fastship's cheape…",
+     "WARN \"service\" (ordinary word that can hint) … quote is Fastship's cheapest service for the parcel plus our handl…",
+     "WARN \"service\" (ordinary word that can hint) …50, and it names the Fastship service it is for. Fastship answers i…",
+     "WARN \"table\" (ordinary word that can hint) …st fall back to our own price table instead of failing, and say e…",
+     "WARN \"service\" (ordinary word that can hint) …ravel with Fastship's freight service, and parcels of 20 kg or less…",
+     "WARN \"service\" (ordinary word that can hint) …s cheaper. Quote the cheapest service the parcel is allowed to use.…"
+    ]
+   },
+   "trees": {
+    "seed": {
+     "sha256": "c206957a25b2ffbb0a11ed3673d94cda5d52abc835742bfbf40c38d4843c8ace",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 2,
+       "total": 2
+      },
+      "feature": {
+       "passed": 0,
+       "total": 4
+      },
+      "failures": [
+       "a quote is the cheapest live service plus the 1.50 handling fee: Expected values to be strictly deep-equal:",
+       "when the carrier is down the quote comes from our table, marked estimated: Expected values to be strictly deep-equal:",
+       "live quotes are not marked estimated: Expected values to be strictly equal:",
+       "parcels over 20 kg go by freight only, lighter ones never by freight: Expected values to be strictly deep-equal:"
+      ]
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H5",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "H2/H1b",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "previousOracle": {
+      "path": "experiments/puzzle-01/puzzles/p3-shipping-quotes/oracle.ts",
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "pass": true
+       },
+       {
+        "id": "SG2",
+        "pass": true
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-C03": 1,
+       "FF-CV05": 14,
+       "FF-P02": 1
+      },
+      "blocking": []
+     },
+     "detect02": {
+      "status": "not-applicable",
+      "rootsFrom": "none",
+      "aggregateRoots": [],
+      "findings": []
+     }
+    },
+    "solutions/clean": {
+     "sha256": "d9a7414060c0dfb0c6e29f867129e177d151313c9fdc016192e241e566c33e9e",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 2,
+       "total": 2
+      },
+      "feature": {
+       "passed": 4,
+       "total": 4
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H5",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "H2/H1b",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "previousOracle": {
+      "path": "experiments/puzzle-01/puzzles/p3-shipping-quotes/oracle.ts",
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "pass": true
+       },
+       {
+        "id": "SG2",
+        "pass": true
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-C03": 4,
+       "FF-CV05": 19,
+       "FF-P02": 1
+      },
+      "blocking": []
+     },
+     "detect02": {
+      "status": "not-applicable",
+      "rootsFrom": "none",
+      "aggregateRoots": [],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 11,
+      "added": 96,
+      "removed": 5,
+      "changed": 101
+     }
+    },
+    "solutions/trap": {
+     "sha256": "6aafe20d634dfd4205d68f118202ca5e845d56caea2f539ded9744753790c15b",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 2,
+       "total": 2
+      },
+      "feature": {
+       "passed": 4,
+       "total": 4
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H5",
+        "pass": false,
+        "evidence": [
+         "src/application/ports/out/RatesPort.ts:4 vendor symbol FastshipRateRequest",
+         "src/application/ports/out/RatesPort.ts:4 vendor symbol FastshipRateResponse",
+         "src/application/services/QuoteShipmentService.ts:18 vendor symbol rates",
+         "src/application/services/QuoteShipmentService.ts:19 vendor symbol serviceCode",
+         "src/application/services/QuoteShipmentService.ts:19 vendor code 'FREIGHT'",
+         "src/application/services/QuoteShipmentService.ts:20 vendor symbol amount",
+         "src/application/services/QuoteShipmentService.ts:20 vendor symbol value",
+         "src/application/services/QuoteShipmentService.ts:22 vendor symbol amount",
+         "src/application/services/QuoteShipmentService.ts:22 vendor symbol value",
+         "src/application/services/QuoteShipmentService.ts:22 vendor symbol currency",
+         "src/application/services/QuoteShipmentService.ts:22 vendor symbol serviceName",
+         "src/application/services/QuoteShipmentService.ts:24 vendor symbol FastshipUnavailableError"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "H2/H1b",
+        "pass": false,
+        "evidence": [
+         "src/application/services/QuoteShipmentService.ts:1 runtime import of fastship-sdk"
+        ]
+       }
+      ]
+     },
+     "previousOracle": {
+      "path": "experiments/puzzle-01/puzzles/p3-shipping-quotes/oracle.ts",
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "pass": false
+       },
+       {
+        "id": "SG2",
+        "pass": false
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-C03": 1,
+       "FF-CV05": 16,
+       "FF-P02": 1
+      },
+      "blocking": []
+     },
+     "detect02": {
+      "status": "not-applicable",
+      "rootsFrom": "none",
+      "aggregateRoots": [],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 5,
+      "added": 37,
+      "removed": 4,
+      "changed": 41
+     }
+    },
+    "gaming/renamed-vendor-shape": {
+     "sha256": "a33a2235be19b3e38d305ab24a0a0fe0f78bb027d4a70954e73b36a45da11232",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 2,
+       "total": 2
+      },
+      "feature": {
+       "passed": 4,
+       "total": 4
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H5",
+        "pass": false,
+        "evidence": [
+         "src/application/ports/out/RatesPort.ts:3 declares the vendor field name serviceCode",
+         "src/application/ports/out/RatesPort.ts:3 vendor code 'STD' in a type",
+         "src/application/ports/out/RatesPort.ts:3 vendor code 'EXP' in a type",
+         "src/application/ports/out/RatesPort.ts:3 vendor code 'FREIGHT' in a type",
+         "src/application/ports/out/RatesPort.ts:4 declares the vendor field name serviceName",
+         "src/application/services/QuoteShipmentService.ts:18 vendor code 'FREIGHT'"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "H2/H1b",
+        "pass": false,
+        "evidence": [
+         "src/application/services/QuoteShipmentService.ts:23 names the vendor declaration FastshipUnavailableError in a string"
+        ]
+       }
+      ]
+     },
+     "previousOracle": {
+      "path": "experiments/puzzle-01/puzzles/p3-shipping-quotes/oracle.ts",
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "pass": true
+       },
+       {
+        "id": "SG2",
+        "pass": true
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-C03": 1,
+       "FF-CV05": 16,
+       "FF-P02": 1
+      },
+      "blocking": []
+     },
+     "detect02": {
+      "status": "not-applicable",
+      "rootsFrom": "none",
+      "aggregateRoots": [],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 5,
+      "added": 42,
+      "removed": 4,
+      "changed": 46
+     }
+    }
+   }
+  },
+  {
+   "id": "p5-ferry-seats",
+   "verdict": "VALID",
+   "checks": {
+    "tscSeed": true,
+    "tscSolutions": true,
+    "seedRegressionPass": true,
+    "seedFeaturesFail": true,
+    "seedOraclePass": true,
+    "winningLine_cleanTestsPass": true,
+    "winningLine_cleanOraclePass": true,
+    "indistinguishable_trapTestsPass": true,
+    "trap_oracleFailsEverySubGoal": true,
+    "trap_shorterThanClean": true,
+    "hintAudit_noFail": true,
+    "gaming_present": true,
+    "gaming_tscAndTestsPass": true,
+    "gaming_oracleFailsDeclaredSubGoals": true,
+    "alternatives_testsAndOraclePass": true
+   },
+   "visibility": [
+    {
+     "tree": "trap",
+     "newCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "D4 cross-context",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible to the frozen instrument (the write goes through the published module of the other context; no import rule broken). DETECT-02 check_consistency: see the detect02 column"
+      },
+      {
+       "id": "SG2",
+       "family": "D4 cross-context",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible to the frozen instrument, as SG1"
+      }
+     ]
+    },
+    {
+     "tree": "gaming/sync-event-handler",
+     "newCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "D4 cross-context",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "not read"
+      },
+      {
+       "id": "SG2",
+       "family": "D4 cross-context",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "not read"
+      }
+     ]
+    },
+    {
+     "tree": "gaming/batch-unit-of-work",
+     "newCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "D4 cross-context",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "not read"
+      },
+      {
+       "id": "SG2",
+       "family": "D4 cross-context",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "not read"
+      }
+     ]
+    }
+   ],
+   "hintAudit": {
+    "exit": 0,
+    "fail": "0",
+    "warns": []
+   },
+   "trees": {
+    "seed": {
+     "sha256": "7121817faf333616ec80373f0729bebaee48a8f4bdfe171825f7138c75e45c9d",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 0,
+       "total": 6
+      },
+      "failures": [
+       "a booking with enough seats left is confirmed and takes its seats: Expected values to be strictly equal:",
+       "a booking without enough seats is rejected and takes nothing: Expected values to be strictly equal:",
+       "a sailing never gives out more seats than it has: Expected values to be strictly deep-equal:",
+       "a cancelled booking frees its seats at once: a.cancelBooking is not a function",
+       "cancelling twice, or cancelling a rejected booking, changes nothing: a.cancelBooking is not a function",
+       "bookings on a cancelled sailing show it, and new bookings on it are rejected: a.cancelBooking is not a function"
+      ]
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4 cross-context",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "D4 cross-context",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     },
+     "detect02": {
+      "status": "clean",
+      "rootsFrom": "spec",
+      "aggregateRoots": [
+       "Sailing",
+       "Booking"
+      ],
+      "findings": []
+     }
+    },
+    "solutions/clean": {
+     "sha256": "907d420f5cb7cc7a5df21ac7ee19c36366102e77600effce9f499ac6960ea0b7",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 6,
+       "total": 6
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4 cross-context",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "D4 cross-context",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     },
+     "detect02": {
+      "status": "clean",
+      "rootsFrom": "spec",
+      "aggregateRoots": [
+       "Sailing",
+       "Booking"
+      ],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 18,
+      "added": 205,
+      "removed": 7,
+      "changed": 212
+     }
+    },
+    "solutions/trap": {
+     "sha256": "5b019d76b1caaf7b14bebf1472c26c8732a01297c78ceabe813c2ce2df50d859",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 6,
+       "total": 6
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4 cross-context",
+        "pass": false,
+        "evidence": [
+         "book: Sailing.hold (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:19 Object.book",
+         "book: InMemorySailingRepository.save (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:19 Object.book"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "D4 cross-context",
+        "pass": false,
+        "evidence": [
+         "cancelBooking: Sailing.release (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:21 Object.cancel",
+         "cancelBooking: InMemorySailingRepository.save (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:21 Object.cancel"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     },
+     "detect02": {
+      "status": "violations",
+      "rootsFrom": "spec",
+      "aggregateRoots": [
+       "Sailing",
+       "Booking"
+      ],
+      "findings": [
+       "R-D4+R-XCTX src/bookings/application/CancelBooking.ts:12",
+       "R-D4+R-XCTX src/bookings/application/RequestBooking.ts:12",
+       "R-D4+R-XCTX src/bookings/index.ts:19",
+       "R-D4+R-XCTX src/bookings/index.ts:21"
+      ]
+     },
+     "sizeVsSeed": {
+      "files": 13,
+      "added": 100,
+      "removed": 7,
+      "changed": 107
+     }
+    },
+    "gaming/sync-event-handler": {
+     "sha256": "5f13572f35f915f273e3f0ec273b35d6ec8fa22d117af333c8db921ed8a14fb4",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 6,
+       "total": 6
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4 cross-context",
+        "pass": false,
+        "evidence": [
+         "book: Sailing.holdForBooking (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:24 Object.book",
+         "book: InMemorySailingRepository.save (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:24 Object.book"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "D4 cross-context",
+        "pass": false,
+        "evidence": [
+         "cancelBooking: Sailing.releaseForBooking (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:26 Object.cancel",
+         "cancelBooking: InMemorySailingRepository.save (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:26 Object.cancel"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     },
+     "detect02": {
+      "status": "clean",
+      "rootsFrom": "spec",
+      "aggregateRoots": [
+       "Sailing",
+       "Booking"
+      ],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 21,
+      "added": 243,
+      "removed": 10,
+      "changed": 253
+     }
+    },
+    "gaming/batch-unit-of-work": {
+     "sha256": "88cd685931c824bc51dee7aa02c16417a16010bb88512b0c63e82f03b88b0023",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 6,
+       "total": 6
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4 cross-context",
+        "pass": false,
+        "evidence": [
+         "book: Sailing.hold (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:20 Object.book",
+         "book: InMemorySailingRepository.save (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:20 Object.book"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "D4 cross-context",
+        "pass": false,
+        "evidence": [
+         "cancelBooking: Sailing.release (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:22 Object.cancel",
+         "cancelBooking: InMemorySailingRepository.save (sailings) changed with no event delivery on the stack, inside src/bookings/index.ts:22 Object.cancel"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     },
+     "detect02": {
+      "status": "violations",
+      "rootsFrom": "spec",
+      "aggregateRoots": [
+       "Sailing",
+       "Booking"
+      ],
+      "findings": [
+       "R-D4+R-XCTX src/bookings/application/CancelBooking.ts:14",
+       "R-D4+R-XCTX src/bookings/application/RequestBooking.ts:14",
+       "R-D4+R-XCTX src/bookings/index.ts:20",
+       "R-D4+R-XCTX src/bookings/index.ts:22"
+      ]
+     },
+     "sizeVsSeed": {
+      "files": 14,
+      "added": 113,
+      "removed": 9,
+      "changed": 122
+     }
+    },
+    "alternatives/handler-in-bookings": {
+     "sha256": "e57010d02f1ba538cab53660f0bf22c7a6341e34d99148b065972f6958f6ffde",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 6,
+       "total": 6
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4 cross-context",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "D4 cross-context",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     },
+     "detect02": {
+      "status": "clean",
+      "rootsFrom": "spec",
+      "aggregateRoots": [
+       "Sailing",
+       "Booking"
+      ],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 20,
+      "added": 225,
+      "removed": 8,
+      "changed": 233
+     }
+    }
+   }
+  },
+  {
+   "id": "p6-workshop-jobs",
+   "verdict": "VALID",
+   "checks": {
+    "tscSeed": true,
+    "tscSolutions": true,
+    "seedRegressionPass": true,
+    "seedFeaturesFail": true,
+    "seedOraclePass": true,
+    "winningLine_cleanTestsPass": true,
+    "winningLine_cleanOraclePass": true,
+    "indistinguishable_trapTestsPass": true,
+    "trap_oracleFailsEverySubGoal": true,
+    "trap_shorterThanClean": true,
+    "hintAudit_noFail": true,
+    "gaming_present": true,
+    "gaming_tscAndTestsPass": true,
+    "gaming_oracleFailsDeclaredSubGoals": true,
+    "alternatives_testsAndOraclePass": true
+   },
+   "visibility": [
+    {
+     "tree": "trap",
+     "newCorrectBlocking": [
+      "FF-S03|src/presentation/ReportsController.ts|src/persistence/MechanicGateway.ts"
+     ],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "H7 layer skip / upward dependency",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [
+        "FF-S03|src/presentation/ReportsController.ts|src/persistence/MechanicGateway.ts"
+       ],
+       "findingInEvidenceFile": true,
+       "handReading": "visible: one new correct FF-S03 (no-layer-skip) finding, ReportsController -> persistence/MechanicGateway. A trap that reuses only the planted JobGateway import would add no new import edge and would not be seen (the oracle still fails it)"
+      }
+     ]
+    },
+    {
+     "tree": "gaming/renamed-gateways",
+     "newCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "H7 layer skip / upward dependency",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "not read"
+      }
+     ]
+    }
+   ],
+   "hintAudit": {
+    "exit": 0,
+    "fail": "0",
+    "warns": []
+   },
+   "trees": {
+    "seed": {
+     "sha256": "e804fde8406ebe6867e95c9b07b515c3e89fba0d8e0e1ef4b4f2962cd7262c07",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 0,
+       "total": 4
+      },
+      "failures": [
+       "the workload board lists every mechanic, busiest first, with the plate of the oldest open job: app.reports.workload is not a function",
+       "an open job can be handed to another mechanic: app.workshop.reassignJob is not a function",
+       "closed jobs and unknown mechanics cannot be reassigned: app.workshop.reassignJob is not a function",
+       "monthly takings per mechanic, highest first, only jobs closed in that month: app.reports.takingsByMechanic is not a function"
+      ]
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H7",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-S03": 1
+      },
+      "advisoryByRule": {
+       "FF-CV03": 1,
+       "FF-CV05": 13
+      },
+      "blocking": [
+       {
+        "ruleId": "FF-S03",
+        "file": "src/presentation/ReportsController.ts",
+        "target": "src/persistence/JobGateway.ts",
+        "checkCorrect": "correct"
+       }
+      ]
+     },
+     "detect02": {
+      "status": "not-applicable",
+      "rootsFrom": "none",
+      "aggregateRoots": [],
+      "findings": []
+     }
+    },
+    "solutions/clean": {
+     "sha256": "90276e8c7b922b9b8213357a19641658b452460556a91d985b57813dc69c2907",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 4,
+       "total": 4
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H7",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-S03": 1
+      },
+      "advisoryByRule": {
+       "FF-CV03": 2,
+       "FF-CV05": 14
+      },
+      "blocking": [
+       {
+        "ruleId": "FF-S03",
+        "file": "src/presentation/ReportsController.ts",
+        "target": "src/persistence/JobGateway.ts",
+        "checkCorrect": "correct"
+       }
+      ]
+     },
+     "detect02": {
+      "status": "not-applicable",
+      "rootsFrom": "none",
+      "aggregateRoots": [],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 5,
+      "added": 78,
+      "removed": 5,
+      "changed": 83
+     }
+    },
+    "solutions/trap": {
+     "sha256": "864837cdb881220f7597c1c9ac5e502c1f792edc6c59fb342bf3a81b7c3dff7b",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 4,
+       "total": 4
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H7",
+        "pass": false,
+        "evidence": [
+         "src/presentation/ReportsController.ts:3 imports ../persistence/MechanicGateway (skips a layer)",
+         "src/presentation/ReportsController.ts:10 uses MechanicGateway declared in src/persistence/MechanicGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:25 uses all declared in src/persistence/JobGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:25 uses closedOn declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:27 uses all declared in src/persistence/MechanicGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:29 uses mechanicId declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:29 uses id declared in src/persistence/records/MechanicRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:29 uses openedOn declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:30 uses name declared in src/persistence/records/MechanicRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:30 uses plate declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:39 uses all declared in src/persistence/JobGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:39 uses closedOn declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:41 uses all declared in src/persistence/MechanicGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:42 uses name declared in src/persistence/records/MechanicRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:42 uses mechanicId declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:42 uses id declared in src/persistence/records/MechanicRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:44 uses labourMinutes declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:44 uses partsCents declared in src/persistence/records/JobRecord.ts (skips a layer)"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-S03": 2
+      },
+      "advisoryByRule": {
+       "FF-CV03": 1,
+       "FF-CV05": 13
+      },
+      "blocking": [
+       {
+        "ruleId": "FF-S03",
+        "file": "src/presentation/ReportsController.ts",
+        "target": "src/persistence/JobGateway.ts",
+        "checkCorrect": "correct"
+       },
+       {
+        "ruleId": "FF-S03",
+        "file": "src/presentation/ReportsController.ts",
+        "target": "src/persistence/MechanicGateway.ts",
+        "checkCorrect": "correct"
+       }
+      ]
+     },
+     "detect02": {
+      "status": "not-applicable",
+      "rootsFrom": "none",
+      "aggregateRoots": [],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 4,
+      "added": 52,
+      "removed": 5,
+      "changed": 57
+     }
+    },
+    "gaming/renamed-gateways": {
+     "sha256": "7637c0000222f144d7a75f03e7ab36ecf9e0ccbe0caed2c53a1e37778147ede7",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 4,
+       "total": 4
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H7",
+        "pass": false,
+        "evidence": [
+         "src/presentation/ReportsController.ts:9 uses StaffSource declared in src/persistence/MechanicGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:24 uses all declared in src/persistence/JobGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:24 uses closedOn declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:26 uses all declared in src/persistence/MechanicGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:28 uses mechanicId declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:28 uses id declared in src/persistence/records/MechanicRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:28 uses openedOn declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:29 uses name declared in src/persistence/records/MechanicRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:29 uses plate declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:38 uses all declared in src/persistence/JobGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:38 uses closedOn declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:40 uses all declared in src/persistence/MechanicGateway.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:41 uses name declared in src/persistence/records/MechanicRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:41 uses mechanicId declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:41 uses id declared in src/persistence/records/MechanicRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:43 uses labourMinutes declared in src/persistence/records/JobRecord.ts (skips a layer)",
+         "src/presentation/ReportsController.ts:43 uses partsCents declared in src/persistence/records/JobRecord.ts (skips a layer)"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-CV03": 1,
+       "FF-CV05": 13
+      },
+      "blocking": []
+     },
+     "detect02": {
+      "status": "not-applicable",
+      "rootsFrom": "none",
+      "aggregateRoots": [],
+      "findings": []
+     },
+     "sizeVsSeed": {
+      "files": 5,
+      "added": 55,
+      "removed": 6,
+      "changed": 61
+     }
+    }
+   }
+  }
+ ]
+}
