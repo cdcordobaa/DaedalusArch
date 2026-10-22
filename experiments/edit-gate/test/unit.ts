@@ -1,6 +1,6 @@
 /**
  * Edit-gate unit tests (zero model calls). Run as root from the repository root:
- *   npx tsx experiments/edit-gate/test/unit.ts [--out results/v1.5-edit-gate-build/unit.json]
+ *   npx tsx experiments/edit-gate/test/unit.ts [--out experiments/edit-gate/results/unit.json]
  *
  * 1. Hook input and output format (the Claude Code hooks JSON).
  * 2. De-duplication: GateState alone, then the hub with the real checker on the dummy project.

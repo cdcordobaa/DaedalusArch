@@ -151,7 +151,7 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - Results report §7; addendum 4. The C4 severity calibration goes to the v1.5 semantic track (`ops/notes/v15-plan.md` §2).
 
 ### 10. Edit gate built and smoke-tested (2026-10-22)
-**Edit gate** (`experiments/edit-gate/`, `Docs/DiagnosticRuns/edit-gate-build-2026-10-23.md`, `results/v1.5-edit-gate-build/`): the push delivery of `ops/notes/v15-edit-gate-design.md`.
+**Edit gate** (`experiments/edit-gate/`, `Docs/DiagnosticRuns/edit-gate-build-2026-10-23.md`, `experiments/edit-gate/results/`): the push delivery of `ops/notes/v15-edit-gate-design.md`.
 - **Mechanism:** option A works on CLI 2.1.308. PostToolUse and Stop hooks, passed inline through the arm's `--settings`, fire under the frozen argv, with the CLI running as the generator user. A root-side hub runs `check_consistency` and replies with the new findings only. The fallback was not needed.
 - **Zero calls:** 12/12 unit tests pass. The real CLI was run against a scripted API: the hook text reaches the next request, de-duplication holds, the Stop hook blocks once, and a switch-off attempt fails.
 - **Isolation:** 0 readable fingerprint files, after closing root's `tsx` cache, which had been readable.

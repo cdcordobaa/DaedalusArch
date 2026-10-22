@@ -11,7 +11,7 @@ text reaches the model. The fallback (harness injection between turns) was not n
 **Calls: 2 of the 4 allowed** (smoke 1, probe 1). No puzzle session was launched.
 
 **Status.** Exploratory (v1.5-exp), DEV split, never applied to Study 2b. Design: `ops/notes/v15-edit-gate-design.md`
-(DRAFT). Code: `experiments/edit-gate/` (README there). Records: `results/v1.5-edit-gate-build/`. Nothing under `src/`,
+(DRAFT). Code: `experiments/edit-gate/` (README there). Records: `experiments/edit-gate/results/`. Nothing under `src/`,
 `presets/`, `scripts/lib/` or `scripts/v1.3/` changed, the tag `v1.4-freeze-2026-10-20` was not touched, and no Study 2b
 artefact changed.
 

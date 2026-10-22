@@ -114,7 +114,7 @@ works, so the fallback was not needed and was not built further.
 ## Commands
 
 ```
-npx tsx experiments/edit-gate/test/unit.ts --out results/v1.5-edit-gate-build/unit.json      # zero calls
+npx tsx experiments/edit-gate/test/unit.ts --out experiments/edit-gate/results/unit.json      # zero calls
 sh experiments/edit-gate/setup-sandbox.sh                                                     # closes the clone
 npx tsx experiments/edit-gate/run-edit-gate.ts --dry   --input /srv/o/input.json             # zero calls
 npx tsx experiments/edit-gate/run-edit-gate.ts --smoke --input /srv/o/input.json             # 1 call
