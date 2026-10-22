@@ -6,6 +6,7 @@
  *   npx tsx experiments/comprehend-01/run.ts --clones <dir> [--out <dir>]            # dry run → results/dry-run/
  *   npx tsx experiments/comprehend-01/run.ts --clones <dir> --live --confirm-sessions 62 --claude <bin> --config-dir <abs> --bank-sha256 <sha>
  *     [--hard-cap 64] [--isolation <json>] [--harness <dir>]                      # R1: the pilot's cap and isolated layout
+ *     [--skip-cells cal-F]                                                         # R2: cells not repeated
  *
  * The live path is for the pilot, after the author approves the design note; it also needs COMPREHEND01_LIVE=1.
  * Every session runs from its tree's root. Cap: 62 planned sessions plus 4 re-runs (66); a 67th spawn is refused.
@@ -97,6 +98,22 @@ interface RunOptions {
   /** A lower hard cap (tests; the pilot's 64, revision R1). */
   readonly hardCap?: number;
   readonly isolation?: Isolation;
+  /** R2: cells already run under a valid argv and not repeated (recorded in `revisions.md`). */
+  readonly skipCells?: readonly string[];
+}
+
+/**
+ * R2: the MCP servers the session's init event lists must be exactly the arm's: none in F, the graph server connected
+ * in FG. A mismatch stops the pilot (the 2026-10-22 FG smoke ran without its server and was not caught by confinement).
+ */
+export function initCheck(arm: Arm, stdout: string): string | null {
+  const init = stdout.split('\n').map((l) => { try { return JSON.parse(l) as Record<string, unknown>; } catch { return null; } })
+    .find((e) => e !== null && e.type === 'system' && e.subtype === 'init');
+  if (init === undefined || init === null) return 'no init event';
+  const servers = Array.isArray(init.mcp_servers) ? (init.mcp_servers as { name?: unknown; status?: unknown }[]) : [];
+  const got = servers.map((x) => `${String(x.name)}:${String(x.status)}`).sort().join(',');
+  const want = arm === 'FG' ? `${COMPREHEND_SERVER_NAME}:connected` : '';
+  return got === want ? null : `init lists MCP servers [${got}], expected [${want}]`;
 }
 
 /** The tree a session sees: the resolved tree, or its isolated copy (R1). */
@@ -120,6 +137,7 @@ export async function runAll(opts: RunOptions): Promise<{ rows: LedgerRow[]; ref
   if (blocking.length > 0) throw new Error(blocking.join('; '));
   const items = new Map(bank.items.map((i) => [i.id, i] as const));
   const cells = plan(bank.items).filter((c) => needed(c.tree));
+  const skip = new Set(opts.skipCells ?? []);
   if (opts.onlyTrees === undefined && cells.length !== PLANNED_SESSIONS) throw new Error(`plan has ${cells.length} sessions, expected ${PLANNED_SESSIONS}`);
   const hardCap = Math.min(opts.hardCap ?? HARD_CAP, HARD_CAP);
   fs.mkdirSync(opts.out, { recursive: true });
@@ -130,6 +148,7 @@ export async function runAll(opts: RunOptions): Promise<{ rows: LedgerRow[]; ref
   const ledger = path.join(opts.out, 'ledger.jsonl');
   fs.writeFileSync(ledger, '');
   for (const [cellIndex, cell] of cells.entries()) {
+    if (skip.has(cell.sessionId)) continue;
     const tree = sessionTree(trees.get(cell.tree)!, opts.isolation);
     const item = cell.item ? items.get(cell.item)! : null;
     const prompt = item ? buildPrompt(cell.arm, item, fs.readFileSync(tree.spec, 'utf8'), conventions) : CALIBRATION_PROMPT;
@@ -181,6 +200,8 @@ export async function runAll(opts: RunOptions): Promise<{ rows: LedgerRow[]; ref
       fs.appendFileSync(ledger, `${JSON.stringify(row)}\n`);
       // R1: a failed calibration smoke (no clean exit or no result envelope) stops the pilot before any question.
       if (cell.block === 'calibration' && (res.exitCode !== 0 || !env || res.timedOut)) { refused.push(`${key}: calibration smoke failed, the pilot stops (R1)`); break; }
+      const initProblem = initCheck(cell.arm, res.stdout);
+      if (initProblem !== null) { refused.push(`${key}: ${initProblem}, the pilot stops (R2)`); break; }
       if (row.valid) break;
       if (attempt === 2) refused.push(`${key}: second confinement leak, the pilot stops (design §9 item 7)`);
     }
@@ -308,6 +329,7 @@ async function main(): Promise<number> {
   if (!Number.isInteger(hardCap) || hardCap < 1 || hardCap > HARD_CAP) { process.stderr.write(`--hard-cap must be an integer in 1..${HARD_CAP}\n`); return 2; }
   const isoPath = arg('isolation');
   const isolation = isoPath !== undefined ? readJson<Isolation>(isoPath) : undefined;
+  const skipCells = arg('skip-cells')?.split(',').filter((x) => x !== '') ?? [];
   const { bank, sha256: bankSha } = loadBank();
   const { trees, problems } = resolveTrees(clones);
   if (problems.length > 0) { process.stderr.write(`${problems.join('\n')}\n`); return 2; }
@@ -330,12 +352,12 @@ async function main(): Promise<number> {
   }
   const out = arg('out') ?? path.join(HERE, 'results', live ? 'pilot' : 'dry-run');
   const smoke = live ? [] : [await serverSmoke(trees.get('p2-seed')!, harness), await serverSmoke(trees.get('ddd-forum') ?? trees.get('p1-seed')!, harness)];
-  const { rows, refused, spawns } = await runAll({ out, runner, clones, harness, hardCap, isolation });
+  const { rows, refused, spawns } = await runAll({ out, runner, clones, harness, hardCap, isolation, skipCells });
   const summary = summarise(rows, graphCheck);
   const scrub = scrubber([path.resolve('.'), path.resolve(clones ?? '/nonexistent'), harness, os.tmpdir()]);
   const doc = {
     schema: 'comprehend-01-run/v1', mode: live ? 'live' : 'dry-run (scripted fake model)', modelCalls: runner.kind === 'fake' ? 0 : spawns, bankSha256: bankSha, frameSha256: FRAME_SHA256,
-    model: MODEL, caps: CAPS, plannedSessions: PLANNED_SESSIONS, hardCap, isolated: isolation !== undefined, spawns, refused,
+    model: MODEL, caps: CAPS, plannedSessions: PLANNED_SESSIONS, hardCap, isolated: isolation !== undefined, skipCells, spawns, refused,
     ...(live ? {} : { fakeSpawns: (runner as FakeModelRunner).spawned.length, serverSmoke: smoke, note: 'Fake answers and fake token numbers: this checks the plumbing, the scoring and the ledger, and says nothing about the arms.' }),
     summary,
   };

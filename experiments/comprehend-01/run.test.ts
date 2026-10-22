@@ -12,7 +12,7 @@ import { loadBank } from './lib/bank.js';
 import { FakeModelRunner, perturb } from './lib/runners.js';
 import type { FakeBehaviour, FakeScript } from './lib/runners.js';
 import { scorePayload, scoreText } from './lib/score.js';
-import { confinement, PLANNED_SESSIONS, plan, runAll, summarise } from './run.js';
+import { confinement, initCheck, PLANNED_SESSIONS, plan, runAll, summarise } from './run.js';
 import type { Isolation } from './run.js';
 
 const { bank, conventions } = loadBank();
@@ -136,5 +136,18 @@ describe('runner', () => {
     assert.deepEqual(s.args, ['-n', '/srv/bin/gserver', client[0]!.replace('.json', '')]);
     const real = JSON.parse(fs.readFileSync(path.join(iso.serverConfigDir, client[0]!), 'utf8')) as { args: string[] };
     assert.equal(real.args[real.args.indexOf('--project') + 1], copy);
+  });
+  it('R2: drops --safe-mode in both arms and checks the init event\'s MCP servers', () => {
+    for (const arm of ['F', 'FG'] as const) {
+      const a = armArgs(arm, 'p', '/abs/mcp.json');
+      assert.ok(a.ok && !a.args.includes('--safe-mode') && a.args.includes('--disable-slash-commands') && a.args.includes('--restricted'));
+    }
+    const init = (servers: unknown[]): string => `${JSON.stringify({ type: 'system', subtype: 'init', mcp_servers: servers })}\n`;
+    assert.equal(initCheck('F', init([])), null);
+    assert.equal(initCheck('FG', init([{ name: 'daedalus-graph', status: 'connected' }])), null);
+    assert.match(initCheck('FG', init([])) ?? '', /expected/);
+    assert.match(initCheck('FG', init([{ name: 'daedalus-graph', status: 'failed' }])) ?? '', /expected/);
+    assert.match(initCheck('F', init([{ name: 'x', status: 'connected' }])) ?? '', /expected/);
+    assert.equal(initCheck('F', '{}\n'), 'no init event');
   });
 });

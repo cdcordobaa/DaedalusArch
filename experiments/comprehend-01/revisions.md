@@ -37,3 +37,28 @@ only hit after the wrapper fix was its own pattern file; the handshake listed th
 `context_map` on the P2 copy; the isolated dry run spawned 63 fake sessions under the cap of 64. Frozen bank SHA-256:
 `4669be26c4952e37b9a8408aecdb31e689d864e96c1c35bf250610407adb9e33` (the build's commit aa5b1af4; text, keys, classes
 and scoring are identical to the hand-checked keys of 07ce2918, which `results/graph-check.json` names).
+
+## R2 (2026-10-22, after the two calibration smokes, before any question)
+
+**What happened.** The live pilot started at 18:46:30Z under R1. Both calibration smokes ("Reply OK") passed the R1
+guard, but FG's init event listed `mcp_servers: []`: the graph server never loaded. The run was stopped by hand before
+the first question (the generator's HOME was last reset at the FG smoke's start, so no third session began).
+**Calls used: 2** (`results/pilot-r1-smokes/`). No question was asked and no answer seen.
+
+**Cause.** EFF-01's argv (`buildConditionArgs`, imported read-only) emits `--safe-mode`, which disables every
+`--mcp-config` server on this CLI. The same cause is recorded in `Docs/DiagnosticRuns/v1.3-brownfield-llm-pilot-2026-10-19.md`
+(§ deviations) and `Docs/DiagnosticRuns/v1.4-claude-s4-mcp-2026-10-20.md`. A zero-call check was not possible:
+`claude mcp list` ignores `--mcp-config`, and a stream-json session emits no init event before its first message.
+
+**What changed** (the frame, bank, tools and scorer are unchanged):
+- `lib/arms.ts`: both arms drop `--safe-mode` and add `--disable-slash-commands` (the brownfield pilot's fix). What
+  `--safe-mode` protected is kept: `--restricted` ignores settings files, the generator's HOME is emptied before every
+  session, and the tree copies under `/srv/t` have no `CLAUDE.md`, `AGENTS.md`, `.claude` or `.mcp.json`, nor do their
+  ancestors (checked).
+- `run.ts`: every session's init event must list exactly the arm's MCP servers (none in F; `daedalus-graph` connected
+  in FG), or the pilot stops.
+- `run.ts --skip-cells cal-F`: the F smoke is not repeated (it passed, and the F argv change only removes a flag);
+  the FG smoke is repeated, because it is the check of R2.
+- **Cap.** 64 in all: 2 used under R1, so the R2 run gets `--hard-cap 62` = the FG smoke + 60 questions + 1 re-run.
+- One unit test for R2 (13 runner tests). The isolated dry run with `--skip-cells cal-F --hard-cap 62` spawned 62
+  fake sessions (61 cells + the scripted re-run).
