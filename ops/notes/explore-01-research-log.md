@@ -180,6 +180,25 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - **Result:** 24/24 targets correct in both runs, on both sets. Severity, exception and intent were all stable; 0 false claims and 0 hallucinated citations. A 4-call control with the frozen prompt reproduces case 5's severity miss and shows an intent-label slip ("consistent" read as "the rule matches the docs") that the rubric removes. 52 of 60 calls (`Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md`).
 - **Caveat:** this is a ceiling on a designed set. The same session wrote the rubric and the cases, and severity follows from intent on 14 of the 24 targets. The next checks are the non-author row, a Gemini arm and the non-target findings.
 
+### 13. PUZZLE-03: hand read, three more puzzles, agent baseline (2026-10-22)
+`Docs/DiagnosticRuns/puzzle-03-2026-10-23.md`, `experiments/puzzle-03/`, `results/v1.4-puzzle-03-baseline/`:
+- **Hand read of the PUZZLE-01 baseline:** 11 trap, 1 over-rejection (c07, P2-SG2-a). After it: P1 0/5, P2 1/5
+  (provisional), P4 5/5. Author spot-check pending on c07 and c10.
+- **Three DEV puzzles, all VALID (zero calls):**
+  - P3r: P3 rebuilt; the clean port was written anew.
+  - P5: two-way cross-context ferry seats, with a runtime stack oracle.
+  - P6: Layered, with a planted controller-to-gateway skip that the requests ask to stay consistent with; FF-S03
+    sees the trap.
+  - Gaming fixtures (renames, a batch unit of work, a synchronous fake event) fail the oracles. The PUZZLE-01 P3
+    oracle passes the P3r rename, DETECT-02 misses the fake event, and the frozen instrument misses the P6 rename.
+- **Agent alone** (`claude-sonnet-5-5`, 50 of 53 calls, one restart redraw):
+  - P3r 1/5 clean (4/5 if the fee-on-fallback reading is accepted).
+  - P5 0/5: 5/5 sync writes into the other context, all flagged by DETECT-02.
+  - P6 0/5: 5/5 copied the precedent, all flagged by the frozen instrument (FF-S03).
+  - Provisional until the hand read of 17 FAILs.
+- **Reading (dev):** P6 is the first puzzle the frozen instrument sees that the agent alone fails at 2/5 or below.
+  The condition for sizing an `mcp` arm is met, and P5 meets it for a DETECT-02 arm.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -190,6 +209,7 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
+- 2026-10-22: entry 13 (PUZZLE-03).
 - 2026-10-22: entry 12 (v1.5 U3 severity rubric).
 - 2026-10-22: entry 11 (edit gate built and smoke-tested).
 - 2026-10-22: entry 10 (COMPREHEND-01 built, not run).

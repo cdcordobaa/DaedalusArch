@@ -1,0 +1,61 @@
+diff --git a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+index 8323a045..2606cd1f 100644
+--- a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -20,6 +20,6 @@ export class FastshipRateAdapter implements RatePort {
+       if (e instanceof FastshipUnavailableError) throw new RatesUnavailableError(e.message);
+       throw e;
+     }
+-    return response.rates.map((r) => ({ price: Money.of(Number(r.amount.value), r.amount.currency), service: r.serviceName }));
++    return response.rates.map((r) => ({ price: Money.of(Number(r.amount.value), r.amount.currency), service: r.serviceName, freight: r.serviceCode === 'FREIGHT' }));
+   }
+ }
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 6150b516..fc2f5aa4 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -20,13 +20,15 @@ export class QuoteShipmentService implements QuoteShipment {
+     let estimated = false;
+     try {
+       const rates = await this.rates.rates(parcel);
+-      cheapest = rates.reduce<Quote | undefined>(
++      const allowed = rates.filter((r) => (r.freight === true) === parcel.requiresFreight());
++      cheapest = allowed.reduce<Quote | undefined>(
+         (best, r) => (best === undefined || r.price.isLessThan(best.price) ? r : best),
+         undefined,
+       );
+     } catch (e) {
+       if (!(e instanceof RatesUnavailableError)) throw e;
+-      cheapest = this.fallback.quote(parcel);
++      // the house rate is never freight, so it cannot serve parcels that require it
++      cheapest = parcel.requiresFreight() ? undefined : this.fallback.quote(parcel);
+       estimated = true;
+     }
+     if (!cheapest) throw new ShippingError('no Fastship service available for this parcel');
+diff --git a/a/src/domain/model/Parcel.ts b/b/src/domain/model/Parcel.ts
+index 6003610a..b8a7cad8 100644
+--- a/a/src/domain/model/Parcel.ts
++++ b/b/src/domain/model/Parcel.ts
+@@ -16,6 +16,11 @@ export class Parcel {
+     return new Parcel(from, to, weightGrams);
+   }
+ 
++  /** Parcels over 20 kg must travel as freight; lighter ones never may. */
++  requiresFreight(): boolean {
++    return this.weightGrams > 20000;
++  }
++
+   isDomestic(): boolean {
+     return this.from === this.to;
+   }
+diff --git a/a/src/domain/model/Quote.ts b/b/src/domain/model/Quote.ts
+index e98efa78..13a58ef2 100644
+--- a/a/src/domain/model/Quote.ts
++++ b/b/src/domain/model/Quote.ts
+@@ -3,4 +3,6 @@ import type { Money } from './Money';
+ export interface Quote {
+   readonly price: Money;
+   readonly service: string;
++  /** True for Fastship's freight service. */
++  readonly freight?: boolean;
+ }

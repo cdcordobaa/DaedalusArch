@@ -1,0 +1,41 @@
+diff --git a/a/src/persistence/JobGateway.ts b/b/src/persistence/JobGateway.ts
+index 2908b2ec..1c8f348e 100644
+--- a/a/src/persistence/JobGateway.ts
++++ b/b/src/persistence/JobGateway.ts
+@@ -27,6 +27,11 @@ export class JobGateway {
+     return this.all().filter((j) => j.closedOn === null);
+   }
+ 
++  /** Jobs closed in the month, given as YYYY-MM. */
++  closedIn(month: string): JobRecord[] {
++    return this.all().filter((j) => j.closedOn !== null && j.closedOn.slice(0, 7) === month);
++  }
++
+   closedOn(day: string): JobRecord[] {
+     return this.all().filter((j) => j.closedOn === day);
+   }
+diff --git a/a/src/presentation/ReportsController.ts b/b/src/presentation/ReportsController.ts
+index 1735d17e..4d5a930b 100644
+--- a/a/src/presentation/ReportsController.ts
++++ b/b/src/presentation/ReportsController.ts
+@@ -19,6 +19,20 @@ export class ReportsController {
+     });
+   }
+ 
++  /** Takings per mechanic for jobs closed in the month (YYYY-MM), highest first then by name. */
++  takingsByMechanic(month: string): HttpResponse {
++    return handle(() => {
++      const cents = new Map<string, number>();
++      for (const j of this.jobs.closedIn(month)) {
++        cents.set(j.mechanicId, (cents.get(j.mechanicId) ?? 0) + jobTotalCents(j.labourMinutes, j.partsCents));
++      }
++      return [...cents.entries()]
++        .map(([id, total]) => ({ mechanic: this.mechanics.byId(id)?.name ?? id, total }))
++        .sort((a, b) => b.total - a.total || (a.mechanic < b.mechanic ? -1 : a.mechanic > b.mechanic ? 1 : 0))
++        .map((r) => ({ mechanic: r.mechanic, takings: formatCents(r.total) }));
++    });
++  }
++
+   /** Every mechanic with their open jobs, busiest first then by name. */
+   workload(): HttpResponse {
+     return handle(() => {

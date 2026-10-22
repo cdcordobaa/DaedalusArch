@@ -1,0 +1,57 @@
+diff --git a/a/src/application/ports/in/QuoteShipment.ts b/b/src/application/ports/in/QuoteShipment.ts
+index 1232a22e..d93d4df0 100644
+--- a/a/src/application/ports/in/QuoteShipment.ts
++++ b/b/src/application/ports/in/QuoteShipment.ts
+@@ -8,6 +8,7 @@ export interface QuoteView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly service: string;
++  readonly estimated: boolean;
+ }
+ 
+ export interface QuoteShipment {
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 3fcf83e3..fabe9db5 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,6 +1,8 @@
++import { FastshipUnavailableError } from 'fastship-sdk';
+ import { ShippingError } from '../../domain/errors/ShippingError';
+ import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
++import { PriceTable } from '../../domain/services/PriceTable';
+ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteShipment';
+ import type { RatePort } from '../ports/out/RatePort';
+ 
+@@ -8,11 +10,21 @@ const QUOTE_CURRENCY = 'EUR';
+ const HANDLING_FEE = Money.of(1.5, QUOTE_CURRENCY);
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+-  constructor(private readonly rates: RatePort) {}
++  constructor(
++    private readonly rates: RatePort,
++    private readonly fallback: PriceTable = new PriceTable(),
++  ) {}
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const rates = await this.rates.rates(parcel);
++    let rates;
++    try {
++      rates = await this.rates.rates(parcel);
++    } catch (e) {
++      if (!(e instanceof FastshipUnavailableError)) throw e;
++      const house = this.fallback.quote(parcel);
++      return { amount: house.price.amount(), currency: house.price.currency, service: house.service, estimated: true };
++    }
+ 
+     let cheapest: { price: Money; service: string } | undefined;
+     for (const rate of rates) {
+@@ -24,6 +36,6 @@ export class QuoteShipmentService implements QuoteShipment {
+     if (!cheapest) throw new ShippingError('no Fastship service available for this parcel');
+ 
+     const total = cheapest.price.plus(HANDLING_FEE);
+-    return { amount: total.amount(), currency: total.currency, service: cheapest.service };
++    return { amount: total.amount(), currency: total.currency, service: cheapest.service, estimated: false };
+   }
+ }

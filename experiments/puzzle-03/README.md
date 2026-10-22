@@ -1,6 +1,6 @@
 # PUZZLE-03: three more architecture puzzles, and where agents fall into them (exploratory, DEV split)
 
-**Not Study 2b, not the frozen instrument.** Method: `ops/notes/puzzle-01-design.md` (retrograde construction from
+**Not Study 2b, not the frozen instrument.** Agent baseline: `Docs/DiagnosticRuns/puzzle-03-2026-10-23.md` (P3r 1/5, P5 0/5, P6 0/5 clean; provisional). Method: `ops/notes/puzzle-01-design.md` (retrograde construction from
 the clean end state, the three properties, mechanical verification). Plan of the agent baseline on these puzzles:
 `plan.md` (committed before any generator call). Nothing here changes `src/`, `presets/`, `scripts/lib/`,
 `scripts/v1.3/`, the tag `v1.4-freeze-2026-10-20` or any Study 2b artefact.

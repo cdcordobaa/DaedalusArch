@@ -1,0 +1,89 @@
+diff --git a/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+new file mode 100644
+index 00000000..7b1f281f
+--- /dev/null
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -0,0 +1,21 @@
++import type { FastshipClient } from 'fastship-sdk';
++import type { RatePort } from '../../../application/ports/out/RatePort';
++import { Money } from '../../../domain/model/Money';
++import type { Parcel } from '../../../domain/model/Parcel';
++import type { Quote } from '../../../domain/model/Quote';
++
++export class FastshipRateAdapter implements RatePort {
++  constructor(private readonly client: FastshipClient) {}
++
++  async rates(parcel: Parcel): Promise<Quote[]> {
++    const response = await this.client.rates({
++      origin: { country: parcel.from },
++      destination: { country: parcel.to },
++      parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
++    });
++    return response.rates.map((rate) => ({
++      price: Money.of(Number(rate.amount.value), rate.amount.currency),
++      service: rate.serviceName,
++    }));
++  }
++}
+diff --git a/b/src/application/ports/out/RatePort.ts b/b/src/application/ports/out/RatePort.ts
+new file mode 100644
+index 00000000..f65157b0
+--- /dev/null
++++ b/b/src/application/ports/out/RatePort.ts
+@@ -0,0 +1,7 @@
++import type { Parcel } from '../../../domain/model/Parcel';
++import type { Quote } from '../../../domain/model/Quote';
++
++export interface RatePort {
++  /** Carrier rates for the parcel, one per available service. */
++  rates(parcel: Parcel): Promise<Quote[]>;
++}
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 757ab089..642cc8ff 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,13 +1,20 @@
++import { ShippingError } from '../../domain/errors/ShippingError';
++import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
+-import { PriceTable } from '../../domain/services/PriceTable';
+ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteShipment';
++import type { RatePort } from '../ports/out/RatePort';
++
++const HANDLING_FEE = 1.5;
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+-  constructor(private readonly table: PriceTable = new PriceTable()) {}
++  constructor(private readonly rates: RatePort) {}
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const quote = this.table.quote(parcel);
+-    return { amount: quote.price.amount(), currency: quote.price.currency, service: quote.service };
++    const rates = await this.rates.rates(parcel);
++    const cheapest = rates.reduce((best, r) => (r.price.isLessThan(best.price) ? r : best), rates[0]);
++    if (!cheapest) throw new ShippingError('no Fastship service available for this parcel');
++    const total = cheapest.price.plus(Money.of(HANDLING_FEE, cheapest.price.currency));
++    return { amount: total.amount(), currency: total.currency, service: cheapest.service };
+   }
+ }
+diff --git a/a/src/config/container.ts b/b/src/config/container.ts
+index 6713beaa..04bfe635 100644
+--- a/a/src/config/container.ts
++++ b/b/src/config/container.ts
+@@ -1,5 +1,6 @@
+ import { FastshipClient } from 'fastship-sdk';
+ import { ShippingController } from '../adapters/inbound/http/ShippingController';
++import { FastshipRateAdapter } from '../adapters/outbound/fastship/FastshipRateAdapter';
+ import { FastshipTrackingAdapter } from '../adapters/outbound/fastship/FastshipTrackingAdapter';
+ import { QuoteShipmentService } from '../application/services/QuoteShipmentService';
+ import { TrackShipmentService } from '../application/services/TrackShipmentService';
+@@ -7,7 +8,7 @@ import { TrackShipmentService } from '../application/services/TrackShipmentServi
+ /** Composition root. The Fastship key comes from FASTSHIP_API_KEY. */
+ export function createApp() {
+   const fastship = new FastshipClient({ apiKey: process.env.FASTSHIP_API_KEY ?? '' });
+-  const quotes = new QuoteShipmentService();
++  const quotes = new QuoteShipmentService(new FastshipRateAdapter(fastship));
+   const tracking = new TrackShipmentService(new FastshipTrackingAdapter(fastship));
+   const http = new ShippingController(quotes, tracking);
+   return {

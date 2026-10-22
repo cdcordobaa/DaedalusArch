@@ -1,0 +1,69 @@
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 79a7ba82..99945694 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -16,10 +16,11 @@ export function createApp(options: AppOptions = {}) {
+   const today = options.today ?? (() => new Date().toISOString().slice(0, 10));
+   const db = new Database();
+   const jobGateway = new JobGateway(db);
+-  const mechanics = new MechanicService(new MechanicGateway(db));
++  const mechanicGateway = new MechanicGateway(db);
++  const mechanics = new MechanicService(mechanicGateway);
+   const jobs = new JobService(jobGateway, mechanics);
+   return {
+     workshop: new WorkshopController(mechanics, jobs, today),
+-    reports: new ReportsController(jobGateway),
++    reports: new ReportsController(jobGateway, mechanicGateway),
+   };
+ }
+diff --git a/a/src/persistence/JobGateway.ts b/b/src/persistence/JobGateway.ts
+index cab587d1..2908b2ec 100644
+--- a/a/src/persistence/JobGateway.ts
++++ b/b/src/persistence/JobGateway.ts
+@@ -23,6 +23,10 @@ export class JobGateway {
+     return [...this.db.jobs.values()].map((j) => ({ ...j }));
+   }
+ 
++  open(): JobRecord[] {
++    return this.all().filter((j) => j.closedOn === null);
++  }
++
+   closedOn(day: string): JobRecord[] {
+     return this.all().filter((j) => j.closedOn === day);
+   }
+diff --git a/a/src/presentation/ReportsController.ts b/b/src/presentation/ReportsController.ts
+index 5f19434b..6e7fb866 100644
+--- a/a/src/presentation/ReportsController.ts
++++ b/b/src/presentation/ReportsController.ts
+@@ -1,10 +1,30 @@
+ import { formatCents, jobTotalCents } from '../business/rules/Pricing';
+ import type { JobGateway } from '../persistence/JobGateway';
++import type { MechanicGateway } from '../persistence/MechanicGateway';
+ import { handle, type HttpResponse } from './HttpResponse';
+ 
+ /** GET /reports/takings?day=YYYY-MM-DD. */
+ export class ReportsController {
+-  constructor(private readonly jobs: JobGateway) {}
++  constructor(
++    private readonly jobs: JobGateway,
++    private readonly mechanics: MechanicGateway,
++  ) {}
++
++  /** Every mechanic with their open job count and the plate of their longest-open job, busiest first. */
++  workload(): HttpResponse {
++    return handle(() => {
++      const open = this.jobs.open();
++      return this.mechanics
++        .all()
++        .map((m) => {
++          const mine = open.filter((j) => j.mechanicId === m.id);
++          let oldest: (typeof mine)[number] | undefined;
++          for (const j of mine) if (oldest === undefined || j.openedOn < oldest.openedOn) oldest = j;
++          return { mechanic: m.name, openJobs: mine.length, oldestOpenPlate: oldest === undefined ? null : oldest.plate };
++        })
++        .sort((a, b) => b.openJobs - a.openJobs || (a.mechanic < b.mechanic ? -1 : a.mechanic > b.mechanic ? 1 : 0));
++    });
++  }
+ 
+   /** Jobs closed on the day and what they brought in. */
+   dailyTakings(day: string): HttpResponse {

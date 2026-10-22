@@ -1,0 +1,49 @@
+diff --git a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+index 7b1f281f..a8198e2f 100644
+--- a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -16,6 +16,7 @@ export class FastshipRateAdapter implements RatePort {
+     return response.rates.map((rate) => ({
+       price: Money.of(Number(rate.amount.value), rate.amount.currency),
+       service: rate.serviceName,
++      freight: rate.serviceCode === 'FREIGHT',
+     }));
+   }
+ }
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 42870239..25aabea4 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -7,6 +7,8 @@ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteSh
+ import type { RatePort } from '../ports/out/RatePort';
+ 
+ const HANDLING_FEE = 1.5;
++// Parcels heavier than this must go by freight; lighter or equal ones must not.
++const FREIGHT_MIN_GRAMS = 20000;
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+   constructor(
+@@ -25,8 +27,10 @@ export class QuoteShipmentService implements QuoteShipment {
+       rates = [this.fallback.quote(parcel)];
+       estimated = true;
+     }
+-    const cheapest = rates.reduce((best, r) => (r.price.isLessThan(best.price) ? r : best), rates[0]);
+-    if (!cheapest) throw new ShippingError('no Fastship service available for this parcel');
++    const needsFreight = parcel.weightGrams > FREIGHT_MIN_GRAMS;
++    const allowed = rates.filter((r) => (r.freight === true) === needsFreight);
++    const cheapest = allowed.reduce((best, r) => (r.price.isLessThan(best.price) ? r : best), allowed[0]);
++    if (!cheapest) throw new ShippingError('no allowed Fastship service available for this parcel');
+     const total = cheapest.price.plus(Money.of(HANDLING_FEE, cheapest.price.currency));
+     return { amount: total.amount(), currency: total.currency, service: cheapest.service, estimated };
+   }
+diff --git a/a/src/domain/model/Quote.ts b/b/src/domain/model/Quote.ts
+index e98efa78..ad912da9 100644
+--- a/a/src/domain/model/Quote.ts
++++ b/b/src/domain/model/Quote.ts
+@@ -3,4 +3,6 @@ import type { Money } from './Money';
+ export interface Quote {
+   readonly price: Money;
+   readonly service: string;
++  /** True for the carrier's freight service. */
++  readonly freight?: boolean;
+ }
