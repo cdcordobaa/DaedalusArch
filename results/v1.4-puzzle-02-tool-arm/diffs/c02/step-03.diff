@@ -1,0 +1,163 @@
+diff --git a/b/src/ledger/application/GetStatement.ts b/b/src/ledger/application/GetStatement.ts
+new file mode 100644
+index 00000000..2852d899
+--- /dev/null
++++ b/b/src/ledger/application/GetStatement.ts
+@@ -0,0 +1,15 @@
++import type { Movement } from '../domain/account/Account';
++import type { AccountRepository } from '../domain/account/AccountRepository';
++import { AccountId } from '../domain/account/value-objects/AccountId';
++import { LedgerError } from '../domain/LedgerError';
++
++export class GetStatement {
++  constructor(private readonly accounts: AccountRepository) {}
++
++  /** Every movement of the account, newest first. */
++  execute(accountId: string): Movement[] {
++    const account = this.accounts.byId(AccountId.of(accountId));
++    if (account === undefined) throw new LedgerError(`no account ${accountId}`);
++    return account.statement();
++  }
++}
+diff --git a/a/src/ledger/application/ReceiveTransfer.ts b/b/src/ledger/application/ReceiveTransfer.ts
+index 4e7462d1..e2b94539 100644
+--- a/a/src/ledger/application/ReceiveTransfer.ts
++++ b/b/src/ledger/application/ReceiveTransfer.ts
+@@ -13,7 +13,7 @@ export class ReceiveTransfer {
+     const moved = event as MoneyTransferred;
+     const account = this.accounts.byId(AccountId.of(moved.toAccountId));
+     if (account === undefined) throw new LedgerError(`no account ${moved.toAccountId}`);
+-    account.receiveTransfer(moved.transferId, Money.of(moved.cents / 100, moved.currency));
++    account.receiveTransfer(moved.transferId, Money.of(moved.cents / 100, moved.currency), AccountId.of(moved.fromAccountId));
+     this.accounts.save(account);
+   }
+ }
+diff --git a/a/src/ledger/domain/account/Account.ts b/b/src/ledger/domain/account/Account.ts
+index 1021aaa0..66b1ff6f 100644
+--- a/a/src/ledger/domain/account/Account.ts
++++ b/b/src/ledger/domain/account/Account.ts
+@@ -5,6 +5,12 @@ import { AccountOpened } from './events/AccountOpened';
+ import { MoneyTransferred } from './events/MoneyTransferred';
+ import type { AccountId } from './value-objects/AccountId';
+ 
++export interface Movement {
++  readonly kind: 'deposit' | 'withdrawal' | 'transfer-out' | 'transfer-in';
++  readonly amount: number;
++  readonly counterpart: string | null;
++}
++
+ export interface AccountState {
+   readonly id: AccountId;
+   readonly owner: string;
+@@ -17,6 +23,8 @@ export interface AccountState {
+   /** Calendar day (YYYY-MM-DD) of the latest transfer sent, and the cents sent on that day. */
+   readonly sentDay?: string;
+   readonly sentOnDay?: number;
++  /** Every movement on the account, oldest first. */
++  readonly movements?: readonly Movement[];
+ }
+ 
+ export const DAILY_TRANSFER_LIMIT_CENTS = 100000;
+@@ -34,6 +42,7 @@ export class Account {
+     private received: readonly string[] = [],
+     private sentDay: string = '',
+     private sentOnDay: number = 0,
++    private movements: readonly Movement[] = [],
+   ) {}
+ 
+   static open(id: AccountId, owner: string, currency: string): Account {
+@@ -43,7 +52,7 @@ export class Account {
+   }
+ 
+   static restore(state: AccountState): Account {
+-    return new Account(state.id, state.owner, state.currency, state.balance, state.sent ?? 0, state.received ?? [], state.sentDay ?? '', state.sentOnDay ?? 0);
++    return new Account(state.id, state.owner, state.currency, state.balance, state.sent ?? 0, state.received ?? [], state.sentDay ?? '', state.sentOnDay ?? 0, state.movements ?? []);
+   }
+ 
+   get balance(): Money {
+@@ -51,17 +60,36 @@ export class Account {
+   }
+ 
+   deposit(amount: Money): void {
++    this.credit(amount);
++    this.record('deposit', amount, null);
++  }
++
++  withdraw(amount: Money): void {
++    this.debit(amount);
++    this.record('withdrawal', amount, null);
++  }
++
++  /** Movements newest first. */
++  statement(): Movement[] {
++    return [...this.movements].reverse();
++  }
++
++  private credit(amount: Money): void {
+     if (!amount.isPositive()) throw new LedgerError('a deposit must be positive');
+     this.current = this.current.plus(amount);
+   }
+ 
+-  withdraw(amount: Money): void {
++  private debit(amount: Money): void {
+     if (!amount.isPositive()) throw new LedgerError('a withdrawal must be positive');
+     const after = this.current.minus(amount);
+     if (after.isNegative()) throw new LedgerError(`insufficient funds: short by ${Money.zero(this.currency).minus(after).format()}`);
+     this.current = after;
+   }
+ 
++  private record(kind: Movement['kind'], amount: Money, counterpart: string | null): void {
++    this.movements = [...this.movements, { kind, amount: amount.amount(), counterpart }];
++  }
++
+   /** Takes the money out and records that it is on its way to the other account. */
+   sendTransfer(to: AccountId, amount: Money, day: string): void {
+     const used = this.sentDay === day ? this.sentOnDay : 0;
+@@ -69,7 +97,8 @@ export class Account {
+       const left = Money.of((DAILY_TRANSFER_LIMIT_CENTS - used) / 100, this.currency);
+       throw new LedgerError(`daily transfer limit reached: ${left.format()} left today`);
+     }
+-    this.withdraw(amount);
++    this.debit(amount);
++    this.record('transfer-out', amount, to.value);
+     this.sentDay = day;
+     this.sentOnDay = used + amount.cents;
+     this.sent += 1;
+@@ -77,14 +106,15 @@ export class Account {
+   }
+ 
+   /** Credits a transfer once; a transfer already credited is ignored. */
+-  receiveTransfer(transferId: string, amount: Money): void {
++  receiveTransfer(transferId: string, amount: Money, from: AccountId): void {
+     if (this.received.includes(transferId)) return;
+-    this.deposit(amount);
++    this.credit(amount);
++    this.record('transfer-in', amount, from.value);
+     this.received = [...this.received, transferId];
+   }
+ 
+   state(): AccountState {
+-    return { id: this.id, owner: this.owner, currency: this.currency, balance: this.current, sent: this.sent, received: this.received, sentDay: this.sentDay, sentOnDay: this.sentOnDay };
++    return { id: this.id, owner: this.owner, currency: this.currency, balance: this.current, sent: this.sent, received: this.received, sentDay: this.sentDay, sentOnDay: this.sentOnDay, movements: this.movements };
+   }
+ 
+   pullEvents(): DomainEvent[] {
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 9ef8180b..5f7458cc 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,5 +1,6 @@
+ import { Deposit } from './ledger/application/Deposit';
+ import { EventRelay } from './ledger/application/EventRelay';
++import { GetStatement } from './ledger/application/GetStatement';
+ import { GetBalance } from './ledger/application/GetBalance';
+ import { OpenAccount } from './ledger/application/OpenAccount';
+ import { SendWelcomeNotice } from './ledger/application/SendWelcomeNotice';
+@@ -36,6 +37,7 @@ export function createApp(options: AppOptions = {}) {
+     transfer: (fromAccountId: string, toAccountId: string, amount: number): void =>
+       command(() => new Transfer(accounts, today).execute(fromAccountId, toAccountId, amount)),
+     balanceOf: (accountId: string): number => new GetBalance(accounts).execute(accountId),
++    statement: (accountId: string) => new GetStatement(accounts).execute(accountId),
+     notices: (): string[] => notices.all(),
+   };
+ }
