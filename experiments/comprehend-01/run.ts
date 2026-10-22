@@ -179,6 +179,8 @@ export async function runAll(opts: RunOptions): Promise<{ rows: LedgerRow[]; ref
       };
       rows.push(row);
       fs.appendFileSync(ledger, `${JSON.stringify(row)}\n`);
+      // R1: a failed calibration smoke (no clean exit or no result envelope) stops the pilot before any question.
+      if (cell.block === 'calibration' && (res.exitCode !== 0 || !env || res.timedOut)) { refused.push(`${key}: calibration smoke failed, the pilot stops (R1)`); break; }
       if (row.valid) break;
       if (attempt === 2) refused.push(`${key}: second confinement leak, the pilot stops (design §9 item 7)`);
     }

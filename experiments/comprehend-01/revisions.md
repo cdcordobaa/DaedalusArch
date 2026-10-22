@@ -24,9 +24,16 @@ baselines). The build's live path ran sessions from the trees in the repository,
   `cclaude` that empties the generator's HOME before every session, the tree copies, the launcher, and the clone
   closed with `chmod 700`. **Lesson of 2026-10-22 applied:** the clone and the session's working directory are never
   moved or removed; they are only closed with chmod and reopened at the end.
+- A failed calibration smoke (no clean exit, no result envelope, or the wall cap) stops the pilot before any question,
+  so a broken setup cannot spend the other calls.
+- `setup-sandbox.sh`'s wrapper comment carries no experiment name (the first fingerprint sweep found it).
 - One unit test for R1 (12 runner tests).
 
 **Checks before any call.** Unit tests (12 runner, 15 tools) and the dry run green on the R1 commit; as the generator
 user: listing denials on the repository, the clones, the out root and the real configs; a fingerprint sweep of the
 readable file system for strings that occur only in the bank's keys, the graph check and the design note; a zero-call
-MCP handshake through `sudo -n /srv/bin/gserver` as the generator user.
+MCP handshake through `sudo -n /srv/bin/gserver` as the generator user. Results: every listing denied; the sweep's
+only hit after the wrapper fix was its own pattern file; the handshake listed the four tools and answered
+`context_map` on the P2 copy; the isolated dry run spawned 63 fake sessions under the cap of 64. Frozen bank SHA-256:
+`4669be26c4952e37b9a8408aecdb31e689d864e96c1c35bf250610407adb9e33` (the build's commit aa5b1af4; text, keys, classes
+and scoring are identical to the hand-checked keys of 07ce2918, which `results/graph-check.json` names).

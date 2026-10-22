@@ -26,7 +26,7 @@ chown 1500:1500 /srv/gh && chmod 700 /srv/gh
 install -m 0755 -o root -g root results/v1.4-puzzle-01-baseline/isolation/gclaude.sh /srv/bin/gclaude
 cat > /srv/bin/cclaude <<'EOF'
 #!/bin/sh
-# COMPREHEND-01: empty the generator's HOME, then run the baseline wrapper.
+# Empty the generator's HOME, then run the baseline wrapper.
 set -e
 find /srv/gh -mindepth 1 -delete
 mkdir -p /srv/gh/tmp
