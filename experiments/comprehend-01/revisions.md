@@ -62,3 +62,8 @@ the first question (the generator's HOME was last reset at the FG smoke's start,
 - **Cap.** 64 in all: 2 used under R1, so the R2 run gets `--hard-cap 62` = the FG smoke + 60 questions + 1 re-run.
 - One unit test for R2 (13 runner tests). The isolated dry run with `--skip-cells cal-F --hard-cap 62` spawned 62
   fake sessions (61 cells + the scripted re-run).
+
+**Outcome (recorded after the run).** The R2 run spawned 61 sessions: the FG smoke, with `daedalus-graph` connected,
+and the 60 questions. All were valid on the first attempt: 0 re-runs, 0 cap hits, and the init check matched in all
+61. **63 of 64 calls in all.** No revision was made after any answer was seen. Report:
+`Docs/DiagnosticRuns/comprehend-01-pilot-2026-10-23.md`.

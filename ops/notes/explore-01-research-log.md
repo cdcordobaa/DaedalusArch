@@ -199,6 +199,29 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - **Reading (dev):** P6 is the first puzzle the frozen instrument sees that the agent alone fails at 2/5 or below.
   The condition for sizing an `mcp` arm is met, and P5 meets it for a DETECT-02 arm.
 
+### 14. COMPREHEND-01 pilot: files only vs files plus graph tools (2026-10-22)
+`Docs/DiagnosticRuns/comprehend-01-pilot-2026-10-23.md`, `experiments/comprehend-01/results/pilot/`:
+- **Run:** 30 questions × 2 arms × 1 run, `claude-sonnet-5-5`; 63 of 64 calls. The generator was isolated as in the
+  puzzle baselines: uid 1500, tree copies, the clone closed with chmod only. 0 confinement findings.
+- **Two revisions, both before any question:**
+  - R1: the cap of 64 and the isolated layout.
+  - R2: `--safe-mode` (from EFF-01's argv) dropped the graph server in the FG smoke. Both arms dropped it, and an
+    init check now stops the pilot on a server mismatch.
+- **Accuracy:** F 0.933, FG 0.900. On non-Gw items it is 0.963 each, a difference of 0.00, so "more accurately"
+  fails (criterion ≤ 0.05).
+- **Cost:** token ratio FG/F 0.835 on non-Gw items (0.827 on the human repositories); wall time −15%; −1.5 tool calls
+  per item. "More cheaply" holds (< 0.9). `impact` was never called.
+- **Wrong FG answers:**
+  - LH-WW1: `who_writes` misses the `UpdatePartial<Account>` writes (D2); the agent used it unchecked.
+  - DF-C1: `trace` stops at the ORM hook and event registry, and `who_writes` names the port, not `MemberRepo` (D2).
+    The result is a naming slip that F makes too.
+  - P2-P1: a placement with no graph call (D4). It is a possible key dispute: the sales-side handler resembles P5's
+    accepted alternative.
+  - D1: 0. All three Gw items were predicted before the run.
+- **Reading (dev):** F names the rule of every puzzle trap step (PR6), so the PUZZLE-01 trap rate is not a
+  comprehension failure. The graph is a cost saver at equal accuracy here, not an accuracy aid. Delivery at the moment
+  of action (the edit gate) is the track this points to.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -206,9 +229,11 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Fix the S1 seed `.gitignore` gap on `pilot/hexddd-01`; update the case-bank cards with the entry 6 verdicts.
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
-- [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
+- [x] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10). Approved as written, with a cap of 64; run in entry 14.
+- [ ] Author: COMPREHEND-01 key decision on P2-P1 (sales-side handler), whether a ×3 variance run is worth it, and graph revisions 1–2 (entry 14).
 
 ## Changelog
+- 2026-10-22: entry 14 (COMPREHEND-01 pilot).
 - 2026-10-22: entry 13 (PUZZLE-03).
 - 2026-10-22: entry 12 (v1.5 U3 severity rubric).
 - 2026-10-22: entry 11 (edit gate built and smoke-tested).

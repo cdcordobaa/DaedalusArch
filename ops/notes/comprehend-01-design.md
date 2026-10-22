@@ -279,3 +279,7 @@ any second confinement leak, or any session over the caps that is not reported a
   (W 8, C 6, R 5, I 4, P 4, O 3; G 16, Gw 3, S 4, X 7). The rule menu of R items adds LAYER and CTX-ISOLATION to the
   DETECT-02 rules (`experiments/comprehend-01/questions/conventions.json`). One tool revision after the graph
   cross-check: T1, the default `trace` view keeps every step into an adapter. No key changed.
+- 2026-10-22: pilot run, approved as written with a hard cap of 64 (`Docs/DiagnosticRuns/comprehend-01-pilot-2026-10-23.md`).
+  It used 63 calls. Revisions R1 (cap and isolated layout) and R2 (`--safe-mode` dropped in both arms, because it
+  disabled the graph server) were both made before any question (`experiments/comprehend-01/revisions.md`). No
+  question, key or tool changed.
