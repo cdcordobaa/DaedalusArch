@@ -1,0 +1,47 @@
+{
+  "schema": "puzzle-02-tool-arm-smoke/v1",
+  "cliVersion": "2.1.307",
+  "turn": {
+    "status": "completed",
+    "attempts": 1,
+    "permissionDenials": 0
+  },
+  "modelUsageIds": [
+    "claude-sonnet-5-5"
+  ],
+  "serverListed": true,
+  "agentNamesTool": false,
+  "serverConfined": true,
+  "checkConsistencyCalls": [
+    {
+      "isError": false,
+      "status": "not-applicable"
+    }
+  ],
+  "toolsListed": [
+    "get_architecture_spec",
+    "which_layer",
+    "check_import",
+    "evaluate_project",
+    "explain_violation",
+    "check_file",
+    "check_diff",
+    "suggest_placement",
+    "infer_spec",
+    "explain_finding",
+    "propose_spec",
+    "check_consistency"
+  ],
+  "calls": {
+    "smoke": 1,
+    "probes": 0,
+    "sessions": 0,
+    "total": 1
+  },
+  "passed": false,
+  "verdictAmendment": {
+    "at": "2026-10-22T03:21Z",
+    "passedOnNoteCriteria": true,
+    "reason": "note \u00a75 criteria: check_consistency listed to the CLI (server tools/list), callable (one call, status not-applicable on the skeleton-only cell, 0 permission denials) and the server confined (--confine on every connection). The driver's extra criterion agentNamesTool is not observable: the envelope keeps only the agent's final message, which answered the second half of the prompt; the tool call itself shows the model was given the tool. No re-run (no extra call)."
+  }
+}

@@ -1,0 +1,103 @@
+diff --git a/a/src/ledger/application/Transfer.ts b/b/src/ledger/application/Transfer.ts
+index 86954aa1..281ed824 100644
+--- a/a/src/ledger/application/Transfer.ts
++++ b/b/src/ledger/application/Transfer.ts
+@@ -7,7 +7,10 @@ let transferSequence = 0;
+ 
+ /** Takes the money out of the sending account; the receiving account is credited by CreditTransfer. */
+ export class Transfer {
+-  constructor(private readonly accounts: AccountRepository) {}
++  constructor(
++    private readonly accounts: AccountRepository,
++    private readonly today: () => string,
++  ) {}
+ 
+   execute(fromAccountId: string, toAccountId: string, amount: number): void {
+     const from = this.accounts.byId(AccountId.of(fromAccountId));
+@@ -16,7 +19,7 @@ export class Transfer {
+     if (to === undefined) throw new LedgerError(`no account ${toAccountId}`);
+     if (from.currency !== to.currency) throw new LedgerError(`currency mismatch: ${from.currency} vs ${to.currency}`);
+     transferSequence += 1;
+-    from.transferOut(`T-${transferSequence}`, to.id, Money.of(amount, from.currency));
++    from.transferOut(`T-${transferSequence}`, to.id, Money.of(amount, from.currency), this.today());
+     this.accounts.save(from);
+   }
+ }
+diff --git a/a/src/ledger/domain/account/Account.ts b/b/src/ledger/domain/account/Account.ts
+index 591cd666..97591149 100644
+--- a/a/src/ledger/domain/account/Account.ts
++++ b/b/src/ledger/domain/account/Account.ts
+@@ -12,8 +12,14 @@ export interface AccountState {
+   readonly balance: Money;
+   /** Ids of the transfers already credited to this account. */
+   readonly received?: readonly string[];
++  /** Day (YYYY-MM-DD) and amount in cents of the transfers sent that day. */
++  readonly sentDay?: string;
++  readonly sentCents?: number;
+ }
+ 
++/** The most an account may send by transfer per calendar day, in cents. */
++export const DAILY_TRANSFER_LIMIT_CENTS = 100000;
++
+ /** A customer's account. Its balance never goes below zero. */
+ export class Account {
+   private pending: DomainEvent[] = [];
+@@ -24,6 +30,8 @@ export class Account {
+     readonly currency: string,
+     private current: Money,
+     private received: ReadonlySet<string> = new Set(),
++    private sentDay: string = '',
++    private sentCents: number = 0,
+   ) {}
+ 
+   static open(id: AccountId, owner: string, currency: string): Account {
+@@ -33,7 +41,7 @@ export class Account {
+   }
+ 
+   static restore(state: AccountState): Account {
+-    return new Account(state.id, state.owner, state.currency, state.balance, new Set(state.received ?? []));
++    return new Account(state.id, state.owner, state.currency, state.balance, new Set(state.received ?? []), state.sentDay ?? '', state.sentCents ?? 0);
+   }
+ 
+   get balance(): Money {
+@@ -53,10 +61,17 @@ export class Account {
+   }
+ 
+   /** Takes the money out of this account and records that it is owed to `to`. */
+-  transferOut(transferId: string, to: AccountId, amount: Money): void {
++  transferOut(transferId: string, to: AccountId, amount: Money, day: string): void {
+     if (to.value === this.id.value) throw new LedgerError('cannot transfer to the same account');
+     if (amount.currency !== this.currency) throw new LedgerError(`currency mismatch: ${this.currency} vs ${amount.currency}`);
++    const sentToday = this.sentDay === day ? this.sentCents : 0;
++    if (sentToday + amount.cents > DAILY_TRANSFER_LIMIT_CENTS) {
++      const left = Money.of((DAILY_TRANSFER_LIMIT_CENTS - sentToday) / 100, this.currency);
++      throw new LedgerError(`daily transfer limit reached: ${left.format()} left today`);
++    }
+     this.withdraw(amount);
++    this.sentDay = day;
++    this.sentCents = sentToday + amount.cents;
+     this.pending.push(new MoneyTransferred(transferId, this.id.value, to.value, this.currency, amount.cents));
+   }
+ 
+@@ -68,7 +83,7 @@ export class Account {
+   }
+ 
+   state(): AccountState {
+-    return { id: this.id, owner: this.owner, currency: this.currency, balance: this.current, received: [...this.received] };
++    return { id: this.id, owner: this.owner, currency: this.currency, balance: this.current, received: [...this.received], sentDay: this.sentDay, sentCents: this.sentCents };
+   }
+ 
+   pullEvents(): DomainEvent[] {
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 3fcad1e8..f46fff59 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -34,7 +34,7 @@ export function createApp(options: AppOptions = {}) {
+     deposit: (accountId: string, amount: number): void => command(() => new Deposit(accounts).execute(accountId, amount)),
+     withdraw: (accountId: string, amount: number): void => command(() => new Withdraw(accounts).execute(accountId, amount)),
+     transfer: (fromAccountId: string, toAccountId: string, amount: number): void =>
+-      command(() => new Transfer(accounts).execute(fromAccountId, toAccountId, amount)),
++      command(() => new Transfer(accounts, today).execute(fromAccountId, toAccountId, amount)),
+     balanceOf: (accountId: string): number => new GetBalance(accounts).execute(accountId),
+     notices: (): string[] => notices.all(),
+   };

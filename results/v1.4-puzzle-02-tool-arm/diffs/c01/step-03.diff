@@ -1,0 +1,113 @@
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 639aa381..0cb4d6ea 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,6 +1,7 @@
+ import { createMembership } from './membership';
+ import { InMemoryMemberRepository } from './membership/infrastructure/InMemoryMemberRepository';
+ import { MembershipDirectory } from './sales/acl/MembershipDirectory';
++import { AwardOrderPoints } from './sales/application/AwardOrderPoints';
+ import { EventRelay } from './sales/application/EventRelay';
+ import { PlaceOrder, type LineRequest, type PlacedOrder } from './sales/application/PlaceOrder';
+ import { ReceiptFooter } from './sales/application/ReceiptFooter';
+@@ -16,6 +17,8 @@ export function createApp() {
+   const receipts = new InMemoryReceipts();
+   const relay = new EventRelay(orders);
+   const sendReceipt = new SendReceipt(receipts, new ReceiptFooter(members));
++  const awardOrderPoints = new AwardOrderPoints(new MembershipDirectory(membership));
++  relay.on('OrderPlaced', (e) => awardOrderPoints.handle(e));
+   relay.on('OrderPlaced', (e) => sendReceipt.handle(e));
+   const command = <T>(run: () => T): T => {
+     const result = run();
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 68945028..edf0be00 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -12,4 +12,8 @@ export class MembershipDirectory implements MemberDirectory {
+   tierOf(memberId: string): string | undefined {
+     return this.membership.card(memberId)?.tier;
+   }
++
++  awardPoints(memberId: string, points: number): void {
++    this.membership.awardPoints(memberId, points);
++  }
+ }
+diff --git a/b/src/sales/application/AwardOrderPoints.ts b/b/src/sales/application/AwardOrderPoints.ts
+new file mode 100644
+index 00000000..678f0464
+--- /dev/null
++++ b/b/src/sales/application/AwardOrderPoints.ts
+@@ -0,0 +1,15 @@
++import type { DomainEvent } from '../../shared-kernel/DomainEvent';
++import type { OrderPlaced } from '../domain/order/events/OrderPlaced';
++import type { MemberDirectory } from './ports/MemberDirectory';
++
++/** One point per whole 1.00 paid after the discount; guests earn nothing. */
++export class AwardOrderPoints {
++  constructor(private readonly directory: MemberDirectory) {}
++
++  handle(event: DomainEvent): void {
++    const placed = event as OrderPlaced;
++    if (placed.memberId === null) return;
++    const points = Math.floor(placed.paidCents / 100);
++    if (points > 0) this.directory.awardPoints(placed.memberId, points);
++  }
++}
+diff --git a/a/src/sales/application/PlaceOrder.ts b/b/src/sales/application/PlaceOrder.ts
+index 6b8c45d9..5e9db2c9 100644
+--- a/a/src/sales/application/PlaceOrder.ts
++++ b/b/src/sales/application/PlaceOrder.ts
+@@ -25,7 +25,7 @@ export class PlaceOrder {
+ 
+   execute(memberId: string | null, lines: readonly LineRequest[], currency = 'EUR'): PlacedOrder {
+     if (memberId !== null && !this.directory.exists(memberId)) throw new Error(`no member ${memberId}`);
+-    const order = Order.place(this.orders.nextId(), memberId, lines.map((l) => ({ sku: l.sku, quantity: l.quantity, unitPrice: Money.of(l.unitPrice, currency) })));
++    const order = Order.place(this.orders.nextId(), memberId, lines.map((l) => ({ sku: l.sku, quantity: l.quantity, unitPrice: Money.of(l.unitPrice, currency) })), this.discountRate(memberId));
+     this.orders.save(order);
+     const total = order.total();
+     const discount = total.minus(total.times(1 - this.discountRate(memberId)));
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 2345126a..affb0ed6 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -3,4 +3,5 @@ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** The member's tier as shown on their member card, or undefined for an unknown member. */
+   tierOf(memberId: string): string | undefined;
++  awardPoints(memberId: string, points: number): void;
+ }
+diff --git a/a/src/sales/domain/order/Order.ts b/b/src/sales/domain/order/Order.ts
+index ed124a70..d2f28de1 100644
+--- a/a/src/sales/domain/order/Order.ts
++++ b/b/src/sales/domain/order/Order.ts
+@@ -25,14 +25,16 @@ export class Order {
+     readonly lines: readonly OrderLine[],
+   ) {}
+ 
+-  static place(id: OrderId, memberId: string | null, lines: readonly OrderLine[]): Order {
++  static place(id: OrderId, memberId: string | null, lines: readonly OrderLine[], discountRate = 0): Order {
+     if (lines.length === 0) throw new Error('an order needs at least one line');
+     for (const line of lines) {
+       if (!Number.isInteger(line.quantity) || line.quantity <= 0) throw new Error(`line ${line.sku}: quantity must be a positive whole number`);
+       if (line.unitPrice.isNegative()) throw new Error(`line ${line.sku}: price must not be negative`);
+     }
+     const order = new Order(id, memberId, lines);
+-    order.pending.push(new OrderPlaced(id.value, memberId, order.total().cents, order.total().currency));
++    const total = order.total();
++    const paid = total.times(1 - discountRate);
++    order.pending.push(new OrderPlaced(id.value, memberId, total.cents, total.currency, paid.cents));
+     return order;
+   }
+ 
+diff --git a/a/src/sales/domain/order/events/OrderPlaced.ts b/b/src/sales/domain/order/events/OrderPlaced.ts
+index 3d59062a..f253ed58 100644
+--- a/a/src/sales/domain/order/events/OrderPlaced.ts
++++ b/b/src/sales/domain/order/events/OrderPlaced.ts
+@@ -8,5 +8,7 @@ export class OrderPlaced implements DomainEvent {
+     readonly memberId: string | null,
+     readonly totalCents: number,
+     readonly currency: string,
++    /** What the customer pays after the discount, in cents. */
++    readonly paidCents: number,
+   ) {}
+ }

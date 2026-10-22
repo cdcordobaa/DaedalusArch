@@ -1,0 +1,100 @@
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 639aa381..0cb4d6ea 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,6 +1,7 @@
+ import { createMembership } from './membership';
+ import { InMemoryMemberRepository } from './membership/infrastructure/InMemoryMemberRepository';
+ import { MembershipDirectory } from './sales/acl/MembershipDirectory';
++import { AwardOrderPoints } from './sales/application/AwardOrderPoints';
+ import { EventRelay } from './sales/application/EventRelay';
+ import { PlaceOrder, type LineRequest, type PlacedOrder } from './sales/application/PlaceOrder';
+ import { ReceiptFooter } from './sales/application/ReceiptFooter';
+@@ -16,6 +17,8 @@ export function createApp() {
+   const receipts = new InMemoryReceipts();
+   const relay = new EventRelay(orders);
+   const sendReceipt = new SendReceipt(receipts, new ReceiptFooter(members));
++  const awardOrderPoints = new AwardOrderPoints(new MembershipDirectory(membership));
++  relay.on('OrderPlaced', (e) => awardOrderPoints.handle(e));
+   relay.on('OrderPlaced', (e) => sendReceipt.handle(e));
+   const command = <T>(run: () => T): T => {
+     const result = run();
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 4d888ffd..fc9975be 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -9,6 +9,10 @@ export class MembershipDirectory implements MemberDirectory {
+     return this.membership.card(memberId) !== undefined;
+   }
+ 
++  awardPoints(memberId: string, points: number): void {
++    this.membership.awardPoints(memberId, points);
++  }
++
+   discountPercent(memberId: string): number {
+     switch (this.membership.card(memberId)?.tier) {
+       case 'gold':
+diff --git a/b/src/sales/application/AwardOrderPoints.ts b/b/src/sales/application/AwardOrderPoints.ts
+new file mode 100644
+index 00000000..463aa2d9
+--- /dev/null
++++ b/b/src/sales/application/AwardOrderPoints.ts
+@@ -0,0 +1,14 @@
++import type { DomainEvent } from '../../shared-kernel/DomainEvent';
++import type { OrderPlaced } from '../domain/order/events/OrderPlaced';
++import type { MemberDirectory } from './ports/MemberDirectory';
++
++/** Puts the points an order earned on the member's card. */
++export class AwardOrderPoints {
++  constructor(private readonly directory: MemberDirectory) {}
++
++  handle(event: DomainEvent): void {
++    const placed = event as OrderPlaced;
++    if (placed.memberId === null || placed.pointsEarned <= 0) return;
++    this.directory.awardPoints(placed.memberId, placed.pointsEarned);
++  }
++}
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index cf19fa79..b24bc26c 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -3,4 +3,6 @@ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** Percentage taken off every order of this member (0 when they have no discount). */
+   discountPercent(memberId: string): number;
++  /** Puts loyalty points on the member's card. */
++  awardPoints(memberId: string, points: number): void;
+ }
+diff --git a/a/src/sales/domain/order/Order.ts b/b/src/sales/domain/order/Order.ts
+index ebbe3884..40c9f2ce 100644
+--- a/a/src/sales/domain/order/Order.ts
++++ b/b/src/sales/domain/order/Order.ts
+@@ -35,10 +35,16 @@ export class Order {
+       if (line.unitPrice.isNegative()) throw new Error(`line ${line.sku}: price must not be negative`);
+     }
+     const order = new Order(id, memberId, lines, discountPercent);
+-    order.pending.push(new OrderPlaced(id.value, memberId, order.total().cents, order.total().currency));
++    order.pending.push(new OrderPlaced(id.value, memberId, order.total().cents, order.total().currency, order.pointsEarned()));
+     return order;
+   }
+ 
++  /** One point per whole 1.00 paid after the discount; guests earn nothing. */
++  pointsEarned(): number {
++    if (this.memberId === null) return 0;
++    return Math.max(0, Math.floor(this.total().cents / 100));
++  }
++
+   static restore(state: OrderState): Order {
+     return new Order(state.id, state.memberId, state.lines, state.discountPercent);
+   }
+diff --git a/a/src/sales/domain/order/events/OrderPlaced.ts b/b/src/sales/domain/order/events/OrderPlaced.ts
+index 3d59062a..1321026b 100644
+--- a/a/src/sales/domain/order/events/OrderPlaced.ts
++++ b/b/src/sales/domain/order/events/OrderPlaced.ts
+@@ -8,5 +8,6 @@ export class OrderPlaced implements DomainEvent {
+     readonly memberId: string | null,
+     readonly totalCents: number,
+     readonly currency: string,
++    readonly pointsEarned: number = 0,
+   ) {}
+ }
