@@ -1,0 +1,952 @@
+{
+ "schema": "comprehend-01-bank/v1",
+ "status": "answers written and checked by hand against the code on 2026-10-22, before any graph cross-check and before any model call; frozen once the author approves the design note",
+ "design": "ops/notes/comprehend-01-design.md",
+ "conventions": "conventions.json",
+ "items": [
+  {
+   "id": "P1-C1",
+   "tree": "p1-seed",
+   "type": "C",
+   "template": "chain",
+   "class": "G",
+   "text": "Give the call chain from Deposit.execute to the store method that persists the account it changes, and the file of that store method.",
+   "answerFormat": {
+    "chain": [
+     "<unit>"
+    ],
+    "endFile": "<path>"
+   },
+   "key": {
+    "chain": [
+     "Deposit.execute",
+     "InMemoryAccountRepository.save"
+    ],
+    "endFile": "src/ledger/infrastructure/InMemoryAccountRepository.ts"
+   },
+   "scoring": {
+    "kind": "chain",
+    "required": [
+     "Deposit.execute",
+     "InMemoryAccountRepository.save"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "src/ledger/application/Deposit.ts:9-14",
+     "src/ledger/infrastructure/InMemoryAccountRepository.ts:8,23-27",
+     "src/main.ts:18 (InMemoryAccountRepository, the only AccountRepository implementation)"
+    ],
+    "method": "code read"
+   }
+  },
+  {
+   "id": "P1-R1",
+   "tree": "p1-seed",
+   "type": "R",
+   "template": "risk",
+   "class": "X",
+   "behaviour": "P1 trap step 1 (transfers)",
+   "text": "Planned change: a new TransferMoney command loads two accounts, withdraws the amount from one, deposits it into the other and saves both accounts before it returns. Which rules would this change break?",
+   "answerFormat": {
+    "rules": [
+     "<rule name>"
+    ]
+   },
+   "key": {
+    "rules": [
+     "R-D4"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "experiments/puzzle-01/puzzles/p1-transfers/README.md (trap line step 1)",
+     "seed ARCHITECTURE.md rule 1",
+     "spec.yaml: one context (ledger), so no cross-context write"
+    ],
+    "method": "puzzle documentation and spec"
+   }
+  },
+  {
+   "id": "P1-R2",
+   "tree": "p1-seed",
+   "type": "R",
+   "template": "risk",
+   "class": "X",
+   "behaviour": "P1 trap step 2 (daily-limit)",
+   "text": "Planned change: in Withdraw.execute, before calling the account's withdraw, the service asks the store how much the account has sent today and throws an error when the amount would exceed the remaining daily limit. Which rules would this change break?",
+   "answerFormat": {
+    "rules": [
+     "<rule name>"
+    ]
+   },
+   "key": {
+    "rules": [
+     "R-D5"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "experiments/puzzle-01/puzzles/p1-transfers/README.md (trap line step 2: the comparison half)",
+     "src/ledger/domain/account/Account.ts (the invariants live in Account)"
+    ],
+    "method": "puzzle documentation; the side-table write of the trap is left out of the question so the key is one rule"
+   }
+  },
+  {
+   "id": "P1-P1",
+   "tree": "p1-seed",
+   "type": "P",
+   "template": "placement",
+   "class": "X",
+   "behaviour": "P1 clean line step 1",
+   "text": "A transfer will be split in two: the source account records a TransferSent event, and a handler of that event credits the destination account once per transfer. Which folder should hold that handler?",
+   "answerFormat": {
+    "path": "<file or folder path>"
+   },
+   "key": {
+    "path": "src/ledger/application/"
+   },
+   "scoring": {
+    "kind": "path",
+    "full": [
+     "src/ledger/application/**"
+    ],
+    "half": [
+     "src/ledger/**"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "experiments/puzzle-01/puzzles/p1-transfers/README.md (winning line: ReceiveTransfer handler)",
+     "solutions/clean/src/ledger/application/ReceiveTransfer.ts",
+     "seed precedent src/ledger/application/SendWelcomeNotice.ts"
+    ],
+    "method": "puzzle clean solution and seed precedent"
+   }
+  },
+  {
+   "id": "P2-O1",
+   "tree": "p2-seed",
+   "type": "O",
+   "template": "owner",
+   "class": "S",
+   "text": "Which bounded context owns the Member aggregate?",
+   "answerFormat": {
+    "context": "<context name>"
+   },
+   "key": {
+    "context": "membership"
+   },
+   "scoring": {
+    "kind": "exact"
+   },
+   "provenance": {
+    "read": [
+     "spec.yaml architecture.ddd.aggregates (Member, context membership)"
+    ],
+    "method": "spec quote"
+   }
+  },
+  {
+   "id": "P2-W1",
+   "tree": "p2-seed",
+   "type": "W",
+   "template": "writes",
+   "class": "G",
+   "text": "Which aggregates does PlaceOrder.execute save, directly or through the calls it makes?",
+   "answerFormat": {
+    "aggregates": [
+     "<aggregate root name>"
+    ]
+   },
+   "key": {
+    "aggregates": [
+     "Order"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "src/sales/application/PlaceOrder.ts:23-28 (orders.save at 26; directory.exists at 24 is a read)",
+     "src/sales/acl/MembershipDirectory.ts:8-10 (card(), a read)",
+     "src/membership/application/GetMemberCard.ts (byId only)"
+    ],
+    "method": "code read"
+   }
+  },
+  {
+   "id": "P2-C1",
+   "tree": "p2-seed",
+   "type": "C",
+   "template": "chain",
+   "class": "G",
+   "text": "PlaceOrder.execute checks that the member exists. Give the call chain from PlaceOrder.execute to the store method that looks the member up, and the file of that store method.",
+   "answerFormat": {
+    "chain": [
+     "<unit>"
+    ],
+    "endFile": "<path>"
+   },
+   "key": {
+    "chain": [
+     "PlaceOrder.execute",
+     "MembershipDirectory.exists",
+     "card",
+     "GetMemberCard.execute",
+     "InMemoryMemberRepository.byId"
+    ],
+    "endFile": "src/membership/infrastructure/InMemoryMemberRepository.ts"
+   },
+   "scoring": {
+    "kind": "chain",
+    "required": [
+     "PlaceOrder.execute",
+     "MembershipDirectory.exists",
+     "GetMemberCard.execute",
+     "InMemoryMemberRepository.byId"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "src/sales/application/PlaceOrder.ts:24",
+     "src/main.ts:30 (PlaceOrder gets new MembershipDirectory(membership))",
+     "src/sales/acl/MembershipDirectory.ts:9",
+     "src/membership/index.ts:21 (card arrow)",
+     "src/membership/application/GetMemberCard.ts:9",
+     "src/membership/infrastructure/InMemoryMemberRepository.ts:14"
+    ],
+    "method": "code read; the object-literal function 'card' is not required (naming varies)"
+   }
+  },
+  {
+   "id": "P2-I1",
+   "tree": "p2-seed",
+   "type": "I",
+   "template": "importers",
+   "class": "G",
+   "text": "Which production files of the sales context import a file of the membership context that is not part of membership's published interface (src/membership/index.ts and src/membership/contracts/**)?",
+   "answerFormat": {
+    "files": [
+     "<path>"
+    ]
+   },
+   "key": {
+    "files": [
+     "src/sales/application/ReceiptFooter.ts"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "grep of 'membership' under src/sales: ReceiptFooter.ts:1-2 (domain MemberRepository, MemberId); MembershipDirectory.ts:1 imports '../../membership' (the published index)"
+    ],
+    "method": "code read and grep"
+   }
+  },
+  {
+   "id": "P2-R1",
+   "tree": "p2-seed",
+   "type": "R",
+   "template": "risk",
+   "class": "X",
+   "behaviour": "P2 trap step 3 (points-on-orders, trap-alt form)",
+   "text": "Planned change: after saving the order, PlaceOrder.execute calls membership's awardPoints through the anti-corruption layer, in the same call, so the member's points change before the command returns. Which rules would this change break?",
+   "answerFormat": {
+    "rules": [
+     "<rule name>"
+    ]
+   },
+   "key": {
+    "rules": [
+     "R-D4",
+     "R-XCTX"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "experiments/puzzle-01/puzzles/p2-loyalty/README.md (trap-alt step 3)",
+     "src/membership/index.ts:20 (awardPoints saves a Member)",
+     "spec: Member owned by membership, Order by sales",
+     "DETECT-02 fixture p08 positive (the same shape, expectPositive R-D4 and R-XCTX)"
+    ],
+    "method": "puzzle documentation, spec and the fixture's expectation"
+   }
+  },
+  {
+   "id": "P2-P1",
+   "tree": "p2-seed",
+   "type": "P",
+   "template": "placement",
+   "class": "X",
+   "behaviour": "P2 clean line step 3",
+   "text": "Members should earn points when an order is placed, without PlaceOrder saving anything but the order. Which file or folder should hold the code that reacts to a placed order by crediting the member's points?",
+   "answerFormat": {
+    "path": "<file or folder path>"
+   },
+   "key": {
+    "path": "src/membership/application/"
+   },
+   "scoring": {
+    "kind": "path",
+    "full": [
+     "src/membership/application/**",
+     "src/membership/index.ts"
+    ],
+    "half": [
+     "src/membership/**"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "experiments/puzzle-01/puzzles/p2-loyalty/README.md (winning line step 3: a purchaseMade subscriber on membership's published module, the earning rule in Member)",
+     "solutions/clean"
+    ],
+    "method": "puzzle clean solution"
+   }
+  },
+  {
+   "id": "P4-I1",
+   "tree": "p4-seed",
+   "type": "I",
+   "template": "importers",
+   "class": "G",
+   "text": "Which production files import src/persistence/LoanGateway.ts?",
+   "answerFormat": {
+    "files": [
+     "<path>"
+    ]
+   },
+   "key": {
+    "files": [
+     "src/business/services/LoanService.ts",
+     "src/main.ts"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "grep: src/business/services/LoanService.ts:1, src/main.ts:4; LibraryController imports services only"
+    ],
+    "method": "grep"
+   }
+  },
+  {
+   "id": "P4-C1",
+   "tree": "p4-seed",
+   "type": "C",
+   "template": "chain",
+   "class": "G",
+   "text": "Give the call chain from the controller method that handles borrowing a book to the store method that inserts the loan, and the file of that store method.",
+   "answerFormat": {
+    "chain": [
+     "<unit>"
+    ],
+    "endFile": "<path>"
+   },
+   "key": {
+    "chain": [
+     "LibraryController.borrow",
+     "LibraryController.handle",
+     "LoanService.borrow",
+     "LoanGateway.insert"
+    ],
+    "endFile": "src/persistence/LoanGateway.ts"
+   },
+   "scoring": {
+    "kind": "chain",
+    "required": [
+     "LibraryController.borrow",
+     "LoanService.borrow",
+     "LoanGateway.insert"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "src/presentation/LibraryController.ts:24-26 (the arrow passed to handle calls loans.borrow)",
+     "src/business/services/LoanService.ts:12-16",
+     "src/persistence/LoanGateway.ts:7"
+    ],
+    "method": "code read; handle is not required (the work runs in the arrow)"
+   }
+  },
+  {
+   "id": "P4-R1",
+   "tree": "p4-seed",
+   "type": "R",
+   "template": "risk",
+   "class": "S",
+   "behaviour": "P4 trap step 1 (overdue-suspends)",
+   "text": "Planned change: inside LoanGateway.markOverdue, for each loan it flags, create a MemberService and call its suspend method for the loan's member. Which rules would this change break?",
+   "answerFormat": {
+    "rules": [
+     "<rule name>"
+    ]
+   },
+   "key": {
+    "rules": [
+     "LAYER"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "experiments/puzzle-01/puzzles/p4-library-holds/README.md (trap line step 1, H7)",
+     "seed ARCHITECTURE.md rule 1 (persistence never uses business code)"
+    ],
+    "method": "puzzle documentation"
+   }
+  },
+  {
+   "id": "FX05-W1",
+   "tree": "fx-p05-positive",
+   "type": "W",
+   "template": "writes",
+   "class": "G",
+   "text": "Which aggregates does AddLine.execute save?",
+   "answerFormat": {
+    "aggregates": [
+     "<aggregate root name>"
+    ]
+   },
+   "key": {
+    "aggregates": [
+     "Order",
+     "Product"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "src/sales/application/AddLine.ts:15-16",
+     "spec: OrderLine is an inner entity of Order; Product is its own aggregate"
+    ],
+    "method": "code read and spec"
+   }
+  },
+  {
+   "id": "FX07-W1",
+   "tree": "fx-p07-positive",
+   "type": "W",
+   "template": "writes",
+   "class": "G",
+   "text": "Which aggregates does CompleteShipment.execute save?",
+   "answerFormat": {
+    "aggregates": [
+     "<aggregate root name>"
+    ]
+   },
+   "key": {
+    "aggregates": [
+     "FulfilmentSaga",
+     "Order"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "src/sales/application/CompleteShipment.ts:14-15"
+    ],
+    "method": "code read"
+   }
+  },
+  {
+   "id": "FX08-R1",
+   "tree": "fx-p08-positive",
+   "type": "R",
+   "template": "risk",
+   "class": "G",
+   "text": "As the code stands, which of the rules R-D4 and R-XCTX does PlaceOrder.execute break? Answer with the subset, or [\"none\"].",
+   "answerFormat": {
+    "rules": [
+     "<rule name>"
+    ]
+   },
+   "key": {
+    "rules": [
+     "R-D4",
+     "R-XCTX"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "src/sales/application/PlaceOrder.ts:12-13 (orders.save, then members.award)",
+     "the ACL award calls membership's published awardPoints, which saves a Member",
+     "fixture.json expectPositive [R-D4, R-XCTX]"
+    ],
+    "method": "code read and the fixture's statement"
+   }
+  },
+  {
+   "id": "FX09-W1",
+   "tree": "fx-p09-legit",
+   "type": "W",
+   "template": "writes",
+   "class": "G",
+   "text": "Which aggregates does PlaceOrderOnCredit.execute save?",
+   "answerFormat": {
+    "aggregates": [
+     "<aggregate root name>"
+    ]
+   },
+   "key": {
+    "aggregates": [
+     "Order"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "src/sales/application/PlaceOrderOnCredit.ts:11-17 (customer loaded and assessed, not saved; orders.save at 17)",
+     "src/sales/acl/LegacyCreditCheck.ts:11-15 (a question, no store)"
+    ],
+    "method": "code read"
+   }
+  },
+  {
+   "id": "LH-W1",
+   "tree": "lucashang-ddd-payday",
+   "type": "W",
+   "template": "writes",
+   "class": "G",
+   "text": "Which aggregates does CreateUserUseCase.execute save, directly or through the calls it makes?",
+   "answerFormat": {
+    "aggregates": [
+     "<aggregate root name>"
+    ]
+   },
+   "key": {
+    "aggregates": [
+     "Account",
+     "User"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "src/modules/users/useCases/createUser/CreateUserUseCase.ts:38 (userRepository.insert), :40 (createAccountUseCase.execute)",
+     "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts:35 (accountRepository.insert)"
+    ],
+    "method": "code read at the pin"
+   }
+  },
+  {
+   "id": "LH-WW1",
+   "tree": "lucashang-ddd-payday",
+   "type": "W",
+   "template": "writers",
+   "class": "Gw",
+   "text": "Which commands save the Account aggregate, directly or through the calls they make?",
+   "answerFormat": {
+    "commands": [
+     "<Class.method>"
+    ]
+   },
+   "key": {
+    "commands": [
+     "CreateAccountUseCase.execute",
+     "CreateUserUseCase.execute",
+     "DepositUseCase.execute",
+     "WithdrawUseCase.execute"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "grep 'Repository.(insert|update)': CreateAccountUseCase.ts:35, DepositUseCase.ts:35, WithdrawUseCase.ts:35 (accountRepository.update), CreateUserUseCase.ts:40 via CreateAccountUseCase"
+    ],
+    "method": "code read and grep",
+    "predictedGraphGap": "update(t: UpdatePartial<Account>) takes a mapped type, not Account, so the write-footprint facts are expected to miss Deposit and Withdraw"
+   }
+  },
+  {
+   "id": "LH-C1",
+   "tree": "lucashang-ddd-payday",
+   "type": "C",
+   "template": "chain",
+   "class": "G",
+   "text": "Give the call chain from CreateUserUseCase.execute to the store method that persists the new account, and the file of that store method.",
+   "answerFormat": {
+    "chain": [
+     "<unit>"
+    ],
+    "endFile": "<path>"
+   },
+   "key": {
+    "chain": [
+     "CreateUserUseCase.execute",
+     "CreateAccountUseCase.execute",
+     "FakeAccountRepository.insert"
+    ],
+    "endFile": "src/modules/accounts/repositories/implementations/fake/fakeAccountRepository.ts"
+   },
+   "scoring": {
+    "kind": "chain",
+    "required": [
+     "CreateUserUseCase.execute",
+     "CreateAccountUseCase.execute",
+     "FakeAccountRepository.insert"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "CreateUserUseCase.ts:40",
+     "src/modules/accounts/useCases/createAccount/index.ts:5 (new FakeAccountRepository(): the only IAccountRepository implementation)",
+     "CreateAccountUseCase.ts:35",
+     "fakeAccountRepository.ts:11"
+    ],
+    "method": "code read at the pin"
+   }
+  },
+  {
+   "id": "LH-I1",
+   "tree": "lucashang-ddd-payday",
+   "type": "I",
+   "template": "importers",
+   "class": "G",
+   "text": "Which production files import src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts?",
+   "answerFormat": {
+    "files": [
+     "<path>"
+    ]
+   },
+   "key": {
+    "files": [
+     "src/modules/accounts/useCases/createAccount/index.ts",
+     "src/modules/users/useCases/createUser/CreateUserUseCase.ts"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "grep \"CreateAccountUseCase'\": 2 production files and 4 *.spec.ts files (excluded)"
+    ],
+    "method": "grep at the pin"
+   }
+  },
+  {
+   "id": "MT-WW1",
+   "tree": "meetinger",
+   "type": "W",
+   "template": "writers",
+   "class": "Gw",
+   "text": "Which commands save the Meeting aggregate?",
+   "answerFormat": {
+    "commands": [
+     "<Class.method>"
+    ]
+   },
+   "key": {
+    "commands": [
+     "CreateMeetingUseCase.execute",
+     "EditMeetingUseCase.execute",
+     "JoinMeetingUseCase.execute",
+     "LeaveMeetingUseCase.execute"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "grep 'meetingRepo.save': CreateMeetingUseCase.ts:76, EditMeetingUseCase.ts:95, JoinMeetingUseCase.ts:51, LeaveMeetingUseCase.ts:72 (paths under src/modules/meetings/usecase/)"
+    ],
+    "method": "grep and code read at the pin (analysis root backend/)",
+    "predictedGraphGap": "CreateMeetingUseCase saves meetingOrError.unwrap(); the Result type comes from an uninstalled package, so the argument is untyped and the write is expected to be missed"
+   }
+  },
+  {
+   "id": "MT-O1",
+   "tree": "meetinger",
+   "type": "O",
+   "template": "owner",
+   "class": "S",
+   "text": "Which bounded context owns the Attendee aggregate?",
+   "answerFormat": {
+    "context": "<context name>"
+   },
+   "key": {
+    "context": "meetings"
+   },
+   "scoring": {
+    "kind": "exact"
+   },
+   "provenance": {
+    "read": [
+     "spec architecture.ddd.aggregates (Attendee, context meetings)"
+    ],
+    "method": "spec quote"
+   }
+  },
+  {
+   "id": "MT-C1",
+   "tree": "meetinger",
+   "type": "C",
+   "template": "chain",
+   "class": "G",
+   "text": "Give the call chain from LeaveMeetingUseCase.execute to the store method that persists the meeting, and the file of that store method.",
+   "answerFormat": {
+    "chain": [
+     "<unit>"
+    ],
+    "endFile": "<path>"
+   },
+   "key": {
+    "chain": [
+     "LeaveMeetingUseCase.execute",
+     "DynamoDBMeetingRepo.save"
+    ],
+    "endFile": "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts"
+   },
+   "scoring": {
+    "kind": "chain",
+    "required": [
+     "LeaveMeetingUseCase.execute",
+     "DynamoDBMeetingRepo.save"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "src/modules/meetings/usecase/leaveMeeting/LeaveMeetingUseCase.ts:72",
+     "src/modules/meetings/usecase/leaveMeeting/index.ts:20",
+     "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts:24,34 (the only MeetingRepo implementation)"
+    ],
+    "method": "code read at the pin"
+   }
+  },
+  {
+   "id": "MT-P1",
+   "tree": "meetinger",
+   "type": "P",
+   "template": "placement",
+   "class": "X",
+   "text": "A new use case will let a user change their full name. Which folder should hold it?",
+   "answerFormat": {
+    "path": "<file or folder path>"
+   },
+   "key": {
+    "path": "src/modules/users/usecase/"
+   },
+   "scoring": {
+    "kind": "path",
+    "full": [
+     "src/modules/users/usecase/**"
+    ],
+    "half": [
+     "src/modules/users/**"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "src/modules/users/usecase/{createUser,authorizeUser} (the context's use-case folder)",
+     "src/modules/users/domain/UserFullName.ts (the value object lives in users)"
+    ],
+    "method": "code read at the pin"
+   }
+  },
+  {
+   "id": "DF-WW1",
+   "tree": "ddd-forum",
+   "type": "W",
+   "template": "writers",
+   "class": "G",
+   "text": "Which commands save the Member aggregate?",
+   "answerFormat": {
+    "commands": [
+     "<Class.method>"
+    ]
+   },
+   "key": {
+    "commands": [
+     "CreateMember.execute"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "grep 'Repo.save' under src/modules: memberRepo.save only in src/modules/forum/useCases/members/createMember/CreateMember.ts:63"
+    ],
+    "method": "grep and code read at the pin"
+   }
+  },
+  {
+   "id": "DF-C1",
+   "tree": "ddd-forum",
+   "type": "C",
+   "template": "chain",
+   "class": "Gw",
+   "text": "When a new user is created, a forum Member is created for them. Give the chain of units that runs from CreateUserUseCase.execute to the store method that persists the new Member, and the file of that store method. Include the units that carry the domain event.",
+   "answerFormat": {
+    "chain": [
+     "<unit>"
+    ],
+    "endFile": "<path>"
+   },
+   "key": {
+    "chain": [
+     "CreateUserUseCase.execute",
+     "SequelizeUserRepo.save",
+     "dispatchEventsCallback",
+     "DomainEvents.dispatchEventsForAggregate",
+     "DomainEvents.dispatch",
+     "AfterUserCreated.onUserCreated",
+     "CreateMember.execute",
+     "MemberRepo.save"
+    ],
+    "endFile": "src/modules/forum/repos/implementations/sequelizeMemberRepo.ts"
+   },
+   "scoring": {
+    "kind": "chain",
+    "required": [
+     "CreateUserUseCase.execute",
+     "SequelizeUserRepo.save",
+     "DomainEvents.dispatchEventsForAggregate",
+     "AfterUserCreated.onUserCreated",
+     "CreateMember.execute",
+     "MemberRepo.save"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "src/modules/users/domain/user.ts:111 (UserCreated recorded)",
+     "src/modules/users/useCases/createUser/CreateUserUseCase.ts:80",
+     "src/modules/users/repos/implementations/sequelizeUserRepo.ts:49,55 (UserModel.create)",
+     "src/shared/infra/database/sequelize/hooks/index.ts:6-8,14 (afterCreate hook \u2192 DomainEvents.dispatchEventsForAggregate)",
+     "src/shared/domain/events/DomainEvents.ts:46",
+     "src/modules/forum/subscriptions/afterUserCreated.ts:18,21-25",
+     "src/modules/forum/subscriptions/index.ts:11",
+     "src/modules/forum/useCases/members/createMember/CreateMember.ts:63",
+     "src/modules/forum/repos/index.ts:11 and implementations/sequelizeMemberRepo.ts:12,104"
+    ],
+    "method": "code read at the pin",
+    "predictedGraphGap": "the ORM hook and the DomainEvents.register(callback) registry are not resolvable calls, so trace is expected to stop at SequelizeUserRepo.save"
+   }
+  },
+  {
+   "id": "DF-I1",
+   "tree": "ddd-forum",
+   "type": "I",
+   "template": "importers",
+   "class": "G",
+   "text": "Which production files import src/modules/forum/repos/postRepo.ts?",
+   "answerFormat": {
+    "files": [
+     "<path>"
+    ]
+   },
+   "key": {
+    "files": [
+     "src/modules/forum/repos/implementations/sequelizePostRepo.ts",
+     "src/modules/forum/useCases/comments/downvoteComment/DownvoteComment.ts",
+     "src/modules/forum/useCases/comments/replyToComment/ReplyToComment.ts",
+     "src/modules/forum/useCases/comments/replyToPost/ReplyToPost.ts",
+     "src/modules/forum/useCases/comments/upvoteComment/UpvoteComment.ts",
+     "src/modules/forum/useCases/post/createPost/CreatePost.ts",
+     "src/modules/forum/useCases/post/downvotePost/DownvotePost.ts",
+     "src/modules/forum/useCases/post/editPost/EditPost.ts",
+     "src/modules/forum/useCases/post/getPopularPosts/GetPopularPosts.ts",
+     "src/modules/forum/useCases/post/getPostBySlug/GetPostBySlug.ts",
+     "src/modules/forum/useCases/post/getRecentPosts/GetRecentPosts.ts",
+     "src/modules/forum/useCases/post/updatePostStats/UpdatePostStats.ts",
+     "src/modules/forum/useCases/post/upvotePost/UpvotePost.ts"
+    ]
+   },
+   "scoring": {
+    "kind": "set"
+   },
+   "provenance": {
+    "read": [
+     "grep \"from '...postRepo'\" under src: 13 files, none a test"
+    ],
+    "method": "grep at the pin"
+   }
+  },
+  {
+   "id": "DF-O1",
+   "tree": "ddd-forum",
+   "type": "O",
+   "template": "owner",
+   "class": "S",
+   "text": "Which bounded context owns the Member aggregate?",
+   "answerFormat": {
+    "context": "<context name>"
+   },
+   "key": {
+    "context": "forum"
+   },
+   "scoring": {
+    "kind": "exact"
+   },
+   "provenance": {
+    "read": [
+     "spec architecture.ddd.aggregates (Member, context forum)"
+    ],
+    "method": "spec quote"
+   }
+  },
+  {
+   "id": "DF-P1",
+   "tree": "ddd-forum",
+   "type": "P",
+   "template": "placement",
+   "class": "X",
+   "text": "When a user is deleted, the forum should remove that user's Member. Which folder should hold the code that reacts to the user's deletion?",
+   "answerFormat": {
+    "path": "<file or folder path>"
+   },
+   "key": {
+    "path": "src/modules/forum/subscriptions/"
+   },
+   "scoring": {
+    "kind": "path",
+    "full": [
+     "src/modules/forum/subscriptions/**"
+    ],
+    "half": [
+     "src/modules/forum/**"
+    ]
+   },
+   "provenance": {
+    "read": [
+     "src/modules/forum/subscriptions/afterUserCreated.ts (the precedent: forum reacts to a users event)",
+     "src/modules/forum/subscriptions/index.ts"
+    ],
+    "method": "code read at the pin"
+   }
+  }
+ ]
+}
