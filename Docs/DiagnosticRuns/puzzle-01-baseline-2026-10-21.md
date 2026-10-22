@@ -2,7 +2,7 @@
 
 **Exploratory, DEV split, NOT part of Study 2b.** Plan committed and pushed before any generator call
 (`experiments/puzzle-01-baseline/plan.md`, commit `7c487b6a`). No frozen path (`src/`, `presets/`, `scripts/lib/`,
-`scripts/v1.3/`), the freeze tag or any Study 2b file was changed. Records: `results/puzzle-01-baseline/`.
+`scripts/v1.3/`), the freeze tag or any Study 2b file was changed. Records: `results/v1.4-puzzle-01-baseline/`.
 
 **Question.** When a coding agent works alone, under architecture rules the repository states in writing
 (`ARCHITECTURE.md`), does it fall into the traps of the PUZZLE-01 dev puzzles? Each puzzle's own oracle decides
@@ -28,7 +28,7 @@
   the DETECT-01 prototypes flag 0 (§5).
 
 Counts are **provisional** until the author has hand-read the 12 cases in
-`results/puzzle-01-baseline/oracle-verdicts-to-read.md`. Proposed labels: 11 trap, 1 legit-clean (P2 c07).
+`results/v1.4-puzzle-01-baseline/oracle-verdicts-to-read.md`. Proposed labels: 11 trap, 1 legit-clean (P2 c07).
 
 ## 2. Calls and isolation
 
@@ -47,7 +47,7 @@ Counts are **provisional** until the author has hand-read the 12 cases in
   behaviour was never grounds for a redraw.
 - **Isolation verdict: achieved.** The generator ran as an unprivileged user (uid 1500) through a wrapper. The clone, the
   driver, its input (every step's request) and all records sat in root-only 0700 directories. The clone's former path
-  was left empty and root-only, and each finished session's cell was closed. Evidence (`results/puzzle-01-baseline/isolation/`):
+  was left empty and root-only, and each finished session's cell was closed. Evidence (`results/v1.4-puzzle-01-baseline/isolation/`):
   every listed path is denied to the generator user; a recursive fingerprint sweep over the whole file system as that
   user found **0** readable files with puzzle ids, README phrases, later-step request phrases or the canary tokens
   (the first sweep found the wrapper's own comment naming the experiment; it was reworded and the sweep re-run before
@@ -92,7 +92,7 @@ READ probe, smoke, then confinement probes could be kept) and `--resume` (after 
 
 Trees: the 5 agent final trees plus the clean and trap trees of each puzzle (P2 also trap-alt). "Flags" means a new
 finding (not on the seed) in a file the oracle cites for a FAIL, or any new mapped finding for a PASS
-(`results/puzzle-01-baseline/visibility.json`). Prototype mapping fixed in the plan: D4 → X1, X1b; D5 → X4; P2 SG1 and
+(`results/v1.4-puzzle-01-baseline/visibility.json`). Prototype mapping fixed in the plan: D4 → X1, X1b; D5 → X4; P2 SG1 and
 P4 SG1 have no prototype rule.
 
 | Puzzle / sub-goal | Oracle FAILs (agent + reference) | Frozen flags a FAIL | Prototype flags a FAIL | Agent-tree FAILs flagged (frozen / prototype) | False flags on PASS trees |

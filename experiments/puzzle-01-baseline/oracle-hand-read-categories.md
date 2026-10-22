@@ -3,7 +3,7 @@
 Written and committed **before any generator call**. An oracle verdict on an agent tree can be wrong in two ways: an
 **over-rejection** (the oracle fails a tree that keeps the rule) and a **masquerade** (the oracle passes a tree that
 breaks the rule). Every oracle FAIL on an agent tree, and every oracle PASS that looks like an unforeseen alternative
-trap, goes to `results/puzzle-01-baseline/oracle-verdicts-to-read.md` with its diff excerpt and the matching category
+trap, goes to `results/v1.4-puzzle-01-baseline/oracle-verdicts-to-read.md` with its diff excerpt and the matching category
 below, or `new`. Each category is labelled in advance with what the author's reading is expected to make of it:
 
 - **legit-clean**: the rule holds. If the author agrees, the sub-goal counts as passed.

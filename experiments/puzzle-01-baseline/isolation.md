@@ -1,6 +1,6 @@
 # PUZZLE-01 baseline: isolation procedure (R2, R3)
 
-Committed before any generator call. The evidence of each check goes to `results/puzzle-01-baseline/isolation/`.
+Committed before any generator call. The evidence of each check goes to `results/v1.4-puzzle-01-baseline/isolation/`.
 
 ## Goal
 
@@ -31,7 +31,7 @@ everything else.
   `/srv/w/cNN/work`; the type-check command the agent sees is `/srv/h/bin/tsc --noEmit --incremental false -p
   /srv/h/runs/c/cNN/tsconfig.json`. No arm, puzzle or trap word in any path the agent sees. The map from `tN` and `cNN`
   to the puzzle and run index stays in `/srv/vault` and `/srv/o` until generation is over, then is committed as
-  `results/puzzle-01-baseline/private-id-map.json`.
+  `results/v1.4-puzzle-01-baseline/private-id-map.json`.
 - **Between sessions.** The generator's home is emptied, and each finished cell is handed back to root and closed (0700),
   so no session can read another one's tree. Each turn is a fresh CLI process (`--no-session-persistence`).
 - **Credentials.** The CLI reads the claude.ai login from `$HOME/.claude/.credentials.json`, written by the wrapper from the

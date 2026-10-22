@@ -137,7 +137,7 @@ Pre-registered readings, applied in the report:
 
 ## 7. Records
 
-Under `results/puzzle-01-baseline/`: diffs per session and step, per-step scores, `calls.jsonl` and `turns.jsonl`
+Under `results/v1.4-puzzle-01-baseline/`: diffs per session and step, per-step scores, `calls.jsonl` and `turns.jsonl`
 (the ledger), the isolation evidence, the private id map (session id → puzzle, run). The report is
 `Docs/DiagnosticRuns/puzzle-01-baseline-2026-10-21.md`. No chat text is written into any record. Envelopes keep only
 the harness's scrubbed fields. The agent's final message is not copied into the report.

@@ -9,7 +9,7 @@
  * `detect-01.json` that `--prototype-manifest` prepares the input for (run separately from a detect-01 checkout).
  *
  * Usage (repository root):
- *   npx tsx experiments/puzzle-01-baseline/score-baseline.ts --results results/puzzle-01-baseline [--prototype-manifest <file>]
+ *   npx tsx experiments/puzzle-01-baseline/score-baseline.ts --results results/v1.4-puzzle-01-baseline [--prototype-manifest <file>]
  * Writes `<results>/scores.json` and `<results>/diffs/<session>/step-0N.diff`, and prints a summary.
  */
 import { spawnSync } from 'node:child_process';
@@ -23,7 +23,7 @@ const arg = (k: string): string | undefined => {
   const i = argv.indexOf(`--${k}`);
   return i >= 0 ? argv[i + 1] : undefined;
 };
-const RESULTS = arg('results') ?? 'results/puzzle-01-baseline';
+const RESULTS = arg('results') ?? 'results/v1.4-puzzle-01-baseline';
 const STEPS = ['step-00', 'step-01', 'step-02', 'step-03'];
 
 interface Json { [k: string]: unknown }
