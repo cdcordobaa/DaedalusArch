@@ -1,0 +1,54 @@
+diff --git a/a/src/application/ports/in/QuoteShipment.ts b/b/src/application/ports/in/QuoteShipment.ts
+index 1232a22e..7ae9c476 100644
+--- a/a/src/application/ports/in/QuoteShipment.ts
++++ b/b/src/application/ports/in/QuoteShipment.ts
+@@ -8,6 +8,8 @@ export interface QuoteView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly service: string;
++  /** true when priced from our own table because Fastship was unavailable. */
++  readonly estimated: boolean;
+ }
+ 
+ export interface QuoteShipment {
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 642cc8ff..42870239 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,20 +1,33 @@
+ import { ShippingError } from '../../domain/errors/ShippingError';
+ import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
++import type { Quote } from '../../domain/model/Quote';
++import { PriceTable } from '../../domain/services/PriceTable';
+ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteShipment';
+ import type { RatePort } from '../ports/out/RatePort';
+ 
+ const HANDLING_FEE = 1.5;
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+-  constructor(private readonly rates: RatePort) {}
++  constructor(
++    private readonly rates: RatePort,
++    private readonly fallback: PriceTable = new PriceTable(),
++  ) {}
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const rates = await this.rates.rates(parcel);
++    let rates: Quote[];
++    let estimated = false;
++    try {
++      rates = await this.rates.rates(parcel);
++    } catch {
++      // Fastship unavailable: fall back to our own price table.
++      rates = [this.fallback.quote(parcel)];
++      estimated = true;
++    }
+     const cheapest = rates.reduce((best, r) => (r.price.isLessThan(best.price) ? r : best), rates[0]);
+     if (!cheapest) throw new ShippingError('no Fastship service available for this parcel');
+     const total = cheapest.price.plus(Money.of(HANDLING_FEE, cheapest.price.currency));
+-    return { amount: total.amount(), currency: total.currency, service: cheapest.service };
++    return { amount: total.amount(), currency: total.currency, service: cheapest.service, estimated };
+   }
+ }

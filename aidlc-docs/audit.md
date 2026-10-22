@@ -3048,3 +3048,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 CONSTRUCTION, U4 functional design (thinking note); no run
 
 ---
+
+---
+
+## PUZZLE-03 Part C — agent-alone baseline on P3r, P5, P6
+**Timestamp**: 2026-10-22T12:50:41Z
+**User Input**: "(coordinator brief) After the plan is committed, run the agent-alone baseline on P3r, P5 and P6 (claude-sonnet-5-5, 5 runs x 3 steps, 0 repair turns, the PUZZLE-01 isolation, hard cap 53 calls), score with zero calls per puzzle, list every oracle failure for a hand read, write the report and a research-log entry, and merge normally once Build & Test is green."
+**AI Response**: "Plan committed before any call (9d6d4453). Isolation reused (first sweep found the world-readable tsx cache; closed, re-swept 0). READ probe and smoke passed; 50 of 53 calls used, including one in-flight call lost to a container restart (c01 redrawn as c16). Scores: P3r 1/5 clean (1 trapped, 3 functional failures on an under-specified fee reading), P5 0/5 (all write the other context synchronously; DETECT-02 flags 5/5), P6 0/5 (all copy the precedent; FF-S03 flags 5/5). 17 oracle FAILs listed with proposed labels (17 trap). Report Docs/DiagnosticRuns/puzzle-03-2026-10-23.md; research-log entry 13. PR #359 (Parts A and B and the plan) merged on green Build & Test; Architectural Firewall fails on src/ only, unrelated."
+**Context**: PUZZLE-03 (exploratory, DEV split); Part C; 50 generator calls

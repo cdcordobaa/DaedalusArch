@@ -1,0 +1,129 @@
+diff --git a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+index 329d671f..8323a045 100644
+--- a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -1,4 +1,5 @@
+-import type { FastshipClient } from 'fastship-sdk';
++import { FastshipUnavailableError, type FastshipClient } from 'fastship-sdk';
++import { RatesUnavailableError } from '../../../domain/errors/ShippingError';
+ import type { RatePort } from '../../../application/ports/out/RatePort';
+ import { Money } from '../../../domain/model/Money';
+ import type { Parcel } from '../../../domain/model/Parcel';
+@@ -8,11 +9,17 @@ export class FastshipRateAdapter implements RatePort {
+   constructor(private readonly client: FastshipClient) {}
+ 
+   async rates(parcel: Parcel): Promise<Quote[]> {
+-    const response = await this.client.rates({
+-      origin: { country: parcel.from },
+-      destination: { country: parcel.to },
+-      parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
+-    });
++    let response;
++    try {
++      response = await this.client.rates({
++        origin: { country: parcel.from },
++        destination: { country: parcel.to },
++        parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
++      });
++    } catch (e) {
++      if (e instanceof FastshipUnavailableError) throw new RatesUnavailableError(e.message);
++      throw e;
++    }
+     return response.rates.map((r) => ({ price: Money.of(Number(r.amount.value), r.amount.currency), service: r.serviceName }));
+   }
+ }
+diff --git a/a/src/application/ports/in/QuoteShipment.ts b/b/src/application/ports/in/QuoteShipment.ts
+index 1232a22e..7ae9c476 100644
+--- a/a/src/application/ports/in/QuoteShipment.ts
++++ b/b/src/application/ports/in/QuoteShipment.ts
+@@ -8,6 +8,8 @@ export interface QuoteView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly service: string;
++  /** true when priced from our own table because Fastship was unavailable. */
++  readonly estimated: boolean;
+ }
+ 
+ export interface QuoteShipment {
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 140f2182..6150b516 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,4 +1,5 @@
+-import { ShippingError } from '../../domain/errors/ShippingError';
++import { RatesUnavailableError, ShippingError } from '../../domain/errors/ShippingError';
++import { PriceTable } from '../../domain/services/PriceTable';
+ import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
+ import type { Quote } from '../../domain/model/Quote';
+@@ -8,17 +9,28 @@ import type { RatePort } from '../ports/out/RatePort';
+ const HANDLING_FEE = 1.5;
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+-  constructor(private readonly rates: RatePort) {}
++  constructor(
++    private readonly rates: RatePort,
++    private readonly fallback: PriceTable,
++  ) {}
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const rates = await this.rates.rates(parcel);
+-    const cheapest = rates.reduce<Quote | undefined>(
+-      (best, r) => (best === undefined || r.price.isLessThan(best.price) ? r : best),
+-      undefined,
+-    );
++    let cheapest: Quote | undefined;
++    let estimated = false;
++    try {
++      const rates = await this.rates.rates(parcel);
++      cheapest = rates.reduce<Quote | undefined>(
++        (best, r) => (best === undefined || r.price.isLessThan(best.price) ? r : best),
++        undefined,
++      );
++    } catch (e) {
++      if (!(e instanceof RatesUnavailableError)) throw e;
++      cheapest = this.fallback.quote(parcel);
++      estimated = true;
++    }
+     if (!cheapest) throw new ShippingError('no Fastship service available for this parcel');
+     const price = cheapest.price.plus(Money.of(HANDLING_FEE, cheapest.price.currency));
+-    return { amount: price.amount(), currency: price.currency, service: cheapest.service };
++    return { amount: price.amount(), currency: price.currency, service: cheapest.service, estimated };
+   }
+ }
+diff --git a/a/src/config/container.ts b/b/src/config/container.ts
+index 04bfe635..7426d0f5 100644
+--- a/a/src/config/container.ts
++++ b/b/src/config/container.ts
+@@ -3,12 +3,13 @@ import { ShippingController } from '../adapters/inbound/http/ShippingController'
+ import { FastshipRateAdapter } from '../adapters/outbound/fastship/FastshipRateAdapter';
+ import { FastshipTrackingAdapter } from '../adapters/outbound/fastship/FastshipTrackingAdapter';
+ import { QuoteShipmentService } from '../application/services/QuoteShipmentService';
++import { PriceTable } from '../domain/services/PriceTable';
+ import { TrackShipmentService } from '../application/services/TrackShipmentService';
+ 
+ /** Composition root. The Fastship key comes from FASTSHIP_API_KEY. */
+ export function createApp() {
+   const fastship = new FastshipClient({ apiKey: process.env.FASTSHIP_API_KEY ?? '' });
+-  const quotes = new QuoteShipmentService(new FastshipRateAdapter(fastship));
++  const quotes = new QuoteShipmentService(new FastshipRateAdapter(fastship), new PriceTable());
+   const tracking = new TrackShipmentService(new FastshipTrackingAdapter(fastship));
+   const http = new ShippingController(quotes, tracking);
+   return {
+diff --git a/a/src/domain/errors/ShippingError.ts b/b/src/domain/errors/ShippingError.ts
+index 2360aa12..bc2f0579 100644
+--- a/a/src/domain/errors/ShippingError.ts
++++ b/b/src/domain/errors/ShippingError.ts
+@@ -4,3 +4,11 @@ export class ShippingError extends Error {
+     this.name = 'ShippingError';
+   }
+ }
++
++/** The carrier could not be reached, so no live rates are available. */
++export class RatesUnavailableError extends ShippingError {
++  constructor(message: string) {
++    super(message);
++    this.name = 'RatesUnavailableError';
++  }
++}
