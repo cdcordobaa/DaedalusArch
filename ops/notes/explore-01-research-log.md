@@ -221,6 +221,40 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
   - On P2 the structural change came without any finding, so the caveat "tool + instruction vs neither" decides what
     it can be attributed to. A placebo arm would separate the two.
 
+### 15. Hand reads: PUZZLE-03 baseline and PUZZLE-02 tool arm (2026-10-22)
+Zero model or generator calls. Records: `results/v1.4-puzzle-03-baseline/hand-read.md`,
+`results/v1.4-puzzle-02-tool-arm/hand-read.md`. A dated "after the hand read" section was added to each report. PR #363 (entry 14) was merged first.
+
+**PUZZLE-03 baseline: 17 oracle FAILs → 17 trap, 0 over-rejection, 0 unclear.**
+- P3r c02: the port is typed with `FastshipRate`, and the service imports the SDK's error at runtime.
+- P5: 10/10 are the sailing's write inside the booking command.
+- P6: 5/5 inject `MechanicGateway` into the controller.
+
+PUZZLE-03 functional failures:
+- P3r (3): a request ambiguity (the fee is also added on the fallback).
+- P5 (3): a functional miss (`book` throws on a cancelled sailing).
+
+Counts after the hand read are unchanged: P3r 1/5 [.04, .62], P5 0/5, P6 0/5. Spot-check #9 (c14 P5) and #17 (c15 P6),
+drawn with seed 20261023.
+
+**PUZZLE-02 tool arm: 6 oracle FAILs → 0 trap, 6 over-rejection, 0 unclear.**
+- The five SG2 FAILs are P2-SG2-a. `PlaceOrder` saves only the order, the relay delivers the stored event, and the
+  handler calls membership's published write. There is no duplicated rule: the tier stays in `Member` and the earning
+  rule exists once.
+- c05 SG1 is P2-SG1-b.
+- Rule 3 placement is recorded, not scored: in four trees the earning rule sits in a sales application handler.
+
+PUZZLE-02 functional failures:
+- P1 c11: a real defect. Transfer ids repeat across commands, so the receiving account drops later transfers as
+  duplicates.
+- P2 c01 and c03: `total` is reported before the discount.
+
+Counts after the hand read: P1 4/5 vs 0/5 (unchanged); **P2 3/5 [.23, .88] vs 1/5 [.04, .62]**, trapped 0 vs 4.
+Spot-check #3 (c04) and #6 (c10), drawn with seed 20261022.
+
+**Reading (dev):** on P2 the arm moved the trapped count from 4 to 0 with no finding from the tool. 3/5 against 1/5
+is not separable at n = 5.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -228,10 +262,12 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Fix the S1 seed `.gitignore` gap on `pilot/hexddd-01`; update the case-bank cards with the entry 6 verdicts.
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
-- [ ] Author: hand-read the PUZZLE-02 tool-arm oracle FAILs (`results/v1.4-puzzle-02-tool-arm/oracle-verdicts-to-read.md`).
+- [x] Hand-read the PUZZLE-02 tool-arm oracle FAILs (entry 15; `results/v1.4-puzzle-02-tool-arm/hand-read.md`).
+- [ ] Author: spot-check the two seeded picks of each hand read (entry 15): PUZZLE-03 #9 and #17, PUZZLE-02 #3 and #6.
 - [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
+- 2026-10-22: entry 15 (hand reads: PUZZLE-03 baseline, PUZZLE-02 tool arm).
 - 2026-10-22: entry 14 (PUZZLE-02 tool arm `mcp-detect`); open item: author hand read of its 6 oracle FAILs (P2-SG2-a, P2-SG1-b).
 - 2026-10-22: entry 13 (PUZZLE-03).
 - 2026-10-22: entry 12 (v1.5 U3 severity rubric).
