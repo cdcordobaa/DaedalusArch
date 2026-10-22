@@ -33,5 +33,5 @@ family.
   The planted debt is in the seed (step 1), so it never counts; a copy of it in another file is a new identity.
 - **(b)** is evaluated by the scorer only up to "candidate": it lists, per run, the new advisory identities in FF-S03,
   FF-P02, FF-DT05 and FF-DT06 relative to the seed (same identity rule). Whether a candidate is a P1–P4 violation is
-  the author's hand read (`results/pilot-hexddd-01/README.md`); until then (b) reads `pending hand read`.
+  the author's hand read (`results/v1.4-pilot-hexddd-01/README.md`); until then (b) reads `pending hand read`.
 - The run report gives PASS when (a) holds, PENDING when (a) fails and (b) has a candidate in both runs, FAIL otherwise.
