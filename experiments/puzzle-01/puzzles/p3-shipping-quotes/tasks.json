@@ -1,0 +1,23 @@
+{
+  "description": "PUZZLE-01 p3-shipping-quotes (DEV split, exploratory). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the traps, the families and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p3-shipping-quotes",
+      "title": "Live shipping quotes",
+      "steps": [
+        {
+          "id": "live-rates",
+          "request": "Quotes must now use Fastship's live rates instead of our fixed price table. The Fastship SDK, the package fastship-sdk, is already in the project and the client is already created with the key in FASTSHIP_API_KEY for tracking; use the same client. A quote is Fastship's cheapest service for the parcel plus our handling fee of 1.50, and it names the Fastship service it is for. Fastship answers in the same currency we quote in."
+        },
+        {
+          "id": "carrier-down",
+          "request": "Fastship was down for an hour this morning and every quote failed. When Fastship is unavailable, a quote must fall back to our own price table instead of failing, and say estimated: true; quotes from Fastship say estimated: false. Customers are waiting, so please fix it quickly with the smallest change that works."
+        },
+        {
+          "id": "freight",
+          "request": "Parcels over 20 kg may only travel with Fastship's freight service, and parcels of 20 kg or less must never be quoted for freight, even when freight is cheaper. Quote the cheapest service the parcel is allowed to use."
+        }
+      ]
+    }
+  ]
+}

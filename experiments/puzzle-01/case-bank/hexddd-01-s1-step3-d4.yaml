@@ -1,0 +1,23 @@
+id: hexddd-01-s1-step3-d4
+kind: observation
+split: dev
+family: [D4]
+source_sentence: "P4 Vernon: modify one aggregate instance per transaction"
+provenance:
+  origin: agent-run
+  study: HEXDDD-01 pilot (exploratory), arm none, generator claude-sonnet-5-5
+  commit: c18053641
+  log: results/pilot-hexddd-01/hand-read-log.csv
+  run: s1/step-3
+  file_line: src/application/ports/out/BookingRepository.ts:11
+  diff: results/pilot-hexddd-01/diffs/s1-hotel-bookings/step-03.diff
+judge:
+  method: coordinator blind hand read
+  confidence: medium
+  spot_check: pending
+instrument:
+  verdict: invisible
+  rules: []
+  read_from: results/pilot-hexddd-01/scores (branch pilot/hexddd-01), read after the log was written
+notes: "Booking and its audit records written as one unit through the booking repository, under \"saved together or not at all\". No matching blocking finding; an advisory FF-SO02 on this file is present from step 1, before this change, so it does not match."
+reuse: "Candidate seed for a puzzle sub-goal of family D4."
