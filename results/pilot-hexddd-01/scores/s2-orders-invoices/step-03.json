@@ -1,0 +1,28 @@
+{
+ "task": "s2-orders-invoices",
+ "step": 3,
+ "label": "step-03",
+ "commit": "e28335a651bc896ea6fd1ba57e78b9df355d42bd",
+ "turnStatus": "completed",
+ "typecheckErrors": 0,
+ "verdict": "fail",
+ "blockingByRule": {
+  "FF-DS02": 1
+ },
+ "advisoryByRule": {},
+ "advisoryRowsListed": {},
+ "findings": [
+  {
+   "tier": "blocking",
+   "ruleId": "FF-DS02",
+   "file": "src/billing/application/IssueInvoice.ts",
+   "line": 6,
+   "target": "src/ordering/domain/order/Order.ts",
+   "message": "src/billing/application/IssueInvoice.ts (src/billing/) imports src/ordering/domain/order/Order.ts, which is not in the public API of src/ordering/",
+   "checkCorrect": {
+    "verdict": "correct",
+    "reason": "billing imports src/ordering/domain/order/Order.ts of ordering, which is not its public API, outside an ACL"
+   }
+  }
+ ]
+}

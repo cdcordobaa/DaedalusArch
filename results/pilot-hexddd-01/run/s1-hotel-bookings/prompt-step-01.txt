@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The hotel has signed with Paystream as its card processor, and the stand-in payment code that declines every charge above a fixed limit must go. Paystream's TypeScript SDK, the package @paystream/node, is already available in this project; read the API key from the environment variable PAYSTREAM_API_KEY. Booking a room charges the guest's card through Paystream for the stay total, with an idempotency key so a retried request is never charged twice. When Paystream declines a charge, no booking is created and the guest sees Paystream's decline code. Cancelling a booking refunds its charge through Paystream; a cancellation whose refund fails stays cancelled and is listed for the front desk to retry.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+<H>/bin/tsc --noEmit --incremental false -p <H>/runs/claude-code-cli/claude-sonnet-5-5/s1-hotel-bookings/none/run-0/tsconfig.json

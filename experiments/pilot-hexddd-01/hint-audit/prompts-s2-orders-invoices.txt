@@ -1,0 +1,45 @@
+=== s2-orders-invoices step 1 (credit-limit-and-payments)
+The current directory holds an existing TypeScript service.
+
+Change request:
+Customers get a credit limit: 5,000.00 in their order currency by default, and finance can set a different limit per customer. A new order is refused when the customer's issued invoices that are still unpaid, plus the new order's total, would exceed the limit; the refusal says by how much. Finance records payments against an invoice (amount and date); an invoice can be paid in several parts, and never beyond its total. When an invoice is paid in full, its order shows as paid.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s2-orders-invoices/none/run-0/tsconfig.json
+
+=== s2-orders-invoices step 2 (bad-quantities-fix)
+The current directory holds an existing TypeScript service.
+
+Change request:
+Urgent: the web shop sends orders with a zero or negative quantity on a line, and with negative unit prices, straight to the service. Some fail with a server error and some negative prices are accepted, which already produced one invoice with a negative total. Fix it today with a small change: such an order is refused with a clear message that names the bad line, and no order or invoice with a negative amount can be created any more.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s2-orders-invoices/none/run-0/tsconfig.json
+
+=== s2-orders-invoices step 3 (monthly-revenue-report)
+The current directory holds an existing TypeScript service.
+
+Change request:
+Finance needs a monthly revenue report: for each customer and calendar month, the number of orders placed, the amount invoiced (net and tax separately), the amount paid, and the amount still outstanding, per currency. Add an endpoint that returns it for a month range of up to 24 months.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s2-orders-invoices/none/run-0/tsconfig.json
+
+=== s2-orders-invoices step 4 (country-tax)
+The current directory holds an existing TypeScript service.
+
+Change request:
+Tax now depends on the customer's country: 20% for GB, 19% for DE, 21% for ES and 0% for every other country. Customers get a country (required for new customers; existing customers default to GB). The total a customer sees when placing an order must include exactly the tax their invoice will charge, and the two must always agree, also after a rate changes. Finance can change a country's rate; a change applies to orders placed and invoices issued after it.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s2-orders-invoices/none/run-0/tsconfig.json
+
+=== s2-orders-invoices step 5 (line-discounts)
+The current directory holds an existing TypeScript service.
+
+Change request:
+Support staff can now give a discount on a single order line through a new endpoint: either a percentage of up to 30% or a fixed amount, always with a reason. A line's amount can never go below zero, a line gets at most one discount, and an order that has already been invoiced can no longer be discounted. The discount shows on the line, lowers the order total, and the invoice issued afterwards charges the discounted amount.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/H/bin/tsc --noEmit --incremental false -p /H/runs/claude-code-cli/claude-sonnet-5-5/s2-orders-invoices/none/run-0/tsconfig.json
+

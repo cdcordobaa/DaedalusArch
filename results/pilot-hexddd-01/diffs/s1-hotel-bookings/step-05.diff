@@ -1,0 +1,530 @@
+# s1-hotel-bookings step-05: tree after the step against the tree before it (10 files changed, 381 insertions(+), 23 deletions(-))
+diff --git a/src/adapters/inbound/http/RoomController.ts b/src/adapters/inbound/http/RoomController.ts
+index 0a44c1a..96c0881 100644
+--- a/src/adapters/inbound/http/RoomController.ts
++++ b/src/adapters/inbound/http/RoomController.ts
+@@ -1,11 +1,11 @@
+ import { FindAvailableRooms } from '../../../application/ports/in/FindAvailableRooms';
+-import { InMemoryRoomRepository } from '../../outbound/persistence/InMemoryRoomRepository';
++import { RoomRepository } from '../../../application/ports/out/RoomRepository';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+ export class RoomController {
+   constructor(
+     private readonly findAvailableRooms: FindAvailableRooms,
+-    private readonly roomStore: InMemoryRoomRepository,
++    private readonly roomStore: RoomRepository,
+   ) {}
+ 
+   async show(request: HttpRequest): Promise<HttpResponse> {
+diff --git a/src/adapters/outbound/persistence/InMemoryBookingRepository.ts b/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
+index b9da2d9..0d62825 100644
+--- a/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
++++ b/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
+@@ -47,6 +47,20 @@ export class InMemoryBookingRepository implements BookingRepository, AuditLog {
+     return this.records.filter((r) => r.staffId === staffId && r.at >= from && r.at < to);
+   }
+ 
++  private readonly roomLocks = new Map<string, Promise<unknown>>();
++
++  async withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T> {
++    const previous = this.roomLocks.get(roomId) ?? Promise.resolve();
++    const run = previous.then(() => task(this));
++    const tail = run.catch(() => undefined);
++    this.roomLocks.set(roomId, tail);
++    try {
++      return await run;
++    } finally {
++      if (this.roomLocks.get(roomId) === tail) this.roomLocks.delete(roomId);
++    }
++  }
++
+   nextId(): string {
+     this.sequence += 1;
+     return `bk-${this.sequence}`;
+diff --git a/src/adapters/outbound/persistence/PostgresBookingRepository.ts b/src/adapters/outbound/persistence/PostgresBookingRepository.ts
+new file mode 100644
+index 0000000..9742f44
+--- /dev/null
++++ b/src/adapters/outbound/persistence/PostgresBookingRepository.ts
+@@ -0,0 +1,184 @@
++import { randomUUID } from 'node:crypto';
++import { Queryable, Transaction } from 'sqlwell';
++import { AuditLog } from '../../../application/ports/out/AuditLog';
++import { BookingRepository } from '../../../application/ports/out/BookingRepository';
++import { AuditEntry, AuditRecord, AuditValues } from '../../../domain/model/AuditRecord';
++import { Booking, BookingStatus, RefundStatus } from '../../../domain/model/Booking';
++import { DateRange } from '../../../domain/model/DateRange';
++import { Money } from '../../../domain/model/Money';
++import { PostgresDatabase } from './PostgresDatabase';
++
++interface BookingRow {
++  id: string;
++  room_id: string;
++  guest_id: string;
++  check_in: Date | string;
++  check_out: Date | string;
++  total_cents: string | number;
++  payment_ref: string;
++  idempotency_key: string;
++  status: BookingStatus;
++  refund_status: RefundStatus;
++}
++
++interface AuditRow {
++  id: string;
++  booking_id: string;
++  staff_id: string;
++  action: AuditRecord['action'];
++  at: Date | string;
++  before_values: AuditValues | string | null;
++  after_values: AuditValues | string | null;
++}
++
++const AUDIT_COLUMNS = `'au-' || seq AS id, booking_id, staff_id, action, at, before_values, after_values`;
++
++function toBooking(row: BookingRow): Booking {
++  return Booking.restore(
++    {
++      id: row.id,
++      roomId: row.room_id,
++      guestId: row.guest_id,
++      stay: new DateRange(new Date(row.check_in), new Date(row.check_out)),
++      total: Money.ofCents(Number(row.total_cents)),
++      paymentRef: row.payment_ref,
++      idempotencyKey: row.idempotency_key,
++    },
++    row.status,
++    row.refund_status,
++  );
++}
++
++function parseValues(value: AuditValues | string | null): AuditValues | null {
++  if (value === null) return null;
++  return typeof value === 'string' ? (JSON.parse(value) as AuditValues) : value;
++}
++
++function toRecord(row: AuditRow): AuditRecord {
++  return {
++    id: row.id,
++    bookingId: row.booking_id,
++    staffId: row.staff_id,
++    action: row.action,
++    at: new Date(row.at),
++    before: parseValues(row.before_values),
++    after: parseValues(row.after_values),
++  };
++}
++
++/**
++ * Stores bookings and their audit trail in PostgreSQL. An instance bound to a transaction (see withRoomLock)
++ * runs all of its statements in that transaction.
++ */
++export class PostgresBookingRepository implements BookingRepository, AuditLog {
++  constructor(
++    private readonly db: PostgresDatabase,
++    private readonly tx?: Transaction,
++  ) {}
++
++  private get client(): Queryable {
++    return this.tx ?? this.db.pool;
++  }
++
++  async findById(id: string): Promise<Booking | undefined> {
++    await this.db.ensureSchema();
++    const result = await this.client.query<BookingRow>('SELECT * FROM bookings WHERE id = $1', [id]);
++    const row = result.rows[0];
++    return row === undefined ? undefined : toBooking(row);
++  }
++
++  async findByRoom(roomId: string): Promise<Booking[]> {
++    await this.db.ensureSchema();
++    const result = await this.client.query<BookingRow>(
++      'SELECT * FROM bookings WHERE room_id = $1 ORDER BY check_in, id',
++      [roomId],
++    );
++    return result.rows.map(toBooking);
++  }
++
++  async findActive(): Promise<Booking[]> {
++    await this.db.ensureSchema();
++    const result = await this.client.query<BookingRow>(
++      `SELECT * FROM bookings WHERE status = 'confirmed' ORDER BY check_in, id`,
++    );
++    return result.rows.map(toBooking);
++  }
++
++  async findAll(): Promise<Booking[]> {
++    await this.db.ensureSchema();
++    const result = await this.client.query<BookingRow>('SELECT * FROM bookings ORDER BY check_in, id');
++    return result.rows.map(toBooking);
++  }
++
++  async saveAudited(booking: Booking, entries: readonly AuditEntry[]): Promise<void> {
++    await this.db.ensureSchema();
++    const write = async (q: Queryable): Promise<void> => {
++      await q.query(
++        `INSERT INTO bookings (id, room_id, guest_id, check_in, check_out, total_cents, payment_ref, idempotency_key, status, refund_status)
++         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
++         ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, refund_status = EXCLUDED.refund_status`,
++        [
++          booking.id,
++          booking.roomId,
++          booking.guestId,
++          booking.stay.checkIn,
++          booking.stay.checkOut,
++          booking.total.cents,
++          booking.paymentRef,
++          booking.idempotencyKey,
++          booking.status,
++          booking.refundStatus,
++        ],
++      );
++      for (const entry of entries) {
++        await q.query(
++          `INSERT INTO audit_records (booking_id, staff_id, action, at, before_values, after_values)
++           VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb)`,
++          [
++            entry.bookingId,
++            entry.staffId,
++            entry.action,
++            entry.at,
++            entry.before === null ? null : JSON.stringify(entry.before),
++            entry.after === null ? null : JSON.stringify(entry.after),
++          ],
++        );
++      }
++    };
++    // The booking and its audit entries (including the charge) commit together or not at all.
++    if (this.tx !== undefined) await write(this.tx);
++    else await this.db.pool.transaction(write);
++  }
++
++  async withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T> {
++    await this.db.ensureSchema();
++    if (this.tx !== undefined) return task(this);
++    return this.db.pool.transaction(async (tx) => {
++      // Row lock on the room: other servers booking the same room wait here until this transaction ends.
++      await tx.query('SELECT id FROM rooms WHERE id = $1 FOR UPDATE', [roomId]);
++      return task(new PostgresBookingRepository(this.db, tx));
++    });
++  }
++
++  async findByBooking(bookingId: string): Promise<AuditRecord[]> {
++    await this.db.ensureSchema();
++    const result = await this.client.query<AuditRow>(
++      `SELECT ${AUDIT_COLUMNS} FROM audit_records WHERE booking_id = $1 ORDER BY seq`,
++      [bookingId],
++    );
++    return result.rows.map(toRecord);
++  }
++
++  async findByStaff(staffId: string, from: Date, to: Date): Promise<AuditRecord[]> {
++    await this.db.ensureSchema();
++    const result = await this.client.query<AuditRow>(
++      `SELECT ${AUDIT_COLUMNS} FROM audit_records WHERE staff_id = $1 AND at >= $2 AND at < $3 ORDER BY seq`,
++      [staffId, from, to],
++    );
++    return result.rows.map(toRecord);
++  }
++
++  nextId(): string {
++    return `bk-${randomUUID()}`;
++  }
++}
+diff --git a/src/adapters/outbound/persistence/PostgresDatabase.ts b/src/adapters/outbound/persistence/PostgresDatabase.ts
+new file mode 100644
+index 0000000..ee637c4
+--- /dev/null
++++ b/src/adapters/outbound/persistence/PostgresDatabase.ts
+@@ -0,0 +1,70 @@
++import { Pool } from 'sqlwell';
++
++const SCHEMA = [
++  `CREATE TABLE IF NOT EXISTS rooms (
++    id text PRIMARY KEY,
++    number text NOT NULL,
++    nightly_rate_cents bigint NOT NULL,
++    capacity integer NOT NULL
++  )`,
++  `CREATE TABLE IF NOT EXISTS guests (
++    id text PRIMARY KEY,
++    name text NOT NULL,
++    email text NOT NULL
++  )`,
++  `CREATE TABLE IF NOT EXISTS bookings (
++    id text PRIMARY KEY,
++    room_id text NOT NULL REFERENCES rooms (id),
++    guest_id text NOT NULL REFERENCES guests (id),
++    check_in timestamptz NOT NULL,
++    check_out timestamptz NOT NULL,
++    total_cents bigint NOT NULL,
++    payment_ref text NOT NULL,
++    idempotency_key text NOT NULL,
++    status text NOT NULL,
++    refund_status text NOT NULL
++  )`,
++  `CREATE INDEX IF NOT EXISTS bookings_room_idx ON bookings (room_id)`,
++  `CREATE TABLE IF NOT EXISTS audit_records (
++    seq bigserial PRIMARY KEY,
++    booking_id text NOT NULL REFERENCES bookings (id),
++    staff_id text NOT NULL,
++    action text NOT NULL,
++    at timestamptz NOT NULL,
++    before_values jsonb,
++    after_values jsonb
++  )`,
++  `CREATE INDEX IF NOT EXISTS audit_records_booking_idx ON audit_records (booking_id)`,
++  `CREATE INDEX IF NOT EXISTS audit_records_staff_idx ON audit_records (staff_id, at)`,
++  `INSERT INTO rooms (id, number, nightly_rate_cents, capacity) VALUES
++    ('r-101', '101', 9000, 2),
++    ('r-102', '102', 12000, 3),
++    ('r-201', '201', 20000, 4)
++    ON CONFLICT (id) DO NOTHING`,
++  `INSERT INTO guests (id, name, email) VALUES ('g-1', 'Alistair', 'alistair@example.org')
++    ON CONFLICT (id) DO NOTHING`,
++];
++
++/** Shares one connection pool and creates the tables (once per process) before the first query. */
++export class PostgresDatabase {
++  readonly pool: Pool;
++  private ready: Promise<void> | undefined;
++
++  constructor(connectionString: string) {
++    this.pool = new Pool({ connectionString });
++  }
++
++  /** Resolves when the schema exists; servers starting together are serialised by an advisory lock. */
++  ensureSchema(): Promise<void> {
++    this.ready ??= this.pool
++      .transaction(async (tx) => {
++        await tx.query('SELECT pg_advisory_xact_lock(727001)');
++        for (const statement of SCHEMA) await tx.query(statement);
++      })
++      .catch((error: unknown) => {
++        this.ready = undefined;
++        throw error;
++      });
++    return this.ready;
++  }
++}
+diff --git a/src/adapters/outbound/persistence/PostgresGuestRepository.ts b/src/adapters/outbound/persistence/PostgresGuestRepository.ts
+new file mode 100644
+index 0000000..5793e01
+--- /dev/null
++++ b/src/adapters/outbound/persistence/PostgresGuestRepository.ts
+@@ -0,0 +1,17 @@
++import { GuestRepository } from '../../../application/ports/out/GuestRepository';
++import { Guest } from '../../../domain/model/Guest';
++import { PostgresDatabase } from './PostgresDatabase';
++
++export class PostgresGuestRepository implements GuestRepository {
++  constructor(private readonly db: PostgresDatabase) {}
++
++  async findById(id: string): Promise<Guest | undefined> {
++    await this.db.ensureSchema();
++    const result = await this.db.pool.query<{ id: string; name: string; email: string }>(
++      'SELECT id, name, email FROM guests WHERE id = $1',
++      [id],
++    );
++    const row = result.rows[0];
++    return row === undefined ? undefined : new Guest(row.id, row.name, row.email);
++  }
++}
+diff --git a/src/adapters/outbound/persistence/PostgresRoomRepository.ts b/src/adapters/outbound/persistence/PostgresRoomRepository.ts
+new file mode 100644
+index 0000000..23f17cd
+--- /dev/null
++++ b/src/adapters/outbound/persistence/PostgresRoomRepository.ts
+@@ -0,0 +1,32 @@
++import { RoomRepository } from '../../../application/ports/out/RoomRepository';
++import { Money } from '../../../domain/model/Money';
++import { Room } from '../../../domain/model/Room';
++import { PostgresDatabase } from './PostgresDatabase';
++
++interface RoomRow {
++  id: string;
++  number: string;
++  nightly_rate_cents: string | number;
++  capacity: number;
++}
++
++function toRoom(row: RoomRow): Room {
++  return new Room(row.id, row.number, Money.ofCents(Number(row.nightly_rate_cents)), Number(row.capacity));
++}
++
++export class PostgresRoomRepository implements RoomRepository {
++  constructor(private readonly db: PostgresDatabase) {}
++
++  async findById(id: string): Promise<Room | undefined> {
++    await this.db.ensureSchema();
++    const result = await this.db.pool.query<RoomRow>('SELECT * FROM rooms WHERE id = $1', [id]);
++    const row = result.rows[0];
++    return row === undefined ? undefined : toRoom(row);
++  }
++
++  async findAll(): Promise<Room[]> {
++    await this.db.ensureSchema();
++    const result = await this.db.pool.query<RoomRow>('SELECT * FROM rooms ORDER BY number');
++    return result.rows.map(toRoom);
++  }
++}
+diff --git a/src/application/ports/out/BookingRepository.ts b/src/application/ports/out/BookingRepository.ts
+index d906069..8339d07 100644
+--- a/src/application/ports/out/BookingRepository.ts
++++ b/src/application/ports/out/BookingRepository.ts
+@@ -9,5 +9,10 @@ export interface BookingRepository {
+   findAll(): Promise<Booking[]>;
+   /** Saves the booking and its audit entries as one unit: all are stored or none are. */
+   saveAudited(booking: Booking, entries: readonly AuditEntry[]): Promise<void>;
++  /**
++   * Runs `task` while holding an exclusive claim on the room, across all servers sharing the store.
++   * Reads and the save made through the repository handed to `task` belong to one unit of work.
++   */
++  withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T>;
+   nextId(): string;
+ }
+diff --git a/src/application/services/BookRoomService.ts b/src/application/services/BookRoomService.ts
+index c180af4..576d240 100644
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -35,34 +35,23 @@ export class BookRoomService implements BookRoom {
+ 
+     const stay = DateRange.parse(command.checkIn, command.checkOut);
+     // Check, charge and save must be one step per room, or concurrent requests all see the room as free.
+-    const outcome = await this.withRoomLock(room.id, () => this.reserve(command, room, guest, stay));
++    const outcome = await this.bookings.withRoomLock(room.id, (bookings) =>
++      this.reserve(bookings, command, room, guest, stay),
++    );
+     if (outcome.replayed) return toBookingView(outcome.booking);
+     const booking = outcome.booking;
+     await this.notifications.send(guest.email, `Room ${room.number} is booked (${booking.id})`);
+     return toBookingView(booking);
+   }
+ 
+-  private readonly roomLocks = new Map<string, Promise<unknown>>();
+-
+-  private async withRoomLock<T>(roomId: string, task: () => Promise<T>): Promise<T> {
+-    const previous = this.roomLocks.get(roomId) ?? Promise.resolve();
+-    const run = previous.then(task, task);
+-    const tail = run.catch(() => undefined);
+-    this.roomLocks.set(roomId, tail);
+-    try {
+-      return await run;
+-    } finally {
+-      if (this.roomLocks.get(roomId) === tail) this.roomLocks.delete(roomId);
+-    }
+-  }
+-
+   private async reserve(
++    bookings: BookingRepository,
+     command: BookRoomCommand,
+     room: Room,
+     guest: Guest,
+     stay: DateRange,
+   ): Promise<{ booking: Booking; replayed: boolean }> {
+-    const existing = await this.bookings.findByRoom(room.id);
++    const existing = await bookings.findByRoom(room.id);
+ 
+     // A retried request must neither charge nor book twice: replay the booking it already produced.
+     let idempotencyKey = command.idempotencyKey;
+@@ -87,7 +76,7 @@ export class BookRoomService implements BookRoom {
+     }
+     const total = this.pricing.quote(room, stay);
+     const paymentRef = await this.payments.charge(guest.id, total, idempotencyKey);
+-    const booking = new Booking(this.bookings.nextId(), room.id, guest.id, stay, total, paymentRef, idempotencyKey);
++    const booking = new Booking(bookings.nextId(), room.id, guest.id, stay, total, paymentRef, idempotencyKey);
+     const at = new Date();
+     const entries: AuditEntry[] = [
+       {
+@@ -107,7 +96,7 @@ export class BookRoomService implements BookRoom {
+         after: { paymentRef, amountCents: total.cents },
+       },
+     ];
+-    await this.bookings.saveAudited(booking, entries);
++    await bookings.saveAudited(booking, entries);
+     return { booking, replayed: false };
+   }
+ }
+diff --git a/src/config/container.ts b/src/config/container.ts
+index ebec86d..bec9895 100644
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -8,6 +8,14 @@ import { PaystreamPaymentGateway } from '../adapters/outbound/payment/PaystreamP
+ import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';
+ import { InMemoryGuestRepository } from '../adapters/outbound/persistence/InMemoryGuestRepository';
+ import { InMemoryRoomRepository } from '../adapters/outbound/persistence/InMemoryRoomRepository';
++import { PostgresBookingRepository } from '../adapters/outbound/persistence/PostgresBookingRepository';
++import { PostgresDatabase } from '../adapters/outbound/persistence/PostgresDatabase';
++import { PostgresGuestRepository } from '../adapters/outbound/persistence/PostgresGuestRepository';
++import { PostgresRoomRepository } from '../adapters/outbound/persistence/PostgresRoomRepository';
++import { AuditLog } from '../application/ports/out/AuditLog';
++import { BookingRepository } from '../application/ports/out/BookingRepository';
++import { GuestRepository } from '../application/ports/out/GuestRepository';
++import { RoomRepository } from '../application/ports/out/RoomRepository';
+ import { AuditTrailService } from '../application/services/AuditTrailService';
+ import { BookRoomService } from '../application/services/BookRoomService';
+ import { CancelBookingService } from '../application/services/CancelBookingService';
+@@ -24,9 +32,20 @@ export interface Container {
+ 
+ /** Composition root: the one place that plugs concrete adapters into the ports. */
+ export function createContainer(): Container {
+-  const rooms = new InMemoryRoomRepository();
+-  const bookings = new InMemoryBookingRepository();
+-  const guests = new InMemoryGuestRepository();
++  const databaseUrl = process.env['DATABASE_URL'];
++  let rooms: RoomRepository;
++  let bookings: BookingRepository & AuditLog;
++  let guests: GuestRepository;
++  if (databaseUrl) {
++    const db = new PostgresDatabase(databaseUrl);
++    rooms = new PostgresRoomRepository(db);
++    bookings = new PostgresBookingRepository(db);
++    guests = new PostgresGuestRepository(db);
++  } else {
++    rooms = new InMemoryRoomRepository();
++    bookings = new InMemoryBookingRepository();
++    guests = new InMemoryGuestRepository();
++  }
+   const apiKey = process.env['PAYSTREAM_API_KEY'];
+   if (!apiKey) throw new Error('PAYSTREAM_API_KEY is not set');
+   const payments = new PaystreamPaymentGateway(apiKey);
+diff --git a/src/domain/model/Booking.ts b/src/domain/model/Booking.ts
+index 71de37a..57454a8 100644
+--- a/src/domain/model/Booking.ts
++++ b/src/domain/model/Booking.ts
+@@ -19,6 +19,34 @@ export class Booking {
+     readonly idempotencyKey: string = '',
+   ) {}
+ 
++  /** Rebuilds a stored booking, including its status and refund state. */
++  static restore(
++    fields: {
++      id: string;
++      roomId: string;
++      guestId: string;
++      stay: DateRange;
++      total: Money;
++      paymentRef: string;
++      idempotencyKey: string;
++    },
++    status: BookingStatus,
++    refund: RefundStatus,
++  ): Booking {
++    const booking = new Booking(
++      fields.id,
++      fields.roomId,
++      fields.guestId,
++      fields.stay,
++      fields.total,
++      fields.paymentRef,
++      fields.idempotencyKey,
++    );
++    booking.bookingStatus = status;
++    booking.refund = refund;
++    return booking;
++  }
++
+   get status(): BookingStatus {
+     return this.bookingStatus;
+   }
