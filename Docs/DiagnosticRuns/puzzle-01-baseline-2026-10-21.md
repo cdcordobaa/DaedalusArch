@@ -151,3 +151,14 @@ here.**
 - Include **2 interleaved `none` sessions** in its seeded order as a drift check against this baseline.
 - Before that run: author the harder visible puzzle (R6). Decide from the hand read whether P2's oracle should accept
   the event-handler placement (case 12). Extend X1 / X1b to the agents' shapes if an "mcp + detect" arm is wanted.
+
+## 9. After the hand read (2026-10-22, zero calls)
+
+The 12 oracle failures were hand-read against the pre-registered categories
+(`results/v1.4-puzzle-01-baseline/hand-read.md`, a verdict and file:line for each): **11 trap, 1 over-rejection
+(case 12, c07, category P2-SG2-a), 0 unclear**. Counts **after the hand read**: P1 **0/5** [0, .43], P2 **1/5**
+[.04, .62] (provisional until the author's spot-check of case 12), P4 **5/5** [.57, 1]; pass^5 0, 0, 1. Per
+sub-goal: P1 SG1 0/5, P1 SG2 3/5, P2 SG1 5/5, P2 SG2 1/5, P4 SG1 5/5. The §6 readings do not change: one puzzle in
+band (P2, provisional), no tool arm sized, a harder visible puzzle required (built as PUZZLE-03 P6). Two cases are
+put to the author for a spot-check (`hand-read.md` §3: case 12, c07 P2 SG2; case 2, c10 P1 SG2). The sections above
+are left as written on 2026-10-21.
