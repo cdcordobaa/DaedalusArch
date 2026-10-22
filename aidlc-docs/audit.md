@@ -3001,6 +3001,8 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+---
+
 ## PUZZLE-03 Parts A and B — hand read of the PUZZLE-01 baseline; three puzzles built (zero calls)
 **Timestamp**: 2026-10-22T06:16:12Z
 **User Input**: "(coordinator brief) Hand-read the 12 oracle failures of the PUZZLE-01 baseline against the pre-registered categories, pick two for the author's spot-check and update the counts; then build, with zero generator calls and the PUZZLE-01 retrograde method, P3r (Hexagonal, restored or rebuilt), P5 (a second cross-context DDD puzzle) and P6 (a harder visible Layered puzzle with precedent debt), each with gaming fixtures the oracle must fail; verify all, commit and push before the agent baseline."
