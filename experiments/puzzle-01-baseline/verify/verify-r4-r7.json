@@ -1,0 +1,1025 @@
+{
+ "schema": "puzzle-01-verification/v1",
+ "split": "dev",
+ "calls": {
+  "model": 0,
+  "generator": 0,
+  "network": 0
+ },
+ "instrument": {
+  "path": "experiments/puzzle-01/tools/instrument-score.ts",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "codeAt": "8823d13bad44dae28ad00df1d915076f180fbe09",
+  "note": "the instrument is the code at this commit; puzzle files are not part of it"
+ },
+ "tsconfig": "harness shape (strict, ES2022, commonjs, node resolution, types [node])",
+ "revisions": [
+  {
+   "puzzle": "p1-transfers",
+   "when": "build, before the first verification run",
+   "what": "feature test \"a transfer between currencies or to an unknown account is refused\" passed on the seed (assert.throws accepted the TypeError of a missing transfer); added an explicit check that transfer exists"
+  },
+  {
+   "puzzle": "p4-library-holds",
+   "when": "build, before the first verification run",
+   "what": "step loan-list asked for \"overdue first, then by due day\", which is the same order as by due day in every reachable state, and its test used a run day on which the loan was not yet overdue; the step now asks for earliest due first and the test was corrected; the guard test on staff suspensions was re-labelled regression (it passes on the seed by design)"
+  },
+  {
+   "puzzle": "p3-shipping-quotes",
+   "when": "first verification run",
+   "what": "not a fix: the design note expected partial instrument visibility; the run shows none (vendor imports are checked only in the domain layer). Recorded as measured; the puzzle is unchanged"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "p1-transfers",
+   "verdict": "VALID",
+   "checks": {
+    "tscSeed": true,
+    "tscSolutions": true,
+    "seedRegressionPass": true,
+    "seedFeaturesFail": true,
+    "seedOraclePass": true,
+    "winningLine_cleanTestsPass": true,
+    "winningLine_cleanOraclePass": true,
+    "indistinguishable_trapTestsPass": true,
+    "trap_oracleFailsEverySubGoal": true,
+    "trap_shorterThanClean": true,
+    "hintAudit_noFail": true
+   },
+   "visibility": [
+    {
+     "trap": "trap",
+     "trapNewCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "D4",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible: no finding (no rule for two aggregates in one command, D4 class iv)"
+      },
+      {
+       "id": "SG2",
+       "family": "D5",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible: no finding (rule placement, D5 class iii/iv)"
+      }
+     ]
+    }
+   ],
+   "hintAudit": {
+    "exit": 0,
+    "fail": "0",
+    "warns": []
+   },
+   "trees": {
+    "seed": {
+     "sha256": "2822f1bc2f82d8bce00e3e7a2eeba84ee1c60916d828b9433127f689f8969d31",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 0,
+       "total": 6
+      },
+      "failures": [
+       "a transfer moves the money between two accounts: app.transfer is not a function",
+       "a transfer that would overdraw is refused and nothing changes: The input did not match the regular expression /insufficient funds/. Input:",
+       "a transfer between currencies or to an unknown account is refused: Expected values to be strictly equal:",
+       "transfers over the daily limit are refused with what is left today: app.transfer is not a function",
+       "the daily limit starts again the next day and withdrawals do not count: app.transfer is not a function",
+       "the statement lists movements newest first with the other account: app.transfer is not a function"
+      ]
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "D5",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     }
+    },
+    "solutions/clean": {
+     "sha256": "140d50fed757aeb3617d5c1933bacf5732283696840b0f0d9ddb418d8941b265",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 6,
+       "total": 6
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "D5",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     },
+     "sizeVsSeed": {
+      "files": 9,
+      "added": 152,
+      "removed": 8,
+      "changed": 160
+     }
+    },
+    "solutions/trap": {
+     "sha256": "0fea625ccecb72c287d1ccba77d23ec9c01420697e4d16f0a0ab78e973d16985",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 6,
+       "total": 6
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D4",
+        "pass": false,
+        "evidence": [
+         "src/ledger/application/TransferMoney.ts TransferMoney.execute@11: this.accounts.save(from)@22; this.accounts.save(to)@23"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "D5",
+        "pass": false,
+        "evidence": [
+         "src/ledger/application/TransferMoney.ts:19 TransferMoney.execute@11: money.cents > left"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {},
+      "blocking": []
+     },
+     "sizeVsSeed": {
+      "files": 5,
+      "added": 63,
+      "removed": 4,
+      "changed": 67
+     }
+    }
+   }
+  },
+  {
+   "id": "p2-loyalty",
+   "verdict": "VALID",
+   "checks": {
+    "tscSeed": true,
+    "tscSolutions": true,
+    "seedRegressionPass": true,
+    "seedFeaturesFail": true,
+    "seedOraclePass": true,
+    "winningLine_cleanTestsPass": true,
+    "winningLine_cleanOraclePass": true,
+    "indistinguishable_trapTestsPass": true,
+    "trap_oracleFailsEverySubGoal": true,
+    "trap_shorterThanClean": true,
+    "hintAudit_noFail": true
+   },
+   "visibility": [
+    {
+     "trap": "trap",
+     "trapNewCorrectBlocking": [
+      "FF-DS02|src/sales/application/PlaceOrder.ts|src/membership/domain/member/MemberRepository.ts",
+      "FF-DS02|src/sales/application/PlaceOrder.ts|src/membership/domain/member/value-objects/MemberId.ts"
+     ],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "D6/D10",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [
+        "FF-DS02|src/sales/application/PlaceOrder.ts|src/membership/domain/member/MemberRepository.ts",
+        "FF-DS02|src/sales/application/PlaceOrder.ts|src/membership/domain/member/value-objects/MemberId.ts"
+       ],
+       "findingInEvidenceFile": true,
+       "handReading": "visible: the two new FF-DS02 findings are exactly the imports of membership internals"
+      },
+      {
+       "id": "SG2",
+       "family": "D4",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [
+        "FF-DS02|src/sales/application/PlaceOrder.ts|src/membership/domain/member/MemberRepository.ts",
+        "FF-DS02|src/sales/application/PlaceOrder.ts|src/membership/domain/member/value-objects/MemberId.ts"
+       ],
+       "findingInEvidenceFile": true,
+       "handReading": "co-located only: the FF-DS02 findings are the imports SG1 uses; the second write (D4) has no finding of its own"
+      }
+     ]
+    },
+    {
+     "trap": "trap-alt",
+     "trapNewCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "D6/D10",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible: duplicated thresholds (D10) raise nothing"
+      },
+      {
+       "id": "SG2",
+       "family": "D4",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible: the write goes through the published interface; no finding"
+      }
+     ]
+    }
+   ],
+   "hintAudit": {
+    "exit": 0,
+    "fail": "0",
+    "warns": [
+     "WARN \"tier\" (ordinary word that can hint) …very order according to their tier, the same tier their member c…",
+     "WARN \"tier\" (ordinary word that can hint) …rding to their tier, the same tier their member card shows: gold…",
+     "WARN \"tier\" (ordinary word that can hint) …ed that their card showed one tier and the till charged another,…",
+     "WARN \"tier\" (ordinary word that can hint) …d they count for the member's tier from the next order on. An or…"
+    ]
+   },
+   "trees": {
+    "seed": {
+     "sha256": "a7b030ec9fbb1d1dcf042a791a8f434d9a51150041bd4e6ddbdf9883ed420799",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 0,
+       "total": 5
+      },
+      "failures": [
+       "gold members get 10% off and silver 5%, shown separately: Expected values to be strictly deep-equal:",
+       "standard members and guests pay the full price: Expected values to be strictly deep-equal:",
+       "gold starts at 1,500 points, on the card and at the till: Expected values to be strictly equal:",
+       "a member earns one point per whole unit paid after discount: Expected values to be strictly equal:",
+       "earned points count for the next order and guests earn nothing: Expected values to be strictly equal:"
+      ]
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D6/D10",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "D4",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-DS02": 2
+      },
+      "advisoryByRule": {},
+      "blocking": [
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/ReceiptFooter.ts",
+        "target": "src/membership/domain/member/MemberRepository.ts",
+        "checkCorrect": "correct"
+       },
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/ReceiptFooter.ts",
+        "target": "src/membership/domain/member/value-objects/MemberId.ts",
+        "checkCorrect": "correct"
+       }
+      ]
+     }
+    },
+    "solutions/clean": {
+     "sha256": "05f2206e4cacd70dd49fbb316feafc878a31105b0b52804d658f44820911ffe5",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 5,
+       "total": 5
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D6/D10",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "D4",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-DS02": 2
+      },
+      "advisoryByRule": {},
+      "blocking": [
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/ReceiptFooter.ts",
+        "target": "src/membership/domain/member/MemberRepository.ts",
+        "checkCorrect": "correct"
+       },
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/ReceiptFooter.ts",
+        "target": "src/membership/domain/member/value-objects/MemberId.ts",
+        "checkCorrect": "correct"
+       }
+      ]
+     },
+     "sizeVsSeed": {
+      "files": 9,
+      "added": 71,
+      "removed": 10,
+      "changed": 81
+     }
+    },
+    "solutions/trap": {
+     "sha256": "6f521b42654c81f2c450184ab5a18238673d8354d3ab4f0f81a1e978231bd078",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 5,
+       "total": 5
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D6/D10",
+        "pass": false,
+        "evidence": [
+         "src/sales/application/PlaceOrder.ts:1 imports ../../membership/domain/member/MemberRepository (membership internals)",
+         "src/sales/application/PlaceOrder.ts:2 imports ../../membership/domain/member/value-objects/MemberId (membership internals)",
+         "src/sales/application/PlaceOrder.ts:30 PlaceOrder.execute@27 asks a Member | undefined for its tier",
+         "src/sales/application/PlaceOrder.ts:30 PlaceOrder.execute@27 asks a Member | undefined for its tier"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "D4",
+        "pass": false,
+        "evidence": [
+         "src/sales/application/PlaceOrder.ts:35 PlaceOrder.execute@27 writes a member: member.award",
+         "src/sales/application/PlaceOrder.ts:36 PlaceOrder.execute@27 writes a member: this.members.save",
+         "src/sales/application/PlaceOrder.ts PlaceOrder.execute@27: 2 store writes (this.orders.save@32; this.members.save@36)"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-DS02": 4
+      },
+      "advisoryByRule": {},
+      "blocking": [
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/PlaceOrder.ts",
+        "target": "src/membership/domain/member/MemberRepository.ts",
+        "checkCorrect": "correct"
+       },
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/PlaceOrder.ts",
+        "target": "src/membership/domain/member/value-objects/MemberId.ts",
+        "checkCorrect": "correct"
+       },
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/ReceiptFooter.ts",
+        "target": "src/membership/domain/member/MemberRepository.ts",
+        "checkCorrect": "correct"
+       },
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/ReceiptFooter.ts",
+        "target": "src/membership/domain/member/value-objects/MemberId.ts",
+        "checkCorrect": "correct"
+       }
+      ]
+     },
+     "sizeVsSeed": {
+      "files": 4,
+      "added": 28,
+      "removed": 9,
+      "changed": 37
+     }
+    },
+    "solutions/trap-alt": {
+     "sha256": "dd6852f6c9ee63498cf91af750e48b8b539f6eb94723856865afe2f865743c50",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 3,
+       "total": 3
+      },
+      "feature": {
+       "passed": 5,
+       "total": 5
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "D6/D10",
+        "pass": false,
+        "evidence": [
+         "src/sales/application/PlaceOrder.ts:27 PlaceOrder.execute@24 compares points: points >= 1500",
+         "src/sales/application/PlaceOrder.ts:27 PlaceOrder.execute@24 compares points: points >= 500",
+         "src/sales/application/PlaceOrder.ts:27 compares with the tier threshold 1500: points >= 1500",
+         "src/sales/application/PlaceOrder.ts:27 compares with the tier threshold 500: points >= 500"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "D4",
+        "pass": false,
+        "evidence": [
+         "src/sales/acl/MembershipDirectory.ts:17 MembershipDirectory.addPoints@16 writes a member: this.membership.awardPoints",
+         "src/sales/application/PlaceOrder.ts:31 PlaceOrder.execute@24 writes a member: this.directory.addPoints"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-DS02": 2
+      },
+      "advisoryByRule": {},
+      "blocking": [
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/ReceiptFooter.ts",
+        "target": "src/membership/domain/member/MemberRepository.ts",
+        "checkCorrect": "correct"
+       },
+       {
+        "ruleId": "FF-DS02",
+        "file": "src/sales/application/ReceiptFooter.ts",
+        "target": "src/membership/domain/member/value-objects/MemberId.ts",
+        "checkCorrect": "correct"
+       }
+      ]
+     },
+     "sizeVsSeed": {
+      "files": 5,
+      "added": 31,
+      "removed": 8,
+      "changed": 39
+     }
+    }
+   }
+  },
+  {
+   "id": "p3-shipping-quotes",
+   "verdict": "INVALID",
+   "checks": {
+    "tscSeed": true,
+    "tscSolutions": false,
+    "seedRegressionPass": true,
+    "seedFeaturesFail": true,
+    "seedOraclePass": true,
+    "winningLine_cleanTestsPass": true,
+    "winningLine_cleanOraclePass": true,
+    "indistinguishable_trapTestsPass": true,
+    "trap_oracleFailsEverySubGoal": true,
+    "trap_shorterThanClean": true,
+    "hintAudit_noFail": true
+   },
+   "visibility": [
+    {
+     "trap": "trap",
+     "trapNewCorrectBlocking": [],
+     "cleanNewCorrectBlocking": [
+      "FF-P03|src/adapters/outbound/fastship/FastshipRatesAdapter.ts|",
+      "FF-P03|src/adapters/outbound/fastship/FastshipTrackingAdapter.ts|"
+     ],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "H5",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible: vendor types in an application port raise nothing (H5 class iv)"
+      },
+      {
+       "id": "SG2",
+       "family": "H2/H1b",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [],
+       "findingInEvidenceFile": false,
+       "handReading": "invisible: FF-P01 checks the vendor package in the domain layer only; an application-layer runtime import raises nothing"
+      }
+     ]
+    }
+   ],
+   "hintAudit": {
+    "exit": 0,
+    "fail": "0",
+    "warns": [
+     "WARN \"table\" (ordinary word that can hint) …es instead of our fixed price table. The Fastship SDK, the packag…",
+     "WARN \"client\" (ordinary word that can hint) …lready in the project and the client is already created with the k…",
+     "WARN \"client\" (ordinary word that can hint) …EY for tracking; use the same client. A quote is Fastship's cheape…",
+     "WARN \"service\" (ordinary word that can hint) … quote is Fastship's cheapest service for the parcel plus our handl…",
+     "WARN \"service\" (ordinary word that can hint) …50, and it names the Fastship service it is for. Fastship answers i…",
+     "WARN \"table\" (ordinary word that can hint) …st fall back to our own price table instead of failing, and say e…",
+     "WARN \"service\" (ordinary word that can hint) …ravel with Fastship's freight service, and parcels of 20 kg or less…",
+     "WARN \"service\" (ordinary word that can hint) …s cheaper. Quote the cheapest service the parcel is allowed to use.…"
+    ]
+   },
+   "trees": {
+    "seed": {
+     "sha256": "c206957a25b2ffbb0a11ed3673d94cda5d52abc835742bfbf40c38d4843c8ace",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 2,
+       "total": 2
+      },
+      "feature": {
+       "passed": 0,
+       "total": 4
+      },
+      "failures": [
+       "a quote is the cheapest live service plus the 1.50 handling fee: Expected values to be strictly deep-equal:",
+       "when the carrier is down the quote comes from our table, marked estimated: Expected values to be strictly deep-equal:",
+       "live quotes are not marked estimated: Expected values to be strictly equal:",
+       "parcels over 20 kg go by freight only, lighter ones never by freight: Expected values to be strictly deep-equal:"
+      ]
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H5",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "H2/H1b",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-C03": 1,
+       "FF-CV05": 14,
+       "FF-P02": 1
+      },
+      "blocking": []
+     }
+    },
+    "solutions/clean": {
+     "sha256": "4e1ae9d88c8ee76a62a2bdf0b8ead8619d8a6abd4619e34c5a559d3d9888e0fc",
+     "tsc": {
+      "errors": 5,
+      "first": [
+       "Cannot find module '../../../application/ports/out/CarrierRates' or its corresponding type declarations.",
+       "Cannot find module '../../../application/ports/out/TrackingPort' or its corresponding type declarations.",
+       "Cannot find module '../ports/out/CarrierRates' or its corresponding type declarations.",
+       "Cannot find module '../ports/out/TrackingPort' or its corresponding type declarations.",
+       "Parameter 'e' implicitly has an 'any' type."
+      ]
+     },
+     "tests": {
+      "regression": {
+       "passed": 2,
+       "total": 2
+      },
+      "feature": {
+       "passed": 4,
+       "total": 4
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H5",
+        "pass": true,
+        "evidence": []
+       },
+       {
+        "id": "SG2",
+        "family": "H2/H1b",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-P03": 2
+      },
+      "advisoryByRule": {
+       "FF-C03": 3,
+       "FF-CV05": 17,
+       "FF-P02": 1
+      },
+      "blocking": [
+       {
+        "ruleId": "FF-P03",
+        "file": "src/adapters/outbound/fastship/FastshipRatesAdapter.ts",
+        "target": null,
+        "checkCorrect": "correct"
+       },
+       {
+        "ruleId": "FF-P03",
+        "file": "src/adapters/outbound/fastship/FastshipTrackingAdapter.ts",
+        "target": null,
+        "checkCorrect": "correct"
+       }
+      ]
+     },
+     "sizeVsSeed": {
+      "files": 11,
+      "added": 89,
+      "removed": 10,
+      "changed": 99
+     }
+    },
+    "solutions/trap": {
+     "sha256": "6aafe20d634dfd4205d68f118202ca5e845d56caea2f539ded9744753790c15b",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 2,
+       "total": 2
+      },
+      "feature": {
+       "passed": 4,
+       "total": 4
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H5",
+        "pass": false,
+        "evidence": [
+         "src/application/ports/out/RatesPort.ts:4 vendor symbol FastshipRateRequest",
+         "src/application/ports/out/RatesPort.ts:4 vendor symbol FastshipRateResponse",
+         "src/application/services/QuoteShipmentService.ts:18 vendor symbol rates",
+         "src/application/services/QuoteShipmentService.ts:19 vendor symbol serviceCode",
+         "src/application/services/QuoteShipmentService.ts:20 vendor symbol amount",
+         "src/application/services/QuoteShipmentService.ts:20 vendor symbol value",
+         "src/application/services/QuoteShipmentService.ts:22 vendor symbol amount",
+         "src/application/services/QuoteShipmentService.ts:22 vendor symbol value",
+         "src/application/services/QuoteShipmentService.ts:22 vendor symbol currency",
+         "src/application/services/QuoteShipmentService.ts:22 vendor symbol serviceName",
+         "src/application/services/QuoteShipmentService.ts:24 vendor symbol FastshipUnavailableError"
+        ]
+       },
+       {
+        "id": "SG2",
+        "family": "H2/H1b",
+        "pass": false,
+        "evidence": [
+         "src/application/services/QuoteShipmentService.ts:1 runtime import of fastship-sdk"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-C03": 1,
+       "FF-CV05": 16,
+       "FF-P02": 1
+      },
+      "blocking": []
+     },
+     "sizeVsSeed": {
+      "files": 5,
+      "added": 37,
+      "removed": 4,
+      "changed": 41
+     }
+    }
+   }
+  },
+  {
+   "id": "p4-library-holds",
+   "verdict": "VALID",
+   "checks": {
+    "tscSeed": true,
+    "tscSolutions": true,
+    "seedRegressionPass": true,
+    "seedFeaturesFail": true,
+    "seedOraclePass": true,
+    "winningLine_cleanTestsPass": true,
+    "winningLine_cleanOraclePass": true,
+    "indistinguishable_trapTestsPass": true,
+    "trap_oracleFailsEverySubGoal": true,
+    "trap_shorterThanClean": true,
+    "hintAudit_noFail": true
+   },
+   "visibility": [
+    {
+     "trap": "trap",
+     "trapNewCorrectBlocking": [
+      "FF-S01|src/persistence/LoanGateway.ts|src/business/services/MemberService.ts"
+     ],
+     "cleanNewCorrectBlocking": [],
+     "perSubGoal": [
+      {
+       "id": "SG1",
+       "family": "H7 (layered: upward dependency, layer cycle)",
+       "oracleFails": true,
+       "instrumentNewFindingsInEvidenceFiles": [
+        "FF-S01|src/persistence/LoanGateway.ts|src/business/services/MemberService.ts"
+       ],
+       "findingInEvidenceFile": true,
+       "handReading": "visible: one new correct FF-S01 finding on the upward import"
+      }
+     ]
+    }
+   ],
+   "hintAudit": {
+    "exit": 0,
+    "fail": "0",
+    "warns": []
+   },
+   "trees": {
+    "seed": {
+     "sha256": "eb907db1ccefdcdab7b4d0c991fb20f6b7ae26b0fb0d899d42300914d02d99ec",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 0,
+       "total": 3
+      },
+      "failures": [
+       "an overdue loan suspends its member at the nightly run, with a notice: Expected values to be strictly equal:",
+       "returning the last overdue book reinstates the member: Expected values to be strictly equal:",
+       "open loans are listed earliest due first, overdue ones marked: Expected values to be strictly deep-equal:"
+      ]
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H7",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-CV05": 10
+      },
+      "blocking": []
+     }
+    },
+    "solutions/clean": {
+     "sha256": "fe576e7e7db3259a1cc20a5e322a1c27914c2bcb009845ea17926557b1ca6595",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 3,
+       "total": 3
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": true,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H7",
+        "pass": true,
+        "evidence": []
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "pass",
+      "blockingByRule": {},
+      "advisoryByRule": {
+       "FF-CV05": 10
+      },
+      "blocking": []
+     },
+     "sizeVsSeed": {
+      "files": 2,
+      "added": 13,
+      "removed": 7,
+      "changed": 20
+     }
+    },
+    "solutions/trap": {
+     "sha256": "751060d89809ecd0cd53308e09b877d46382fe859b7044f6894d7a625de03cf3",
+     "tsc": {
+      "errors": 0,
+      "first": []
+     },
+     "tests": {
+      "regression": {
+       "passed": 4,
+       "total": 4
+      },
+      "feature": {
+       "passed": 3,
+       "total": 3
+      },
+      "failures": []
+     },
+     "oracle": {
+      "pass": false,
+      "subGoals": [
+       {
+        "id": "SG1",
+        "family": "H7",
+        "pass": false,
+        "evidence": [
+         "src/persistence/LoanGateway.ts:1 imports ../business/services/MemberService (upwards)"
+        ]
+       }
+      ]
+     },
+     "instrument": {
+      "verdict": "fail",
+      "blockingByRule": {
+       "FF-S01": 1
+      },
+      "advisoryByRule": {
+       "FF-CV05": 10
+      },
+      "blocking": [
+       {
+        "ruleId": "FF-S01",
+        "file": "src/persistence/LoanGateway.ts",
+        "target": "src/business/services/MemberService.ts",
+        "checkCorrect": "correct"
+       }
+      ]
+     },
+     "sizeVsSeed": {
+      "files": 2,
+      "added": 8,
+      "removed": 1,
+      "changed": 9
+     }
+    }
+   }
+  }
+ ]
+}

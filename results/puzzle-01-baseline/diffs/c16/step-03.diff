@@ -1,0 +1,170 @@
+diff --git a/a/src/ledger/application/Deposit.ts b/b/src/ledger/application/Deposit.ts
+index 052c3f52..6b4ad416 100644
+--- a/a/src/ledger/application/Deposit.ts
++++ b/b/src/ledger/application/Deposit.ts
+@@ -2,14 +2,20 @@ import { Money } from '../../shared-kernel/Money';
+ import type { AccountRepository } from '../domain/account/AccountRepository';
+ import { AccountId } from '../domain/account/value-objects/AccountId';
+ import { LedgerError } from '../domain/LedgerError';
++import type { StatementLog } from './StatementLog';
+ 
+ export class Deposit {
+-  constructor(private readonly accounts: AccountRepository) {}
++  constructor(
++    private readonly accounts: AccountRepository,
++    private readonly log: StatementLog,
++  ) {}
+ 
+   execute(accountId: string, amount: number): void {
+     const account = this.accounts.byId(AccountId.of(accountId));
+     if (account === undefined) throw new LedgerError(`no account ${accountId}`);
+-    account.deposit(Money.of(amount, account.currency));
++    const money = Money.of(amount, account.currency);
++    account.deposit(money);
+     this.accounts.save(account);
++    this.log.record(account.id.value, { kind: 'deposit', amount: money.amount(), counterpart: null });
+   }
+ }
+diff --git a/b/src/ledger/application/GetStatement.ts b/b/src/ledger/application/GetStatement.ts
+new file mode 100644
+index 00000000..a30950af
+--- /dev/null
++++ b/b/src/ledger/application/GetStatement.ts
+@@ -0,0 +1,17 @@
++import type { AccountRepository } from '../domain/account/AccountRepository';
++import { AccountId } from '../domain/account/value-objects/AccountId';
++import { LedgerError } from '../domain/LedgerError';
++import type { StatementItem, StatementLog } from './StatementLog';
++
++export class GetStatement {
++  constructor(
++    private readonly accounts: AccountRepository,
++    private readonly log: StatementLog,
++  ) {}
++
++  execute(accountId: string): StatementItem[] {
++    const account = this.accounts.byId(AccountId.of(accountId));
++    if (account === undefined) throw new LedgerError(`no account ${accountId}`);
++    return this.log.newestFirst(account.id.value);
++  }
++}
+diff --git a/b/src/ledger/application/StatementLog.ts b/b/src/ledger/application/StatementLog.ts
+new file mode 100644
+index 00000000..a0ecc5f3
+--- /dev/null
++++ b/b/src/ledger/application/StatementLog.ts
+@@ -0,0 +1,20 @@
++export type StatementKind = 'deposit' | 'withdrawal' | 'transfer-out' | 'transfer-in';
++
++export interface StatementItem {
++  readonly kind: StatementKind;
++  readonly amount: number;
++  readonly counterpart: string | null;
++}
++
++/** Every stored movement per account, in the order it happened; shared by every use case. */
++export class StatementLog {
++  private readonly rows = new Map<string, StatementItem[]>();
++
++  record(accountId: string, item: StatementItem): void {
++    this.rows.set(accountId, [...(this.rows.get(accountId) ?? []), item]);
++  }
++
++  newestFirst(accountId: string): StatementItem[] {
++    return [...(this.rows.get(accountId) ?? [])].reverse();
++  }
++}
+diff --git a/a/src/ledger/application/Transfer.ts b/b/src/ledger/application/Transfer.ts
+index 81f14fdc..7b899396 100644
+--- a/a/src/ledger/application/Transfer.ts
++++ b/b/src/ledger/application/Transfer.ts
+@@ -2,6 +2,7 @@ import { Money } from '../../shared-kernel/Money';
+ import type { AccountRepository } from '../domain/account/AccountRepository';
+ import { AccountId } from '../domain/account/value-objects/AccountId';
+ import { LedgerError } from '../domain/LedgerError';
++import type { StatementLog } from './StatementLog';
+ 
+ export const DAILY_TRANSFER_LIMIT_CENTS = 100_000;
+ 
+@@ -24,6 +25,7 @@ export class Transfer {
+     private readonly accounts: AccountRepository,
+     private readonly tally: DailyTransferTally,
+     private readonly today: () => string,
++    private readonly log: StatementLog,
+   ) {}
+ 
+   execute(fromAccountId: string, toAccountId: string, amount: number): void {
+@@ -44,5 +46,7 @@ export class Transfer {
+     }
+     this.accounts.saveAll([from, to]);
+     this.tally.add(from.id.value, day, money.cents);
++    this.log.record(from.id.value, { kind: 'transfer-out', amount: money.amount(), counterpart: to.id.value });
++    this.log.record(to.id.value, { kind: 'transfer-in', amount: money.amount(), counterpart: from.id.value });
+   }
+ }
+diff --git a/a/src/ledger/application/Withdraw.ts b/b/src/ledger/application/Withdraw.ts
+index c0b5283e..8b6d4262 100644
+--- a/a/src/ledger/application/Withdraw.ts
++++ b/b/src/ledger/application/Withdraw.ts
+@@ -2,14 +2,20 @@ import { Money } from '../../shared-kernel/Money';
+ import type { AccountRepository } from '../domain/account/AccountRepository';
+ import { AccountId } from '../domain/account/value-objects/AccountId';
+ import { LedgerError } from '../domain/LedgerError';
++import type { StatementLog } from './StatementLog';
+ 
+ export class Withdraw {
+-  constructor(private readonly accounts: AccountRepository) {}
++  constructor(
++    private readonly accounts: AccountRepository,
++    private readonly log: StatementLog,
++  ) {}
+ 
+   execute(accountId: string, amount: number): void {
+     const account = this.accounts.byId(AccountId.of(accountId));
+     if (account === undefined) throw new LedgerError(`no account ${accountId}`);
+-    account.withdraw(Money.of(amount, account.currency));
++    const money = Money.of(amount, account.currency);
++    account.withdraw(money);
+     this.accounts.save(account);
++    this.log.record(account.id.value, { kind: 'withdrawal', amount: money.amount(), counterpart: null });
+   }
+ }
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 07b98508..9cbc80ca 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,8 +1,10 @@
+ import { Deposit } from './ledger/application/Deposit';
+ import { EventRelay } from './ledger/application/EventRelay';
+ import { GetBalance } from './ledger/application/GetBalance';
++import { GetStatement } from './ledger/application/GetStatement';
+ import { OpenAccount } from './ledger/application/OpenAccount';
+ import { SendWelcomeNotice } from './ledger/application/SendWelcomeNotice';
++import { StatementLog, type StatementItem } from './ledger/application/StatementLog';
+ import { DailyTransferTally, Transfer } from './ledger/application/Transfer';
+ import { Withdraw } from './ledger/application/Withdraw';
+ import { InMemoryAccountRepository } from './ledger/infrastructure/InMemoryAccountRepository';
+@@ -18,6 +20,7 @@ export function createApp(options: AppOptions = {}) {
+   const today = options.today ?? (() => new Date().toISOString().slice(0, 10));
+   const accounts = new InMemoryAccountRepository();
+   const tally = new DailyTransferTally();
++  const statements = new StatementLog();
+   const notices = new InMemoryNotices();
+   const relay = new EventRelay(accounts);
+   const welcome = new SendWelcomeNotice(notices);
+@@ -29,11 +32,12 @@ export function createApp(options: AppOptions = {}) {
+   };
+   return {
+     openAccount: (owner: string, currency: string): string => command(() => new OpenAccount(accounts).execute(owner, currency)),
+-    deposit: (accountId: string, amount: number): void => command(() => new Deposit(accounts).execute(accountId, amount)),
+-    withdraw: (accountId: string, amount: number): void => command(() => new Withdraw(accounts).execute(accountId, amount)),
++    deposit: (accountId: string, amount: number): void => command(() => new Deposit(accounts, statements).execute(accountId, amount)),
++    withdraw: (accountId: string, amount: number): void => command(() => new Withdraw(accounts, statements).execute(accountId, amount)),
+     transfer: (fromAccountId: string, toAccountId: string, amount: number): void =>
+-      command(() => new Transfer(accounts, tally, today).execute(fromAccountId, toAccountId, amount)),
++      command(() => new Transfer(accounts, tally, today, statements).execute(fromAccountId, toAccountId, amount)),
+     balanceOf: (accountId: string): number => new GetBalance(accounts).execute(accountId),
++    statement: (accountId: string): StatementItem[] => new GetStatement(accounts, statements).execute(accountId),
+     notices: (): string[] => notices.all(),
+   };
+ }
