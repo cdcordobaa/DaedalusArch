@@ -149,6 +149,10 @@ item, one FG session with no graph call, and one confinement leak followed by a 
   - The human repositories are analysed without their dependencies, which causes one of the three gaps (MT-WW1).
     Whether the pilot installs dependencies is an open question for the author.
 
+**Place in the v1.5 cycle.** `aidlc-docs/inception/v1.5/` reached main after this build started. COMPREHEND-01 is not
+one of its units U1–U7; it is closest to U2 (delivery). FR-4 asks for under 200 ms per symbolic call: warm calls meet
+it, but the cold first call, which builds the index, does not.
+
 ## 6. Before the pilot (the author)
 
 1. Read the design note and decide D1–D4 (§11 there): the types and classes, FG's tool set, the size (62, cap 66),

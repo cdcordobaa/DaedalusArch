@@ -15,6 +15,9 @@ artefact changes; the frozen MCP server, the DETECT-02 facts and the EFF-01 harn
 - `ops/notes/detect-02-design.md` and `ops/notes/detect-02-precision-note.md`: the facts this study exposes.
 - `ops/notes/v15-plan.md` §3, "Graph at the start: structure given before acting". This note is the measurement that
   track needs before any delivery design.
+- `aidlc-docs/inception/v1.5/` (merged to main after this note was written): COMPREHEND-01 is not one of the units
+  U1–U7. It is closest to U2 (delivery). FR-4's target, under 200 ms per symbolic call, is met by warm calls; a cold
+  first call, which builds the index, takes up to 1.9 s.
 
 ---
 
