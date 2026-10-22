@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "case": "u3-10t-cross-context-write",
+  "pair": "10",
+  "role": "twin",
+  "style": "ddd",
+  "spec": "presets/ddd.yaml",
+  "authorship": {
+    "writtenBy": "Claude (v1.5 U3 session, 2026-10-22)",
+    "independentOfC4": false,
+    "signedByAuthor": false,
+    "note": "Written by the session that also runs the U3 pilot, before any U3 call; the answers were committed first. Development material, exploratory; not independent of C4 (C4-01 \u00a76)."
+  },
+  "writtenAt": "2026-10-22",
+  "target": {
+    "rule": "FF-DS02",
+    "file": "src/billing/application/pay-invoice.ts",
+    "edgeTarget": "src/ordering/domain/order/OrderRepository.ts"
+  },
+  "expected": {
+    "exceptionClaimed": false,
+    "citations": [],
+    "intentMatch": "no-declared-intent",
+    "severityAllowed": [
+      "high"
+    ]
+  },
+  "tests": "near-miss code twin of 10: the same context map; billing now loads and saves ordering's Order, changing state another context owns (step c, high)"
+}
