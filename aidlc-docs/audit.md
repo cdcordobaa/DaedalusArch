@@ -2934,3 +2934,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Study 2b closure; evasion items 4 and 5 (DA15, DA16); exploratory analyses
 
 ---
+
+## Study 2b — registered secondaries closed
+**Timestamp**: 2026-10-22T06:30:00Z
+**User Input**: "Asked to close Study 2b's registered secondaries by the least costly route, then keep progressing toward the next instrument version."
+**AI Response**: "Recorded the closure under addendum 4: C4 precondition not met (pilot pass, six-case 5/6 on one severity field), so D_sem not run and no C4 call on 2b; C1d not run (DA14); evasion item 4 not flagged (literal and default views identical, 600 snapshots); evasion item 5 bar met (0 moved-only in mcp@L2; 20/20 diffs no-removal, blind AI reader, author spot-check of two pending). Updated the results report (§7), null M185, the compendium README row and the exploratory research log (entries 8–9). No model call in this step."
+**Context**: Study 2b closure; exploratory thread bookkeeping
+
+---
