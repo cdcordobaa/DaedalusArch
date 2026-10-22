@@ -2,10 +2,10 @@
 
 **Exploratory. Not part of the confirmatory Study 2b.** Design: `ops/notes/hexddd-01-violation-elicitation-design.md`
 §5 (branch `ops/hexddd-01-elicitation`, PR #331). Inputs: `experiments/pilot-hexddd-01/` (commit d3cccc5a, pushed
-before any generator call). Results: `results/pilot-hexddd-01/`.
+before any generator call). Results: `results/v1.4-pilot-hexddd-01/`.
 
 This report gives **counts and the pass-bar verdict only**. It names no finding, so the author's hand read of
-`results/pilot-hexddd-01/diffs/` stays blind (procedure: `results/pilot-hexddd-01/README.md`).
+`results/v1.4-pilot-hexddd-01/diffs/` stays blind (procedure: `results/v1.4-pilot-hexddd-01/README.md`).
 
 ## Verdict against §5.2
 
@@ -28,7 +28,7 @@ the instrument does not see, but it cannot change this verdict.
 | Pilot (2 runs × 5 steps, arm `none`, 0 repair turns) | 10 | 12 |
 | **Total** | **16** | 18 |
 
-Ledger: `results/pilot-hexddd-01/run/calls.jsonl`. Every turn finished in one attempt, so no redraw was used. Scoring
+Ledger: `results/v1.4-pilot-hexddd-01/run/calls.jsonl`. Every turn finished in one attempt, so no redraw was used. Scoring
 (re-score, check-correct, D_seed) and exposure made zero calls. C1d and C4 were not run.
 
 ## Gates
@@ -70,13 +70,13 @@ harness's file set). The seed row's file count is the seed tree's.
 
 **Exposure:** not available. `scripts/v1.4/exposure-count.ts` defines opportunity queries for Layered specs only and
 refused all 10 snapshots ("spec style … expected layered"), as design §8 item 3 anticipates
-(`results/pilot-hexddd-01/scores/exposure/exposure.json`).
+(`results/v1.4-pilot-hexddd-01/scores/exposure/exposure.json`).
 
 ## Deviations from the design, declared before the calls
 
 - Seed start and brownfield frame come from the pilot driver (`run-pilot.ts`) rather than the harness, because the
   harness is frozen (design §8 items 1 and 2). The step records' `promptSha256` hashes the harness frame that was
-  replaced. The sent text and its hash are in `results/pilot-hexddd-01/run/<task>/prompt-*.txt` and `frame-*.json`.
+  replaced. The sent text and its hash are in `results/v1.4-pilot-hexddd-01/run/<task>/prompt-*.txt` and `frame-*.json`.
 - No generator isolation (no dedicated config directory in the sandbox). The E1 allow-listed environment was used.
 - The npm cache for the skeleton was filled from the session shell, because the harness's cache warm lacks the
   sandbox proxy certificate. The install itself is the harness's own.

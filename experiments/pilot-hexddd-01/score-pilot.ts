@@ -4,7 +4,7 @@
  *
  * Usage (repository root):
  *   npx tsx experiments/pilot-hexddd-01/score-pilot.ts --out-root <O> --node-modules <H>/skeleton-install/node_modules
- *     --results results/pilot-hexddd-01
+ *     --results results/v1.4-pilot-hexddd-01
  *
  * For each pilot run under `<O>/runs/`: the seed tree (the run's base commit) and every step-final commit are taken
  * from the run's `snapshots.git` (`git archive`), linked to the skeleton install, and evaluated as
