@@ -2926,3 +2926,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Study 2b closure; registered secondaries
 
 ---
+
+## Study 2b — semantic secondary (DA13): C4 precondition
+**Timestamp**: 2026-10-22T04:41:41Z
+**User Input**: "Run the registered semantic secondary of Study 2b as fixed by addendum 4 (DA13); later, under a usage limit, do not start C4 on the 2b identities and stop after the precondition phase in progress."
+**AI Response**: "After PR #347 merged and the registered hashes verified (pre-registration, 27 artefacts, OSF package 8/8, frozen paths unchanged), ran from a detached worktree of the freeze tag with the registered post-tag scripts copied in. The C4 pilot (pairs 1-2) passed: 8 calls, cap 16. The six-case set failed its registered bar: 32 calls, cap 64; 5/6 correct, 0 false exception claims on the twins, but near-miss twin 4 not correct (severity low, allowed high or medium). C4 was not run on 2b; D_sem reported as not run: precondition not met. 40 model calls in total, 0 on 2b data. The frozen judge pin CLI 2.1.294 ran without --exploratory. Outputs and cassettes are under results/v1.4-study2b/semantic/, the report is Docs/DiagnosticRuns/v1.4-study2b-semantic-2026-10-22.md, and a dated changelog line was added to addendum 4."
+**Context**: Study 2b registered secondary; semantic layer precondition
+
+---

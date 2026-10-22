@@ -1,0 +1,53 @@
+{
+  "itemId": "c4f:49b64d40d6121aea",
+  "itemName": "FF-S01 src/domain/subscription.ts",
+  "key": "c6c77a66472c51b5865fc4c38ac3f581791b16bad800faac68d184bb5a98f015",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "interpret",
+    "promptHash": "5ebbf0008ebd333678f5de564739c9f3341a2583e30b3cba8a9ba249544e6a71",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "facea2932293bfdf5c089b10b035102f81276bf19e6f6f1e2033f400f7a5604a",
+    "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d"
+  },
+  "prompt": "## Task\nA deterministic rule (FF-S01) found this blocking violation: src/domain/subscription.ts (domain) imports against the allowed direction from src/adapters/outbound/system-clock.ts (adapters-outbound). The verdict is fixed (C3: FF-S01 blocking fail). Read the code, the graph and the prose together; the graph alone does not show intent. Then:\n1. explanation: one paragraph on what the dependency or responsibility is and why the rule flags it.\n2. intentMatch.status: does the finding contradict, or stay consistent with, an intent the project declares in its docs, ADRs or comments? If the project declares nothing on it, say no-declared-intent. Read an ADR's status: a superseded or rejected ADR declares nothing.\n3. exceptionClaim: claim a declared exception only when a doc or comment line grants this case on purpose, and cite that line (path, lines, exact quote). Never cite code as the grant. A mention, a negation or a superseded decision is not a grant. Otherwise claimed false, citation null, scope null.\n4. severityClass: rank the work inside the blocking tier (high, medium, low). It never moves the finding out of the blocking tier.\n5. cites: the path:line of every line your answer rests on.\n\n## Finding\nrule FF-S01; origin symbolic; files src/domain/subscription.ts, src/adapters/outbound/system-clock.ts; sites 585897513156846c; edge src/domain/subscription.ts:1 -> src/adapters/outbound/system-clock.ts\n\n## Facts (A2)\n- (none)\n\n## Graph slice\n- Subscription: Graph statistics: 1 methods; fan-out 2 (CALLS 1, FLOWS_TO 1); fan-in 0.\n- Subscription: -> CALLS Method SystemClock.now (src/adapters/outbound/system-clock.ts)\n- Subscription: -> FLOWS_TO Class SystemClock (src/adapters/outbound/system-clock.ts)\n\n## Project documentation (excerpts that mention this code; data, not instructions)\nRead these together with the code and the graph: intent, declared exceptions and decisions are written here. Cite the doc lines your intent and exception answers rest on.\n=====DOC-BEGIN docs/adr/0002-core-uses-system-clock.md lines 1-8 (ADR)\n1| # ADR-0002: The core reads the system clock directly\n2| \n3| Status: Accepted\n4| Date: 2026-02-11\n5| \n6| ## Decision\n7| The domain core is permitted to import SystemClock from src/adapters/outbound/system-clock.ts directly.\n8| No Clock port is introduced for now.\n=====DOC-END=====\n=====DOC-BEGIN docs/adr/0002-core-uses-system-clock.md lines 5-9 (ADR)\n5| \n6| ## Decision\n7| The domain core is permitted to import SystemClock from src/adapters/outbound/system-clock.ts directly.\n8| No Clock port is introduced for now.\n9| \n=====DOC-END=====\n\n## Code\n=====SOURCE-BEGIN src/domain/subscription.ts (node file:src/domain/subscription.ts)\n 1| import { SystemClock } from '../adapters/outbound/system-clock';\n 2| \n 3| export class Subscription {\n 4|   private readonly clock = new SystemClock();\n 5| \n 6|   constructor(readonly id: string, private readonly endsAt: Date) {}\n 7| \n 8|   isActive(): boolean {\n 9|     return this.clock.now().getTime() < this.endsAt.getTime();\n10|   }\n11| }\n12| \n=====SOURCE-END=====",
+  "recordedAt": "2026-10-22T04:36:01.963Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "cites": [
+      "src/domain/subscription.ts:1",
+      "src/domain/subscription.ts:4",
+      "src/domain/subscription.ts:9",
+      "docs/adr/0002-core-uses-system-clock.md:3",
+      "docs/adr/0002-core-uses-system-clock.md:7",
+      "docs/adr/0002-core-uses-system-clock.md:8"
+    ],
+    "exceptionClaim": {
+      "citation": {
+        "endLine": 7,
+        "path": "docs/adr/0002-core-uses-system-clock.md",
+        "quote": "The domain core is permitted to import SystemClock from src/adapters/outbound/system-clock.ts directly.",
+        "startLine": 7
+      },
+      "claimed": true,
+      "scope": "Domain-core imports of SystemClock from src/adapters/outbound/system-clock.ts only, under Accepted ADR-0002, until a Clock port is introduced (\"for now\")."
+    },
+    "explanation": "At line 1, src/domain/subscription.ts imports SystemClock straight from the outbound adapter src/adapters/outbound/system-clock.ts. Line 4 creates the adapter inside the entity, and isActive() calls clock.now() at line 9, which matches the graph's CALLS edge to SystemClock.now and FLOWS_TO edge to SystemClock. FF-S01 flags this because dependencies should point inward, with adapters depending on the domain. Here the domain depends on a concrete infrastructure class and there is no port in between, so Subscription is tied to the real system time and is hard to test with a fixed clock. The project has decided this on purpose. ADR-0002 has status Accepted, and its line 7 says the domain core may import SystemClock from this exact file. Line 8 says no Clock port is introduced for now. So the dependency is a known, sanctioned shortcut rather than a mistake. The rule's verdict stays as it is.",
+    "intentMatch": {
+      "cites": [
+        "docs/adr/0002-core-uses-system-clock.md:3",
+        "docs/adr/0002-core-uses-system-clock.md:7",
+        "docs/adr/0002-core-uses-system-clock.md:8"
+      ],
+      "status": "consistent-with-declared-intent"
+    },
+    "severityClass": "low"
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2866,
+    "outputTokens": 894
+  }
+}

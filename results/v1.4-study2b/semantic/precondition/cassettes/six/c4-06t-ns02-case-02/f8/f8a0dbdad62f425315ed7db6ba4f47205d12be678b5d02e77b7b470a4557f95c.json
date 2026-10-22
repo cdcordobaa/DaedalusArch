@@ -1,0 +1,42 @@
+{
+  "itemId": "c4f:dcea076f600ac767",
+  "itemName": "SEM-MISPLACED src/notifications/application/order-notification.service.ts",
+  "key": "f8a0dbdad62f425315ed7db6ba4f47205d12be678b5d02e77b7b470a4557f95c",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "interpret",
+    "promptHash": "dc1eed24acdc44366e6a0b460aa0161c459d9d43bf3724ad254f25edf2068837",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "facea2932293bfdf5c089b10b035102f81276bf19e6f6f1e2033f400f7a5604a",
+    "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d"
+  },
+  "prompt": "## Task\nA deterministic rule (SEM-MISPLACED) found this blocking violation: SEM-MISPLACED: a responsibility sits in a layer other than the one it naturally belongs to. The verdict is fixed (C3: SEM-MISPLACED blocking fail). Read the code, the graph and the prose together; the graph alone does not show intent. Then:\n1. explanation: one paragraph on what the dependency or responsibility is and why the rule flags it.\n2. intentMatch.status: does the finding contradict, or stay consistent with, an intent the project declares in its docs, ADRs or comments? If the project declares nothing on it, say no-declared-intent. Read an ADR's status: a superseded or rejected ADR declares nothing.\n3. exceptionClaim: claim a declared exception only when a doc or comment line grants this case on purpose, and cite that line (path, lines, exact quote). Never cite code as the grant. A mention, a negation or a superseded decision is not a grant. Otherwise claimed false, citation null, scope null.\n4. severityClass: rank the work inside the blocking tier (high, medium, low). It never moves the finding out of the blocking tier.\n5. cites: the path:line of every line your answer rests on.\n\n## Finding\nrule SEM-MISPLACED; origin sem; files src/notifications/application/order-notification.service.ts; sites ee110f001f97012a; fact policy agreed-only\n\n## Facts (A2)\n- fact:866fa21d504a10f3 hasResponsibility {\"name\":\"Compute the order discount and the payable amount\",\"description\":\"Compute the order discount and the payable amount\",\"naturalLayer\":\"domain\"} [model, agreed] cites src/notifications/application/order-notification.service.ts:9-9; graph fanOut=2, fanIn=0\n\n## Graph slice\n- OrderNotificationService: Graph statistics: 1 methods; fan-out 2 (CALLS 1, CONSTRUCTOR_INJECTS 1); fan-in 0.\n- OrderNotificationService: -> CALLS Method Order.subtotal (src/ordering/domain/order.ts)\n- OrderNotificationService: -> CONSTRUCTOR_INJECTS Interface Mailer (src/notifications/application/mailer.ts)\n\n## Code\n=====SOURCE-BEGIN src/notifications/application/order-notification.service.ts (node ee110f001f97012a)\n 4| export class OrderNotificationService {\n 5|   constructor(private readonly mailer: Mailer) {}\n 6| \n 7|   async sendConfirmation(order: Order): Promise<void> {\n 8|     const subtotal = order.subtotal();\n 9|     const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;\n10|     const payable = subtotal - discount;\n11|     await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);\n12|   }\n13| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-22T04:39:03.842Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "cites": [
+      "src/notifications/application/order-notification.service.ts:8",
+      "src/notifications/application/order-notification.service.ts:9",
+      "src/notifications/application/order-notification.service.ts:10",
+      "src/notifications/application/order-notification.service.ts:11"
+    ],
+    "exceptionClaim": {
+      "citation": null,
+      "claimed": false,
+      "scope": null
+    },
+    "explanation": "OrderNotificationService sits in the notifications application layer. Its sendConfirmation method should only format and send a confirmation email. Instead it works out the order's pricing itself: line 9 applies a 10% discount when the order has more than three lines, and line 10 subtracts that discount from the subtotal to get the payable amount. This is a pricing/discount business rule, and the agreed fact puts its natural layer in the domain. The rule flags it because the logic lives in an application service of a different bounded context (notifications) and not in the ordering domain, for example on the Order aggregate next to Order.subtotal(), which the graph shows the service already calls. As a result the discount policy is hidden in a notification path. Other consumers such as invoicing or checkout cannot reuse it, and it can drift from them. No project docs, ADRs or comments were provided that say anything about where this logic belongs, and none grant an exception.",
+    "intentMatch": {
+      "cites": [],
+      "status": "no-declared-intent"
+    },
+    "severityClass": "medium"
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2641,
+    "outputTokens": 561
+  }
+}

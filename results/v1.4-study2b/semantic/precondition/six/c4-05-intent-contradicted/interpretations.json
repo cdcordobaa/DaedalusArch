@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "c4-05-intent-contradicted"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": false
+  },
+  "entries": [
+    {
+      "findingId": "c4f:56d68cc0176e1d9d",
+      "finding": {
+        "id": "c4f:56d68cc0176e1d9d",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/invoice.controller.ts (presentation) skips layers to import src/persistence/invoice.repository.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [
+          "f5fe8607ade613ae"
+        ],
+        "files": [
+          "src/presentation/invoice.controller.ts",
+          "src/persistence/invoice.repository.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/invoice.controller.ts",
+          "line": 2,
+          "target": "src/persistence/invoice.repository.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/invoice.controller.ts:2",
+                "src/presentation/invoice.controller.ts:7",
+                "src/presentation/invoice.controller.ts:11",
+                "src/presentation/invoice.controller.ts:15",
+                "README.md:3",
+                "README.md:4"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "InvoiceController sits in the presentation layer. Besides InvoiceService, it imports InvoiceRepository from the persistence layer (line 2) and receives it through the constructor (line 7). Its cancel() method calls this.repo.markCancelled(invoiceId) directly (line 15), so it writes to persistence without going through the business layer. issue() takes the intended path through InvoiceService.issue (line 11). FF-S03 flags this edge because presentation reaches persistence directly and skips the business layer. As a result, cancellation never passes through business-layer rules or invariants. The fix is to add a cancel operation to InvoiceService that calls the repository, have the controller call that service method, and remove the InvoiceRepository import and constructor parameter from the controller.",
+              "intentMatch": {
+                "status": "contradicts-declared-intent",
+                "cites": [
+                  "README.md:3",
+                  "README.md:4"
+                ]
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "6371e5af2d4b927e267884bb483ed24dd81e28e05510f866083f13def3e6dcef",
+          "date": "2026-10-22T04:37:57.027Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/invoice.controller.ts:2",
+                "src/presentation/invoice.controller.ts:7",
+                "src/presentation/invoice.controller.ts:11",
+                "src/presentation/invoice.controller.ts:15",
+                "README.md:3",
+                "README.md:4"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "InvoiceController sits in the presentation layer. It imports InvoiceRepository from the persistence layer on line 2 and injects it through its constructor on line 7. Its cancel() method then calls repo.markCancelled(invoiceId) directly on line 15. That means a cancellation write goes past the business layer. The issue() path does it the right way: it delegates to InvoiceService.issue on line 11. FF-S03 flags this because presentation reaches persistence without going through business. The README says layering is strict, presentation calls business, and a controller never imports a repository; every write is supposed to go through InvoiceService. The cancel path breaks all of these, so any business rules or invariants that cancellation needs (state checks, audit, side effects) are skipped. The fix is small and local. Add a cancel operation to InvoiceService, route the controller through it, and remove the repository injection.",
+              "intentMatch": {
+                "status": "contradicts-declared-intent",
+                "cites": [
+                  "README.md:3",
+                  "README.md:4"
+                ]
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "6371e5af2d4b927e267884bb483ed24dd81e28e05510f866083f13def3e6dcef",
+          "date": "2026-10-22T04:38:03.227Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "contradicts-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "medium",
+          "stability": "agreed"
+        },
+        "explanation": "InvoiceController sits in the presentation layer. Besides InvoiceService, it imports InvoiceRepository from the persistence layer (line 2) and receives it through the constructor (line 7). Its cancel() method calls this.repo.markCancelled(invoiceId) directly (line 15), so it writes to persistence without going through the business layer. issue() takes the intended path through InvoiceService.issue (line 11). FF-S03 flags this edge because presentation reaches persistence directly and skips the business layer. As a result, cancellation never passes through business-layer rules or invariants. The fix is to add a cancel operation to InvoiceService that calls the repository, have the controller call that service method, and remove the InvoiceRepository import and constructor parameter from the controller.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

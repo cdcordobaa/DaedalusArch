@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "c4-03t-translate-through-acl"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": false
+  },
+  "entries": [
+    {
+      "findingId": "c4f:c2fcd82bc21ea344",
+      "finding": {
+        "id": "c4f:c2fcd82bc21ea344",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/billing/domain/invoice/Invoice.ts (src/billing/) imports src/ordering/domain/value-objects/Money.ts, which is not in the public API of src/ordering/",
+        "rule": "FF-DS02",
+        "sites": [
+          "7a3a68965ba080f4"
+        ],
+        "files": [
+          "src/billing/domain/invoice/Invoice.ts",
+          "src/ordering/domain/value-objects/Money.ts"
+        ],
+        "edge": {
+          "file": "src/billing/domain/invoice/Invoice.ts",
+          "line": 1,
+          "target": "src/ordering/domain/value-objects/Money.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-DS02",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/billing/domain/invoice/Invoice.ts:1",
+                "src/billing/domain/invoice/Invoice.ts:4",
+                "src/billing/domain/invoice/Invoice.ts:8",
+                "src/billing/domain/invoice/Invoice.ts:9",
+                "src/billing/domain/invoice/Invoice.ts:12",
+                "docs/context-map.md:4",
+                "docs/context-map.md:7",
+                "docs/context-map.md:8"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "The billing domain entity Invoice imports Money directly from ordering's internal module src/ordering/domain/value-objects/Money.ts (line 1), which is not part of ordering's public API. It also builds on that type: the private total field is created as new Money(0, 'EUR') (line 4), addLine takes an ordering Money and calls Money.plus (lines 8-9), and amountDue returns an ordering Money (line 12). So ordering's value object sits inside billing's core domain model and in Invoice's public signatures. Any change to ordering's Money spreads into billing and into everything that calls Invoice. FF-DS02 flags this because billing reaches past ordering's public API into its internal domain layer. The context map also says billing is downstream of ordering and must not share Money with it.",
+              "intentMatch": {
+                "status": "contradicts-declared-intent",
+                "cites": [
+                  "docs/context-map.md:4",
+                  "docs/context-map.md:7",
+                  "docs/context-map.md:8"
+                ]
+              },
+              "severityClass": "high"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "f5949b4bda4384e14b8772ed2488bc8bc119560114558895fed5e93919c49e87",
+          "date": "2026-10-22T04:35:07.374Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/billing/domain/invoice/Invoice.ts:1",
+                "src/billing/domain/invoice/Invoice.ts:4",
+                "src/billing/domain/invoice/Invoice.ts:8",
+                "src/billing/domain/invoice/Invoice.ts:9",
+                "src/billing/domain/invoice/Invoice.ts:12",
+                "docs/context-map.md:3",
+                "docs/context-map.md:4",
+                "docs/context-map.md:7",
+                "docs/context-map.md:8"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "Invoice is in billing's domain layer, and it imports Money from ordering's internal domain folder (src/ordering/domain/value-objects/Money.ts) on line 1. That folder is not part of ordering's public API. Invoice relies on this class in three ways. It keeps its running total as an ordering Money (line 4). It calls Money.plus on that total (line 9). It also uses Money in its own public methods: addLine takes a Money (line 8) and amountDue returns one (line 12). So the dependency goes beyond the import: ordering's internal value object has become part of billing's domain model and of Invoice's API. FF-DS02 flags any import from another context's non-public internals. The context map describes billing as downstream of ordering and gives a translation rule. Under that rule, Money crosses the boundary only through billing's anti-corruption layer (ACL) in src/billing/acl/. This file skips that layer completely. To fix it, billing needs its own money value object, plus a translator in src/billing/acl/ that converts ordering's Money into it. Invoice's fields and methods then switch to billing's type. The graph shows no callers of Invoice (fan-in 0), so the change should stay in this file and the new ACL and value-object files. That is why I rank it medium within the blocking tier. It goes directly against an explicit rule, but the change is small.",
+              "intentMatch": {
+                "status": "contradicts-declared-intent",
+                "cites": [
+                  "docs/context-map.md:4",
+                  "docs/context-map.md:7",
+                  "docs/context-map.md:8"
+                ]
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "f5949b4bda4384e14b8772ed2488bc8bc119560114558895fed5e93919c49e87",
+          "date": "2026-10-22T04:35:21.005Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "contradicts-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": null,
+          "stability": "disagreed"
+        },
+        "explanation": "The billing domain entity Invoice imports Money directly from ordering's internal module src/ordering/domain/value-objects/Money.ts (line 1), which is not part of ordering's public API. It also builds on that type: the private total field is created as new Money(0, 'EUR') (line 4), addLine takes an ordering Money and calls Money.plus (lines 8-9), and amountDue returns an ordering Money (line 12). So ordering's value object sits inside billing's core domain model and in Invoice's public signatures. Any change to ordering's Money spreads into billing and into everything that calls Invoice. FF-DS02 flags this because billing reaches past ordering's public API into its internal domain layer. The context map also says billing is downstream of ordering and must not share Money with it.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

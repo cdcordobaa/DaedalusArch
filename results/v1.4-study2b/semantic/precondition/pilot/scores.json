@@ -1,0 +1,86 @@
+{
+  "provider": "claude-cli",
+  "replay": false,
+  "exploratory": false,
+  "runs": 2,
+  "aggregate": {
+    "casesCorrect": 2,
+    "cases": 2,
+    "twinsClean": 2,
+    "twins": 2,
+    "falseExceptionClaimsOnTwins": 0,
+    "hallucinatedExceptions": 0,
+    "inconsistent": 0,
+    "baselineCasesCorrect": 2,
+    "baselineTwinsClean": 2
+  },
+  "cases": [
+    {
+      "case": "c4-01-adr-permits-read-skip",
+      "pair": "1",
+      "role": "case",
+      "targetFound": true,
+      "correct": true,
+      "failures": [],
+      "clean": false,
+      "falseExceptionClaims": 0,
+      "hallucinatedExceptions": 0,
+      "inconsistent": 0,
+      "baseline": {
+        "correct": true,
+        "clean": false
+      }
+    },
+    {
+      "case": "c4-01t-no-adr",
+      "pair": "1",
+      "role": "twin",
+      "targetFound": true,
+      "correct": false,
+      "failures": [
+        "run 0: intent contradicts-declared-intent, expected no-declared-intent",
+        "run 1: intent contradicts-declared-intent, expected no-declared-intent"
+      ],
+      "clean": true,
+      "falseExceptionClaims": 0,
+      "hallucinatedExceptions": 0,
+      "inconsistent": 0,
+      "baseline": {
+        "correct": true,
+        "clean": true
+      }
+    },
+    {
+      "case": "c4-02-legacy-exception",
+      "pair": "2",
+      "role": "case",
+      "targetFound": true,
+      "correct": true,
+      "failures": [],
+      "clean": false,
+      "falseExceptionClaims": 0,
+      "hallucinatedExceptions": 0,
+      "inconsistent": 0,
+      "baseline": {
+        "correct": true,
+        "clean": false
+      }
+    },
+    {
+      "case": "c4-02t-no-legacy-record",
+      "pair": "2",
+      "role": "twin",
+      "targetFound": true,
+      "correct": true,
+      "failures": [],
+      "clean": true,
+      "falseExceptionClaims": 0,
+      "hallucinatedExceptions": 0,
+      "inconsistent": 0,
+      "baseline": {
+        "correct": true,
+        "clean": true
+      }
+    }
+  ]
+}

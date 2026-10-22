@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "c4-02t-no-legacy-record"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": false
+  },
+  "entries": [
+    {
+      "findingId": "c4f:8c53818e8529494b",
+      "finding": {
+        "id": "c4f:8c53818e8529494b",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "Domain file src/ordering/domain/order/Order.ts imports forbidden package typeorm",
+        "rule": "FF-DT04",
+        "sites": [
+          "1d79feb814c25fad"
+        ],
+        "files": [
+          "src/ordering/domain/order/Order.ts"
+        ],
+        "edge": {
+          "file": "src/ordering/domain/order/Order.ts",
+          "line": 1,
+          "target": "typeorm"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-DT04",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/ordering/domain/order/Order.ts:1",
+                "src/ordering/domain/order/Order.ts:3",
+                "src/ordering/domain/order/Order.ts:4",
+                "src/ordering/domain/order/Order.ts:9",
+                "src/ordering/domain/order/Order.ts:10",
+                "src/ordering/domain/order/Order.ts:14",
+                "README.md:3"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "Line 1 of src/ordering/domain/order/Order.ts imports `Entity` from the TypeORM persistence library, and line 3 uses it as a class decorator (`@Entity()`) on the `Order` aggregate. Rule FF-DT04 flags this because domain files may not import infrastructure or framework packages. Here the decorator couples the domain model's class definition to the ORM's metadata system. The `Order` class holds only business behaviour: `add` checks that quantity is positive, and `count` returns the number of lines. Nothing in it depends on TypeORM except the decorator, so the persistence mapping does not belong in this file. The graph shows a single caller, `PlaceOrder.run` in the application layer, which means the coupling reaches application code through the domain type. The README (line 3) only calls this 'The ordering context of a DDD service.' That describes the architecture style in general. It does not say that domain files must not import an ORM, and it does not permit them to. No doc, ADR or comment speaks to this dependency, so there is no declared intent to match or contradict, and nothing grants an exception. On severity, this is a medium task within the blocking tier. The fix is local: remove the decorator and define the mapping in infrastructure, for example with a TypeORM `EntitySchema` or a separate persistence model plus a mapper in a repository adapter. That touches one domain file and one new infrastructure mapping. The fix is real work because it changes how the aggregate is persisted, but it is small and has no knock-on effects beyond those files.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": [
+                  "README.md:3"
+                ]
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "737e00af6edd4b05a3ecf44c484153eca3b5259b9762938827775fbc5256a8ba",
+          "date": "2026-10-22T04:31:28.108Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/ordering/domain/order/Order.ts:1",
+                "src/ordering/domain/order/Order.ts:3",
+                "src/ordering/domain/order/Order.ts:9",
+                "src/ordering/domain/order/Order.ts:14",
+                "README.md:3"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "Line 1 of src/ordering/domain/order/Order.ts imports `Entity` from typeorm, and line 3 applies it as `@Entity()` to the `Order` class. `Order` is a domain aggregate. Its own behaviour is pure business logic: `add` (lines 9-12) checks that quantity is positive, and `count` (lines 14-16) returns the number of lines. Neither method uses typeorm. The decorator is only there to map the class for persistence. This ties the domain layer to a specific ORM. The class now needs typeorm to load and compile, and the application layer that calls it (`PlaceOrder.run` in src/ordering/application/place-order.ts) picks up that dependency through it. FF-DT04 forbids domain files from importing infrastructure or framework packages such as typeorm, so this import edge is flagged.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": [
+                  "README.md:3"
+                ]
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "737e00af6edd4b05a3ecf44c484153eca3b5259b9762938827775fbc5256a8ba",
+          "date": "2026-10-22T04:31:39.225Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "medium",
+          "stability": "agreed"
+        },
+        "explanation": "Line 1 of src/ordering/domain/order/Order.ts imports `Entity` from the TypeORM persistence library, and line 3 uses it as a class decorator (`@Entity()`) on the `Order` aggregate. Rule FF-DT04 flags this because domain files may not import infrastructure or framework packages. Here the decorator couples the domain model's class definition to the ORM's metadata system. The `Order` class holds only business behaviour: `add` checks that quantity is positive, and `count` returns the number of lines. Nothing in it depends on TypeORM except the decorator, so the persistence mapping does not belong in this file. The graph shows a single caller, `PlaceOrder.run` in the application layer, which means the coupling reaches application code through the domain type. The README (line 3) only calls this 'The ordering context of a DDD service.' That describes the architecture style in general. It does not say that domain files must not import an ORM, and it does not permit them to. No doc, ADR or comment speaks to this dependency, so there is no declared intent to match or contradict, and nothing grants an exception. On severity, this is a medium task within the blocking tier. The fix is local: remove the decorator and define the mapping in infrastructure, for example with a TypeORM `EntitySchema` or a separate persistence model plus a mapper in a repository adapter. That touches one domain file and one new infrastructure mapping. The fix is real work because it changes how the aggregate is persisted, but it is small and has no knock-on effects beyond those files.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

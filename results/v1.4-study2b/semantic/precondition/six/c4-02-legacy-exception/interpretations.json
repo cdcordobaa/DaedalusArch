@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "c4-02-legacy-exception"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": false
+  },
+  "entries": [
+    {
+      "findingId": "c4f:7d27750869350472",
+      "finding": {
+        "id": "c4f:7d27750869350472",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "Domain file src/ordering/domain/order/Order.ts imports forbidden package typeorm",
+        "rule": "FF-DT04",
+        "sites": [
+          "1d79feb814c25fad"
+        ],
+        "files": [
+          "src/ordering/domain/order/Order.ts"
+        ],
+        "edge": {
+          "file": "src/ordering/domain/order/Order.ts",
+          "line": 2,
+          "target": "typeorm"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-DT04",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/ordering/domain/order/Order.ts:1",
+                "src/ordering/domain/order/Order.ts:2",
+                "src/ordering/domain/order/Order.ts:4",
+                "docs/legacy-exceptions.md:5",
+                "docs/legacy-exceptions.md:7",
+                "README.md:3"
+              ],
+              "exceptionClaim": {
+                "citation": {
+                  "endLine": 7,
+                  "path": "docs/legacy-exceptions.md",
+                  "quote": "| src/ordering/domain/order/Order.ts | domain purity: TypeORM decorator on Order | 2026-12-31 | the ORM mapping moves to infrastructure in the persistence split |",
+                  "startLine": 7
+                },
+                "claimed": true,
+                "scope": "The TypeORM @Entity decorator import in src/ordering/domain/order/Order.ts only, under the domain-purity rule, valid until 2026-12-31 while the ORM mapping moves to infrastructure."
+              },
+              "explanation": "The domain entity Order (src/ordering/domain/order/Order.ts) imports `Entity` from the `typeorm` package on line 2 and uses it as the `@Entity()` decorator on line 4. That ties a domain-layer class to a persistence framework. FF-DT04 forbids domain files from importing infrastructure packages like typeorm, so it flags this edge. The rest of the class is plain domain logic (adding lines with a positive-quantity check, counting lines) and does not use typeorm anywhere else. The graph shows only one caller, PlaceOrder.run in the application layer, and no outgoing dependencies. So the coupling comes only from the ORM mapping decorator. The project's own docs call this a domain-purity breach and plan to fix it: 'the ORM mapping moves to infrastructure in the persistence split'. They allow it until 2026-12-31. Today is 2026-10-21, so that window is still open, but it closes in about ten weeks. The blocking verdict stays as it is.",
+              "intentMatch": {
+                "status": "consistent-with-declared-intent",
+                "cites": [
+                  "docs/legacy-exceptions.md:7",
+                  "README.md:3",
+                  "src/ordering/domain/order/Order.ts:1"
+                ]
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "2e508894cdd2edc5fe20fb301067995facad4e7c3bc4444c9f54f1e1596ceb78",
+          "date": "2026-10-22T04:33:44.282Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/ordering/domain/order/Order.ts:1",
+                "src/ordering/domain/order/Order.ts:2",
+                "src/ordering/domain/order/Order.ts:4",
+                "docs/legacy-exceptions.md:5",
+                "docs/legacy-exceptions.md:7",
+                "README.md:3"
+              ],
+              "exceptionClaim": {
+                "citation": {
+                  "endLine": 7,
+                  "path": "docs/legacy-exceptions.md",
+                  "quote": "| src/ordering/domain/order/Order.ts | domain purity: TypeORM decorator on Order | 2026-12-31 | the ORM mapping moves to infrastructure in the persistence split |",
+                  "startLine": 7
+                },
+                "claimed": true,
+                "scope": "Only the TypeORM @Entity decorator (and its typeorm import) on Order in src/ordering/domain/order/Order.ts, under the domain-purity rule, until 2026-12-31."
+              },
+              "explanation": "Order.ts sits in the ordering domain layer. At line 2 it imports `Entity` from the `typeorm` ORM package, and at line 4 it uses that import as the `@Entity()` decorator on the Order aggregate. That ties the domain model to a persistence framework, so FF-DT04 (domain purity: no infrastructure or framework packages in domain files) flags the edge Order.ts:2 -> typeorm. The rest of the class is plain domain logic: an `add` method with an invariant check and a `count` method. The graph shows one caller, PlaceOrder.run in the application layer, and no outgoing fan-out. So the only part tied to infrastructure is the ORM mapping decorator. The project already knows about this dependency and has recorded it on purpose. docs/legacy-exceptions.md lists this file under the domain-purity rule for the TypeORM decorator, valid until 2026-12-31, because \"the ORM mapping moves to infrastructure in the persistence split\". The README points to that file as the list of known exceptions, and the comment at Order.ts:1 repeats the time limit. Today is 2026-10-21, so the exception is still inside its window. The blocking verdict stays as it is.",
+              "intentMatch": {
+                "status": "consistent-with-declared-intent",
+                "cites": [
+                  "docs/legacy-exceptions.md:7",
+                  "README.md:3",
+                  "src/ordering/domain/order/Order.ts:1"
+                ]
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "2e508894cdd2edc5fe20fb301067995facad4e7c3bc4444c9f54f1e1596ceb78",
+          "date": "2026-10-22T04:33:59.049Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": true,
+          "stability": "agreed",
+          "citation": {
+            "endLine": 7,
+            "path": "docs/legacy-exceptions.md",
+            "quote": "| src/ordering/domain/order/Order.ts | domain purity: TypeORM decorator on Order | 2026-12-31 | the ORM mapping moves to infrastructure in the persistence split |",
+            "startLine": 7
+          },
+          "scope": "The TypeORM @Entity decorator import in src/ordering/domain/order/Order.ts only, under the domain-purity rule, valid until 2026-12-31 while the ORM mapping moves to infrastructure."
+        },
+        "intentMatch": {
+          "status": "consistent-with-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "The domain entity Order (src/ordering/domain/order/Order.ts) imports `Entity` from the `typeorm` package on line 2 and uses it as the `@Entity()` decorator on line 4. That ties a domain-layer class to a persistence framework. FF-DT04 forbids domain files from importing infrastructure packages like typeorm, so it flags this edge. The rest of the class is plain domain logic (adding lines with a positive-quantity check, counting lines) and does not use typeorm anywhere else. The graph shows only one caller, PlaceOrder.run in the application layer, and no outgoing dependencies. So the coupling comes only from the ORM mapping decorator. The project's own docs call this a domain-purity breach and plan to fix it: 'the ORM mapping moves to infrastructure in the persistence split'. They allow it until 2026-12-31. Today is 2026-10-21, so that window is still open, but it closes in about ten weeks. The blocking verdict stays as it is.",
+        "validRuns": 2
+      }
+    }
+  ]
+}
