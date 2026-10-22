@@ -25,3 +25,4 @@ Nothing in the pre-registration or in addenda 1–3 changes; their hashes are ve
 
 ## Changelog
 - 2026-10-22T03:58:00Z: first version, before any semantic call on 2b data and before evasion items 4 and 5 were computed.
+- 2026-10-22T04:41:41Z: C4 on 2b deferred until the usage reset; precondition status: pilot passed (8 calls, cap 16); six-case set failed its registered bar (32 calls, cap 64: 5/6 correct and 0 false claims on the twins, but near-miss twin 4 not correct, severity outside the manifest range). Under DA13 a failed precondition means C4 does not run on 2b, so D_sem is "not run: precondition not met" (`Docs/DiagnosticRuns/v1.4-study2b-semantic-2026-10-22.md`). No `--estimate` cap line was written, because no 2b C4 call was made.

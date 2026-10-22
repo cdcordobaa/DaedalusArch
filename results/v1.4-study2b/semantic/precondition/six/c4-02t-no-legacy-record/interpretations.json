@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "c4-02t-no-legacy-record"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": false
+  },
+  "entries": [
+    {
+      "findingId": "c4f:8c53818e8529494b",
+      "finding": {
+        "id": "c4f:8c53818e8529494b",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "Domain file src/ordering/domain/order/Order.ts imports forbidden package typeorm",
+        "rule": "FF-DT04",
+        "sites": [
+          "1d79feb814c25fad"
+        ],
+        "files": [
+          "src/ordering/domain/order/Order.ts"
+        ],
+        "edge": {
+          "file": "src/ordering/domain/order/Order.ts",
+          "line": 1,
+          "target": "typeorm"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-DT04",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/ordering/domain/order/Order.ts:1",
+                "src/ordering/domain/order/Order.ts:3",
+                "src/ordering/domain/order/Order.ts:4",
+                "src/ordering/domain/order/Order.ts:10",
+                "README.md:3"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "Line 1 of src/ordering/domain/order/Order.ts imports `Entity` from the ORM package `typeorm`, and line 3 uses it as the `@Entity()` decorator on the `Order` aggregate. The rest of the class (lines 4-17) is plain domain logic: an order line list, an `add` method with an invariant that quantity must be positive, and a `count` method. Nothing else in it needs the ORM. The decorator puts persistence mapping inside the domain model, so the domain layer now depends at compile time and at runtime on an infrastructure framework. Rule FF-DT04 forbids exactly this: domain files must not import infrastructure packages, so the domain can be built, tested and changed without the persistence technology. The graph shows one caller, `PlaceOrder.run` in the application layer, so the coupling reaches the use case only through this entity. The README calls this \"the ordering context of a DDD service\". That is a general label and does not state a rule about domain-layer dependencies, so it is not counted here as a declared intent.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": [
+                  "README.md:3"
+                ]
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "737e00af6edd4b05a3ecf44c484153eca3b5259b9762938827775fbc5256a8ba",
+          "date": "2026-10-22T04:34:11.259Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/ordering/domain/order/Order.ts:1",
+                "src/ordering/domain/order/Order.ts:3",
+                "src/ordering/domain/order/Order.ts:4",
+                "src/ordering/domain/order/Order.ts:10",
+                "README.md:3"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "Order.ts sits in the ordering domain layer and is the Order aggregate, with add() enforcing the positive-quantity invariant. Line 1 imports `Entity` from the `typeorm` package, and line 3 puts the `@Entity()` decorator on the class. This ties the domain model to a specific ORM and persistence framework. FF-DT04 forbids domain files from importing infrastructure or framework packages such as typeorm, so this edge (Order.ts:1 -> typeorm) is flagged. The domain logic itself never uses TypeORM. The import exists only to declare persistence mapping, and that mapping belongs in an infrastructure adapter, for example a separate EntitySchema or ORM model mapped to and from Order. The only caller is PlaceOrder.run in the application layer, so the coupling is contained, but any change to the persistence framework still reaches the aggregate root.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "737e00af6edd4b05a3ecf44c484153eca3b5259b9762938827775fbc5256a8ba",
+          "date": "2026-10-22T04:34:21.446Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "medium",
+          "stability": "agreed"
+        },
+        "explanation": "Line 1 of src/ordering/domain/order/Order.ts imports `Entity` from the ORM package `typeorm`, and line 3 uses it as the `@Entity()` decorator on the `Order` aggregate. The rest of the class (lines 4-17) is plain domain logic: an order line list, an `add` method with an invariant that quantity must be positive, and a `count` method. Nothing else in it needs the ORM. The decorator puts persistence mapping inside the domain model, so the domain layer now depends at compile time and at runtime on an infrastructure framework. Rule FF-DT04 forbids exactly this: domain files must not import infrastructure packages, so the domain can be built, tested and changed without the persistence technology. The graph shows one caller, `PlaceOrder.run` in the application layer, so the coupling reaches the use case only through this entity. The README calls this \"the ordering context of a DDD service\". That is a general label and does not state a rule about domain-layer dependencies, so it is not counted here as a declared intent.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

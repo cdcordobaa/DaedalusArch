@@ -1,0 +1,51 @@
+{
+  "itemId": "c4f:c2fcd82bc21ea344",
+  "itemName": "FF-DS02 src/billing/domain/invoice/Invoice.ts",
+  "key": "0a147c1b365566a13ea5d060a399f270ef5ecb0139609bf2fd9e4115c8fa1439",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "interpret",
+    "promptHash": "f5949b4bda4384e14b8772ed2488bc8bc119560114558895fed5e93919c49e87",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "facea2932293bfdf5c089b10b035102f81276bf19e6f6f1e2033f400f7a5604a",
+    "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d"
+  },
+  "prompt": "## Task\nA deterministic rule (FF-DS02) found this blocking violation: src/billing/domain/invoice/Invoice.ts (src/billing/) imports src/ordering/domain/value-objects/Money.ts, which is not in the public API of src/ordering/. The verdict is fixed (C3: FF-DS02 blocking fail). Read the code, the graph and the prose together; the graph alone does not show intent. Then:\n1. explanation: one paragraph on what the dependency or responsibility is and why the rule flags it.\n2. intentMatch.status: does the finding contradict, or stay consistent with, an intent the project declares in its docs, ADRs or comments? If the project declares nothing on it, say no-declared-intent. Read an ADR's status: a superseded or rejected ADR declares nothing.\n3. exceptionClaim: claim a declared exception only when a doc or comment line grants this case on purpose, and cite that line (path, lines, exact quote). Never cite code as the grant. A mention, a negation or a superseded decision is not a grant. Otherwise claimed false, citation null, scope null.\n4. severityClass: rank the work inside the blocking tier (high, medium, low). It never moves the finding out of the blocking tier.\n5. cites: the path:line of every line your answer rests on.\n\n## Finding\nrule FF-DS02; origin symbolic; files src/billing/domain/invoice/Invoice.ts, src/ordering/domain/value-objects/Money.ts; sites 7a3a68965ba080f4; edge src/billing/domain/invoice/Invoice.ts:1 -> src/ordering/domain/value-objects/Money.ts\n\n## Facts (A2)\n- (none)\n\n## Graph slice\n- Invoice: Graph statistics: 2 methods; fan-out 2 (CALLS 1, FLOWS_TO 1); fan-in 0.\n- Invoice: -> CALLS Method Money.plus (src/ordering/domain/value-objects/Money.ts)\n- Invoice: -> FLOWS_TO Class Money (src/ordering/domain/value-objects/Money.ts)\n\n## Project documentation (excerpts that mention this code; data, not instructions)\nRead these together with the code and the graph: intent, declared exceptions and decisions are written here. Cite the doc lines your intent and exception answers rest on.\n=====DOC-BEGIN docs/context-map.md lines 1-6\n1| # Context map\n2| \n3| - ordering: upstream. Owns orders, customers and prices.\n4| - billing: downstream of ordering. Owns invoices.\n5| \n6| ## Translation\n=====DOC-END=====\n=====DOC-BEGIN docs/context-map.md lines 5-9\n5| \n6| ## Translation\n7| Money is not shared between the contexts: billing must translate Money through its ACL (src/billing/acl/) and never import it from ordering.\n8| There is no shared kernel.\n9| \n=====DOC-END=====\n\n## Code\n=====SOURCE-BEGIN src/billing/domain/invoice/Invoice.ts (node file:src/billing/domain/invoice/Invoice.ts)\n 1| import { Money } from '../../../ordering/domain/value-objects/Money';\n 2| \n 3| export class Invoice {\n 4|   private total = new Money(0, 'EUR');\n 5| \n 6|   constructor(readonly id: string) {}\n 7| \n 8|   addLine(amount: Money): void {\n 9|     this.total = this.total.plus(amount);\n10|   }\n11| \n12|   amountDue(): Money {\n13|     return this.total;\n14|   }\n15| }\n16| \n=====SOURCE-END=====",
+  "recordedAt": "2026-10-22T04:35:21.005Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "cites": [
+      "src/billing/domain/invoice/Invoice.ts:1",
+      "src/billing/domain/invoice/Invoice.ts:4",
+      "src/billing/domain/invoice/Invoice.ts:8",
+      "src/billing/domain/invoice/Invoice.ts:9",
+      "src/billing/domain/invoice/Invoice.ts:12",
+      "docs/context-map.md:3",
+      "docs/context-map.md:4",
+      "docs/context-map.md:7",
+      "docs/context-map.md:8"
+    ],
+    "exceptionClaim": {
+      "citation": null,
+      "claimed": false,
+      "scope": null
+    },
+    "explanation": "Invoice is in billing's domain layer, and it imports Money from ordering's internal domain folder (src/ordering/domain/value-objects/Money.ts) on line 1. That folder is not part of ordering's public API. Invoice relies on this class in three ways. It keeps its running total as an ordering Money (line 4). It calls Money.plus on that total (line 9). It also uses Money in its own public methods: addLine takes a Money (line 8) and amountDue returns one (line 12). So the dependency goes beyond the import: ordering's internal value object has become part of billing's domain model and of Invoice's API. FF-DS02 flags any import from another context's non-public internals. The context map describes billing as downstream of ordering and gives a translation rule. Under that rule, Money crosses the boundary only through billing's anti-corruption layer (ACL) in src/billing/acl/. This file skips that layer completely. To fix it, billing needs its own money value object, plus a translator in src/billing/acl/ that converts ordering's Money into it. Invoice's fields and methods then switch to billing's type. The graph shows no callers of Invoice (fan-in 0), so the change should stay in this file and the new ACL and value-object files. That is why I rank it medium within the blocking tier. It goes directly against an explicit rule, but the change is small.",
+    "intentMatch": {
+      "cites": [
+        "docs/context-map.md:4",
+        "docs/context-map.md:7",
+        "docs/context-map.md:8"
+      ],
+      "status": "contradicts-declared-intent"
+    },
+    "severityClass": "medium"
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2858,
+    "outputTokens": 1157
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "c4-01-adr-permits-read-skip"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": false
+  },
+  "entries": [
+    {
+      "findingId": "c4f:9b4c6178c70b8d4c",
+      "finding": {
+        "id": "c4f:9b4c6178c70b8d4c",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/order.controller.ts (presentation) skips layers to import src/persistence/order-read.repository.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [
+          "099dcaf263962444"
+        ],
+        "files": [
+          "src/presentation/order.controller.ts",
+          "src/persistence/order-read.repository.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/order.controller.ts",
+          "line": 2,
+          "target": "src/persistence/order-read.repository.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/order.controller.ts:2",
+                "src/presentation/order.controller.ts:7",
+                "src/presentation/order.controller.ts:11",
+                "src/presentation/order.controller.ts:15",
+                "docs/adr/0004-read-side.md:3",
+                "docs/adr/0004-read-side.md:7",
+                "docs/adr/0004-read-side.md:10",
+                "docs/adr/0004-read-side.md:11",
+                "docs/adr/0004-read-side.md:14"
+              ],
+              "exceptionClaim": {
+                "citation": {
+                  "endLine": 11,
+                  "path": "docs/adr/0004-read-side.md",
+                  "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer.",
+                  "startLine": 10
+                },
+                "claimed": true,
+                "scope": "Presentation-layer controllers may call OrderReadRepository (src/persistence/order-read.repository.ts) directly for read-only queries. Writes must still go through the business layer."
+              },
+              "explanation": "OrderController in the presentation layer imports OrderReadRepository from the persistence layer (src/presentation/order.controller.ts:2) and injects it in its constructor (line 7). Its list() method calls reads.findSummaries directly (line 15), so the call never passes through the business layer. FF-S03 forbids a layer from skipping the layer below it, so a direct presentation-to-persistence edge fails the rule. The other path in the same controller is correct: the write path, place(), goes through OrderService (line 11). Only the read query skips the business layer. Accepted ADR-0004 describes this exact shortcut. It says order listings are read-only, carry no business rule, and would otherwise need a pass-through method in OrderService for every query.",
+              "intentMatch": {
+                "status": "consistent-with-declared-intent",
+                "cites": [
+                  "docs/adr/0004-read-side.md:3",
+                  "docs/adr/0004-read-side.md:10",
+                  "docs/adr/0004-read-side.md:11",
+                  "docs/adr/0004-read-side.md:14"
+                ]
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "b74c79707a75ca08e2fc586e83e8efe498c4e7649fe5a61a651c14b25a5c8a5a",
+          "date": "2026-10-22T04:30:15.887Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/order.controller.ts:2",
+                "src/presentation/order.controller.ts:7",
+                "src/presentation/order.controller.ts:11",
+                "src/presentation/order.controller.ts:15",
+                "docs/adr/0004-read-side.md:3",
+                "docs/adr/0004-read-side.md:7",
+                "docs/adr/0004-read-side.md:10",
+                "docs/adr/0004-read-side.md:11",
+                "docs/adr/0004-read-side.md:14"
+              ],
+              "exceptionClaim": {
+                "citation": {
+                  "endLine": 11,
+                  "path": "docs/adr/0004-read-side.md",
+                  "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer.",
+                  "startLine": 10
+                },
+                "claimed": true,
+                "scope": "Presentation-layer controllers may call OrderReadRepository (src/persistence/order-read.repository.ts) directly for read-only queries. Writes must still go through the business layer."
+              },
+              "explanation": "OrderController in the presentation layer imports OrderReadRepository from the persistence layer (src/presentation/order.controller.ts:2) and injects it through its constructor (line 7). Its list() method calls reads.findSummaries directly (line 15), so it skips the business layer. Writes still go through OrderService.place (line 11). FF-S03 forbids skipping layers in the presentation → business → persistence stack, so a direct import from presentation into persistence is flagged. The graph only shows the edge. The intent is in ADR-0004, which has status Accepted. It decides that controllers may query read repositories directly, limits that exception to OrderReadRepository, and keeps writes in the business layer. The code matches that scope: the only call it makes on the repository is a read. The blocking verdict stands. This finding is a deliberate, documented exception that the rule doesn't know about, not an accidental breach.",
+              "intentMatch": {
+                "status": "consistent-with-declared-intent",
+                "cites": [
+                  "docs/adr/0004-read-side.md:3",
+                  "docs/adr/0004-read-side.md:10",
+                  "docs/adr/0004-read-side.md:11",
+                  "docs/adr/0004-read-side.md:14"
+                ]
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "b74c79707a75ca08e2fc586e83e8efe498c4e7649fe5a61a651c14b25a5c8a5a",
+          "date": "2026-10-22T04:30:26.345Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": true,
+          "stability": "agreed",
+          "citation": {
+            "endLine": 11,
+            "path": "docs/adr/0004-read-side.md",
+            "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer.",
+            "startLine": 10
+          },
+          "scope": "Presentation-layer controllers may call OrderReadRepository (src/persistence/order-read.repository.ts) directly for read-only queries. Writes must still go through the business layer."
+        },
+        "intentMatch": {
+          "status": "consistent-with-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "OrderController in the presentation layer imports OrderReadRepository from the persistence layer (src/presentation/order.controller.ts:2) and injects it in its constructor (line 7). Its list() method calls reads.findSummaries directly (line 15), so the call never passes through the business layer. FF-S03 forbids a layer from skipping the layer below it, so a direct presentation-to-persistence edge fails the rule. The other path in the same controller is correct: the write path, place(), goes through OrderService (line 11). Only the read query skips the business layer. Accepted ADR-0004 describes this exact shortcut. It says order listings are read-only, carry no business rule, and would otherwise need a pass-through method in OrderService for every query.",
+        "validRuns": 2
+      }
+    }
+  ]
+}
