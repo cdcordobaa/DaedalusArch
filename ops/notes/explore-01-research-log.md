@@ -128,6 +128,28 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - The semantic path covers the rest, and it separates violations from their twins in most cases.
 - That is the first concrete map of where the two paths complement each other. It is not yet a test on held-out cases.
 
+### 8. Puzzle baseline, DETECT-02 tool and precision (2026-10-21 to 2026-10-22)
+**PUZZLE-01 baseline** (`Docs/DiagnosticRuns/puzzle-01-baseline-2026-10-21.md`, `results/v1.4-puzzle-01-baseline/`):
+- **Setup:** agent alone, rules written in each seed's `ARCHITECTURE.md`, 54 of 72 calls.
+- **Clean solves:** P1 0/5, P2 0/5, P4 5/5. P3 was dropped.
+- **Detection:** the frozen instrument and DETECT-01 flagged 0 of the 12 trap failures.
+- Provisional until the hand read.
+
+**DETECT-02** (`experiments/detect-02/`, PR #345): new graph facts (write footprint, context ownership) and the `check_consistency` MCP tool, symbolic only.
+- On the puzzle trees: 19/19 trap trees flagged and 0 false positives (dev).
+- The PUZZLE-02 pull-arm run is launched on P1 and P2 (`ops/notes/puzzle-02-tool-arm-note.md`).
+
+**Precision phase 1** (`ops/notes/detect-02-precision-note.md`, PR #351): 10 correct DDD patterns as fixtures.
+- 4/20 false-positive runs before any change, all of them predicted in the note.
+- 0/20 after three logged rule revisions.
+- On 13 human DDD repos: 1 true cross-context write found with declared specs, and 12 false hits with inferred roots, which are now development material.
+- The held-out check is deferred until the usage reset; the sealed set is unopened.
+
+### 9. Study 2b closed (2026-10-22)
+- **D_sem:** not run, because the C4 precondition was not met. The pilot passed; the six-case set came out 5/6 on a severity field of one near-miss twin.
+- **Evasion items 4 and 5:** not flagged.
+- Results report §7; addendum 4. The C4 severity calibration goes to the v1.5 semantic track (`ops/notes/v15-plan.md` §2).
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -137,6 +159,7 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
 
 ## Changelog
+- 2026-10-22: entries 8 (puzzle baseline, DETECT-02 tool, precision) and 9 (Study 2b closed).
 - 2026-10-21: the sources this thread cites (HEXDDD-01, DETECT-01 and PUZZLE-01 literature, plus the search-session list) are consolidated in `Docs/sources/sources-ledger.md` (keys in `Docs/sources/sources.bib`).
 - 2026-10-21: entry 7 (DETECT-01 and PUZZLE-01 results).
 - 2026-10-21: entry 6 (hand read against scores); spot-check closed.

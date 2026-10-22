@@ -101,5 +101,10 @@ When detection and delivery have earned trust:
 2. The edit-gate design note. It is the delivery idea most likely to move behaviour.
 3. A first draft of the final-study design, so it matures alongside v1.5.
 
+## Notes
+- Step 2: [`v15-edit-gate-design.md`](v15-edit-gate-design.md) (draft).
+- Step 3: [`v15-final-study-draft.md`](v15-final-study-draft.md) (draft v0).
+
 ## Changelog
 - 2026-10-22: v1, adopted as the working plan; §6 (spec inference) added to the plan as first shown.
+- 2026-10-22: Notes line added, linking the step 2 and step 3 drafts.
