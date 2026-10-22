@@ -14,7 +14,7 @@ Part of [the claims ledger](../claims-ledger.md); the legend and the conflicts a
 
 | id | statement | numbers | source | type | set | status | replication | quantity | verified against | notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| C7831 | \| Thu 22 \| **Author go**, then the 2b run: 4 sealed Layered tasks × 3 cells, Claude Sonnet, about 104 turns, one lane \| \| | `4 sealed Layered tasks × 3 cells` ; `about 104 turns` | `ops/05-plan-to-friday-2026-10-23.md:17` | power | none | exploratory | — | Study 2b run size (plan) | self (plan) | plan figure; Claude Sonnet only, one lane |
+| C7831 | \| Thu 22 \| **Author go**, then the 2b run: 4 sealed Layered tasks × 3 cells, Claude Sonnet, about 104 turns, one lane \| \| | `4 sealed Layered tasks × 3 cells` ; `about 104 turns` | `ops/05-plan-to-friday-2026-10-23.md:17` | power | none | superseded | — | Study 2b run size (plan) | self (plan) | plan figure; Claude Sonnet only, one lane; superseded 2026-10-22: the same line now marks the 104-turn plan superseded (520 step turns, cap 780, two lanes); see C8311, K266 |
 | C7832 | - The machine limits stand: two lanes, one capped Neo4j. | `two lanes, one capped Neo4j` | `ops/05-plan-to-friday-2026-10-23.md:23` | descriptive | none | exploratory | — | machine limits for the run | self (plan) | plan constraint |
 
 ### `ops/decisions.md`
