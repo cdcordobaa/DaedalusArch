@@ -1,8 +1,8 @@
 # COMPREHEND-01: architecture-comprehension benchmark (v1.5-exp)
 
-**Exploratory, development material.** Design: `ops/notes/comprehend-01-design.md` (DRAFT, for the author). Build
-report: `Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md`. No model call has been made here; the pilot runs only
-after the author approves the design note.
+**Exploratory, development material.** Design: `ops/notes/comprehend-01-design.md`. Build report:
+`Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md`. **Pilot run 2026-10-22** (63 of 64 calls):
+`Docs/DiagnosticRuns/comprehend-01-pilot-2026-10-23.md`, records in `results/pilot/`, revisions R1–R2 in `revisions.md`.
 
 Question: does the property graph (the DETECT-02 facts served by four tools) make an agent understand an architecture
 more accurately, more cheaply, or both? Two arms on the same questions: **F** (Read, Grep, Glob) and **FG** (the same
@@ -21,6 +21,9 @@ plus `context_map`, `who_writes`, `trace`, `impact`).
 | `run.test.ts` | unit tests of the runner, scorer and arms |
 | `results/graph-check.json`, `results/latency.json` | zero-call outputs |
 | `results/dry-run/` | the dry run: `plan.json`, `ledger.jsonl`, `summary.json` (fake answers, fake tokens) |
+| `revisions.md`, `setup-sandbox.sh` | dated revisions (R1, R2); the pilot's isolated sandbox (generator uid 1500, tree copies, launcher) |
+| `analyse-pilot.ts` → `results/pilot/analysis.json` | zero-call pilot analysis: accuracy, tokens, calls, wall time per arm, type, class and tree group |
+| `results/pilot/`, `results/pilot-r1-smokes/` | the live pilot: ledger, summary, plan, transcripts, graph call logs, neutral id map; the two R1 smokes |
 
 The tools live in `experiments/detect-02/mcp/` (`comprehend/`, `comprehend-server.ts`, `comprehend-main.ts`).
 
@@ -49,8 +52,9 @@ npx tsx experiments/comprehend-01/run.ts --clones <clones>          # dry run, s
 Trees: P1 4, P2 6, P4 3, fixtures 4, lucashang-ddd-payday 4, meetinger 4, ddd-forum 5. Seven items carry a
 `behaviour` link to a puzzle trap or clean step (design §8).
 
-## Live run (the pilot, not now)
+## Live run (the pilot, run 2026-10-22 under R1–R2)
 
 Refused unless `COMPREHEND01_LIVE=1`, `--live`, `--confirm-sessions 62`, `--bank-sha256 <the frozen bank's sha>`,
 `--claude <bin>` and an absolute `--config-dir` (a dedicated CLI config directory outside the repository, as EFF-01).
-Hard cap 66 sessions (62 planned, 4 re-runs).
+Hard cap 66 sessions (62 planned, 4 re-runs); the pilot ran with `--hard-cap 64` in all (R1), from the sandbox of
+`setup-sandbox.sh` with `--isolation`, and with `--safe-mode` dropped from both arms (R2).

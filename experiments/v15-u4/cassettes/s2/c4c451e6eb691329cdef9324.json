@@ -1,0 +1,22 @@
+{
+ "key": "c4c451e6eb691329cdef932442424cfd5d33d1a6195f3c01ec4adba8f4aad227",
+ "part": "S2",
+ "item": "puzzle/p1-transfers/c10/step-01#D5#src/ledger/application/Transfer.ts:15",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:55:13.629Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ledger/application/Transfer.ts",
+    "line": 15,
+    "quote": "if (from.currency !== to.currency) throw new LedgerError(`currency mismatch: ${from.currency} vs ${to.currency}`);"
+   }
+  ],
+  "rationale": "Currency compatibility is a business rule about the Account's own currency, but it is decided in the application service. Account.deposit and Account.withdraw never check that the Money's currency matches the account's. This is not a uniqueness-style cross-aggregate lookup. Account or a domain service should own it."
+ },
+ "invalidReason": null
+}

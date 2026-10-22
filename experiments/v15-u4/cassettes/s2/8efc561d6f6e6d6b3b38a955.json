@@ -1,0 +1,16 @@
+{
+ "key": "8efc561d6f6e6d6b3b38a9551ac625f6adf5d7cafeb3d6507a071129f1d65c3b",
+ "part": "S2",
+ "item": "pilot/s1-hotel-bookings/step-01#D5#src/application/services/BookRoomService.ts:54",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:56:10.945Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The availability rule is not copied into the application service. It lives in the domain service AvailabilityChecker, and the service only calls it. The rule compares a room against all of its bookings, so it is a cross-aggregate check. Booking itself has no invariant about other bookings' dates. The rule exempts cross-aggregate checks, so line 54 is not a D5 violation."
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,22 @@
+{
+ "key": "7af58473d7e529b414693a139bb305f21b204cae0df06a6766281cdb3caba281",
+ "part": "S2",
+ "item": "fixture/c4-s1-h5-lockport/pos#D5#src/application/services/BookRoomService.ts:11",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:08.484Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 11,
+    "quote": "if (existing.some((b) => b.isActive() && b.stay.overlaps(stay))) throw new Error(`Room ${roomId} is already booked`);"
+   }
+  ],
+  "rationale": "The no-overlap rule for a room's bookings is a business invariant. The application service decides it by reading Booking state (isActive, stay.overlaps) and throwing. The domain model does not own the check, as Booking and DateRange have no such guard. The lock only handles concurrency. The rule should sit in a domain object, such as a room or calendar aggregate."
+ },
+ "invalidReason": null
+}

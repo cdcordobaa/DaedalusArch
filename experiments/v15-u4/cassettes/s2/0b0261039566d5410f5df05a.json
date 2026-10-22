@@ -1,0 +1,22 @@
+{
+ "key": "0b0261039566d5410f5df05a4f079e7fb46530b1c10ed9c9373d9cb3fdc49818",
+ "part": "S2",
+ "item": "fixture/c7-s2-d5-settaxrate/pos#D5#src/ordering/application/SetTaxRate.ts:8",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:38.916Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/SetTaxRate.ts",
+    "line": 8,
+    "quote": "rate < 0 || rate > 1) throw new Error('Tax rate must be a fraction between 0 and 1');"
+   }
+  ],
+  "rationale": "The rule that a tax rate must be a fraction between 0 and 1 is a business invariant on a value the domain receives. It is enforced in the application service. TaxRates in the domain is only an interface and no value object owns the rule. The typeof and finite checks are input parsing, but the 0–1 bounds are domain logic."
+ },
+ "invalidReason": null
+}

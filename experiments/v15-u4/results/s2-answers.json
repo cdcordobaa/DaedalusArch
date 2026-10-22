@@ -1,0 +1,1138 @@
+{
+ "schema": "v15-u4-s2-v1",
+ "promptVersion": "detect02-sem-v1",
+ "rows": [
+  {
+   "id": "puzzle/p1-transfers/c10/step-01#D5#src/ledger/application/Transfer.ts:14",
+   "label": "puzzle/p1-transfers/c10/step-01",
+   "group": "puzzle-intermediate",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ledger/application/Transfer.ts",
+   "line": 14,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "965017d27779fd35e376907d",
+     "invalid": null,
+     "rationale": "The same-account and currency-mismatch checks are business invariants of a transfer. They are enforced in the application service, reading Account state, rather than in Account or a value object. Account.deposit and withdraw never check currency, so the aggregate does not own the rule. These are not input parsing or cross-aggregate uniqueness checks."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": false
+  },
+  {
+   "id": "puzzle/p1-transfers/c10/step-01#D5#src/ledger/application/Transfer.ts:15",
+   "label": "puzzle/p1-transfers/c10/step-01",
+   "group": "puzzle-intermediate",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ledger/application/Transfer.ts",
+   "line": 15,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "c4c451e6eb691329cdef9324",
+     "invalid": null,
+     "rationale": "Currency compatibility is a business rule about the Account's own currency, but it is decided in the application service. Account.deposit and Account.withdraw never check that the Money's currency matches the account's. This is not a uniqueness-style cross-aggregate lookup. Account or a domain service should own it."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": false
+  },
+  {
+   "id": "puzzle/p1-transfers/c10/step-02#D5#src/ledger/application/Transfer.ts:31",
+   "label": "puzzle/p1-transfers/c10/step-02",
+   "group": "puzzle-intermediate",
+   "set": "dev",
+   "family": "D5",
+   "source": "rule",
+   "rule": "R-D5",
+   "file": "src/ledger/application/Transfer.ts",
+   "line": 31,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "007fa0ac5446f79cbe9a7fdc",
+     "invalid": null,
+     "rationale": "The daily transfer limit applies to a single source account's outgoing money, so it is a business invariant the Account aggregate should own. The application service computes the remaining allowance from an external tally and decides to reject the transfer itself. Account.withdraw never sees the limit. This is not input parsing or a cross-aggregate check such as uniqueness."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "puzzle/p1-transfers/c10/step-02#D5#src/ledger/application/Transfer.ts:23",
+   "label": "puzzle/p1-transfers/c10/step-02",
+   "group": "puzzle-intermediate",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ledger/application/Transfer.ts",
+   "line": 23,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "e782c0077643b9273fe0aaae",
+     "invalid": null,
+     "rationale": "The same-account and currency-mismatch checks are business rules about Account state, decided in the application service instead of inside the aggregate. The daily transfer limit is also enforced there. The same-account check compares two aggregates, but it is a domain invariant of a transfer and not a uniqueness check or input parsing. It belongs in the domain."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": false
+  },
+  {
+   "id": "puzzle/p1-transfers/c10/step-02#D5#src/ledger/application/Transfer.ts:24",
+   "label": "puzzle/p1-transfers/c10/step-02",
+   "group": "puzzle-intermediate",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ledger/application/Transfer.ts",
+   "line": 24,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "373b807de4aae1ea38504d59",
+     "invalid": null,
+     "rationale": "The currency-match rule for a transfer is enforced in the application service by comparing two accounts' state. Account.deposit and withdraw never check the Money currency against the account's own currency, so the aggregate doesn't own this invariant. It is a business rule, not input parsing or a uniqueness check, so it belongs in the domain."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": false
+  },
+  {
+   "id": "solution/p1-transfers/trap#D5#src/ledger/application/TransferMoney.ts:19",
+   "label": "solution/p1-transfers/trap",
+   "group": "solution-trap",
+   "set": "dev",
+   "family": "D5",
+   "source": "rule",
+   "rule": "R-D5",
+   "file": "src/ledger/application/TransferMoney.ts",
+   "line": 19,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "af6fba813a625bb0cbcad1de",
+     "invalid": null,
+     "rationale": "The daily transfer limit is a business invariant on money leaving an account. It is enforced in the application service using a constant defined there (DAILY_LIMIT_CENTS), not in Account.withdraw or a value object. Account only checks positivity and sufficient funds. The sent-today figure comes from the repository, but the decision itself is not a uniqueness-style cross-aggregate check. The aggregate should own this rule."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "solution/p1-transfers/trap#D5#src/ledger/application/TransferMoney.ts:15",
+   "label": "solution/p1-transfers/trap",
+   "group": "solution-trap",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ledger/application/TransferMoney.ts",
+   "line": 15,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "e929ac8726a0f94a6f8d56c0",
+     "invalid": null,
+     "rationale": "Line 15 checks that the source and destination accounts differ. That rule relates two aggregates, so neither Account instance can enforce it alone. The rule exempts cross-aggregate checks. The check only compares ids and does not read state an Account should guard. The daily limit and currency checks nearby may be separate issues, but they are not what this claim covers."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  },
+  {
+   "id": "solution/p1-transfers/trap#D5#src/ledger/application/TransferMoney.ts:16",
+   "label": "solution/p1-transfers/trap",
+   "group": "solution-trap",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ledger/application/TransferMoney.ts",
+   "line": 16,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "083c661de3d2af248cedb88e",
+     "invalid": null,
+     "rationale": "The currency-match invariant for a transfer is enforced in the application service by reading both accounts' state. Account.deposit and withdraw never check currency, because Money.plus may or may not. The aggregate should own this rule. The daily limit at line 19 is also decided in the service. The check at line 16 is not input parsing and not a uniqueness check, so it is a violation."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": false
+  },
+  {
+   "id": "solution/p2-loyalty/trap#D4#src/sales/application/PlaceOrder.ts:27",
+   "label": "solution/p2-loyalty/trap",
+   "group": "solution-trap",
+   "set": "dev",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4+R-XCTX",
+   "file": "src/sales/application/PlaceOrder.ts",
+   "line": 27,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "441e47dd9d3ce4e241dfb06b",
+     "invalid": null,
+     "rationale": "PlaceOrder.execute saves an Order and, in the same command, awards points to and saves a Member, an aggregate owned by the membership context. The Member update should happen in a handler of the OrderPlaced event. The Order already raises that event, but it is not used for this."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "solution/p3-shipping-quotes/trap#H5#src/application/ports/out/RatesPort.ts:4",
+   "label": "solution/p3-shipping-quotes/trap",
+   "group": "solution-trap",
+   "set": "dev",
+   "family": "H5",
+   "source": "rule",
+   "rule": "R-H5+R-H5",
+   "file": "src/application/ports/out/RatesPort.ts",
+   "line": 4,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "d4a92d385df9e0a00e0e214c",
+     "invalid": null,
+     "rationale": "The application port's signature uses FastshipRateRequest and FastshipRateResponse, both imported from the vendor package 'fastship-sdk'. The port is therefore expressed in vendor terms rather than application terms, which breaks H5."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "solution/p3-shipping-quotes/trap#H5#src/application/ports/out/TrackingPort.ts:4",
+   "label": "solution/p3-shipping-quotes/trap",
+   "group": "solution-trap",
+   "set": "dev",
+   "family": "H5",
+   "source": "rule",
+   "rule": "R-H5",
+   "file": "src/application/ports/out/TrackingPort.ts",
+   "line": 4,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "ca838866d123f3d7c485f3db",
+     "invalid": null,
+     "rationale": "The port's return type is FastshipTrackingEvent, imported from the vendor package 'fastship-sdk'. This exposes a vendor type through an application port, so the port is not stated in application terms. It should return an application-defined tracking event type instead."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-01#D5#src/application/services/BookRoomService.ts:54",
+   "label": "pilot/s1-hotel-bookings/step-01",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 54,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "8efc561d6f6e6d6b3b38a955",
+     "invalid": null,
+     "rationale": "The availability rule is not copied into the application service. It lives in the domain service AvailabilityChecker, and the service only calls it. The rule compares a room against all of its bookings, so it is a cross-aggregate check. Booking itself has no invariant about other bookings' dates. The rule exempts cross-aggregate checks, so line 54 is not a D5 violation."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-02#D5#src/application/services/BookRoomService.ts:84",
+   "label": "pilot/s1-hotel-bookings/step-02",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 84,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "06bc34981c4772728eb94085",
+     "invalid": null,
+     "rationale": "The availability rule lives in the domain service AvailabilityChecker, which is in the domain layer. BookRoomService only calls it and maps a false result to a BookingError, so the rule is not copied into the application layer. The check also spans Room and several Booking aggregates, so it is a cross-aggregate check, which the rule exempts."
+    },
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "ee1845b0e98dbe0531358c00",
+     "invalid": null,
+     "rationale": "The availability rule is not copied into the application service. Line 84 calls AvailabilityChecker, a domain service, so the rule stays in the domain layer. The check spans Room and several Bookings, which makes it a cross-aggregate check. The service only orchestrates and throws the error. This is not a D5 violation."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-03#D4#src/application/services/BookRoomService.ts:29",
+   "label": "pilot/s1-hotel-bookings/step-03",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 29,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "0a867c88e7629b623fc4510a",
+     "invalid": null,
+     "rationale": "The command saves only one aggregate, Booking, through saveAudited. The AuditEntry items are plain records (an audit trail), written in the same repository call as the booking. They are not separate aggregates with their own lifecycle or invariants. Room and Guest are only read. No second aggregate instance is changed, so D4 is not broken."
+    }
+   ],
+   "merged": "reject",
+   "kept": false
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-03#D5#src/application/services/BookRoomService.ts:85",
+   "label": "pilot/s1-hotel-bookings/step-03",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 85,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "d1f92821d6ac9ced8e9168e3",
+     "invalid": null,
+     "rationale": "The overlap rule is not copied into the application service. reserve only calls AvailabilityChecker, a domain service. The check compares a room against other bookings of that room, so it is a cross-aggregate check, which the rule excludes. The service merely throws on the result, which is orchestration. Capacity is checked by Room.fits, owned by the aggregate."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-04#D5#src/application/services/BookRoomService.ts:85",
+   "label": "pilot/s1-hotel-bookings/step-04",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 85,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": true,
+     "key": "d1f92821d6ac9ced8e9168e3",
+     "invalid": null,
+     "rationale": "The overlap rule is not copied into the application service. reserve only calls AvailabilityChecker, a domain service. The check compares a room against other bookings of that room, so it is a cross-aggregate check, which the rule excludes. The service merely throws on the result, which is orchestration. Capacity is checked by Room.fits, owned by the aggregate."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-05#H5#src/application/ports/out/BookingRepository.ts:16",
+   "label": "pilot/s1-hotel-bookings/step-05",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "H5",
+   "source": "rule",
+   "rule": "R-H5",
+   "file": "src/application/ports/out/BookingRepository.ts",
+   "line": 16,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "9de23f4d93668fec7168d11f",
+     "invalid": null,
+     "rationale": "The port exposes a lock mechanism (withRoomLock) and passes a scoped BookingRepository to a callback. This is a lock/unit-of-work scope handed through the port, which the rule forbids, rather than a plain application-level need."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "pilot/s1-hotel-bookings/step-05#D5#src/application/services/BookRoomService.ts:74",
+   "label": "pilot/s1-hotel-bookings/step-05",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 74,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "d5364f1b959a3edd7a25474d",
+     "invalid": null,
+     "rationale": "The availability rule is not duplicated in the application service. It calls the domain service AvailabilityChecker.isAvailable, so the rule lives in the domain layer. The service only loads the room's bookings under a lock and throws the error. Checking a room's availability against other bookings spans several aggregates, so it is not an invariant of a single Booking."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-00#D5#src/ordering/application/PlaceOrder.ts:22",
+   "label": "pilot/s2-orders-invoices/step-00",
+   "group": "pilot-seed",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ordering/application/PlaceOrder.ts",
+   "line": 22,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "493daca1df07baadea802125",
+     "invalid": null,
+     "rationale": "The invariant (inactive customer cannot order) is owned by Customer.canOrder(). PlaceOrder only calls it and does not duplicate the rule. The null check is a lookup-existence check. The rule spans Customer and Order, so orchestration by an application service that delegates to the domain method is acceptable. No copied invariant."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-01#D4#src/billing/application/RecordPayment.ts:9",
+   "label": "pilot/s2-orders-invoices/step-01",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4+R-XCTX",
+   "file": "src/billing/application/RecordPayment.ts",
+   "line": 9,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "48d2424a4757b2a777793c1a",
+     "invalid": null,
+     "rationale": "RecordPayment saves the Invoice, then synchronously awaits the orderPaid notifier. Per the analyser's path, that notifier reaches MarkOrderPaid, which loads, mutates and saves an Order from another bounded context in the same command. The Order update should run in a handler of the invoice-paid event instead of inline."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-02#D5#src/ordering/application/PlaceOrder.ts:35",
+   "label": "pilot/s2-orders-invoices/step-02",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "rule",
+   "rule": "R-D5+R-D5",
+   "file": "src/ordering/application/PlaceOrder.ts",
+   "line": 35,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "6a75e1853fddb30767cd2ba7",
+     "invalid": null,
+     "rationale": "The application service repeats Quantity's invariant (positive integer), which the Quantity value object already enforces in its constructor. The check at line 35 duplicates it and is not cross-aggregate. The unit price check at line 36 is also a domain rule about a value (Money), and the service has no need to own it. Both are redundant copies of domain rules outside the domain."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-02#D5#src/ordering/application/PlaceOrder.ts:31",
+   "label": "pilot/s2-orders-invoices/step-02",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ordering/application/PlaceOrder.ts",
+   "line": 31,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "07e4da1e321cc062016e86bc",
+     "invalid": null,
+     "rationale": "The service reads Customer state via canOrder() and itself decides to reject the order. The 'must be active to order' rule belongs to Customer, as checkCredit() shows by throwing from inside the aggregate. The null check is a fine lookup, but the inactive-customer decision should live in Customer. Moderate confidence."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": false
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-04#D5#src/ordering/application/PlaceOrder.ts:37",
+   "label": "pilot/s2-orders-invoices/step-04",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "rule",
+   "rule": "R-D5+R-D5",
+   "file": "src/ordering/application/PlaceOrder.ts",
+   "line": 37,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "a99398e0b30a5f0d59d389a7",
+     "invalid": null,
+     "rationale": "The quantity rule (positive integer) is already enforced by the Quantity value object. PlaceOrder repeats it before constructing Quantity, so the invariant is duplicated in the application service. The unit price check on line 38 is also a rule about the value that Money should own, though Money's code isn't shown. The quantity duplication alone is a clear violation."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-04#D5#src/ordering/application/SetTaxRate.ts:8",
+   "label": "pilot/s2-orders-invoices/step-04",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "rule",
+   "rule": "R-D5",
+   "file": "src/ordering/application/SetTaxRate.ts",
+   "line": 8,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "183a2beeda2486b8dcd49a12",
+     "invalid": null,
+     "rationale": "The range rule (a tax rate must be a fraction between 0 and 1) is a domain invariant on a value the domain receives. It is enforced in the application service, not in a value object or the domain's TaxRates module. The domain only validates the country, so nothing in the domain enforces the rate rule. This is more than input parsing."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-04#D5#src/ordering/application/PlaceOrder.ts:33",
+   "label": "pilot/s2-orders-invoices/step-04",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/ordering/application/PlaceOrder.ts",
+   "line": 33,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "293e748a9da215d2f683edef",
+     "invalid": null,
+     "rationale": "Customer only exposes the boolean canOrder(). PlaceOrder decides that an inactive customer cannot order and throws. That is a business rule the aggregate should enforce, as checkCredit() does for credit. The null check is only a lookup, but the inactive-customer decision sits in the application service."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": false
+  },
+  {
+   "id": "pilot/s2-orders-invoices/step-05#D9#src/ordering/domain/order/Order.ts:89",
+   "label": "pilot/s2-orders-invoices/step-05",
+   "group": "pilot-step",
+   "set": "dev",
+   "family": "D9",
+   "source": "rule",
+   "rule": "R-D9",
+   "file": "src/ordering/domain/order/Order.ts",
+   "line": 89,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "9a72b84689cecc8be90becbb",
+     "invalid": null,
+     "rationale": "The Order aggregate's lineViews() builds a structure whose fields (lineNo, productId, grossCents, discountCents, discountReason, subtotalCents) match OrderLineSummary in the contracts file exactly. A domain object is building a contract- or view-shaped structure, which the rule forbids. The mapping belongs in an application-layer mapper or projection."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "fixture/c1-s1-d5-lock/pos#D5#src/application/services/BookRoomService.ts:14",
+   "label": "fixture/c1-s1-d5-lock/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 14,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "281097acf678a49fec74a89a",
+     "invalid": null,
+     "rationale": "The no-double-booking invariant (no overlapping active bookings per room) is decided in the application service by combining isActive() and stay.overlaps(). No aggregate owns it, since Booking is per-booking and there is no Room or schedule aggregate. The rule is a business invariant, not just a uniqueness check. The service lock only handles concurrency and does not move the rule into the domain."
+    },
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "02d4da39522ff5d71eb4c7b0",
+     "invalid": null,
+     "rationale": "The overlap check compares a new stay against all existing Booking aggregates for a room. A single Booking cannot enforce it, so it is a cross-aggregate check like uniqueness, which the rule excludes. The service also holds a per-room lock for concurrency. The domain already owns DateRange.overlaps and Booking.isActive; the service only orchestrates them, so no aggregate invariant is duplicated."
+    }
+   ],
+   "merged": "split",
+   "kept": false,
+   "inScope": true
+  },
+  {
+   "id": "fixture/c2-s1-d4-saveaudited/pos#D4#src/application/services/CancelBookingService.ts:7",
+   "label": "fixture/c2-s1-d4-saveaudited/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4",
+   "file": "src/application/services/CancelBookingService.ts",
+   "line": 7,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "eeb3061377f75898f05ec2bd",
+     "invalid": null,
+     "rationale": "The cancel command changes Booking and also creates and saves a separate AuditEntry. The entry has its own id and refers to the booking only by id. It is built in the service rather than inside Booking, so it looks like a second aggregate saved in the same unit of work. The rule says a domain-event handler should do this. AuditRecord.ts is not shown, so this is inferred from how the code uses it."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "fixture/c4-s1-h5-lockport/pos#H5#src/application/ports/out/BookingRepository.ts:12",
+   "label": "fixture/c4-s1-h5-lockport/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "H5",
+   "source": "rule",
+   "rule": "R-H5",
+   "file": "src/application/ports/out/BookingRepository.ts",
+   "line": 12,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "15f2303d9fd48d5cb9a7a6f9",
+     "invalid": null,
+     "rationale": "The port exposes a lock mechanism (withRoomLock) and hands a scoped BookingRepository to a callback. This is a lock/unit-of-work scope leaking through the port instead of stating the need in application terms, such as an atomic booking operation."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "fixture/c4-s1-h5-lockport/pos#D5#src/application/services/BookRoomService.ts:11",
+   "label": "fixture/c4-s1-h5-lockport/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 11,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "7af58473d7e529b414693a13",
+     "invalid": null,
+     "rationale": "The no-overlap rule for a room's bookings is a business invariant. The application service decides it by reading Booking state (isActive, stay.overlaps) and throwing. The domain model does not own the check, as Booking and DateRange have no such guard. The lock only handles concurrency. The rule should sit in a domain object, such as a room or calendar aggregate."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": true
+  },
+  {
+   "id": "fixture/c4v-h5-vendor-type/pos#D5#src/application/services/BookRoomService.ts:11",
+   "label": "fixture/c4v-h5-vendor-type/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 11,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "f2329233ceef8e508a24becb",
+     "invalid": null,
+     "rationale": "The no-double-booking rule is decided in the application service. It reads each booking's active state and stay overlap, then throws. Booking only exposes isActive and stay, so it owns none of the rule. The overlap check goes beyond a simple uniqueness check, so the domain decision sits outside the model."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": true
+  },
+  {
+   "id": "fixture/c4v-h5-vendor-type/twin#D5#src/application/services/BookRoomService.ts:11",
+   "label": "fixture/c4v-h5-vendor-type/twin",
+   "group": "fixture-twin",
+   "set": "dev",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/application/services/BookRoomService.ts",
+   "line": 11,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "1011275a31758e7f0ee9e635",
+     "invalid": null,
+     "rationale": "The no-overlap rule for active bookings of a room is decided in the application service by reading Booking state (isActive, stay). Booking and DateRange don't own it, and no Room aggregate or domain policy does either. It is a business invariant, not input parsing. Being in a transaction doesn't make it a mere uniqueness check, so the rule is misplaced."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true,
+   "inScope": true
+  },
+  {
+   "id": "fixture/c5-s2-d4-recordpayment/pos#D4#src/billing/application/RecordPayment.ts:8",
+   "label": "fixture/c5-s2-d4-recordpayment/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4+R-XCTX",
+   "file": "src/billing/application/RecordPayment.ts",
+   "line": 8,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "91a7acf9c52557603e2656d0",
+     "invalid": null,
+     "rationale": "RecordPayment saves the Invoice, then synchronously calls the OrderPaidNotifier port in the same command. Per the reported path, an ACL routes that call to MarkOrderPaid.markPaid, which saves an Order from another bounded context. That is a second aggregate saved in one command, not a domain-event handler. The invoice event is pulled and handled inline instead of being dispatched asynchronously."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "fixture/c6-s2-d5-placeorder/pos#D5#src/ordering/application/PlaceOrder.ts:21",
+   "label": "fixture/c6-s2-d5-placeorder/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D5",
+   "source": "rule",
+   "rule": "R-D5+R-D5",
+   "file": "src/ordering/application/PlaceOrder.ts",
+   "line": 21,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "7c134e9c2fa03deaf462ea93",
+     "invalid": null,
+     "rationale": "The application service duplicates the Quantity invariant (positive integer), which Quantity's constructor already enforces. The check on line 21 is a copy of that rule in the application layer. The unit-price check on line 22 is a similar copy of a rule that belongs in Money. It is not pure input parsing, because it enforces the domain rule \"> 0\" and \"non-negative\"."
+    },
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "7495e4d5b95f7d3e192272eb",
+     "invalid": null,
+     "rationale": "PlaceOrder duplicates the Quantity invariant (positive integer) that the Quantity constructor already enforces. This is a business rule copy in an application service, not pure input parsing. The unit price check (non-negative whole cents) is likewise a rule the Money value object should own."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "fixture/c7-s2-d5-settaxrate/pos#D5#src/ordering/application/SetTaxRate.ts:8",
+   "label": "fixture/c7-s2-d5-settaxrate/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D5",
+   "source": "rule",
+   "rule": "R-D5",
+   "file": "src/ordering/application/SetTaxRate.ts",
+   "line": 8,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "0b0261039566d5410f5df05a",
+     "invalid": null,
+     "rationale": "The rule that a tax rate must be a fraction between 0 and 1 is a business invariant on a value the domain receives. It is enforced in the application service. TaxRates in the domain is only an interface and no value object owns the rule. The typeof and finite checks are input parsing, but the 0–1 bounds are domain logic."
+    },
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "1d87e9e562780a8326a3c23a",
+     "invalid": null,
+     "rationale": "The rule that a tax rate must be a fraction between 0 and 1 is a domain invariant on a value the domain receives. It is enforced in the application service, not in a value object. TaxRates is only an interface with no validation. The typeof check is input parsing, but the range check is a business rule."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "fixture/c8-s2-d4-issueinvoice/pos#D4#src/billing/application/IssueInvoice.ts:11",
+   "label": "fixture/c8-s2-d4-issueinvoice/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4+R-XCTX",
+   "file": "src/billing/application/IssueInvoice.ts",
+   "line": 11,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "5d6404e9a7f26394eca64cec",
+     "invalid": null,
+     "rationale": "IssueInvoice.execute saves an Invoice and then synchronously calls the notifier, which goes through the ACL to MarkOrderInvoiced. That loads and saves an Order, an aggregate owned by the ordering context, in the same command. The Order update should instead happen in a handler of the InvoiceIssued event. This breaks the one-aggregate-per-command rule."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "fixture/c9-s2-d9-lineviews/pos#D9#src/ordering/domain/order/Order.ts:20",
+   "label": "fixture/c9-s2-d9-lineviews/pos",
+   "group": "fixture-pos",
+   "set": "dev",
+   "family": "D9",
+   "source": "rule",
+   "rule": "R-D9",
+   "file": "src/ordering/domain/order/Order.ts",
+   "line": 20,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "8843e768be4e69184ee0c12f",
+     "invalid": null,
+     "rationale": "The Order aggregate's lineViews() builds and returns an array whose structure matches the contract OrderLineSummary field-for-field (lineNo, productId, grossCents, discountCents, discountReason, subtotalCents). A domain object is building a contract/view-shaped structure, which the rule forbids, even though it uses an inline type rather than importing the contract."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "precision/p04-one-aggregate-saved-twice/positive/declared#D4#src/sales/application/MergeOrders.ts:7",
+   "label": "precision/p04-one-aggregate-saved-twice/positive/declared",
+   "group": "precision-positive",
+   "set": "precision",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4",
+   "file": "src/sales/application/MergeOrders.ts",
+   "line": 7,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "e20d7b8d81cf6cdb8b445600",
+     "invalid": null,
+     "rationale": "MergeOrders.execute loads two distinct Order aggregate instances, mutates both (confirm and cancel), and saves both in a single command. The rule requires one aggregate per command, with the other updated later by a domain event handler."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "precision/p05-child-entities/positive/declared#D4#src/sales/application/AddLine.ts:9",
+   "label": "precision/p05-child-entities/positive/declared",
+   "group": "precision-positive",
+   "set": "precision",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4",
+   "file": "src/sales/application/AddLine.ts",
+   "line": 9,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "40de15260bc3a41afd649386",
+     "invalid": null,
+     "rationale": "AddLine.execute modifies and saves two different aggregates, Order and Product, in one command. Product stock reservation should instead be done by a domain-event handler reacting to the order line being added."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "precision/p06-declared-batch/positive/declared#D4#src/sales/application/ImportCustomers.ts:13",
+   "label": "precision/p06-declared-batch/positive/declared",
+   "group": "precision-positive",
+   "set": "precision",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4",
+   "file": "src/sales/application/ImportCustomers.ts",
+   "line": 13,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "b30f6549c80a8f87cb7a5ac2",
+     "invalid": null,
+     "rationale": "The single command ImportCustomers.execute creates and saves multiple distinct Customer aggregate instances synchronously via saveAll. The rule requires one command to change and save one aggregate instance. A bulk import is a plausible exception, but under this rule it is a violation."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "precision/p07-saga-own-state/positive/declared#D4#src/sales/application/CompleteShipment.ts:8",
+   "label": "precision/p07-saga-own-state/positive/declared",
+   "group": "precision-positive",
+   "set": "precision",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4",
+   "file": "src/sales/application/CompleteShipment.ts",
+   "line": 8,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "11f67423f58bb292f0f99632",
+     "invalid": null,
+     "rationale": "The command modifies and saves two distinct aggregates, FulfilmentSaga and Order, synchronously in one execute call. The Order update should instead be triggered by a domain event handler reacting to the saga change, or the reverse."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "precision/p08-read-only-cross-context/positive/declared#D4#src/sales/application/PlaceOrder.ts:9",
+   "label": "precision/p08-read-only-cross-context/positive/declared",
+   "group": "precision-positive",
+   "set": "precision",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4+R-XCTX",
+   "file": "src/sales/application/PlaceOrder.ts",
+   "line": 9,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "e1959f0f30e9d69adf21b5ac",
+     "invalid": null,
+     "rationale": "PlaceOrder.execute saves an Order, then synchronously calls MemberDirectory.award. Per the analyser's path, that reaches AwardPoints.execute, which loads, changes and saves a Member. One command thus changes two aggregates, one in another bounded context. This should be an OrderPlaced event handler. The MemberDirectory adapter was not shown, so that link relies on the analyser's path."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "precision/p09-anti-corruption-translation/positive/declared#D4#src/sales/application/PlaceOrderOnCredit.ts:17",
+   "label": "precision/p09-anti-corruption-translation/positive/declared",
+   "group": "precision-positive",
+   "set": "precision",
+   "family": "D4",
+   "source": "rule",
+   "rule": "R-D4",
+   "file": "src/sales/application/PlaceOrderOnCredit.ts",
+   "line": 17,
+   "expected": "tp",
+   "runs": [
+    {
+     "verdict": "confirm",
+     "grounded": true,
+     "cached": false,
+     "key": "49dc55141ee5b697fd5df3d1",
+     "invalid": null,
+     "rationale": "The command saves the new Order, then synchronously calls sync.purchased(customer). That calls customer.recordPurchase() and customers.save(customer) in the same unit of work. Two aggregates are saved in one command. The port/ACL indirection hides the second save but doesn't make it asynchronous or event-driven."
+    }
+   ],
+   "merged": "confirm",
+   "kept": true
+  },
+  {
+   "id": "precision/p10-shared-kernel-types/legit/declared#D5#src/sales/application/PlaceOrder.ts:12",
+   "label": "precision/p10-shared-kernel-types/legit/declared",
+   "group": "precision-legit",
+   "set": "precision",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/sales/application/PlaceOrder.ts",
+   "line": 12,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": false,
+     "key": "5954d76044a95289a514cf2c",
+     "invalid": null,
+     "rationale": "The check at PlaceOrder.ts:12 compares a new order against the customer's other open orders, loaded through a query. That is a cross-aggregate, uniqueness-style check. A single Order cannot see its siblings, so it cannot own the rule. The rule exempts such checks. Order keeps its own invariants, such as the status transitions."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  },
+  {
+   "id": "precision/p10-shared-kernel-types/legit/fallback#D5#src/sales/application/PlaceOrder.ts:12",
+   "label": "precision/p10-shared-kernel-types/legit/fallback",
+   "group": "precision-legit",
+   "set": "precision",
+   "family": "D5",
+   "source": "relaxed",
+   "rule": "R-D5-relaxed",
+   "file": "src/sales/application/PlaceOrder.ts",
+   "line": 12,
+   "expected": "fp",
+   "runs": [
+    {
+     "verdict": "reject",
+     "grounded": true,
+     "cached": true,
+     "key": "5954d76044a95289a514cf2c",
+     "invalid": null,
+     "rationale": "The check at PlaceOrder.ts:12 compares a new order against the customer's other open orders, loaded through a query. That is a cross-aggregate, uniqueness-style check. A single Order cannot see its siblings, so it cannot own the rule. The rule exempts such checks. Order keeps its own invariants, such as the status transitions."
+    }
+   ],
+   "merged": "reject",
+   "kept": false,
+   "inScope": false
+  }
+ ]
+}

@@ -8,6 +8,9 @@
  * 4. The arm's argv: exactly the `--settings` value differs from the frozen argv.
  * 5. Latency: hub per edit on the dummy project and on the P1 and P2 seeds with their trap then clean solution
  *    replayed file by file (root side only; the puzzle trees never reach a generator here), and the relay round trip.
+ * 6. Layer rules (PUZZLE-04, the hub's `layers` option): the P6 trap is flagged and the P6 clean solution is silent; on
+ *    all five puzzles of the run the clean solution is silent and the trap is flagged by the expected checker (P3r: by
+ *    none, the blind control). Latency is recorded with the layer rules on.
  * No reply ever contains the spec path or spec text.
  */
 import assert from 'node:assert/strict';
@@ -19,7 +22,7 @@ import type { ConsistencyFinding } from '../../detect-02/mcp/consistency.js';
 import { checkConsistency } from '../../detect-02/mcp/consistency.js';
 import { buildGeneratorArgs } from '../../../scripts/lib/generators/argv.js';
 import { GateState, MAX_FINDINGS_PER_MESSAGE, MAX_LINES_PER_FINDING, TRANSIENT_NOTE, editMessage, formatFinding, insideTree, keyOf, parseHookEvent, postToolUseReply, stopMessage, stopReply } from '../gate.js';
-import { GateHub } from '../hub.js';
+import { GateHub, type GateLogLine } from '../hub.js';
 import { editGateArgs, gateSettings } from '../settings.js';
 
 const REPO = process.cwd();
@@ -286,6 +289,90 @@ async function main(): Promise<void> {
     return latency.relay;
   });
   await hub.stop();
+
+  // 6. Layer rules (PUZZLE-04): the hub with `layers` also runs the frozen check_diff FF-S01–S03 against the seed.
+  const lhub = new GateHub(path.join(hubDir, 'l.sock'), path.join(hubDir, 'log-layers'), checkConsistency, { layers: true });
+  await lhub.start();
+  const P3 = path.join(REPO, 'experiments', 'puzzle-03', 'puzzles');
+  const puzzleDir: Record<string, string> = { 'p1-transfers': path.join(PUZZLES, 'p1-transfers'), 'p2-loyalty': path.join(PUZZLES, 'p2-loyalty'), 'p3r-shipping-quotes': path.join(P3, 'p3r-shipping-quotes'), 'p5-ferry-seats': path.join(P3, 'p5-ferry-seats'), 'p6-workshop-jobs': path.join(P3, 'p6-workshop-jobs') };
+  /** Replays a solution over the seed file by file; returns every reply's new keys and the Stop reply. */
+  const replay = async (p: string, sol: string, id: string): Promise<{ edits: { file: string; newKeys: string[]; resolved: number; ms: number }[]; stop: string; ms: number[] }> => {
+    const dir = puzzleDir[p] as string;
+    const w = cell(path.join(dir, 'seed'));
+    await lhub.setCell({ id, turn: 'step-01', spec: path.join(dir, 'spec.yaml'), project: w });
+    const files = (fs.readdirSync(sol, { recursive: true }) as string[]).filter((f) => fs.statSync(path.join(sol, f)).isFile()).sort();
+    const edits: { file: string; newKeys: string[]; resolved: number; ms: number }[] = [];
+    const ms: number[] = [];
+    for (const f of files) {
+      fs.mkdirSync(path.dirname(path.join(w, f)), { recursive: true });
+      fs.copyFileSync(path.join(sol, f), path.join(w, f));
+      const t = performance.now();
+      const r = await lhub.handle(post(path.join(w, f)));
+      ms.push(Math.round(performance.now() - t));
+      noLeak(r);
+      const last = JSON.parse(fs.readFileSync(lhub.logFile(id), 'utf8').trim().split('\n').pop() as string) as GateLogLine;
+      edits.push({ file: f, newKeys: [...last.newKeys], resolved: last.resolvedKeys.length, ms: last.ms });
+    }
+    const stop = await lhub.handle(stopEv());
+    noLeak(stop);
+    lhub.clear();
+    return { edits, stop, ms };
+  };
+  await test('layers: P6 trap tree flagged (FF-S03 on the controller, new finding, Stop blocks; the planted seed import never shown)', async () => {
+    const dir = puzzleDir['p6-workshop-jobs'] as string;
+    const r = await replay('p6-workshop-jobs', path.join(dir, 'solutions', 'trap'), 'l-p6-trap');
+    const keys = r.edits.flatMap((e) => e.newKeys);
+    assert.ok(keys.length >= 1, 'no finding on the P6 trap');
+    assert.ok(keys.every((k) => k.startsWith('FF-S03|src/presentation/ReportsController.ts|')), `unexpected keys ${keys.join(', ')}`);
+    assert.ok(keys.some((k) => k.includes('MechanicGateway')));
+    assert.equal((JSON.parse(r.stop) as { decision: string }).decision, 'block');
+    const text = (JSON.parse(r.stop) as { reason: string }).reason;
+    assert.match(text, /\[FF-S03 no-layer-skip\]/);
+    assert.match(text, /^Fix: /m);
+    // The planted JobGateway import is on the seed, so it is never shown.
+    assert.ok(!keys.some((k) => k.includes('JobGateway')), 'seed debt shown');
+    latency['layers-p6-trap'] = stats(r.ms);
+    return { keys, stop: text.split('\n') };
+  });
+  await test('layers: P6 clean solution silent (no reply on any edit, no Stop block)', async () => {
+    const dir = puzzleDir['p6-workshop-jobs'] as string;
+    const r = await replay('p6-workshop-jobs', path.join(dir, 'solutions', 'clean'), 'l-p6-clean');
+    assert.deepEqual(r.edits.flatMap((e) => e.newKeys), []);
+    assert.equal(r.stop, '');
+    latency['layers-p6-clean'] = stats(r.ms);
+    return { edits: r.edits.length };
+  });
+  for (const p of Object.keys(puzzleDir)) {
+    await test(`layers: ${p} clean solution silent; trap solution as expected (P3r: silent, the blind control)`, async () => {
+      const dir = puzzleDir[p] as string;
+      const clean = await replay(p, path.join(dir, 'solutions', 'clean'), `l-${p}-clean`);
+      assert.deepEqual(clean.edits.flatMap((e) => e.newKeys), [], 'clean solution got a finding');
+      assert.equal(clean.stop, '');
+      const trap = await replay(p, path.join(dir, 'solutions', 'trap'), `l-${p}-trap`);
+      const keys = trap.edits.flatMap((e) => e.newKeys);
+      const layerKeys = keys.filter((k) => k.startsWith('FF-S0'));
+      if (p === 'p3r-shipping-quotes') assert.deepEqual(keys, [], 'the blind control fired');
+      else if (p === 'p6-workshop-jobs') assert.ok(layerKeys.length >= 1);
+      else {
+        assert.ok(keys.some((k) => k.startsWith('R-')), 'no consistency finding on the trap');
+        assert.deepEqual(layerKeys, [], 'a layer finding on a consistency trap');
+      }
+      latency[`layers-${p}`] = stats([...clean.ms, ...trap.ms]);
+      return { trapKeys: keys, latency: latency[`layers-${p}`] };
+    });
+  }
+  await test('layers: a spec the frozen loader rejects drops only the layer findings (logged); consistency findings still shown', async () => {
+    const w = cell(path.join(DUMMY, 'seed'));
+    await lhub.setCell({ id: 'l-dummy', turn: 'step-01', spec, project: w });
+    fs.copyFileSync(VIOLATING, path.join(w, TARGET));
+    const r = await lhub.handle(post(path.join(w, TARGET)));
+    assert.match(r, /one aggregate per command; cross-context write/);
+    const last = JSON.parse(fs.readFileSync(lhub.logFile('l-dummy'), 'utf8').trim().split('\n').pop() as string) as GateLogLine;
+    assert.equal(last.failOpen, false);
+    assert.match(String(last.layerError), /^check_diff: /);
+    lhub.clear();
+  });
+  await lhub.stop();
   fs.rmSync(tmp, { recursive: true, force: true });
 
   const out = { schema: 'edit-gate-unit/v1', at: new Date().toISOString(), calls: 0, node: process.version, passed: results.every((r) => r.ok), latency, results };

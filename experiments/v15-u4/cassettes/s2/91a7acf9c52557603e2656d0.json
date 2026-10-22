@@ -1,0 +1,32 @@
+{
+ "key": "91a7acf9c52557603e2656d0ee07018c44a6514b50c8f7ef812c1e979ce55bd3",
+ "part": "S2",
+ "item": "fixture/c5-s2-d4-recordpayment/pos#D4#src/billing/application/RecordPayment.ts:8",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:27.204Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/billing/application/RecordPayment.ts",
+    "line": 14,
+    "quote": "await this.orders.orderPaid(invoice.orderId);"
+   },
+   {
+    "file": "src/billing/application/RecordPayment.ts",
+    "line": 12,
+    "quote": "await this.invoices.save(invoice);"
+   },
+   {
+    "file": "src/ordering/application/MarkOrderPaid.ts",
+    "line": 11,
+    "quote": "await this.orders.save(order);"
+   }
+  ],
+  "rationale": "RecordPayment saves the Invoice, then synchronously calls the OrderPaidNotifier port in the same command. Per the reported path, an ACL routes that call to MarkOrderPaid.markPaid, which saves an Order from another bounded context. That is a second aggregate saved in one command, not a domain-event handler. The invoice event is pulled and handled inline instead of being dispatched asynchronously."
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,48 @@
+diff --git a/a/src/application/ports/in/QuoteShipment.ts b/b/src/application/ports/in/QuoteShipment.ts
+index 1232a22e9..d93d4df0e 100644
+--- a/a/src/application/ports/in/QuoteShipment.ts
++++ b/b/src/application/ports/in/QuoteShipment.ts
+@@ -8,6 +8,7 @@ export interface QuoteView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly service: string;
++  readonly estimated: boolean;
+ }
+ 
+ export interface QuoteShipment {
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index db8ce8377..2e2105e1b 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,6 +1,7 @@
+ import { ShippingError } from '../../domain/errors/ShippingError';
+ import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
++import { PriceTable } from '../../domain/services/PriceTable';
+ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteShipment';
+ import type { RatePort } from '../ports/out/RatePort';
+ 
+@@ -12,7 +13,14 @@ export class QuoteShipmentService implements QuoteShipment {
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const rates = await this.rates.rates(parcel);
++    let rates;
++    try {
++      rates = await this.rates.rates(parcel);
++    } catch {
++      // Fastship unavailable: fall back to our own price table.
++      const fallback = new PriceTable().quote(parcel);
++      return { amount: fallback.price.amount(), currency: fallback.price.currency, service: fallback.service, estimated: true };
++    }
+ 
+     let cheapest: { price: Money; service: string } | undefined;
+     for (const rate of rates) {
+@@ -24,6 +32,6 @@ export class QuoteShipmentService implements QuoteShipment {
+     if (!cheapest) throw new ShippingError('no Fastship service available for this parcel');
+ 
+     const total = cheapest.price.plus(HANDLING_FEE);
+-    return { amount: total.amount(), currency: total.currency, service: cheapest.service };
++    return { amount: total.amount(), currency: total.currency, service: cheapest.service, estimated: false };
+   }
+ }

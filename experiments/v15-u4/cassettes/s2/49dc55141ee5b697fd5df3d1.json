@@ -1,0 +1,27 @@
+{
+ "key": "49dc55141ee5b697fd5df3d122870c06e54e64fd7ebb5bf42f5b27cc1d1a9114",
+ "part": "S2",
+ "item": "precision/p09-anti-corruption-translation/positive/declared#D4#src/sales/application/PlaceOrderOnCredit.ts:17",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:59:14.039Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/sales/application/PlaceOrderOnCredit.ts",
+    "line": 23,
+    "quote": "await this.orders.save(order);"
+   },
+   {
+    "file": "src/sales/acl/RepositoryCustomerSync.ts",
+    "line": 10,
+    "quote": "await this.customers.save(customer);"
+   }
+  ],
+  "rationale": "The command saves the new Order, then synchronously calls sync.purchased(customer). That calls customer.recordPurchase() and customers.save(customer) in the same unit of work. Two aggregates are saved in one command. The port/ACL indirection hides the second save but doesn't make it asynchronous or event-driven."
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,55 @@
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 588a5088..68945028 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -8,4 +8,8 @@ export class MembershipDirectory implements MemberDirectory {
+   exists(memberId: string): boolean {
+     return this.membership.card(memberId) !== undefined;
+   }
++
++  tierOf(memberId: string): string | undefined {
++    return this.membership.card(memberId)?.tier;
++  }
+ }
+diff --git a/a/src/sales/application/PlaceOrder.ts b/b/src/sales/application/PlaceOrder.ts
+index 8e2c747a..6b8c45d9 100644
+--- a/a/src/sales/application/PlaceOrder.ts
++++ b/b/src/sales/application/PlaceOrder.ts
+@@ -12,8 +12,11 @@ export interface LineRequest {
+ export interface PlacedOrder {
+   readonly orderId: string;
+   readonly total: number;
++  readonly discount: number;
+ }
+ 
++const TIER_DISCOUNTS: Readonly<Record<string, number>> = { gold: 0.1, silver: 0.05, standard: 0 };
++
+ export class PlaceOrder {
+   constructor(
+     private readonly orders: OrderRepository,
+@@ -24,6 +27,13 @@ export class PlaceOrder {
+     if (memberId !== null && !this.directory.exists(memberId)) throw new Error(`no member ${memberId}`);
+     const order = Order.place(this.orders.nextId(), memberId, lines.map((l) => ({ sku: l.sku, quantity: l.quantity, unitPrice: Money.of(l.unitPrice, currency) })));
+     this.orders.save(order);
+-    return { orderId: order.id.value, total: order.total().amount() };
++    const total = order.total();
++    const discount = total.minus(total.times(1 - this.discountRate(memberId)));
++    return { orderId: order.id.value, total: total.amount(), discount: discount.amount() };
++  }
++
++  private discountRate(memberId: string | null): number {
++    if (memberId === null) return 0;
++    return TIER_DISCOUNTS[this.directory.tierOf(memberId) ?? ''] ?? 0;
+   }
+ }
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 98731a5e..2345126a 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -1,4 +1,6 @@
+ /** What this part of the system needs to know about club members. */
+ export interface MemberDirectory {
+   exists(memberId: string): boolean;
++  /** The member's tier as shown on their member card, or undefined for an unknown member. */
++  tierOf(memberId: string): string | undefined;
+ }

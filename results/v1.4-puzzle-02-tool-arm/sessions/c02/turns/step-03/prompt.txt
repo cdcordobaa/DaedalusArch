@@ -1,0 +1,9 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Customers want a statement for each account: every movement, newest first, with its amount and, for transfers, the other account's id. Expose it as statement(accountId), returning items { kind, amount, counterpart } where kind is 'deposit', 'withdrawal', 'transfer-out' or 'transfer-in' and counterpart is null when there is none.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c02/tsconfig.json
+
+An architecture tool is available to you as an MCP server. Its check_consistency tool reports where a command breaks a consistency boundary of the domain model, with the file, the rule and a suggested change. Call check_consistency after you change code that saves data or code that calls another part of the system, and always before you finish. If it reports findings, address them before you finish.

@@ -1,0 +1,22 @@
+{
+ "key": "8843e768be4e69184ee0c12f12857cca49d3669e373aeb5dabd5d86f687d88a8",
+ "part": "S2",
+ "item": "fixture/c9-s2-d9-lineviews/pos#D9#src/ordering/domain/order/Order.ts:20",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:45.865Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/domain/order/Order.ts",
+    "line": 20,
+    "quote": "lineViews(): { lineNo: number; productId: string; grossCents: number; discountCents: number; discountReason: string | null; subtotalCents: number }[] {"
+   }
+  ],
+  "rationale": "The Order aggregate's lineViews() builds and returns an array whose structure matches the contract OrderLineSummary field-for-field (lineNo, productId, grossCents, discountCents, discountReason, subtotalCents). A domain object is building a contract/view-shaped structure, which the rule forbids, even though it uses an inline type rather than importing the contract."
+ },
+ "invalidReason": null
+}

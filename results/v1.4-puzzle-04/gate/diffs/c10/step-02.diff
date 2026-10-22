@@ -1,0 +1,150 @@
+diff --git a/b/src/bookings/application/CancelBooking.ts b/b/src/bookings/application/CancelBooking.ts
+new file mode 100644
+index 000000000..2dbb206fd
+--- /dev/null
++++ b/b/src/bookings/application/CancelBooking.ts
+@@ -0,0 +1,15 @@
++import { BookingError } from '../domain/BookingError';
++import type { BookingRepository } from '../domain/booking/BookingRepository';
++import { BookingId } from '../domain/booking/value-objects/BookingId';
++
++/** A passenger cancels their booking. */
++export class CancelBooking {
++  constructor(private readonly bookings: BookingRepository) {}
++
++  execute(bookingId: string): void {
++    const booking = this.bookings.byId(BookingId.of(bookingId));
++    if (booking === undefined) throw new BookingError(`no booking ${bookingId}`);
++    booking.cancel();
++    this.bookings.save(booking);
++  }
++}
+diff --git a/a/src/bookings/domain/booking/Booking.ts b/b/src/bookings/domain/booking/Booking.ts
+index 92246db77..1c04bc706 100644
+--- a/a/src/bookings/domain/booking/Booking.ts
++++ b/b/src/bookings/domain/booking/Booking.ts
+@@ -1,9 +1,10 @@
+ import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
+ import { BookingError } from '../BookingError';
++import { BookingCancelled } from './events/BookingCancelled';
+ import { BookingRequested } from './events/BookingRequested';
+ import type { BookingId } from './value-objects/BookingId';
+ 
+-export type BookingStatus = 'requested' | 'confirmed' | 'rejected';
++export type BookingStatus = 'requested' | 'confirmed' | 'rejected' | 'cancelled';
+ 
+ /** Seats one passenger asks for on one sailing. */
+ const MAX_SEATS = 9;
+@@ -52,6 +53,13 @@ export class Booking {
+     this.settle('rejected');
+   }
+ 
++  /** Cancelling a booking that is already cancelled or was rejected changes nothing. */
++  cancel(): void {
++    if (this.current === 'cancelled' || this.current === 'rejected') return;
++    this.current = 'cancelled';
++    this.pending.push(new BookingCancelled(this.id.value, this.sailingId));
++  }
++
+   private settle(status: 'confirmed' | 'rejected'): void {
+     if (this.current !== 'requested') throw new BookingError(`booking is already ${this.current}`);
+     this.current = status;
+diff --git a/b/src/bookings/domain/booking/events/BookingCancelled.ts b/b/src/bookings/domain/booking/events/BookingCancelled.ts
+new file mode 100644
+index 000000000..b6b4ab986
+--- /dev/null
++++ b/b/src/bookings/domain/booking/events/BookingCancelled.ts
+@@ -0,0 +1,10 @@
++import type { DomainEvent } from '../../../../shared-kernel/DomainEvent';
++
++export class BookingCancelled implements DomainEvent {
++  readonly type = 'BookingCancelled';
++
++  constructor(
++    readonly bookingId: string,
++    readonly sailingId: string,
++  ) {}
++}
+diff --git a/a/src/bookings/index.ts b/b/src/bookings/index.ts
+index 25b4eb68c..f9e22647e 100644
+--- a/a/src/bookings/index.ts
++++ b/b/src/bookings/index.ts
+@@ -1,3 +1,4 @@
++import { CancelBooking } from './application/CancelBooking';
+ import { GetBooking } from './application/GetBooking';
+ import { RequestBooking } from './application/RequestBooking';
+ import type { SailingDirectory } from './application/ports/SailingDirectory';
+@@ -10,11 +11,13 @@ export type { BookingView } from './contracts/BookingView';
+ export interface BookingsModule {
+   book(passenger: string, sailingId: string, seats: number): string;
+   booking(bookingId: string): BookingView | undefined;
++  cancel(bookingId: string): void;
+ }
+ 
+ export function createBookings(bookings: BookingRepository, sailings: SailingDirectory): BookingsModule {
+   return {
+     book: (passenger, sailingId, seats) => new RequestBooking(bookings, sailings).execute(passenger, sailingId, seats),
+     booking: (bookingId) => new GetBooking(bookings).execute(bookingId),
++    cancel: (bookingId) => new CancelBooking(bookings).execute(bookingId),
+   };
+ }
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 7fcd20745..da9bb44b6 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -6,6 +6,7 @@ import { InMemoryDeskNotices } from './bookings/infrastructure/InMemoryDeskNotic
+ import { EventRelay } from './messaging/EventRelay';
+ import { SettleBooking } from './bookings/application/SettleBooking';
+ import { ReserveSeatsForBooking } from './sailings/application/ReserveSeatsForBooking';
++import { ReleaseSeatsForBooking } from './sailings/application/ReleaseSeatsForBooking';
+ import { createSailings } from './sailings';
+ import { InMemorySailingRepository } from './sailings/infrastructure/InMemorySailingRepository';
+ 
+@@ -24,6 +25,8 @@ export function createApp() {
+   relay.on('BookingRequested', (e) => reserveSeats.handle(e));
+   relay.on('SeatsReserved', (e) => settleBooking.handle(e));
+   relay.on('SeatsRefused', (e) => settleBooking.handle(e));
++  const releaseSeats = new ReleaseSeatsForBooking(sailingStore);
++  relay.on('BookingCancelled', (e) => releaseSeats.handle(e));
+   const command =<T>(run: () => T): T => {
+     const result = run();
+     relay.deliverPending();
+@@ -36,6 +39,7 @@ export function createApp() {
+     releaseBlock: (sailingId: string, party: string): void => command(() => sailings.releaseSeats(sailingId, party)),
+     book: (passenger: string, sailingId: string, seats: number): string => command(() => bookings.book(passenger, sailingId, seats)),
+     booking: (bookingId: string) => bookings.booking(bookingId),
++    cancelBooking: (bookingId: string): void => command(() => bookings.cancel(bookingId)),
+     deskNotices: (): string[] => notices.all(),
+   };
+ }
+diff --git a/b/src/sailings/application/ReleaseSeatsForBooking.ts b/b/src/sailings/application/ReleaseSeatsForBooking.ts
+new file mode 100644
+index 000000000..834cc1d51
+--- /dev/null
++++ b/b/src/sailings/application/ReleaseSeatsForBooking.ts
+@@ -0,0 +1,25 @@
++import type { DomainEvent } from '../../shared-kernel/DomainEvent';
++import { SailingError } from '../domain/SailingError';
++import type { SailingRepository } from '../domain/sailing/SailingRepository';
++import { SailingId } from '../domain/sailing/value-objects/SailingId';
++
++/** The fields of a booking cancellation that sailings cares about. */
++interface BookingCancellation {
++  readonly bookingId: string;
++  readonly sailingId: string;
++}
++
++/** Gives back the seats of a cancelled booking. */
++export class ReleaseSeatsForBooking {
++  constructor(private readonly sailings: SailingRepository) {}
++
++  handle(event: DomainEvent): void {
++    const { bookingId, sailingId } = event as unknown as BookingCancellation;
++    const sailing = this.sailings.byId(SailingId.of(sailingId));
++    if (sailing === undefined) throw new SailingError(`no sailing ${sailingId}`);
++    const holder = `booking:${bookingId}`;
++    if (sailing.state().holds[holder] === undefined) return;
++    sailing.release(holder);
++    this.sailings.save(sailing);
++  }
++}

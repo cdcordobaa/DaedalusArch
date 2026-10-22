@@ -1,0 +1,94 @@
+diff --git a/b/src/business/services/TakingsService.ts b/b/src/business/services/TakingsService.ts
+new file mode 100644
+index 000000000..8d3e30e76
+--- /dev/null
++++ b/b/src/business/services/TakingsService.ts
+@@ -0,0 +1,27 @@
++import type { JobGateway } from '../../persistence/JobGateway';
++import type { MechanicGateway } from '../../persistence/MechanicGateway';
++import { formatCents, jobTotalCents } from '../rules/Pricing';
++
++export interface MechanicTakings {
++  readonly mechanic: string;
++  readonly takings: string;
++}
++
++export class TakingsService {
++  constructor(
++    private readonly jobs: JobGateway,
++    private readonly mechanics: MechanicGateway,
++  ) {}
++
++  /** Takings per mechanic with at least one job closed in the month (YYYY-MM), highest first then by name. */
++  byMechanic(month: string): MechanicTakings[] {
++    const centsById = new Map<string, number>();
++    for (const j of this.jobs.closedInMonth(month)) {
++      centsById.set(j.mechanicId, (centsById.get(j.mechanicId) ?? 0) + jobTotalCents(j.labourMinutes, j.partsCents));
++    }
++    return [...centsById.entries()]
++      .map(([id, cents]) => ({ mechanic: this.mechanics.byId(id)?.name ?? id, cents }))
++      .sort((a, b) => b.cents - a.cents || (a.mechanic < b.mechanic ? -1 : a.mechanic > b.mechanic ? 1 : 0))
++      .map((e) => ({ mechanic: e.mechanic, takings: formatCents(e.cents) }));
++  }
++}
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 727b8af95..716a05036 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,5 +1,6 @@
+ import { JobService } from './business/services/JobService';
+ import { MechanicService } from './business/services/MechanicService';
++import { TakingsService } from './business/services/TakingsService';
+ import { WorkloadService } from './business/services/WorkloadService';
+ import { Database } from './persistence/Database';
+ import { JobGateway } from './persistence/JobGateway';
+@@ -22,6 +23,6 @@ export function createApp(options: AppOptions = {}) {
+   const jobs = new JobService(jobGateway, mechanics);
+   return {
+     workshop: new WorkshopController(mechanics, jobs, today),
+-    reports: new ReportsController(jobGateway, new WorkloadService(jobGateway, mechanicGateway)),
++    reports: new ReportsController(jobGateway, new WorkloadService(jobGateway, mechanicGateway), new TakingsService(jobGateway, mechanicGateway)),
+   };
+ }
+diff --git a/a/src/persistence/JobGateway.ts b/b/src/persistence/JobGateway.ts
+index 2908b2ec6..9b63fad03 100644
+--- a/a/src/persistence/JobGateway.ts
++++ b/b/src/persistence/JobGateway.ts
+@@ -30,4 +30,8 @@ export class JobGateway {
+   closedOn(day: string): JobRecord[] {
+     return this.all().filter((j) => j.closedOn === day);
+   }
++
++  closedInMonth(month: string): JobRecord[] {
++    return this.all().filter((j) => j.closedOn !== null && j.closedOn.startsWith(`${month}-`));
++  }
+ }
+diff --git a/a/src/presentation/ReportsController.ts b/b/src/presentation/ReportsController.ts
+index b0457e066..d2cfded93 100644
+--- a/a/src/presentation/ReportsController.ts
++++ b/b/src/presentation/ReportsController.ts
+@@ -1,5 +1,6 @@
+ import { formatCents, jobTotalCents } from '../business/rules/Pricing';
+ import type { JobGateway } from '../persistence/JobGateway';
++import type { TakingsService } from '../business/services/TakingsService';
+ import type { WorkloadService } from '../business/services/WorkloadService';
+ import { handle, type HttpResponse } from './HttpResponse';
+ 
+@@ -8,6 +9,7 @@ export class ReportsController {
+   constructor(
+     private readonly jobs: JobGateway,
+     private readonly workloads: WorkloadService,
++    private readonly takings: TakingsService,
+   ) {}
+ 
+   /** Every mechanic with their open jobs, busiest first then by name. */
+@@ -23,4 +25,9 @@ export class ReportsController {
+       return { day, jobs: closed.length, takings: formatCents(cents) };
+     });
+   }
++
++  /** Takings per mechanic for jobs closed in the month (YYYY-MM), highest first. */
++  takingsByMechanic(month: string): HttpResponse {
++    return handle(() => this.takings.byMechanic(month));
++  }
+ }

@@ -1,0 +1,144 @@
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 639aa381d..e01f1dfee 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,6 +1,7 @@
+ import { createMembership } from './membership';
+ import { InMemoryMemberRepository } from './membership/infrastructure/InMemoryMemberRepository';
+ import { MembershipDirectory } from './sales/acl/MembershipDirectory';
++import { CreditPoints } from './sales/application/CreditPoints';
+ import { EventRelay } from './sales/application/EventRelay';
+ import { PlaceOrder, type LineRequest, type PlacedOrder } from './sales/application/PlaceOrder';
+ import { ReceiptFooter } from './sales/application/ReceiptFooter';
+@@ -15,7 +16,10 @@ export function createApp() {
+   const orders = new InMemoryOrderRepository();
+   const receipts = new InMemoryReceipts();
+   const relay = new EventRelay(orders);
+-  const sendReceipt = new SendReceipt(receipts, new ReceiptFooter(members));
++  const directory = new MembershipDirectory(membership);
++  const creditPoints = new CreditPoints(directory);
++  const sendReceipt = new SendReceipt(receipts, new ReceiptFooter(directory));
++  relay.on('OrderPlaced', (e) => creditPoints.handle(e));
+   relay.on('OrderPlaced', (e) => sendReceipt.handle(e));
+   const command = <T>(run: () => T): T => {
+     const result = run();
+@@ -27,7 +31,7 @@ export function createApp() {
+     awardPoints: (memberId: string, points: number): void => membership.awardPoints(memberId, points),
+     memberCard: (memberId: string) => membership.card(memberId),
+     placeOrder: (memberId: string | null, lines: LineRequest[]): PlacedOrder =>
+-      command(() => new PlaceOrder(orders, new MembershipDirectory(membership)).execute(memberId, lines)),
++      command(() => new PlaceOrder(orders, directory).execute(memberId, lines)),
+     receipts: (): string[] => receipts.all(),
+   };
+ }
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 4d888ffdc..64ebd472e 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -9,6 +9,15 @@ export class MembershipDirectory implements MemberDirectory {
+     return this.membership.card(memberId) !== undefined;
+   }
+ 
++  awardPoints(memberId: string, points: number): void {
++    this.membership.awardPoints(memberId, points);
++  }
++
++  describe(memberId: string): { readonly name: string; readonly points: number } | undefined {
++    const card = this.membership.card(memberId);
++    return card === undefined ? undefined : { name: card.name, points: card.points };
++  }
++
+   discountPercent(memberId: string): number {
+     switch (this.membership.card(memberId)?.tier) {
+       case 'gold':
+diff --git a/b/src/sales/application/CreditPoints.ts b/b/src/sales/application/CreditPoints.ts
+new file mode 100644
+index 000000000..faa6157b1
+--- /dev/null
++++ b/b/src/sales/application/CreditPoints.ts
+@@ -0,0 +1,14 @@
++import type { DomainEvent } from '../../shared-kernel/DomainEvent';
++import type { OrderPlaced } from '../domain/order/events/OrderPlaced';
++import type { MemberDirectory } from './ports/MemberDirectory';
++
++/** Puts the points an order earned on the member's card. */
++export class CreditPoints {
++  constructor(private readonly directory: MemberDirectory) {}
++
++  handle(event: DomainEvent): void {
++    const placed = event as OrderPlaced;
++    if (placed.memberId === null || placed.pointsEarned <= 0) return;
++    this.directory.awardPoints(placed.memberId, placed.pointsEarned);
++  }
++}
+diff --git a/a/src/sales/application/ReceiptFooter.ts b/b/src/sales/application/ReceiptFooter.ts
+index 6b3c3b602..dcd86d0d4 100644
+--- a/a/src/sales/application/ReceiptFooter.ts
++++ b/b/src/sales/application/ReceiptFooter.ts
+@@ -1,13 +1,12 @@
+-import type { MemberRepository } from '../../membership/domain/member/MemberRepository';
+-import { MemberId } from '../../membership/domain/member/value-objects/MemberId';
++import type { MemberDirectory } from './ports/MemberDirectory';
+ 
+ /** The thank-you line at the bottom of a member's receipt. */
+ export class ReceiptFooter {
+-  constructor(private readonly members: MemberRepository) {}
++  constructor(private readonly directory: MemberDirectory) {}
+ 
+   footerFor(memberId: string | null): string {
+     if (memberId === null) return 'Thank you for shopping with us.';
+-    const member = this.members.byId(MemberId.of(memberId));
++    const member = this.directory.describe(memberId);
+     return member === undefined ? 'Thank you.' : `Thank you, ${member.name}: you have ${String(member.points)} points.`;
+   }
+ }
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 378b50f67..9ebdd37dc 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -3,4 +3,8 @@ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** Percentage taken off every order for this member. */
+   discountPercent(memberId: string): number;
++  /** Credits loyalty points to the member's card. */
++  awardPoints(memberId: string, points: number): void;
++  /** The details shown on a receipt, or undefined for an unknown member. */
++  describe(memberId: string): { readonly name: string; readonly points: number } | undefined;
+ }
+diff --git a/a/src/sales/domain/order/Order.ts b/b/src/sales/domain/order/Order.ts
+index b438c0345..fb3759d76 100644
+--- a/a/src/sales/domain/order/Order.ts
++++ b/b/src/sales/domain/order/Order.ts
+@@ -34,7 +34,7 @@ export class Order {
+       if (line.unitPrice.isNegative()) throw new Error(`line ${line.sku}: price must not be negative`);
+     }
+     const order = new Order(id, memberId, lines, discountPercent);
+-    order.pending.push(new OrderPlaced(id.value, memberId, order.total().cents, order.total().currency));
++    order.pending.push(new OrderPlaced(id.value, memberId, order.total().cents, order.total().currency, order.pointsEarned()));
+     return order;
+   }
+ 
+@@ -57,6 +57,12 @@ export class Order {
+     return this.subtotal().minus(this.discount());
+   }
+ 
++  /** Loyalty points this order earns: one per whole currency unit paid; guests earn none. */
++  pointsEarned(): number {
++    if (this.memberId === null) return 0;
++    return Math.max(0, Math.floor(this.total().cents / 100));
++  }
++
+   state(): OrderState {
+     return { id: this.id, memberId: this.memberId, lines: this.lines, discountPercent: this.discountPercent };
+   }
+diff --git a/a/src/sales/domain/order/events/OrderPlaced.ts b/b/src/sales/domain/order/events/OrderPlaced.ts
+index 3d59062aa..1321026be 100644
+--- a/a/src/sales/domain/order/events/OrderPlaced.ts
++++ b/b/src/sales/domain/order/events/OrderPlaced.ts
+@@ -8,5 +8,6 @@ export class OrderPlaced implements DomainEvent {
+     readonly memberId: string | null,
+     readonly totalCents: number,
+     readonly currency: string,
++    readonly pointsEarned: number = 0,
+   ) {}
+ }

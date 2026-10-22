@@ -1,0 +1,22 @@
+{
+ "key": "15f2303d9fd48d5cb9a7a6f98adbf769fb242d5814145c35f8ea1948048a5635",
+ "part": "S2",
+ "item": "fixture/c4-s1-h5-lockport/pos#H5#src/application/ports/out/BookingRepository.ts:12",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:00.337Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/ports/out/BookingRepository.ts",
+    "line": 12,
+    "quote": "withRoomLock<T>(roomId: string, task: (bookings: BookingRepository) => Promise<T>): Promise<T>;"
+   }
+  ],
+  "rationale": "The port exposes a lock mechanism (withRoomLock) and hands a scoped BookingRepository to a callback. This is a lock/unit-of-work scope leaking through the port instead of stating the need in application terms, such as an atomic booking operation."
+ },
+ "invalidReason": null
+}

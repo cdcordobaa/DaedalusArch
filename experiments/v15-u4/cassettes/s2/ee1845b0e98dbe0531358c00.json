@@ -1,0 +1,16 @@
+{
+ "key": "ee1845b0e98dbe0531358c008a8e09d76287db41c646169c3f466516c0fbc6a2",
+ "part": "S2",
+ "item": "pilot/s1-hotel-bookings/step-02#D5#src/application/services/BookRoomService.ts:84",
+ "run": 1,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:59:30.666Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The availability rule is not copied into the application service. Line 84 calls AvailabilityChecker, a domain service, so the rule stays in the domain layer. The check spans Room and several Bookings, which makes it a cross-aggregate check. The service only orchestrates and throws the error. This is not a D5 violation."
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,16 @@
+{
+ "key": "06bc34981c4772728eb94085e4ecf3585dea2b32056ba0ff89cb8349e5a18d4a",
+ "part": "S2",
+ "item": "pilot/s1-hotel-bookings/step-02#D5#src/application/services/BookRoomService.ts:84",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:56:18.342Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The availability rule lives in the domain service AvailabilityChecker, which is in the domain layer. BookRoomService only calls it and maps a false result to a BookingError, so the rule is not copied into the application layer. The check also spans Room and several Booking aggregates, so it is a cross-aggregate check, which the rule exempts."
+ },
+ "invalidReason": null
+}

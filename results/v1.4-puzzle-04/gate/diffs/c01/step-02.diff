@@ -1,0 +1,52 @@
+diff --git a/a/src/application/ports/in/QuoteShipment.ts b/b/src/application/ports/in/QuoteShipment.ts
+index 1232a22e9..f234d53df 100644
+--- a/a/src/application/ports/in/QuoteShipment.ts
++++ b/b/src/application/ports/in/QuoteShipment.ts
+@@ -8,6 +8,8 @@ export interface QuoteView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly service: string;
++  /** true when the price came from our own price table because Fastship was unavailable. */
++  readonly estimated: boolean;
+ }
+ 
+ export interface QuoteShipment {
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index efadf2dae..8ffbd321d 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,17 +1,31 @@
++import { RatesUnavailableError } from '../../domain/errors/ShippingError';
+ import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
++import type { Quote } from '../../domain/model/Quote';
++import { PriceTable } from '../../domain/services/PriceTable';
+ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteShipment';
+ import type { RatePort } from '../ports/out/RatePort';
+ 
+ const HANDLING_FEE = 1.5;
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+-  constructor(private readonly rates: RatePort) {}
++  constructor(
++    private readonly rates: RatePort,
++    private readonly fallback: PriceTable = new PriceTable(),
++  ) {}
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const cheapest = await this.rates.cheapest(parcel);
++    let cheapest: Quote;
++    let estimated = false;
++    try {
++      cheapest = await this.rates.cheapest(parcel);
++    } catch (e) {
++      if (!(e instanceof RatesUnavailableError)) throw e;
++      cheapest = this.fallback.quote(parcel);
++      estimated = true;
++    }
+     const price = cheapest.price.plus(Money.of(HANDLING_FEE, cheapest.price.currency));
+-    return { amount: price.amount(), currency: price.currency, service: cheapest.service };
++    return { amount: price.amount(), currency: price.currency, service: cheapest.service, estimated };
+   }
+ }

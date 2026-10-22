@@ -1,0 +1,16 @@
+{
+ "key": "5954d76044a95289a514cf2c4026476b0e9dbb742b39f1cbdf1dd6c1cddc5953",
+ "part": "S2",
+ "item": "precision/p10-shared-kernel-types/legit/declared#D5#src/sales/application/PlaceOrder.ts:12",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:59:23.519Z",
+ "answer": {
+  "verdict": "reject",
+  "evidence": [],
+  "rationale": "The check at PlaceOrder.ts:12 compares a new order against the customer's other open orders, loaded through a query. That is a cross-aggregate, uniqueness-style check. A single Order cannot see its siblings, so it cannot own the rule. The rule exempts such checks. Order keeps its own invariants, such as the status transitions."
+ },
+ "invalidReason": null
+}

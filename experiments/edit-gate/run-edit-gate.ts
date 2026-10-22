@@ -16,7 +16,10 @@
  *   npx tsx <this file> --smoke    --input <input.json>   1 call: a canned edit on the dummy project; the agent reports
  *                                                          what the hook said
  *   npx tsx <this file> --probe    --input <input.json>   1 call: READ probe (spec, hub side, clone) and switch-off probe
- *   npx tsx <this file> --sessions --input <input.json>   a puzzle run (sessions × steps); NOT run in the build
+ *   npx tsx <this file> --sessions [--resume] --input <input.json>
+ *                                                          a puzzle run (sessions × steps); NOT run in the build.
+ *                                                          PUZZLE-04: `gate.layers` in the input adds the frozen layer
+ *                                                          rules to the hub; `--resume` continues after a restart
  *
  * Records keep no chat text: the agent's replies are reduced to booleans before anything is written outside the
  * root-only out root.
@@ -51,6 +54,8 @@ interface TaskInput { readonly id: string; readonly seedDir: string; readonly se
 interface GateInput extends GateRelay {
   /** Root-only directory of the hub's logs (one `<cell>.gate.jsonl` per cell) and its scratch. */
   readonly logDir: string;
+  /** PUZZLE-04: the hub also runs the frozen layer rules FF-S01–S03 (`layers.ts`). Absent = the build's gate. */
+  readonly layers?: boolean;
 }
 interface DummyInput {
   /** The dummy project's seed and its root-only spec copy (with a canary line). */
@@ -238,6 +243,19 @@ function logSummary(lines: readonly GateLogLine[]): Record<string, unknown> {
   };
 }
 
+const hubOptions = (input: Input): { layers: boolean } => ({ layers: input.gate.layers === true });
+
+/** Model ids in a turn's envelope (`modelUsage` keys), as the PUZZLE-02 driver records them. */
+function envelopeModels(recordDir: string, envelopePath: string | null): string[] {
+  if (envelopePath === null) return [];
+  try {
+    const e = JSON.parse(fs.readFileSync(path.join(recordDir, envelopePath), 'utf8')) as { modelUsage?: Record<string, unknown> };
+    return Object.keys(e.modelUsage ?? {}).sort();
+  } catch {
+    return [];
+  }
+}
+
 function envelopeOf(recordDir: string, turnId: string): Record<string, unknown> | null {
   const f = path.join(recordDir, `envelope-${turnId}.json`);
   return fs.existsSync(f) ? (JSON.parse(fs.readFileSync(f, 'utf8')) as Record<string, unknown>) : null;
@@ -319,7 +337,7 @@ async function dry(input: Input): Promise<number> {
   // The hub appends to per-cell logs; a dry run starts from nothing so its counts are its own.
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(out, { recursive: true });
-  const hub = new GateHub(input.gate.socket, path.join(out, 'gate'));
+  const hub = new GateHub(input.gate.socket, path.join(out, 'gate'), undefined, hubOptions(input));
   await hub.start();
   const checks: Record<string, unknown> = {};
   const d = input.dummy;
@@ -384,7 +402,7 @@ async function dry(input: Input): Promise<number> {
   await hub.stop();
 
   // 5. A stub agent through the session pipeline (one dummy task, 2 steps).
-  const stubHub = new GateHub(input.gate.socket, path.join(out, 'gate-sessions'));
+  const stubHub = new GateHub(input.gate.socket, path.join(out, 'gate-sessions'), undefined, hubOptions(input));
   await stubHub.start();
   const stub: StepAgent = {
     adapterId: 'claude-code-cli',
@@ -479,10 +497,11 @@ async function runSession(input: Input, install: SkeletonInstall, hub: GateHub, 
       wallMs: r.success ? r.data.wallMs : null,
       usage: r.success ? r.data.usage : null,
       permissionDenials: r.success ? r.data.permissionDenials : null,
+      modelUsageIds: r.success ? envelopeModels(recordDir, r.data.envelopePath) : [],
       typecheck: tc.success ? tc.data : { error: tc.errors },
       skeletonIntact: intact.skeletonIntact,
       treeSha256: treeSha(snap),
-      gate: { edits: gate.filter((l) => l.event === 'PostToolUse' && l.refused === null).length, replied: gate.filter((l) => l.replied).length, newKeys: gate.reduce((a, l) => a + l.newKeys.length, 0), resolvedKeys: gate.reduce((a, l) => a + l.resolvedKeys.length, 0), stopBlocks: gate.filter((l) => l.stopBlock).length, failOpen: gate.filter((l) => l.failOpen).length, refused: gate.filter((l) => l.refused !== null).length },
+      gate: { edits: gate.filter((l) => l.event === 'PostToolUse' && l.refused === null).length, replied: gate.filter((l) => l.replied).length, newKeys: gate.reduce((a, l) => a + l.newKeys.length, 0), resolvedKeys: gate.reduce((a, l) => a + l.resolvedKeys.length, 0), stopBlocks: gate.filter((l) => l.stopBlock).length, failOpen: gate.filter((l) => l.failOpen).length, refused: gate.filter((l) => l.refused !== null).length, layerKeys: gate.reduce((a, l) => a + l.newKeys.filter((k) => k.startsWith('FF-S0')).length, 0) },
     };
     steps.push(record);
     fs.appendFileSync(path.join(input.outRoot, 'turns.jsonl'), `${JSON.stringify(record)}\n`);
@@ -530,7 +549,7 @@ export function probePrompt(paths: readonly string[], editFile: string, content:
 
 async function oneTurn(input: Input, phase: 'smoke' | 'probes', cell: string, prompt: string): Promise<{ r: DomainResult<TurnResult>; cwd: string; envelope: Record<string, unknown> | null; log: GateLogLine[]; calls: Record<string, number>; cliVersion: string | null }> {
   const install = await harness(input);
-  const hub = new GateHub(input.gate.socket, input.gate.logDir);
+  const hub = new GateHub(input.gate.socket, input.gate.logDir, undefined, hubOptions(input));
   await hub.start();
   const runner = new LedgerRunner(new NodeProcessRunner(), input.binary, path.join(input.outRoot, 'calls.jsonl'), phase, input.caps);
   const agent = agentOf(input, runner);
@@ -630,10 +649,14 @@ async function probe(input: Input, rescore: boolean): Promise<number> {
   return result.passed ? 0 : 1;
 }
 
-/** `--sessions`: every task × run in the seeded order; whole-session redraws on infrastructure only. */
-async function sessions(input: Input): Promise<number> {
+/**
+ * `--sessions [--resume]`: every task × run in the seeded order; whole-session redraws on infrastructure only, at most
+ * `redrawPerTask` per task. `--resume` (PUZZLE-04, the PUZZLE-02 driver's logic) continues after a container restart:
+ * the saved schedule must equal the seeded one; sessions with a `session.json` are kept; recorded redraws run first.
+ */
+async function sessions(input: Input, resume = false): Promise<number> {
   const install = await harness(input);
-  const hub = new GateHub(input.gate.socket, input.gate.logDir);
+  const hub = new GateHub(input.gate.socket, input.gate.logDir, undefined, hubOptions(input));
   await hub.start();
   const runner = new LedgerRunner(new NodeProcessRunner(), input.binary, path.join(input.outRoot, 'calls.jsonl'), 'sessions', input.caps);
   const agent = agentOf(input, runner);
@@ -641,24 +664,42 @@ async function sessions(input: Input): Promise<number> {
   if (!probed.success) throw new Error(probed.errors.map((e) => `${e.code}: ${e.message}`).join('\n'));
   const cells = input.tasks.flatMap((t) => Array.from({ length: input.runs }, (_, r) => ({ taskId: t.id, runIndex: r })));
   const schedule = shuffled(cells, input.orderSeed).map((c, i) => ({ id: `c${String(i + 1).padStart(2, '0')}`, ...c, redrawOf: null as string | null }));
-  fs.writeFileSync(path.join(input.outRoot, 'schedule.json'), `${JSON.stringify({ orderSeed: input.orderSeed, cliVersion: probed.data.cliVersion, schedule }, null, 2)}\n`);
-  const redraws: { redrawn: string; as: string; taskId: string }[] = [];
-  const queue: SessionSpec[] = [...schedule];
+  const scheduleFile = path.join(input.outRoot, 'schedule.json');
+  const redrawFile = path.join(input.outRoot, 'redraws.jsonl');
+  const redrawsOf = (): { redrawn: string; as: string; taskId: string }[] => (fs.existsSync(redrawFile) ? fs.readFileSync(redrawFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as { redrawn: string; as: string; taskId: string }) : []);
+  let queue: SessionSpec[] = [...schedule];
   let next = schedule.length + 1;
+  if (resume) {
+    const saved = JSON.parse(fs.readFileSync(scheduleFile, 'utf8')) as { schedule: SessionSpec[] };
+    if (JSON.stringify(saved.schedule) !== JSON.stringify(schedule)) throw new Error('resume: the saved schedule differs from the seeded one');
+    for (const r of redrawsOf()) {
+      const of = [...schedule, ...queue].find((x) => x.id === r.redrawn) as SessionSpec;
+      queue.push({ id: r.as, taskId: of.taskId, runIndex: of.runIndex, redrawOf: r.redrawn });
+      next = Math.max(next, Number(r.as.slice(1)) + 1);
+    }
+    queue = queue.filter((x) => !fs.existsSync(path.join(input.outRoot, 'sessions', x.id, 'session.json')));
+    queue.sort((a, b) => (a.redrawOf === null ? 1 : 0) - (b.redrawOf === null ? 1 : 0));
+    fs.appendFileSync(path.join(input.outRoot, 'resumes.jsonl'), `${JSON.stringify({ at: new Date().toISOString(), queue: queue.map((x) => x.id) })}\n`);
+  } else {
+    fs.writeFileSync(scheduleFile, `${JSON.stringify({ orderSeed: input.orderSeed, cliVersion: probed.data.cliVersion, schedule }, null, 2)}\n`);
+  }
   while (queue.length > 0) {
     const spec = queue.shift() as SessionSpec;
     process.stdout.write(`${new Date().toISOString()} session ${spec.id} start\n`);
     const v = await runSession(input, install, hub, agent, runner, spec);
     process.stdout.write(`${new Date().toISOString()} session ${spec.id} ${v} calls ${JSON.stringify(runner.counts())}\n`);
-    if (v === 'infrastructure' && redraws.filter((r) => r.taskId === spec.taskId).length < input.redrawPerTask) {
+    if (v === 'infrastructure') {
+      if (redrawsOf().filter((r) => r.taskId === spec.taskId).length >= input.redrawPerTask) {
+        process.stdout.write(`redraw limit for ${spec.taskId} reached; session ${spec.id} stays as it is\n`);
+        continue;
+      }
       const id = `c${String(next++).padStart(2, '0')}`;
       queue.unshift({ id, taskId: spec.taskId, runIndex: spec.runIndex, redrawOf: spec.id });
-      redraws.push({ redrawn: spec.id, as: id, taskId: spec.taskId });
-      fs.appendFileSync(path.join(input.outRoot, 'redraws.jsonl'), `${JSON.stringify({ ...redraws[redraws.length - 1], at: new Date().toISOString() })}\n`);
+      fs.appendFileSync(redrawFile, `${JSON.stringify({ redrawn: spec.id, as: id, taskId: spec.taskId, at: new Date().toISOString() })}\n`);
     }
   }
   await hub.stop();
-  process.stdout.write(`${JSON.stringify({ calls: runner.counts(), redraws: redraws.length }, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({ calls: runner.counts(), redraws: redrawsOf().length }, null, 2)}\n`);
   return 0;
 }
 
@@ -676,8 +717,8 @@ async function main(argv: readonly string[]): Promise<number> {
   if (argv.includes('--dry')) return dry(input);
   if (argv.includes('--smoke')) return smoke(input);
   if (argv.includes('--probe')) return probe(input, argv.includes('--rescore'));
-  if (argv.includes('--sessions')) return sessions(input);
-  process.stderr.write('usage: run-edit-gate.ts --dry | --smoke | --probe | --sessions --input <input.json>\n');
+  if (argv.includes('--sessions')) return sessions(input, argv.includes('--resume'));
+  process.stderr.write('usage: run-edit-gate.ts --dry | --smoke | --probe | --sessions [--resume] --input <input.json>\n');
   return 2;
 }
 

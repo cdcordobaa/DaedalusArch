@@ -1,0 +1,27 @@
+Use the Write tool once to write the file src/billing/application/SettleInvoices.ts with exactly this content:
+
+```ts
+import type { CustomerRef } from '../../shared-kernel/CustomerRef';
+import type { OrderRepository } from '../../sales/domain/order/OrderRepository';
+import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository';
+
+export class SettleInvoices {
+  constructor(private readonly invoices: InvoiceRepository, private readonly orders: OrderRepository) {}
+
+  /** Marks the oldest unpaid invoice of the customer as paid, and ships its order. */
+  async execute(customer: CustomerRef, orderId: string): Promise<string | null> {
+    const [first] = await this.invoices.unpaidFor(customer);
+    if (first === undefined) return null;
+    first.markPaid();
+    await this.invoices.save(first);
+    const order = await this.orders.byId(orderId);
+    if (order !== undefined) {
+      order.markShipped();
+      await this.orders.save(order);
+    }
+    return first.id;
+  }
+}
+```
+
+After the write, a hook may add a note next to the tool result. Reply with the file and line that note names and the label it gives in square brackets, copied exactly. If you are then told that findings are still open, do not change, read or run anything; reply with the same answer again. Do not read, write or run anything else.

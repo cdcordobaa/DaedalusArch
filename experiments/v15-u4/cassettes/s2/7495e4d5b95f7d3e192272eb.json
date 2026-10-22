@@ -1,0 +1,27 @@
+{
+ "key": "7495e4d5b95f7d3e192272ebd5d72b364bcb312e4cdc412e3885c00afefa274d",
+ "part": "S2",
+ "item": "fixture/c6-s2-d5-placeorder/pos#D5#src/ordering/application/PlaceOrder.ts:21",
+ "run": 1,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:59:46.210Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 21,
+    "quote": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new Error("
+   },
+   {
+    "file": "src/ordering/domain/value-objects/Quantity.ts",
+    "line": 4,
+    "quote": "if (!Number.isInteger(value) || value <= 0) throw new Error('Quantity must be a positive integer');"
+   }
+  ],
+  "rationale": "PlaceOrder duplicates the Quantity invariant (positive integer) that the Quantity constructor already enforces. This is a business rule copy in an application service, not pure input parsing. The unit price check (non-negative whole cents) is likewise a rule the Money value object should own."
+ },
+ "invalidReason": null
+}

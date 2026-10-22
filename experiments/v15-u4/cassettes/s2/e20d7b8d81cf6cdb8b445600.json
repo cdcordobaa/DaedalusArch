@@ -1,0 +1,27 @@
+{
+ "key": "e20d7b8d81cf6cdb8b44560074eedf53ad346bc0711e41aeeacada2459315d6a",
+ "part": "S2",
+ "item": "precision/p04-one-aggregate-saved-twice/positive/declared#D4#src/sales/application/MergeOrders.ts:7",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:49.151Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/sales/application/MergeOrders.ts",
+    "line": 13,
+    "quote": "await this.orders.save(keep);"
+   },
+   {
+    "file": "src/sales/application/MergeOrders.ts",
+    "line": 14,
+    "quote": "await this.orders.save(drop);"
+   }
+  ],
+  "rationale": "MergeOrders.execute loads two distinct Order aggregate instances, mutates both (confirm and cancel), and saves both in a single command. The rule requires one aggregate per command, with the other updated later by a domain event handler."
+ },
+ "invalidReason": null
+}

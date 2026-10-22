@@ -1,0 +1,91 @@
+diff --git a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+index f5c7af37b..1a1001828 100644
+--- a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -1,22 +1,33 @@
+-import type { FastshipClient } from 'fastship-sdk';
++import { FastshipUnavailableError, type FastshipClient } from 'fastship-sdk';
+ import type { RatePort } from '../../../application/ports/out/RatePort';
+ import { ShippingError } from '../../../domain/errors/ShippingError';
+ import { Money } from '../../../domain/model/Money';
+ import type { Parcel } from '../../../domain/model/Parcel';
+ import type { Quote } from '../../../domain/model/Quote';
++import { PriceTable } from '../../../domain/services/PriceTable';
+ 
+ export class FastshipRateAdapter implements RatePort {
+-  constructor(private readonly client: FastshipClient) {}
++  constructor(
++    private readonly client: FastshipClient,
++    private readonly fallback: PriceTable = new PriceTable(),
++  ) {}
+ 
+   async cheapest(parcel: Parcel): Promise<Quote> {
+-    const { rates } = await this.client.rates({
+-      origin: { country: parcel.from },
+-      destination: { country: parcel.to },
+-      parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
+-    });
++    let rates;
++    try {
++      ({ rates } = await this.client.rates({
++        origin: { country: parcel.from },
++        destination: { country: parcel.to },
++        parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
++      }));
++    } catch (e) {
++      if (e instanceof FastshipUnavailableError) return this.fallback.quote(parcel);
++      throw e;
++    }
+     const priced = rates.map((rate) => ({
+       price: Money.of(Number(rate.amount.value), rate.amount.currency),
+       service: rate.serviceName,
++      estimated: false,
+     }));
+     if (priced.length === 0) throw new ShippingError('no Fastship service available for this parcel');
+     return priced.reduce((best, q) => (q.price.isLessThan(best.price) ? q : best));
+diff --git a/a/src/application/ports/in/QuoteShipment.ts b/b/src/application/ports/in/QuoteShipment.ts
+index 1232a22e9..d93d4df0e 100644
+--- a/a/src/application/ports/in/QuoteShipment.ts
++++ b/b/src/application/ports/in/QuoteShipment.ts
+@@ -8,6 +8,7 @@ export interface QuoteView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly service: string;
++  readonly estimated: boolean;
+ }
+ 
+ export interface QuoteShipment {
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index efadf2dae..0be3cef4d 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -12,6 +12,6 @@ export class QuoteShipmentService implements QuoteShipment {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+     const cheapest = await this.rates.cheapest(parcel);
+     const price = cheapest.price.plus(Money.of(HANDLING_FEE, cheapest.price.currency));
+-    return { amount: price.amount(), currency: price.currency, service: cheapest.service };
++    return { amount: price.amount(), currency: price.currency, service: cheapest.service, estimated: cheapest.estimated };
+   }
+ }
+diff --git a/a/src/domain/model/Quote.ts b/b/src/domain/model/Quote.ts
+index e98efa789..91b637d93 100644
+--- a/a/src/domain/model/Quote.ts
++++ b/b/src/domain/model/Quote.ts
+@@ -3,4 +3,5 @@ import type { Money } from './Money';
+ export interface Quote {
+   readonly price: Money;
+   readonly service: string;
++  readonly estimated: boolean;
+ }
+diff --git a/a/src/domain/services/PriceTable.ts b/b/src/domain/services/PriceTable.ts
+index 4c06bf856..37594659c 100644
+--- a/a/src/domain/services/PriceTable.ts
++++ b/b/src/domain/services/PriceTable.ts
+@@ -9,6 +9,6 @@ const INTERNATIONAL: Record<WeightBand, number> = { 'up-to-1kg': 12.9, 'up-to-5k
+ export class PriceTable {
+   quote(parcel: Parcel): Quote {
+     const table = parcel.isDomestic() ? DOMESTIC : INTERNATIONAL;
+-    return { price: Money.of(table[parcel.band()], 'EUR'), service: 'House rate' };
++    return { price: Money.of(table[parcel.band()], 'EUR'), service: 'House rate', estimated: true };
+   }
+ }
