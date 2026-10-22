@@ -1,0 +1,125 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:c2fcd82bc21ea344",
+    "finding": {
+      "id": "c4f:c2fcd82bc21ea344",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/billing/domain/invoice/Invoice.ts (src/billing/) imports src/ordering/domain/value-objects/Money.ts, which is not in the public API of src/ordering/",
+      "rule": "FF-DS02",
+      "sites": [
+        "7a3a68965ba080f4"
+      ],
+      "files": [
+        "src/billing/domain/invoice/Invoice.ts",
+        "src/ordering/domain/value-objects/Money.ts"
+      ],
+      "edge": {
+        "file": "src/billing/domain/invoice/Invoice.ts",
+        "line": 1,
+        "target": "src/ordering/domain/value-objects/Money.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-DS02",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "Invoice, in the billing domain, imports the Money value object straight from ordering's internal domain folder (src/ordering/domain/value-objects/Money.ts). That file is not part of ordering's public API. Invoice builds Money, calls Money.plus, and takes Money as a parameter, so billing's domain model is coupled to an internal type of another bounded context. FF-DS02 flags this because a context should only reach another context through its public API. Otherwise, changes inside ordering can break billing. The context map says billing is downstream of ordering and that ordering owns prices. That fixes the direction of the relationship but does not say that internals may be shared or that Money is exported. The dependency is a plain value type, and one file can undo it: billing could define its own Money or use an exposed ordering type.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "docs/context-map.md:3",
+                "docs/context-map.md:4"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/billing/domain/invoice/Invoice.ts:1",
+              "src/billing/domain/invoice/Invoice.ts:4",
+              "src/billing/domain/invoice/Invoice.ts:10",
+              "docs/context-map.md:3",
+              "docs/context-map.md:4"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "f48ea34f3149916880710b324489871c135112d30955d2041d124466f80eb662",
+        "date": "2026-10-22T06:28:12.275Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "Invoice, in the billing domain, imports Money straight from ordering's internal domain/value-objects folder. It uses it as a field type and calls Money.plus. Money is not in ordering's public API, so billing is coupled to ordering's internal structure. FF-DS02 flags this: a context should only reach another through its public API, so a move or change inside ordering could break billing. The context map says ordering is upstream and billing is downstream, so a dependency from billing to ordering is expected in direction. It does not say billing may use ordering's internals or grant an exception for Money. The dependency is on a plain value type, and one file can undo it, for example by giving billing its own money type or by having ordering export Money through its public API.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "docs/context-map.md:3",
+                "docs/context-map.md:4"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/billing/domain/invoice/Invoice.ts:1",
+              "src/billing/domain/invoice/Invoice.ts:10",
+              "docs/context-map.md:3",
+              "docs/context-map.md:4"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "f48ea34f3149916880710b324489871c135112d30955d2041d124466f80eb662",
+        "date": "2026-10-22T06:28:20.646Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "no-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "low",
+        "stability": "agreed"
+      },
+      "explanation": "Invoice, in the billing domain, imports the Money value object straight from ordering's internal domain folder (src/ordering/domain/value-objects/Money.ts). That file is not part of ordering's public API. Invoice builds Money, calls Money.plus, and takes Money as a parameter, so billing's domain model is coupled to an internal type of another bounded context. FF-DS02 flags this because a context should only reach another context through its public API. Otherwise, changes inside ordering can break billing. The context map says billing is downstream of ordering and that ordering owns prices. That fixes the direction of the relationship but does not say that internals may be shared or that Money is exported. The dependency is a plain value type, and one file can undo it: billing could define its own Money or use an exposed ordering type.",
+      "validRuns": 2
+    }
+  }
+}

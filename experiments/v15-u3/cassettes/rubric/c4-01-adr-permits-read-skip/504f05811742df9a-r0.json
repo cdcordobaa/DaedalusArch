@@ -1,0 +1,40 @@
+{
+  "arm": "rubric",
+  "project": "c4-01-adr-permits-read-skip",
+  "findingId": "c4f:9b4c6178c70b8d4c",
+  "runIndex": 0,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "b111ec0fe054c15f69731476474663c8c6656b0530aa9309a34fa131869e9610",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:23:53.798Z",
+  "answer": {
+    "explanation": "OrderController in the presentation layer imports and calls OrderReadRepository in the persistence layer directly. That skips the business layer, which is what FF-S03 flags. The dependency is read-only: list() calls findSummaries, while place() still goes through OrderService. ADR-0004 is Accepted and says controllers may query read repositories directly. It limits this to OrderReadRepository and says writes still go through the business layer. This case matches that exception exactly, so the finding is consistent with the declared intent, and the ADR grants the exception on purpose.",
+    "intentMatch": {
+      "status": "consistent-with-declared-intent",
+      "cites": [
+        "docs/adr/0004-read-side.md:3",
+        "docs/adr/0004-read-side.md:10",
+        "docs/adr/0004-read-side.md:11"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": true,
+      "citation": {
+        "path": "docs/adr/0004-read-side.md",
+        "startLine": 10,
+        "endLine": 11,
+        "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer."
+      },
+      "scope": "Presentation controllers may query OrderReadRepository directly for read-only queries; writes must still go through the business layer."
+    },
+    "severityClass": "low",
+    "cites": [
+      "docs/adr/0004-read-side.md:3",
+      "docs/adr/0004-read-side.md:10",
+      "docs/adr/0004-read-side.md:11",
+      "src/presentation/order.controller.ts:2",
+      "src/presentation/order.controller.ts:15"
+    ]
+  }
+}

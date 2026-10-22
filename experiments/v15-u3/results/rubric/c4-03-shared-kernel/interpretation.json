@@ -1,0 +1,138 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:c2fcd82bc21ea344",
+    "finding": {
+      "id": "c4f:c2fcd82bc21ea344",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/billing/domain/invoice/Invoice.ts (src/billing/) imports src/ordering/domain/value-objects/Money.ts, which is not in the public API of src/ordering/",
+      "rule": "FF-DS02",
+      "sites": [
+        "7a3a68965ba080f4"
+      ],
+      "files": [
+        "src/billing/domain/invoice/Invoice.ts",
+        "src/ordering/domain/value-objects/Money.ts"
+      ],
+      "edge": {
+        "file": "src/billing/domain/invoice/Invoice.ts",
+        "line": 1,
+        "target": "src/ordering/domain/value-objects/Money.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-DS02",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "Invoice, in the billing domain, imports Money straight from ordering's internal value-objects folder. It calls Money.plus and uses Money as a type. Money is not in ordering's public API, so FF-DS02 flags the deep import. The context map declares Money a shared kernel between ordering and billing, and says billing imports it directly from ordering. That line grants this specific import on purpose. The dependency is only a plain value type, and it is read-only in effect. Billing does not change any state ordering owns.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/context-map.md:7",
+                "docs/context-map.md:8"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "docs/context-map.md",
+                "startLine": 7,
+                "endLine": 7,
+                "quote": "Money is a shared kernel between ordering and billing: billing imports Money directly from ordering."
+              },
+              "scope": "billing importing Money directly from ordering's value-objects (shared kernel)"
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/billing/domain/invoice/Invoice.ts:1",
+              "src/billing/domain/invoice/Invoice.ts:9",
+              "docs/context-map.md:7",
+              "docs/context-map.md:8"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "617829c42c5063b22146adbf9e7318debb5e633bfcceccd58ef456d34ee9afbc",
+        "date": "2026-10-22T06:24:51.181Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "Invoice, in the billing domain, imports Money straight from ordering's internal value-objects folder. It calls Money.plus and passes Money through addLine and amountDue. FF-DS02 flags this because the file is not in ordering's public API, so billing depends on an internal path of another context. The context map declares Money a shared kernel between ordering and billing, and says billing imports it directly from ordering. That line grants this exact import on purpose, so the finding is consistent with the declared intent. The dependency is only a plain value type.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/context-map.md:7",
+                "docs/context-map.md:8"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "docs/context-map.md",
+                "startLine": 7,
+                "endLine": 7,
+                "quote": "Money is a shared kernel between ordering and billing: billing imports Money directly from ordering."
+              },
+              "scope": "Billing may import Money directly from ordering as a shared kernel; changes to Money are agreed by both teams."
+            },
+            "severityClass": "low",
+            "cites": [
+              "docs/context-map.md:7",
+              "docs/context-map.md:8",
+              "src/billing/domain/invoice/Invoice.ts:1"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "617829c42c5063b22146adbf9e7318debb5e633bfcceccd58ef456d34ee9afbc",
+        "date": "2026-10-22T06:24:56.846Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": true,
+        "stability": "agreed",
+        "citation": {
+          "path": "docs/context-map.md",
+          "startLine": 7,
+          "endLine": 7,
+          "quote": "Money is a shared kernel between ordering and billing: billing imports Money directly from ordering."
+        },
+        "scope": "billing importing Money directly from ordering's value-objects (shared kernel)"
+      },
+      "intentMatch": {
+        "status": "consistent-with-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "low",
+        "stability": "agreed"
+      },
+      "explanation": "Invoice, in the billing domain, imports Money straight from ordering's internal value-objects folder. It calls Money.plus and uses Money as a type. Money is not in ordering's public API, so FF-DS02 flags the deep import. The context map declares Money a shared kernel between ordering and billing, and says billing imports it directly from ordering. That line grants this specific import on purpose. The dependency is only a plain value type, and it is read-only in effect. Billing does not change any state ordering owns.",
+      "validRuns": 2
+    }
+  }
+}

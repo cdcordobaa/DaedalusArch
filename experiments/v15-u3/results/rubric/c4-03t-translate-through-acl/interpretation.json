@@ -1,0 +1,125 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:c2fcd82bc21ea344",
+    "finding": {
+      "id": "c4f:c2fcd82bc21ea344",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/billing/domain/invoice/Invoice.ts (src/billing/) imports src/ordering/domain/value-objects/Money.ts, which is not in the public API of src/ordering/",
+      "rule": "FF-DS02",
+      "sites": [
+        "7a3a68965ba080f4"
+      ],
+      "files": [
+        "src/billing/domain/invoice/Invoice.ts",
+        "src/ordering/domain/value-objects/Money.ts"
+      ],
+      "edge": {
+        "file": "src/billing/domain/invoice/Invoice.ts",
+        "line": 1,
+        "target": "src/ordering/domain/value-objects/Money.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-DS02",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "Invoice, in billing's domain layer, imports Money directly from ordering's internal value-objects folder (line 1). It uses Money as a field type, constructs it, and calls Money.plus, so billing's domain is coupled to a class that ordering owns and has not published in its public API. FF-DS02 flags this because it reaches into another context's internals. The context map states that Money is not shared, that billing must translate it through its ACL (src/billing/acl/), that it must never import it from ordering, and that there is no shared kernel. The import does what the docs forbid.",
+            "intentMatch": {
+              "status": "contradicts-declared-intent",
+              "cites": [
+                "docs/context-map.md:7",
+                "docs/context-map.md:8",
+                "src/billing/domain/invoice/Invoice.ts:1"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "docs/context-map.md:7",
+              "docs/context-map.md:8",
+              "src/billing/domain/invoice/Invoice.ts:1",
+              "src/billing/domain/invoice/Invoice.ts:9"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "8a941facdeee476784052ff668b9a8207c43827728e0d0a3d24b30a3751237fe",
+        "date": "2026-10-22T06:25:02.657Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "Billing's Invoice domain entity imports Money straight from ordering's internal value-objects folder. It uses it as the type of its total and calls Money.plus on it. Money is not in ordering's public API, so FF-DS02 flags the import as reaching into another context's internals. The context map says the opposite: Money is not shared between contexts, billing must translate it through its ACL (src/billing/acl/), and there is no shared kernel. The code does what the docs forbid. No line grants an exception.",
+            "intentMatch": {
+              "status": "contradicts-declared-intent",
+              "cites": [
+                "docs/context-map.md:7",
+                "docs/context-map.md:8"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "src/billing/domain/invoice/Invoice.ts:1",
+              "src/billing/domain/invoice/Invoice.ts:9",
+              "docs/context-map.md:7",
+              "docs/context-map.md:8"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "8a941facdeee476784052ff668b9a8207c43827728e0d0a3d24b30a3751237fe",
+        "date": "2026-10-22T06:25:13.512Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "contradicts-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "high",
+        "stability": "agreed"
+      },
+      "explanation": "Invoice, in billing's domain layer, imports Money directly from ordering's internal value-objects folder (line 1). It uses Money as a field type, constructs it, and calls Money.plus, so billing's domain is coupled to a class that ordering owns and has not published in its public API. FF-DS02 flags this because it reaches into another context's internals. The context map states that Money is not shared, that billing must translate it through its ACL (src/billing/acl/), that it must never import it from ordering, and that there is no shared kernel. The import does what the docs forbid.",
+      "validRuns": 2
+    }
+  }
+}

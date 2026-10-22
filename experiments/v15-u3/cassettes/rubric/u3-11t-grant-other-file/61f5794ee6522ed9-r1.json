@@ -1,0 +1,34 @@
+{
+  "arm": "rubric",
+  "project": "u3-11t-grant-other-file",
+  "findingId": "c4f:6797aa0b7a8bcbfa",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "e99cc1b7d2181badf05734efbd0fbad9f0c08b406d9e426c9701746ccadf8a52",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:29:00.326Z",
+  "answer": {
+    "explanation": "InvoiceReportController, in the presentation layer, imports and is constructor-injected with InvoiceRepository from the persistence layer. It calls totalFor directly, so it skips the business layer. FF-S03 flags this because layering requires presentation to go through business. The README states this rule (\"presentation calls business, and business calls persistence\"). It grants a direct-read exception only to admin-report.controller.ts and says explicitly that invoice-report.controller.ts must go through a service. The read is read-only, but the team declared the rule and the code breaks it.",
+    "intentMatch": {
+      "status": "contradicts-declared-intent",
+      "cites": [
+        "README.md:3",
+        "README.md:4"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "high",
+    "cites": [
+      "README.md:3",
+      "README.md:4",
+      "src/presentation/invoice-report.controller.ts:1",
+      "src/presentation/invoice-report.controller.ts:4",
+      "src/presentation/invoice-report.controller.ts:7"
+    ]
+  }
+}

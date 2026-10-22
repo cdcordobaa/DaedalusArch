@@ -3000,3 +3000,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 INCEPTION, Units Generation approved under delegation
 
 ---
+
+## v1.5 — CONSTRUCTION, U3 (S1 severity calibration)
+**Timestamp**: 2026-10-22T06:45:00Z
+**User Input**: "Asked for U3: a thinking note first, the severity rubric as an exploratory prompt variant without editing src/, at least six new case/twin pairs with answers written first, a pilot with claude -p (claude-sonnet-5-5) on the six-case set plus the new pairs, two runs each, a hard cap of 60 calls with a ledger, recorded answers, and a report."
+**AI Response**: "Committed ops/notes/v15-u3-severity-note.md, the rubric variant (c4-v0.2+u3-r1) and six new pairs with hashed manifests (da0cfcc2) before the first call. Ran the target finding of each of 24 projects twice with the rubric (48 calls) and the frozen prompt on two v1.4 failures as a control (4 calls): 52 of 60, 0 invalid, replay byte-identical at 0 calls. Rubric arm: 24/24 targets correct on both sets, severity agreement 24/24 per set, 0 false claims on twins, 0 hallucinated citations, all fields stable. Control reproduced case 5's severity miss and showed an intent-label slip. No revision. Report Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md; research log entry 10. U3 gate passed on development material under the author's standing delegation for gate-level calls."
+**Context**: v1.5 CONSTRUCTION, U3 code generation and pilot; gate decision
+
+---

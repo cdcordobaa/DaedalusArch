@@ -1,0 +1,123 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:745cc1026279efed",
+    "finding": {
+      "id": "c4f:745cc1026279efed",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "Domain file src/ordering/domain/customer/Customer.ts imports forbidden package typeorm",
+      "rule": "FF-DT04",
+      "sites": [
+        "7cb4ea93c34ecc38"
+      ],
+      "files": [
+        "src/ordering/domain/customer/Customer.ts"
+      ],
+      "edge": {
+        "file": "src/ordering/domain/customer/Customer.ts",
+        "line": 2,
+        "target": "typeorm"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-DT04",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "Customer is a domain entity that imports `Entity` from `typeorm` and carries the `@Entity()` decorator. That ties the domain model to an ORM framework, which is infrastructure, so FF-DT04 flags it. The docs list an exception for this file, but its status is \"Expired 2026-08-31, not renewed\". The note says the decorator \"must now be removed from the domain\". An expired exception grants nothing. The row also declares the domain-purity rule that this code breaks. The comment on line 1 says the mapping \"moves to infrastructure\", which points the same way and does not grant anything.",
+            "intentMatch": {
+              "status": "contradicts-declared-intent",
+              "cites": [
+                "docs/architecture-exceptions.md:7",
+                "src/ordering/domain/customer/Customer.ts:1"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "docs/architecture-exceptions.md:7",
+              "src/ordering/domain/customer/Customer.ts:1",
+              "src/ordering/domain/customer/Customer.ts:2",
+              "src/ordering/domain/customer/Customer.ts:4"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "dec13226ffd53d201d156bf34e818349ce02cb13e0e671f7be7912570fe6effb",
+        "date": "2026-10-22T06:27:28.976Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "Customer is a domain entity, but it imports the `typeorm` package and uses the `@Entity()` decorator. That ties the domain model to a persistence framework. FF-DT04 flags this because the domain layer must not depend on infrastructure packages. The exceptions table (docs/architecture-exceptions.md:7) lists this exact file and rule, but its status is \"Expired 2026-08-31, not renewed\". Today is 2026-10-22, so the exception no longer applies. The same line says the decorator must now be removed from the domain, which declares the rule the code breaks. The code comment at line 1 only says the mapping will move to infrastructure. That is an intention, not a grant.",
+            "intentMatch": {
+              "status": "contradicts-declared-intent",
+              "cites": [
+                "docs/architecture-exceptions.md:7",
+                "src/ordering/domain/customer/Customer.ts:1"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "src/ordering/domain/customer/Customer.ts:1",
+              "src/ordering/domain/customer/Customer.ts:2",
+              "src/ordering/domain/customer/Customer.ts:4",
+              "docs/architecture-exceptions.md:7"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "dec13226ffd53d201d156bf34e818349ce02cb13e0e671f7be7912570fe6effb",
+        "date": "2026-10-22T06:27:33.874Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "contradicts-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "high",
+        "stability": "agreed"
+      },
+      "explanation": "Customer is a domain entity that imports `Entity` from `typeorm` and carries the `@Entity()` decorator. That ties the domain model to an ORM framework, which is infrastructure, so FF-DT04 flags it. The docs list an exception for this file, but its status is \"Expired 2026-08-31, not renewed\". The note says the decorator \"must now be removed from the domain\". An expired exception grants nothing. The row also declares the domain-purity rule that this code breaks. The comment on line 1 says the mapping \"moves to infrastructure\", which points the same way and does not grant anything.",
+      "validRuns": 2
+    }
+  }
+}

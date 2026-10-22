@@ -1,0 +1,130 @@
+{
+  "arm": "control",
+  "promptVersion": "c4-v0.2",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:56d68cc0176e1d9d",
+    "finding": {
+      "id": "c4f:56d68cc0176e1d9d",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/presentation/invoice.controller.ts (presentation) skips layers to import src/persistence/invoice.repository.ts (persistence)",
+      "rule": "FF-S03",
+      "sites": [
+        "f5fe8607ade613ae"
+      ],
+      "files": [
+        "src/presentation/invoice.controller.ts",
+        "src/persistence/invoice.repository.ts"
+      ],
+      "edge": {
+        "file": "src/presentation/invoice.controller.ts",
+        "line": 2,
+        "target": "src/persistence/invoice.repository.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "InvoiceController in the presentation layer imports and is constructor-injected with InvoiceRepository from the persistence layer (line 2). Its cancel method calls repo.markCancelled directly, so it skips the business layer. FF-S03 flags this because presentation should depend only on business, and business on persistence. The README states the same rule: a controller never imports a repository, and every write goes through InvoiceService. The issue method follows the rule by calling InvoiceService. The cancel write path does not. Nothing in the docs grants an exception.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "README.md:3",
+                "README.md:4",
+                "src/presentation/invoice.controller.ts:2",
+                "src/presentation/invoice.controller.ts:15"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "medium",
+            "cites": [
+              "README.md:3",
+              "README.md:4",
+              "src/presentation/invoice.controller.ts:2",
+              "src/presentation/invoice.controller.ts:7",
+              "src/presentation/invoice.controller.ts:15"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "6371e5af2d4b927e267884bb483ed24dd81e28e05510f866083f13def3e6dcef",
+        "date": "2026-10-22T06:29:57.761Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "InvoiceController in the presentation layer imports InvoiceRepository from the persistence layer (line 2) and injects it. Its cancel() method calls repo.markCancelled directly, so it skips the business layer. FF-S03 flags this because the layering is strict: presentation may only depend on business, and business on persistence. The controller already uses InvoiceService for issue(), so the cancel write path is the inconsistent one. The README says the same: a controller never imports a repository, and every write goes through InvoiceService. The fix is to add a cancel method to InvoiceService and have the controller call it.",
+            "intentMatch": {
+              "status": "contradicts-declared-intent",
+              "cites": [
+                "README.md:3",
+                "README.md:4",
+                "src/presentation/invoice.controller.ts:2",
+                "src/presentation/invoice.controller.ts:15"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "medium",
+            "cites": [
+              "README.md:3",
+              "README.md:4",
+              "src/presentation/invoice.controller.ts:2",
+              "src/presentation/invoice.controller.ts:7",
+              "src/presentation/invoice.controller.ts:15"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "6371e5af2d4b927e267884bb483ed24dd81e28e05510f866083f13def3e6dcef",
+        "date": "2026-10-22T06:30:06.553Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": null,
+        "stability": "disagreed"
+      },
+      "severityClass": {
+        "value": "medium",
+        "stability": "agreed"
+      },
+      "explanation": "InvoiceController in the presentation layer imports and is constructor-injected with InvoiceRepository from the persistence layer (line 2). Its cancel method calls repo.markCancelled directly, so it skips the business layer. FF-S03 flags this because presentation should depend only on business, and business on persistence. The README states the same rule: a controller never imports a repository, and every write goes through InvoiceService. The issue method follows the rule by calling InvoiceService. The cancel write path does not. Nothing in the docs grants an exception.",
+      "validRuns": 2
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:56d68cc0176e1d9d",
+    "finding": {
+      "id": "c4f:56d68cc0176e1d9d",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/presentation/invoice.controller.ts (presentation) skips layers to import src/persistence/invoice.repository.ts (persistence)",
+      "rule": "FF-S03",
+      "sites": [
+        "f5fe8607ade613ae"
+      ],
+      "files": [
+        "src/presentation/invoice.controller.ts",
+        "src/persistence/invoice.repository.ts"
+      ],
+      "edge": {
+        "file": "src/presentation/invoice.controller.ts",
+        "line": 2,
+        "target": "src/persistence/invoice.repository.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "InvoiceController (presentation) imports and is constructor-injected with InvoiceRepository (persistence), and its cancel() method calls repo.markCancelled directly. This skips the business layer, so a state change (cancelling an invoice) bypasses InvoiceService. FF-S03 flags presentation reaching persistence directly. The README declares strict layering with no skipping, says a controller never imports a repository, and says every write goes through InvoiceService. The code does exactly what the README forbids. No doc or comment grants an exception.",
+            "intentMatch": {
+              "status": "contradicts-declared-intent",
+              "cites": [
+                "README.md:3",
+                "README.md:4"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "README.md:3",
+              "README.md:4",
+              "src/presentation/invoice.controller.ts:2",
+              "src/presentation/invoice.controller.ts:15"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "30b6c2a554f624f3aaebe363b56ba76d236b425e003bd751848622a5eca82e7c",
+        "date": "2026-10-22T06:25:50.585Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "InvoiceController (presentation) imports and is constructor-injected with InvoiceRepository (persistence), and its cancel() method calls repo.markCancelled directly. This skips the business layer, so a state-changing write bypasses InvoiceService. FF-S03 flags presentation-to-persistence edges that skip layers. The README declares strict layering, says a controller never imports a repository, and says every write goes through InvoiceService. The code does exactly what that line forbids, and no doc or comment grants an exception.",
+            "intentMatch": {
+              "status": "contradicts-declared-intent",
+              "cites": [
+                "README.md:3",
+                "README.md:4"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "high",
+            "cites": [
+              "README.md:3",
+              "README.md:4",
+              "src/presentation/invoice.controller.ts:2",
+              "src/presentation/invoice.controller.ts:15"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "30b6c2a554f624f3aaebe363b56ba76d236b425e003bd751848622a5eca82e7c",
+        "date": "2026-10-22T06:25:54.955Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "contradicts-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "high",
+        "stability": "agreed"
+      },
+      "explanation": "InvoiceController (presentation) imports and is constructor-injected with InvoiceRepository (persistence), and its cancel() method calls repo.markCancelled directly. This skips the business layer, so a state change (cancelling an invoice) bypasses InvoiceService. FF-S03 flags presentation reaching persistence directly. The README declares strict layering with no skipping, says a controller never imports a repository, and says every write goes through InvoiceService. The code does exactly what the README forbids. No doc or comment grants an exception.",
+      "validRuns": 2
+    }
+  }
+}

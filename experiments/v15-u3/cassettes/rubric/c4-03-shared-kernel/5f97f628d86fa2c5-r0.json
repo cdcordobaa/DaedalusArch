@@ -1,0 +1,38 @@
+{
+  "arm": "rubric",
+  "project": "c4-03-shared-kernel",
+  "findingId": "c4f:c2fcd82bc21ea344",
+  "runIndex": 0,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "617829c42c5063b22146adbf9e7318debb5e633bfcceccd58ef456d34ee9afbc",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:24:51.181Z",
+  "answer": {
+    "explanation": "Invoice, in the billing domain, imports Money straight from ordering's internal value-objects folder. It calls Money.plus and uses Money as a type. Money is not in ordering's public API, so FF-DS02 flags the deep import. The context map declares Money a shared kernel between ordering and billing, and says billing imports it directly from ordering. That line grants this specific import on purpose. The dependency is only a plain value type, and it is read-only in effect. Billing does not change any state ordering owns.",
+    "intentMatch": {
+      "status": "consistent-with-declared-intent",
+      "cites": [
+        "docs/context-map.md:7",
+        "docs/context-map.md:8"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": true,
+      "citation": {
+        "path": "docs/context-map.md",
+        "startLine": 7,
+        "endLine": 7,
+        "quote": "Money is a shared kernel between ordering and billing: billing imports Money directly from ordering."
+      },
+      "scope": "billing importing Money directly from ordering's value-objects (shared kernel)"
+    },
+    "severityClass": "low",
+    "cites": [
+      "src/billing/domain/invoice/Invoice.ts:1",
+      "src/billing/domain/invoice/Invoice.ts:9",
+      "docs/context-map.md:7",
+      "docs/context-map.md:8"
+    ]
+  }
+}

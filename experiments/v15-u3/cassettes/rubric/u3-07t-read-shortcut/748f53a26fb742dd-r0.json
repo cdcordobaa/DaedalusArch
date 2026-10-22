@@ -1,0 +1,29 @@
+{
+  "arm": "rubric",
+  "project": "u3-07t-read-shortcut",
+  "findingId": "c4f:f618c4af591d7c1c",
+  "runIndex": 0,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "bea508bf1184d69d284bcd310343f675802bec9fd13cb3f42e27df313b87233a",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:26:54.438Z",
+  "answer": {
+    "explanation": "ShipmentController, in the presentation layer, imports ShipmentRepository from the persistence layer (line 2). It injects the repository in its constructor and calls findStatus directly in status(), so it skips the business layer, which it already uses for create(). FF-S03 flags this because presentation should reach persistence only through the business layer. The provided material has no doc, ADR or comment that declares a layering rule or grants an exception for this case, so the finding is judged on what the dependency does. The bypass is a read-only status lookup, and a service method could replace it in one file.",
+    "intentMatch": {
+      "status": "no-declared-intent",
+      "cites": []
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "low",
+    "cites": [
+      "src/presentation/shipment.controller.ts:2",
+      "src/presentation/shipment.controller.ts:7",
+      "src/presentation/shipment.controller.ts:15"
+    ]
+  }
+}

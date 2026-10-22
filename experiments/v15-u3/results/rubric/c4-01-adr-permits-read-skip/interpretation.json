@@ -1,0 +1,146 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:9b4c6178c70b8d4c",
+    "finding": {
+      "id": "c4f:9b4c6178c70b8d4c",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/presentation/order.controller.ts (presentation) skips layers to import src/persistence/order-read.repository.ts (persistence)",
+      "rule": "FF-S03",
+      "sites": [
+        "099dcaf263962444"
+      ],
+      "files": [
+        "src/presentation/order.controller.ts",
+        "src/persistence/order-read.repository.ts"
+      ],
+      "edge": {
+        "file": "src/presentation/order.controller.ts",
+        "line": 2,
+        "target": "src/persistence/order-read.repository.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "OrderController in the presentation layer imports and calls OrderReadRepository in the persistence layer directly. That skips the business layer, which is what FF-S03 flags. The dependency is read-only: list() calls findSummaries, while place() still goes through OrderService. ADR-0004 is Accepted and says controllers may query read repositories directly. It limits this to OrderReadRepository and says writes still go through the business layer. This case matches that exception exactly, so the finding is consistent with the declared intent, and the ADR grants the exception on purpose.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/adr/0004-read-side.md:3",
+                "docs/adr/0004-read-side.md:10",
+                "docs/adr/0004-read-side.md:11"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "docs/adr/0004-read-side.md",
+                "startLine": 10,
+                "endLine": 11,
+                "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer."
+              },
+              "scope": "Presentation controllers may query OrderReadRepository directly for read-only queries; writes must still go through the business layer."
+            },
+            "severityClass": "low",
+            "cites": [
+              "docs/adr/0004-read-side.md:3",
+              "docs/adr/0004-read-side.md:10",
+              "docs/adr/0004-read-side.md:11",
+              "src/presentation/order.controller.ts:2",
+              "src/presentation/order.controller.ts:15"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "b111ec0fe054c15f69731476474663c8c6656b0530aa9309a34fa131869e9610",
+        "date": "2026-10-22T06:23:53.798Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "OrderController in the presentation layer imports and calls OrderReadRepository in the persistence layer directly, skipping the business layer. FF-S03 flags this as a layer skip. ADR-0004 (Accepted) declares this case on purpose. It says controllers may query read repositories directly, limits the exception to OrderReadRepository, and keeps writes going through the business layer. The code matches that scope. The controller's place() goes through OrderService, and only the read-only list() uses the repository. The finding is consistent with the declared intent, and the ADR grants this exact import as an exception.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/adr/0004-read-side.md:3",
+                "docs/adr/0004-read-side.md:10",
+                "docs/adr/0004-read-side.md:11",
+                "docs/adr/0004-read-side.md:14"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "docs/adr/0004-read-side.md",
+                "startLine": 10,
+                "endLine": 11,
+                "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer."
+              },
+              "scope": "Presentation controllers may directly use OrderReadRepository (read-only queries); writes must still go through the business layer."
+            },
+            "severityClass": "low",
+            "cites": [
+              "docs/adr/0004-read-side.md:3",
+              "docs/adr/0004-read-side.md:10",
+              "docs/adr/0004-read-side.md:11",
+              "docs/adr/0004-read-side.md:14",
+              "src/presentation/order.controller.ts:2",
+              "src/presentation/order.controller.ts:11",
+              "src/presentation/order.controller.ts:15"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "b111ec0fe054c15f69731476474663c8c6656b0530aa9309a34fa131869e9610",
+        "date": "2026-10-22T06:23:59.287Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": true,
+        "stability": "agreed",
+        "citation": {
+          "path": "docs/adr/0004-read-side.md",
+          "startLine": 10,
+          "endLine": 11,
+          "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer."
+        },
+        "scope": "Presentation controllers may query OrderReadRepository directly for read-only queries; writes must still go through the business layer."
+      },
+      "intentMatch": {
+        "status": "consistent-with-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "low",
+        "stability": "agreed"
+      },
+      "explanation": "OrderController in the presentation layer imports and calls OrderReadRepository in the persistence layer directly. That skips the business layer, which is what FF-S03 flags. The dependency is read-only: list() calls findSummaries, while place() still goes through OrderService. ADR-0004 is Accepted and says controllers may query read repositories directly. It limits this to OrderReadRepository and says writes still go through the business layer. This case matches that exception exactly, so the finding is consistent with the declared intent, and the ADR grants the exception on purpose.",
+      "validRuns": 2
+    }
+  }
+}

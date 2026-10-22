@@ -1,0 +1,29 @@
+{
+  "arm": "rubric",
+  "project": "u3-07t-read-shortcut",
+  "findingId": "c4f:f618c4af591d7c1c",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "bea508bf1184d69d284bcd310343f675802bec9fd13cb3f42e27df313b87233a",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:27:03.015Z",
+  "answer": {
+    "explanation": "ShipmentController, in the presentation layer, imports and constructor-injects ShipmentRepository from the persistence layer (line 2). Its status() method calls repo.findStatus directly (line 15), so it skips the business layer. Its create() method does go through ShipmentService. FF-S03 flags this because presentation should reach persistence only through the business layer. No docs, ADRs or comments were provided, so the project declares no intent or exception on this. The bypass is a read-only status lookup. Routing it through a ShipmentService method would remove the dependency, and only this one file would need to change.",
+    "intentMatch": {
+      "status": "no-declared-intent",
+      "cites": []
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "low",
+    "cites": [
+      "src/presentation/shipment.controller.ts:2",
+      "src/presentation/shipment.controller.ts:7",
+      "src/presentation/shipment.controller.ts:15"
+    ]
+  }
+}
