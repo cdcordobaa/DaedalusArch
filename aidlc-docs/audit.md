@@ -3072,3 +3072,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory PUZZLE-02 tool arm; development material only, never applied to Study 2b; no frozen path changed
 
 ---
+
+## Hand reads — PUZZLE-03 baseline and PUZZLE-02 tool arm (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T18:58:31Z
+**User Input**: "(coordinator brief) Hand-read the 17 PUZZLE-03 oracle FAILs and its 6 functional failures, and the PUZZLE-02 tool arm's five P2 final trees (P2-SG2-a vs a cross-context write or duplicated rule; P2-SG1-b) and its 3 functional failures. Write a verdict, file:line and reason for each, pick 2 seeded spot-check cases per file, add dated after-the-hand-read sections to both reports, merge PR #363 first, add a research-log entry, open a PR and merge it on green. Zero generator or model calls; no oracle change."
+**AI Response**: "Merged main into pilot/puzzle-02-tool-arm (append-only conflicts in audit.md and the research log, both sides kept; that branch's log entry renumbered 14) and merged PR #363 on green Build & Test. PUZZLE-03: 17 trap, 0 over-rejection, 0 unclear. Functional failures: P3r a request ambiguity, P5 a functional miss. Counts unchanged: P3r 1/5, P5 0/5, P6 0/5. PUZZLE-02 tool arm: 0 trap, 6 over-rejection (5 P2-SG2-a, 1 P2-SG1-b), 0 unclear. P1 c11 is a real defect (transfer ids repeat across commands); P2 c01 and c03 report the total before the discount. Counts: P1 4/5 vs 0/5, P2 3/5 vs 1/5. Spot-checks drawn with seeds 20261023 (#9, #17) and 20261022 (#3, #6). Records: results/v1.4-puzzle-03-baseline/hand-read.md, results/v1.4-puzzle-02-tool-arm/hand-read.md; research-log entry 15."
+**Context**: Exploratory hand reads; development material only, never applied to Study 2b; no frozen path or oracle changed; zero calls
+
+---

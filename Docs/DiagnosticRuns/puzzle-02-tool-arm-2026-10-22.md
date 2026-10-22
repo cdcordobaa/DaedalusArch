@@ -137,3 +137,53 @@ Proposed categories:
 
 The functional failure c11 has no oracle FAIL. It is named here so that it is read too. All counts are
 **provisional** until the author has read these.
+
+## 8. After the hand read (2026-10-22, zero calls)
+
+All 6 oracle failures and the 3 functional failures were read by hand against the pre-registered categories
+(`results/v1.4-puzzle-02-tool-arm/hand-read.md`, a verdict, file:line and reason for each): **0 trap,
+6 over-rejection, 0 unclear**.
+
+**The sales-side handler is a clean design on both sub-goals, in all five P2 trees (P2-SG2-a).**
+- `PlaceOrder` saves only the `Order`.
+- The relay delivers the stored `OrderPlaced` after the command's body has returned.
+- The handler calls membership's published `awardPoints`, and membership's own command saves the `Member`.
+- This is the winning line's delivery path; only the folder differs (`solutions/clean/src/main.ts:22`).
+
+**It is not a duplicated rule.**
+- The tier stays in `Member`: step 2 changed `GOLD_FROM` there only.
+- The discount-by-tier table is in sales, which is allowed.
+- The earning rule exists once.
+
+**c05 SG1 is P2-SG1-b.** It is a guard on the order's earned points, not a tier decision.
+
+**Not scored, recorded for the author.** In four trees the earning rule sits in a sales application handler, and the
+discount table sits in the ACL or the application service rather than in a domain object. That is the rule 3 point
+the PUZZLE-01 hand read noted for c07. No registered sub-goal covers it.
+
+**Functional failures.**
+- **P1 c11: a real defect from step 1.** Transfer ids come from a per-instance counter on a `Transfer` that is built
+  anew for every command, so a second transfer between the same two accounts reuses the first one's id. The
+  receiving account drops it as a duplicate, and the money vanishes.
+- **P2 c01 and c03:** `total` is reported before the discount (100 instead of 90), a reading of "the discount next
+  to the total".
+
+**Counts after the hand read** (provisional until the author's spot-check):
+
+| | P1 `mcp-detect` | P1 `none` | P2 `mcp-detect` | P2 `none` |
+|---|---|---|---|---|
+| Clean solves | **4/5** [.38, .96] | 0/5 [0, .43] | **3/5** [.23, .88] | 1/5 [.04, .62] |
+| Trapped | 0 | 5 | **0** | 4 |
+| Functional failures | 1 | 0 | 2 | 0 |
+| SG1 / SG2 on final trees | 5/5, 5/5 | 0/5, 3/5 | **5/5, 5/5** | 5/5, 1/5 |
+
+pass^5 is 0 in every cell.
+
+**Predictions (§3).** "P2 improves less than P1" holds: 3/5 vs 4/5. On P2 the shift from 4 trapped runs to 0 came
+with no finding from the tool (§4), so it cannot be credited to the tool's output. 3/5 against 1/5 is not separable
+at n = 5.
+
+**Spot-check.** Two cases were drawn with seed 20261022 (Python `random.Random(20261022).sample(range(1, 7), 2)`):
+#3 (c04 SG2) and #6 (c10 SG2). Their recorded seeds equal the committed P2 seed.
+
+Sections 1–7 are left as written.
