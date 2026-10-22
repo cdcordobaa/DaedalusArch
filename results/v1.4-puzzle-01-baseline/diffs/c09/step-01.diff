@@ -1,0 +1,41 @@
+diff --git a/a/src/business/services/LoanService.ts b/b/src/business/services/LoanService.ts
+index 778ddd85..62865260 100644
+--- a/a/src/business/services/LoanService.ts
++++ b/b/src/business/services/LoanService.ts
+@@ -25,8 +25,12 @@ export class LoanService {
+     return this.loans.openLoansOf(memberId).map(toView);
+   }
+ 
+-  /** The nightly run: flags overdue loans. */
++  /** The nightly run: flags overdue loans and suspends their holders; returns how many loans were flagged. */
+   nightly(today: string): number {
+-    return this.loans.markOverdue(today);
++    const flagged = this.loans.markOverdue(today);
++    for (const loan of flagged) {
++      this.members.suspend(loan.memberId, `book ${loan.bookId} is overdue`);
++    }
++    return flagged.length;
+   }
+ }
+diff --git a/a/src/persistence/LoanGateway.ts b/b/src/persistence/LoanGateway.ts
+index f30a5cca..0240654a 100644
+--- a/a/src/persistence/LoanGateway.ts
++++ b/b/src/persistence/LoanGateway.ts
+@@ -23,13 +23,13 @@ export class LoanGateway {
+     return [...this.db.loans.values()].filter((l) => l.memberId === memberId && l.returnedDay === null).map((l) => ({ ...l }));
+   }
+ 
+-  /** Nightly batch: flags every open loan due before `today`; returns how many were flagged. */
+-  markOverdue(today: string): number {
+-    let flagged = 0;
++  /** Nightly batch: flags every open loan due before `today`; returns the loans that were flagged. */
++  markOverdue(today: string): LoanRecord[] {
++    const flagged: LoanRecord[] = [];
+     for (const loan of this.db.loans.values()) {
+       if (loan.returnedDay === null && !loan.overdue && loan.dueDay < today) {
+         loan.overdue = true;
+-        flagged += 1;
++        flagged.push({ ...loan });
+       }
+     }
+     return flagged;

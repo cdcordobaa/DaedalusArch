@@ -2853,11 +2853,27 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## PUZZLE-01 baseline — agent alone, arm none (plan, before any generator call)
+**Timestamp**: 2026-10-21T02:12:29Z
+**User Input**: "(coordinator brief) Run the exploratory PUZZLE-01 baseline (arm none only, DEV split, not Study 2b): repair the gaps an adversarial review found (restore the ignored ports/out files, add declared house rules to each seed, repair two oracles and pre-register hand-read categories, keep tests and all puzzle material out of the generator's reach), commit the plan before any call, then smoke, probes, 5 runs per puzzle, zero-call scoring with oracle and instrument visibility, a report and an unmerged PR."
+**AI Response**: "Before any call: R1 restored the P3 seed and trap port files byte-exact; the P3 clean port could not be restored exactly, so P3 is dropped; P1, P2 and P4 re-verified VALID. R7 added a neutral ARCHITECTURE.md to every seed (hint audit 0 FAIL). R4 widened P1 SG1 and P2 SG1 and pre-registered hand-read categories. Committed the plan (claude-sonnet-5-5, CLI 2.1.305, seed 20261021, 3 puzzles x 5 runs x 3 steps, caps 1 + 5 + 66 = 72), the outcome definitions, the go/no-go band with the R5 and R6 readings, the isolation procedure (unprivileged generator user, root-only directories) and the driver. Zero generator calls so far."
+**Context**: Exploratory PUZZLE-01 baseline, plan stage; no frozen path or Study 2b file changed
+
+---
+
 ## Study 2b — run collected (counts only, not scored)
 **Timestamp**: 2026-10-21T02:17:25Z
 **User Input**: "(coordinator brief) After the go: pre-run checks at the run commit (hashes, frozen inputs, zero-call re-checks, live S4 re-run, 9 calls), then the 40-block run per the runbook, replicate by replicate, two lanes; stop only on an integrity failure; no scoring; archive the out-roots path-free and write a counts-only collection report."
 **AI Response**: "Pre-run checks green at 0b17d601 (sealed tasks.json, MANIFEST and pinned CLI hashes match; frozen-path diff empty; instrument tree equals the tag; dry run of the real plans 30/30; S4 re-run PASS 9/9). Run 2026-10-20T19:07:04Z to 2026-10-21T02:17:25Z: 40 of 40 blocks complete in each of none@L2, none@L3 and mcp@L2; 520 step turns; 0 pauses; 0 redraws; CLI 2.1.304; served model claude-sonnet-5-5 only; no harness failure and no stop. In-run checks: 0 evaluation errors, telemetry as expected, 0 denials naming HOME or the sealed folder. 30 out-roots archived and verified; tarball hashes and pointers committed, full manifests kept with the tarballs until scoring. Report: Docs/DiagnosticRuns/v1.4-study2b-collection-2026-10-20.md."
 **Context**: v1.4 Study 2b, drift record order step: run (collection); scoring follows in a later session
+
+---
+
+## PUZZLE-01 baseline — run and zero-call scoring
+**Timestamp**: 2026-10-21T02:54:04Z
+**User Input**: "(coordinator brief, continued) Run the baseline under the committed plan, score it with zero calls, report and open an unmerged PR."
+**AI Response**: "54 of 72 generator calls (smoke 1, probes 5, baseline 48); isolation achieved (unprivileged generator user, root-only directories, 0 readable fingerprints, READ probe denied all paths); one whole-session redraw after a container restart. Clean solves: P1 0/5, P2 0/5 by the oracle (1/5 if the pre-registered over-rejection case is accepted), P4 5/5; no functional failure; the frozen instrument and the DETECT-01 prototypes flag none of the 12 agent-tree oracle failures. Section 9 band not met; P4 at 5/5 calls for a harder visible puzzle before any tool arm. Counts provisional until the author's hand read."
+**Context**: Exploratory PUZZLE-01 baseline, run and scoring; no frozen path or Study 2b file changed
 
 ---
 

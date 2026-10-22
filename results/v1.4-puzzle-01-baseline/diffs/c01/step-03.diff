@@ -1,0 +1,39 @@
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 360540bb..2a9e7403 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -15,4 +15,8 @@ export class MembershipDirectory implements MemberDirectory {
+     const tier = this.membership.card(memberId)?.tier;
+     return tier === undefined ? 0 : (DISCOUNT_BY_TIER[tier] ?? 0);
+   }
++
++  awardPoints(memberId: string, points: number): void {
++    this.membership.awardPoints(memberId, points);
++  }
+ }
+diff --git a/a/src/sales/application/PlaceOrder.ts b/b/src/sales/application/PlaceOrder.ts
+index 66ace1c6..cac40a5d 100644
+--- a/a/src/sales/application/PlaceOrder.ts
++++ b/b/src/sales/application/PlaceOrder.ts
+@@ -25,6 +25,10 @@ export class PlaceOrder {
+     if (memberId !== null && !this.directory.exists(memberId)) throw new Error(`no member ${memberId}`);
+     const discountPercent = memberId === null ? 0 : this.directory.discountPercent(memberId);
+     const order = Order.place(this.orders.nextId(), memberId, lines.map((l) => ({ sku: l.sku, quantity: l.quantity, unitPrice: Money.of(l.unitPrice, currency) })), discountPercent);
++    // One point per whole currency unit paid. The award goes first: it is the only step that can
++    // still fail here, so a failure leaves neither an order nor points behind.
++    const points = Math.floor(order.total().cents / 100);
++    if (memberId !== null && points > 0) this.directory.awardPoints(memberId, points);
+     this.orders.save(order);
+     return { orderId: order.id.value, total: order.total().amount(), discount: order.discount().amount() };
+   }
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 7f89ee96..dfa7a8fe 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -3,4 +3,6 @@ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** Whole-number percent off every order for this member; 0 when there is none. */
+   discountPercent(memberId: string): number;
++  /** Puts points on the member's card straight away. */
++  awardPoints(memberId: string, points: number): void;
+ }
