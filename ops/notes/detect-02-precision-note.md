@@ -91,6 +91,39 @@ with a declared spec it is not a root unless declared.
 
 **Check.** The fixtures and the dev set are re-run after R1 (results below, §6).
 
+### R2, 2026-10-22: a static helper is not a store
+
+**Seen on a human repository (declared-spec pass, before R2):** the single hit (lucashang-ddd-payday, §7) is true on
+reading, but its write-site evidence also listed the static mapper calls `UserMap.toDTO(user)` and
+`AccountMap.toDTO(account)`. A static mapper class in an infrastructure folder that has `toDomain(raw): User` counted
+as a store of User (R1), so mapping a root to a DTO counted as writing it. The verdict did not change (the mapped User
+is the inserted one), but a command that saves one root and maps another loaded root would be a false positive.
+
+**Change (`lib/facts.ts`).** A static method of an in-tree class is never a sink: a store is an object the command
+holds (injected or constructed), and a static helper (mapper, factory) holds no storage. The footprint still follows
+the call into the static method, so a static helper that itself calls a store is still seen. External-module calls
+are unchanged.
+
+### R3, 2026-10-22: root inference (fallback only) and finders on declared repositories
+
+**Seen in a partial first pass over the human DDD repositories, with roots inferred (spec without `aggregates`):**
+12 R-D4 hits in ddd-forum (9) and meetinger (3), all false on reading. Example: `UpvotePost.execute` saves one Post,
+whose votes are its child entities written by the Post repository; this is pattern P5. Three causes:
+- identifier wrappers (`PostId`, `MeetingID`: an `Entity` subclass whose only state is `id`) were inferred as roots;
+- real roots whose identity comes from an in-tree entity base class (`Post extends AggregateRoot`) were missed;
+- on a spec-declared repository that loads no single root, finders and existence checks (`exists(postId)`,
+  `fetchMeetingByID(id): [Meeting, number]`) counted as writes.
+
+**Change (`lib/facts.ts`).**
+- Identity may be inherited from an in-tree base class (`id` or `_id`).
+- A type whose only own state is its identity is an identifier, and it is never an inferred root.
+- A tuple return is a single load of each element.
+- On a declared repository that loads no root, only methods returning nothing write.
+
+**Check.** Fixtures still at 0/20 false-positive runs and 12/12 twins flagged; dev set identical tree by tree. These
+human repositories are now **development material** for the inferred-roots condition. The full Phase 2 pass is to be
+redone with R1–R3 in place.
+
 ## 6. Results after R1 (dev material; written before the human-repository pass)
 
 - **Fixtures** (`experiments/detect-02/results/precision.json`): 0 false-positive runs of 20 legit runs (10 patterns
@@ -103,3 +136,18 @@ with a declared spec it is not a root unless declared.
 - **Observed, not changed (recall, not precision):** a loop that saves a newly created root per element of a
   non-root collection (`for (const row of rows) save(Customer.register(row))`) is counted as one instance, because the
   loop is not over a root collection. P6 uses the `saveAll(rows.map(…))` form, which is counted as many.
+
+## 7. Status: Phases 2 and 3 deferred (2026-10-22)
+
+The usage budget is short until the weekly reset, so this step stops after Phase 1.
+- **Phase 2 (human DDD repositories): partly run, deferred.** The 13 DDD-styled repositories of the v1.3 external
+  waves 1–3 were cloned at their pinned SHAs and run once with their hand-written specs (12 declare aggregates;
+  quiz4devs-backend is Hexagonal with inferred roots). Declared specs, after R1 and before R2: 1 tree with hits
+  (lucashang-ddd-payday, `CreateUserUseCase.execute`: R-D4 and R-XCTX). On reading it is **true**: the users context
+  inserts a User, then synchronously runs the accounts context's `CreateAccountUseCase`, which inserts an Account.
+  Three repositories give the rules nothing to read: talyssonoc-node-api and camps-graphql-api are written in a
+  functional style (type aliases, curried handlers), and miczeq-nodejs-ddd has no application layer at its pin. The
+  inferred-roots pass produced the 12 false hits that led to R3. That pass is not a result. The full pass, with every
+  hit hand-read, is redone after the reset with R1–R3.
+- **Phase 3 (the one-time held-out check): not started.** The sealed set was not opened and its manifest was not
+  hashed. It runs after Phase 2 is committed.
