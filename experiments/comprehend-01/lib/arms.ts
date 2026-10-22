@@ -55,8 +55,12 @@ export const GRAPH_ALLOW_RULES: readonly string[] = mcpToolRules(COMPREHEND_SERV
 
 /** The argv of one session (prompt included); FG needs an absolute per-session MCP config path. */
 export function armArgs(arm: Arm, prompt: string, mcpConfigPath?: string): { ok: true; args: readonly string[] } | { ok: false; errors: string[] } {
-  const base = buildConditionArgs('R', { prompt, model: MODEL });
-  if (!base.success) return { ok: false, errors: base.errors.map((e) => `${e.code}: ${e.message}`) };
+  const built = buildConditionArgs('R', { prompt, model: MODEL });
+  if (!built.success) return { ok: false, errors: built.errors.map((e) => `${e.code}: ${e.message}`) };
+  // R2 (2026-10-22, after the two calibration smokes, before any question): `--safe-mode` disables every --mcp-config
+  // server (FG's smoke saw `mcp_servers: []`), so both arms drop it and add `--disable-slash-commands`, as the
+  // brownfield pilot of 2026-10-19 did. `--restricted` still ignores settings files; sessions run from tree copies.
+  const base = { data: built.data.flatMap((a) => (a === '--safe-mode' ? ['--disable-slash-commands'] : [a])) };
   if (arm === 'F') return { ok: true, args: base.data };
   if (mcpConfigPath === undefined || !path.isAbsolute(mcpConfigPath)) return { ok: false, errors: ['FG needs an absolute --mcp-config path'] };
   const args = [...base.data];

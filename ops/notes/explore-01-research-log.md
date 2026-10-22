@@ -199,7 +199,86 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - **Reading (dev):** P6 is the first puzzle the frozen instrument sees that the agent alone fails at 2/5 or below.
   The condition for sizing an `mcp` arm is met, and P5 meets it for a DETECT-02 arm.
 
-### 14. v1.5 U4: S3 aggregate facts and S2 confirmation (2026-10-22)
+### 14. PUZZLE-02 tool arm `mcp-detect` on P1 and P2 (2026-10-22, about 03:20–03:43 UTC; branch `pilot/puzzle-02-tool-arm`, PR not merged)
+- **Spec and records:** run note `puzzle-02-tool-arm-note.md`; plan committed before any call
+  (`experiments/puzzle-02-tool-arm/`); report `Docs/DiagnosticRuns/puzzle-02-tool-arm-2026-10-22.md`; records
+  `results/v1.4-puzzle-02-tool-arm/`.
+- **Setup:** the baseline's plan and isolation, reused. The only additions are the §4 frame sentence and the DETECT-02
+  server (`check_consistency`), which runs as root behind a socket relay. CLI 2.1.307 (baseline 2.1.305, recorded as an
+  exploratory difference).
+- **Calls:** 34 of 38. Smoke, confinement probe and the zero-call isolation checks passed. One container restart:
+  c06 was redrawn as c11.
+- **Result** (provisional until the hand read; per puzzle, against the baseline `none`):
+  - **P1:** 4/5 clean vs 0/5. The agent's own call flagged R-D4 at step 1 in every run, and a later call in the same
+    turn came back clean (caught-and-fixed at tool-call grain: 4; at snapshot grain: 0). The fifth run is a
+    functional failure.
+  - **P2:** 0/5 by the oracle vs 0/5. The tool returned clean everywhere, yet no run wrote points inside the command;
+    all five used an event handler in sales on the relay. That is the pre-registered over-rejection P2-SG2-a, so P2
+    is 3/5 if the author accepts it (two runs are functional failures).
+- **Predictions:** P1 held; "P2 improves less than P1" held, but by another mechanism than predicted.
+- **Reading (dev):**
+  - On P1 the tool + instruction moved an extreme split.
+  - On P2 the structural change came without any finding, so the caveat "tool + instruction vs neither" decides what
+    it can be attributed to. A placebo arm would separate the two.
+
+### 15. Hand reads: PUZZLE-03 baseline and PUZZLE-02 tool arm (2026-10-22)
+Zero model or generator calls. Records: `results/v1.4-puzzle-03-baseline/hand-read.md`,
+`results/v1.4-puzzle-02-tool-arm/hand-read.md`. A dated "after the hand read" section was added to each report. PR #363 (entry 14) was merged first.
+
+**PUZZLE-03 baseline: 17 oracle FAILs → 17 trap, 0 over-rejection, 0 unclear.**
+- P3r c02: the port is typed with `FastshipRate`, and the service imports the SDK's error at runtime.
+- P5: 10/10 are the sailing's write inside the booking command.
+- P6: 5/5 inject `MechanicGateway` into the controller.
+
+PUZZLE-03 functional failures:
+- P3r (3): a request ambiguity (the fee is also added on the fallback).
+- P5 (3): a functional miss (`book` throws on a cancelled sailing).
+
+Counts after the hand read are unchanged: P3r 1/5 [.04, .62], P5 0/5, P6 0/5. Spot-check #9 (c14 P5) and #17 (c15 P6),
+drawn with seed 20261023.
+
+**PUZZLE-02 tool arm: 6 oracle FAILs → 0 trap, 6 over-rejection, 0 unclear.**
+- The five SG2 FAILs are P2-SG2-a. `PlaceOrder` saves only the order, the relay delivers the stored event, and the
+  handler calls membership's published write. There is no duplicated rule: the tier stays in `Member` and the earning
+  rule exists once.
+- c05 SG1 is P2-SG1-b.
+- Rule 3 placement is recorded, not scored: in four trees the earning rule sits in a sales application handler.
+
+PUZZLE-02 functional failures:
+- P1 c11: a real defect. Transfer ids repeat across commands, so the receiving account drops later transfers as
+  duplicates.
+- P2 c01 and c03: `total` is reported before the discount.
+
+Counts after the hand read: P1 4/5 vs 0/5 (unchanged); **P2 3/5 [.23, .88] vs 1/5 [.04, .62]**, trapped 0 vs 4.
+Spot-check #3 (c04) and #6 (c10), drawn with seed 20261022.
+
+**Reading (dev):** on P2 the arm moved the trapped count from 4 to 0 with no finding from the tool. 3/5 against 1/5
+is not separable at n = 5.
+
+### 16. COMPREHEND-01 pilot: files only vs files plus graph tools (2026-10-22)
+`Docs/DiagnosticRuns/comprehend-01-pilot-2026-10-23.md`, `experiments/comprehend-01/results/pilot/`:
+- **Run:** 30 questions × 2 arms × 1 run, `claude-sonnet-5-5`; 63 of 64 calls. The generator was isolated as in the
+  puzzle baselines: uid 1500, tree copies, the clone closed with chmod only. 0 confinement findings.
+- **Two revisions, both before any question:**
+  - R1: the cap of 64 and the isolated layout.
+  - R2: `--safe-mode` (from EFF-01's argv) dropped the graph server in the FG smoke. Both arms dropped it, and an
+    init check now stops the pilot on a server mismatch.
+- **Accuracy:** F 0.933, FG 0.900. On non-Gw items it is 0.963 each, a difference of 0.00, so "more accurately"
+  fails (criterion ≤ 0.05).
+- **Cost:** token ratio FG/F 0.835 on non-Gw items (0.827 on the human repositories); wall time −15%; −1.5 tool calls
+  per item. "More cheaply" holds (< 0.9). `impact` was never called.
+- **Wrong FG answers:**
+  - LH-WW1: `who_writes` misses the `UpdatePartial<Account>` writes (D2); the agent used it unchecked.
+  - DF-C1: `trace` stops at the ORM hook and event registry, and `who_writes` names the port, not `MemberRepo` (D2).
+    The result is a naming slip that F makes too.
+  - P2-P1: a placement with no graph call (D4). It is a possible key dispute: the PUZZLE-02 hand read (entry 15) accepts the same
+    sales-side handler shape on P2 as clean (P2-SG2-a).
+  - D1: 0. All three Gw items were predicted before the run.
+- **Reading (dev):** F names the rule of every puzzle trap step (PR6), so the PUZZLE-01 trap rate is not a
+  comprehension failure. The graph is a cost saver at equal accuracy here, not an accuracy aid. Delivery at the moment
+  of action (the edit gate) is the track this points to.
+
+### 17. v1.5 U4: S3 aggregate facts and S2 confirmation (2026-10-22)
 `Docs/DiagnosticRuns/v15-u4-2026-10-23.md`, `experiments/v15-u4/`, note `ops/notes/v15-u4-facts-confirmation-note.md` (r1 before any call, r2 after the S2 failure). 73 of 75 calls, `claude-sonnet-5-5`:
 - **Baseline first (zero calls):** with R1–R3, both declared and inferred roots give one hit on the 13 human DDD repositories, the lucashang true hit. The 12 earlier false hits are gone symbolically, so S3 cannot lift the hit count.
 - **S3 passes:**
@@ -222,11 +301,17 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Fix the S1 seed `.gitignore` gap on `pilot/hexddd-01`; update the case-bank cards with the entry 6 verdicts.
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
-- [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
-- [ ] Author: decide whether an unowned set invariant (the lock form) is D5 and whether a pre-existing copy counts. This decides S2's next step (entry 14).
+- [x] Hand-read the PUZZLE-02 tool-arm oracle FAILs (entry 15; `results/v1.4-puzzle-02-tool-arm/hand-read.md`).
+- [ ] Author: spot-check the two seeded picks of each hand read (entry 15): PUZZLE-03 #9 and #17, PUZZLE-02 #3 and #6.
+- [x] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10). Approved as written, with a cap of 64; run in entry 16.
+- [ ] Author: COMPREHEND-01 key decision on P2-P1 (sales-side handler), whether a ×3 variance run is worth it, and graph revisions 1–2 (entry 16).
+- [ ] Author: decide whether an unowned set invariant (the lock form) is D5 and whether a pre-existing copy counts. This decides S2's next step (entry 17).
 
 ## Changelog
-- 2026-10-22: entry 14 (v1.5 U4 S3 facts and S2 confirmation).
+- 2026-10-22: entry 17 (v1.5 U4 S3 facts and S2 confirmation).
+- 2026-10-22: entry 16 (COMPREHEND-01 pilot).
+- 2026-10-22: entry 15 (hand reads: PUZZLE-03 baseline, PUZZLE-02 tool arm).
+- 2026-10-22: entry 14 (PUZZLE-02 tool arm `mcp-detect`); open item: author hand read of its 6 oracle FAILs (P2-SG2-a, P2-SG1-b).
 - 2026-10-22: entry 13 (PUZZLE-03).
 - 2026-10-22: entry 12 (v1.5 U3 severity rubric).
 - 2026-10-22: entry 11 (edit gate built and smoke-tested).
