@@ -2963,3 +2963,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory COMPREHEND-01, start; development material only, never applied to Study 2b
 
 ---
+
+## COMPREHEND-01 — built and dry-run, pilot not run (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T06:16:14Z
+**User Input**: "(same coordinator brief) Build the four graph tools, the question bank with answers written first, a dry run with a scripted fake model, the build report and a research-log entry; open a PR and merge it once Build & Test is green."
+**AI Response**: "Design note committed first (58242c7a). Added context_map, who_writes, trace and impact (experiments/detect-02/mcp/comprehend/, a separate daedalus-graph server; 15 tests; first call 0.1-1.9 s, warm calls under 10 ms). Bank of 30 items over P1, P2, P4, four precision fixtures and lucashang-ddd-payday, meetinger and ddd-forum, keys hand-checked and committed (07ce2918) before the graph cross-check: G 16/16 after one display revision (T1), Gw 0/3 as predicted. Runner with a scripted fake model and 11 tests: 63 fake spawns, 0 model calls. Report Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md; research-log entry 10. Nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, the v1.4 tag or any registered Study 2b artefact changed."
+**Context**: Exploratory COMPREHEND-01, build complete; the pilot waits for the author's reading of the design note
+
+---

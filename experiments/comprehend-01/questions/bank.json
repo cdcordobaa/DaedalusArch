@@ -1,6 +1,6 @@
 {
  "schema": "comprehend-01-bank/v1",
- "status": "answers written and checked by hand against the code on 2026-10-22, before any graph cross-check and before any model call; frozen once the author approves the design note",
+ "status": "answers written and checked by hand against the code on 2026-10-22, before any graph cross-check and before any model call; frozen once the author approves the design note; graph agreement (provenance.graph) added after the keys were committed (07ce2918), from results/graph-check.json; no key changed",
  "design": "ops/notes/comprehend-01-design.md",
  "conventions": "conventions.json",
  "items": [
@@ -37,7 +37,18 @@
      "src/ledger/infrastructure/InMemoryAccountRepository.ts:8,23-27",
      "src/main.ts:18 (InMemoryAccountRepository, the only AccountRepository implementation)"
     ],
-    "method": "code read"
+    "method": "code read",
+    "graph": {
+     "agrees": true,
+     "via": "trace Deposit.execute",
+     "graphAnswer": {
+      "chain": [
+       "Deposit.execute",
+       "InMemoryAccountRepository.save"
+      ],
+      "endFile": "src/ledger/infrastructure/InMemoryAccountRepository.ts"
+     }
+    }
    }
   },
   {
@@ -67,7 +78,11 @@
      "seed ARCHITECTURE.md rule 1",
      "spec.yaml: one context (ledger), so no cross-context write"
     ],
-    "method": "puzzle documentation and spec"
+    "method": "puzzle documentation and spec",
+    "graph": {
+     "agrees": "n/a",
+     "note": "no tool answers this item type (a planned change or a placement)"
+    }
    }
   },
   {
@@ -96,7 +111,11 @@
      "experiments/puzzle-01/puzzles/p1-transfers/README.md (trap line step 2: the comparison half)",
      "src/ledger/domain/account/Account.ts (the invariants live in Account)"
     ],
-    "method": "puzzle documentation; the side-table write of the trap is left out of the question so the key is one rule"
+    "method": "puzzle documentation; the side-table write of the trap is left out of the question so the key is one rule",
+    "graph": {
+     "agrees": "n/a",
+     "note": "no tool answers this item type (a planned change or a placement)"
+    }
    }
   },
   {
@@ -128,7 +147,11 @@
      "solutions/clean/src/ledger/application/ReceiveTransfer.ts",
      "seed precedent src/ledger/application/SendWelcomeNotice.ts"
     ],
-    "method": "puzzle clean solution and seed precedent"
+    "method": "puzzle clean solution and seed precedent",
+    "graph": {
+     "agrees": "n/a",
+     "note": "no tool answers this item type (a planned change or a placement)"
+    }
    }
   },
   {
@@ -151,7 +174,14 @@
     "read": [
      "spec.yaml architecture.ddd.aggregates (Member, context membership)"
     ],
-    "method": "spec quote"
+    "method": "spec quote",
+    "graph": {
+     "agrees": true,
+     "via": "context_map",
+     "graphAnswer": {
+      "context": "membership"
+     }
+    }
    }
   },
   {
@@ -180,7 +210,16 @@
      "src/sales/acl/MembershipDirectory.ts:8-10 (card(), a read)",
      "src/membership/application/GetMemberCard.ts (byId only)"
     ],
-    "method": "code read"
+    "method": "code read",
+    "graph": {
+     "agrees": true,
+     "via": "who_writes over every aggregate (context_map)",
+     "graphAnswer": {
+      "aggregates": [
+       "Order"
+      ]
+     }
+    }
    }
   },
   {
@@ -224,7 +263,21 @@
      "src/membership/application/GetMemberCard.ts:9",
      "src/membership/infrastructure/InMemoryMemberRepository.ts:14"
     ],
-    "method": "code read; the object-literal function 'card' is not required (naming varies)"
+    "method": "code read; the object-literal function 'card' is not required (naming varies)",
+    "graph": {
+     "agrees": true,
+     "via": "trace PlaceOrder.execute",
+     "graphAnswer": {
+      "chain": [
+       "PlaceOrder.execute",
+       "MembershipDirectory.exists",
+       "{}.card",
+       "GetMemberCard.execute",
+       "InMemoryMemberRepository.byId"
+      ],
+      "endFile": "src/membership/infrastructure/InMemoryMemberRepository.ts"
+     }
+    }
    }
   },
   {
@@ -251,7 +304,16 @@
     "read": [
      "grep of 'membership' under src/sales: ReceiptFooter.ts:1-2 (domain MemberRepository, MemberId); MembershipDirectory.ts:1 imports '../../membership' (the published index)"
     ],
-    "method": "code read and grep"
+    "method": "code read and grep",
+    "graph": {
+     "agrees": true,
+     "via": "impact on each non-published membership file",
+     "graphAnswer": {
+      "files": [
+       "src/sales/application/ReceiptFooter.ts"
+      ]
+     }
+    }
    }
   },
   {
@@ -283,7 +345,11 @@
      "spec: Member owned by membership, Order by sales",
      "DETECT-02 fixture p08 positive (the same shape, expectPositive R-D4 and R-XCTX)"
     ],
-    "method": "puzzle documentation, spec and the fixture's expectation"
+    "method": "puzzle documentation, spec and the fixture's expectation",
+    "graph": {
+     "agrees": "n/a",
+     "note": "no tool answers this item type (a planned change or a placement)"
+    }
    }
   },
   {
@@ -315,7 +381,11 @@
      "experiments/puzzle-01/puzzles/p2-loyalty/README.md (winning line step 3: a purchaseMade subscriber on membership's published module, the earning rule in Member)",
      "solutions/clean"
     ],
-    "method": "puzzle clean solution"
+    "method": "puzzle clean solution",
+    "graph": {
+     "agrees": "n/a",
+     "note": "no tool answers this item type (a planned change or a placement)"
+    }
    }
   },
   {
@@ -343,7 +413,17 @@
     "read": [
      "grep: src/business/services/LoanService.ts:1, src/main.ts:4; LibraryController imports services only"
     ],
-    "method": "grep"
+    "method": "grep",
+    "graph": {
+     "agrees": true,
+     "via": "impact src/persistence/LoanGateway.ts",
+     "graphAnswer": {
+      "files": [
+       "src/business/services/LoanService.ts",
+       "src/main.ts"
+      ]
+     }
+    }
    }
   },
   {
@@ -382,7 +462,19 @@
      "src/business/services/LoanService.ts:12-16",
      "src/persistence/LoanGateway.ts:7"
     ],
-    "method": "code read; handle is not required (the work runs in the arrow)"
+    "method": "code read; handle is not required (the work runs in the arrow)",
+    "graph": {
+     "agrees": true,
+     "via": "trace LibraryController.borrow",
+     "graphAnswer": {
+      "chain": [
+       "LibraryController.borrow",
+       "LoanService.borrow",
+       "LoanGateway.insert"
+      ],
+      "endFile": "src/persistence/LoanGateway.ts"
+     }
+    }
    }
   },
   {
@@ -411,7 +503,11 @@
      "experiments/puzzle-01/puzzles/p4-library-holds/README.md (trap line step 1, H7)",
      "seed ARCHITECTURE.md rule 1 (persistence never uses business code)"
     ],
-    "method": "puzzle documentation"
+    "method": "puzzle documentation",
+    "graph": {
+     "agrees": "n/a",
+     "note": "no tool answers this item type (a planned change or a placement)"
+    }
    }
   },
   {
@@ -440,7 +536,17 @@
      "src/sales/application/AddLine.ts:15-16",
      "spec: OrderLine is an inner entity of Order; Product is its own aggregate"
     ],
-    "method": "code read and spec"
+    "method": "code read and spec",
+    "graph": {
+     "agrees": true,
+     "via": "who_writes over every aggregate (context_map)",
+     "graphAnswer": {
+      "aggregates": [
+       "Order",
+       "Product"
+      ]
+     }
+    }
    }
   },
   {
@@ -468,7 +574,17 @@
     "read": [
      "src/sales/application/CompleteShipment.ts:14-15"
     ],
-    "method": "code read"
+    "method": "code read",
+    "graph": {
+     "agrees": true,
+     "via": "who_writes over every aggregate (context_map)",
+     "graphAnswer": {
+      "aggregates": [
+       "Order",
+       "FulfilmentSaga"
+      ]
+     }
+    }
    }
   },
   {
@@ -498,7 +614,17 @@
      "the ACL award calls membership's published awardPoints, which saves a Member",
      "fixture.json expectPositive [R-D4, R-XCTX]"
     ],
-    "method": "code read and the fixture's statement"
+    "method": "code read and the fixture's statement",
+    "graph": {
+     "agrees": true,
+     "via": "impact src/sales/application/PlaceOrder.ts (current findings)",
+     "graphAnswer": {
+      "rules": [
+       "R-D4",
+       "R-XCTX"
+      ]
+     }
+    }
    }
   },
   {
@@ -526,7 +652,16 @@
      "src/sales/application/PlaceOrderOnCredit.ts:11-17 (customer loaded and assessed, not saved; orders.save at 17)",
      "src/sales/acl/LegacyCreditCheck.ts:11-15 (a question, no store)"
     ],
-    "method": "code read"
+    "method": "code read",
+    "graph": {
+     "agrees": true,
+     "via": "who_writes over every aggregate (context_map)",
+     "graphAnswer": {
+      "aggregates": [
+       "Order"
+      ]
+     }
+    }
    }
   },
   {
@@ -555,7 +690,17 @@
      "src/modules/users/useCases/createUser/CreateUserUseCase.ts:38 (userRepository.insert), :40 (createAccountUseCase.execute)",
      "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts:35 (accountRepository.insert)"
     ],
-    "method": "code read at the pin"
+    "method": "code read at the pin",
+    "graph": {
+     "agrees": true,
+     "via": "who_writes over every aggregate (context_map)",
+     "graphAnswer": {
+      "aggregates": [
+       "Account",
+       "User"
+      ]
+     }
+    }
    }
   },
   {
@@ -586,7 +731,18 @@
      "grep 'Repository.(insert|update)': CreateAccountUseCase.ts:35, DepositUseCase.ts:35, WithdrawUseCase.ts:35 (accountRepository.update), CreateUserUseCase.ts:40 via CreateAccountUseCase"
     ],
     "method": "code read and grep",
-    "predictedGraphGap": "update(t: UpdatePartial<Account>) takes a mapped type, not Account, so the write-footprint facts are expected to miss Deposit and Withdraw"
+    "predictedGraphGap": "update(t: UpdatePartial<Account>) takes a mapped type, not Account, so the write-footprint facts are expected to miss Deposit and Withdraw",
+    "graph": {
+     "agrees": false,
+     "via": "who_writes Account",
+     "graphAnswer": {
+      "commands": [
+       "CreateAccountUseCase.execute",
+       "CreateUserUseCase.execute"
+      ]
+     },
+     "note": "D2 coverage gap: Deposit and Withdraw call update(t: UpdatePartial<Account>); the mapped type is not read as an Account parameter, so the write is not in the footprint."
+    }
    }
   },
   {
@@ -625,7 +781,19 @@
      "CreateAccountUseCase.ts:35",
      "fakeAccountRepository.ts:11"
     ],
-    "method": "code read at the pin"
+    "method": "code read at the pin",
+    "graph": {
+     "agrees": true,
+     "via": "trace CreateUserUseCase.execute",
+     "graphAnswer": {
+      "chain": [
+       "CreateUserUseCase.execute",
+       "CreateAccountUseCase.execute",
+       "FakeAccountRepository.insert"
+      ],
+      "endFile": "src/modules/accounts/repositories/implementations/fake/fakeAccountRepository.ts"
+     }
+    }
    }
   },
   {
@@ -653,7 +821,17 @@
     "read": [
      "grep \"CreateAccountUseCase'\": 2 production files and 4 *.spec.ts files (excluded)"
     ],
-    "method": "grep at the pin"
+    "method": "grep at the pin",
+    "graph": {
+     "agrees": true,
+     "via": "impact src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+     "graphAnswer": {
+      "files": [
+       "src/modules/accounts/useCases/createAccount/index.ts",
+       "src/modules/users/useCases/createUser/CreateUserUseCase.ts"
+      ]
+     }
+    }
    }
   },
   {
@@ -684,7 +862,19 @@
      "grep 'meetingRepo.save': CreateMeetingUseCase.ts:76, EditMeetingUseCase.ts:95, JoinMeetingUseCase.ts:51, LeaveMeetingUseCase.ts:72 (paths under src/modules/meetings/usecase/)"
     ],
     "method": "grep and code read at the pin (analysis root backend/)",
-    "predictedGraphGap": "CreateMeetingUseCase saves meetingOrError.unwrap(); the Result type comes from an uninstalled package, so the argument is untyped and the write is expected to be missed"
+    "predictedGraphGap": "CreateMeetingUseCase saves meetingOrError.unwrap(); the Result type comes from an uninstalled package, so the argument is untyped and the write is expected to be missed",
+    "graph": {
+     "agrees": false,
+     "via": "who_writes Meeting",
+     "graphAnswer": {
+      "commands": [
+       "EditMeetingUseCase.execute",
+       "JoinMeetingUseCase.execute",
+       "LeaveMeetingUseCase.execute"
+      ]
+     },
+     "note": "D2 coverage gap: CreateMeetingUseCase saves meetingOrError.unwrap(); the Result type comes from a package that is not installed in the analysed clone, so the argument is untyped and the write is missed."
+    }
    }
   },
   {
@@ -707,7 +897,14 @@
     "read": [
      "spec architecture.ddd.aggregates (Attendee, context meetings)"
     ],
-    "method": "spec quote"
+    "method": "spec quote",
+    "graph": {
+     "agrees": true,
+     "via": "context_map",
+     "graphAnswer": {
+      "context": "meetings"
+     }
+    }
    }
   },
   {
@@ -743,7 +940,18 @@
      "src/modules/meetings/usecase/leaveMeeting/index.ts:20",
      "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts:24,34 (the only MeetingRepo implementation)"
     ],
-    "method": "code read at the pin"
+    "method": "code read at the pin",
+    "graph": {
+     "agrees": true,
+     "via": "trace LeaveMeetingUseCase.execute",
+     "graphAnswer": {
+      "chain": [
+       "LeaveMeetingUseCase.execute",
+       "DynamoDBMeetingRepo.save"
+      ],
+      "endFile": "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts"
+     }
+    }
    }
   },
   {
@@ -773,7 +981,11 @@
      "src/modules/users/usecase/{createUser,authorizeUser} (the context's use-case folder)",
      "src/modules/users/domain/UserFullName.ts (the value object lives in users)"
     ],
-    "method": "code read at the pin"
+    "method": "code read at the pin",
+    "graph": {
+     "agrees": "n/a",
+     "note": "no tool answers this item type (a planned change or a placement)"
+    }
    }
   },
   {
@@ -800,7 +1012,16 @@
     "read": [
      "grep 'Repo.save' under src/modules: memberRepo.save only in src/modules/forum/useCases/members/createMember/CreateMember.ts:63"
     ],
-    "method": "grep and code read at the pin"
+    "method": "grep and code read at the pin",
+    "graph": {
+     "agrees": true,
+     "via": "who_writes Member",
+     "graphAnswer": {
+      "commands": [
+       "CreateMember.execute"
+      ]
+     }
+    }
    }
   },
   {
@@ -853,7 +1074,16 @@
      "src/modules/forum/repos/index.ts:11 and implementations/sequelizeMemberRepo.ts:12,104"
     ],
     "method": "code read at the pin",
-    "predictedGraphGap": "the ORM hook and the DomainEvents.register(callback) registry are not resolvable calls, so trace is expected to stop at SequelizeUserRepo.save"
+    "predictedGraphGap": "the ORM hook and the DomainEvents.register(callback) registry are not resolvable calls, so trace is expected to stop at SequelizeUserRepo.save",
+    "graph": {
+     "agrees": false,
+     "via": "trace CreateUserUseCase.execute (target not reached)",
+     "graphAnswer": {
+      "chain": [],
+      "endFile": ""
+     },
+     "note": "D2 coverage gap: the chain continues through a Sequelize afterCreate hook and a DomainEvents.register(callback) registry; neither is a resolvable call, so trace stops at SequelizeUserRepo.save."
+    }
    }
   },
   {
@@ -892,7 +1122,28 @@
     "read": [
      "grep \"from '...postRepo'\" under src: 13 files, none a test"
     ],
-    "method": "grep at the pin"
+    "method": "grep at the pin",
+    "graph": {
+     "agrees": true,
+     "via": "impact src/modules/forum/repos/postRepo.ts",
+     "graphAnswer": {
+      "files": [
+       "src/modules/forum/repos/implementations/sequelizePostRepo.ts",
+       "src/modules/forum/useCases/comments/downvoteComment/DownvoteComment.ts",
+       "src/modules/forum/useCases/comments/replyToComment/ReplyToComment.ts",
+       "src/modules/forum/useCases/comments/replyToPost/ReplyToPost.ts",
+       "src/modules/forum/useCases/comments/upvoteComment/UpvoteComment.ts",
+       "src/modules/forum/useCases/post/createPost/CreatePost.ts",
+       "src/modules/forum/useCases/post/downvotePost/DownvotePost.ts",
+       "src/modules/forum/useCases/post/editPost/EditPost.ts",
+       "src/modules/forum/useCases/post/getPopularPosts/GetPopularPosts.ts",
+       "src/modules/forum/useCases/post/getPostBySlug/GetPostBySlug.ts",
+       "src/modules/forum/useCases/post/getRecentPosts/GetRecentPosts.ts",
+       "src/modules/forum/useCases/post/updatePostStats/UpdatePostStats.ts",
+       "src/modules/forum/useCases/post/upvotePost/UpvotePost.ts"
+      ]
+     }
+    }
    }
   },
   {
@@ -915,7 +1166,14 @@
     "read": [
      "spec architecture.ddd.aggregates (Member, context forum)"
     ],
-    "method": "spec quote"
+    "method": "spec quote",
+    "graph": {
+     "agrees": true,
+     "via": "context_map",
+     "graphAnswer": {
+      "context": "forum"
+     }
+    }
    }
   },
   {
@@ -945,7 +1203,11 @@
      "src/modules/forum/subscriptions/afterUserCreated.ts (the precedent: forum reacts to a users event)",
      "src/modules/forum/subscriptions/index.ts"
     ],
-    "method": "code read at the pin"
+    "method": "code read at the pin",
+    "graph": {
+     "agrees": "n/a",
+     "note": "no tool answers this item type (a planned change or a placement)"
+    }
    }
   }
  ]

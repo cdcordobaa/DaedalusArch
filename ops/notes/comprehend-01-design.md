@@ -272,3 +272,7 @@ any second confinement leak, or any session over the caps that is not reported a
 
 ## Changelog
 - 2026-10-22: v0 draft, before any tool, question or run.
+- 2026-10-22: built, not run (`Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md`). The bank has 30 items
+  (W 8, C 6, R 5, I 4, P 4, O 3; G 16, Gw 3, S 4, X 7). The rule menu of R items adds LAYER and CTX-ISOLATION to the
+  DETECT-02 rules (`experiments/comprehend-01/questions/conventions.json`). One tool revision after the graph
+  cross-check: T1, the default `trace` view keeps every step into an adapter. No key changed.
