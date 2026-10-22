@@ -1,0 +1,28 @@
+# t2-rep3-pull step-02 (session c20): tree after the step against the tree before it
+diff --git a/src/application/services/BookRoomService.ts b/src/application/services/BookRoomService.ts
+index 0a23ea199..2346dec83 100644
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -23,7 +23,22 @@ export class BookRoomService implements BookRoom {
+     private readonly notifications: NotificationSender,
+   ) {}
+ 
++  /** Tail of the pending booking chain per room, so requests for one room run one at a time. */
++  private readonly roomLocks = new Map<string, Promise<unknown>>();
++
+   async book(command: BookRoomCommand): Promise<BookingView> {
++    const previous = this.roomLocks.get(command.roomId) ?? Promise.resolve();
++    const run = previous.then(() => this.bookExclusively(command));
++    const tail = run.catch(() => undefined);
++    this.roomLocks.set(command.roomId, tail);
++    try {
++      return await run;
++    } finally {
++      if (this.roomLocks.get(command.roomId) === tail) this.roomLocks.delete(command.roomId);
++    }
++  }
++
++  private async bookExclusively(command: BookRoomCommand): Promise<BookingView> {
+     const room = await this.rooms.findById(command.roomId);
+     if (room === undefined) throw new BookingError('not-found', `No room ${command.roomId}`);
+     const guest = await this.guests.findById(command.guestId);

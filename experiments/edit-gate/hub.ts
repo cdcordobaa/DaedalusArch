@@ -26,6 +26,8 @@ export interface GateCell {
   /** Root-only puzzle spec (`/srv/o/specs/tN.yaml` in a run). */
   readonly spec: string;
   readonly project: string;
+  /** Optional: the tree whose files count as unchanged (default: the work tree as it is when the cell opens). */
+  readonly baseline?: string;
 }
 
 /** A tree's files (no `node_modules`) and their sha256, POSIX relative paths. */
@@ -132,7 +134,7 @@ export class GateHub {
     const seedCopy = path.join(scratch, 'seed');
     fs.rmSync(seedCopy, { recursive: true, force: true });
     if (this.options.layers === true) fs.cpSync(cell.project, seedCopy, { recursive: true, filter: (src) => path.relative(cell.project, src).split(path.sep)[0] !== 'node_modules' });
-    this.session = { cell, seed: treeHashes(cell.project), state: new GateState(), scratch, seedCopy };
+    this.session = { cell, seed: treeHashes(cell.baseline ?? cell.project), state: new GateState(), scratch, seedCopy };
     await this.check({ root: cell.project, spec: cell.spec, scratch }).catch(() => undefined);
     // Warm the frozen handler once: every seed file diffed against nothing (not logged, findings dropped).
     if (this.options.layers === true) await checkLayers({ root: cell.project, spec: cell.spec, seedDir: path.join(scratch, 'none'), changed: [...this.session.seed.keys()] }).catch(() => undefined);

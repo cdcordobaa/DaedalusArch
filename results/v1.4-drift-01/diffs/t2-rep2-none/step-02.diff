@@ -1,0 +1,51 @@
+# t2-rep2-none step-02 (session c14): tree after the step against the tree before it
+diff --git a/src/application/services/BookRoomService.ts b/src/application/services/BookRoomService.ts
+index 50158e592..0390db569 100644
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -1,6 +1,8 @@
+ import { BookingError } from '../../domain/errors/BookingError';
+ import { Booking } from '../../domain/model/Booking';
+ import { DateRange } from '../../domain/model/DateRange';
++import { Guest } from '../../domain/model/Guest';
++import { Room } from '../../domain/model/Room';
+ import { AvailabilityChecker } from '../../domain/services/AvailabilityChecker';
+ import { PriceCalculator } from '../../domain/services/PriceCalculator';
+ import { BookRoom, BookRoomCommand } from '../ports/in/BookRoom';
+@@ -14,6 +16,8 @@ import { RoomRepository } from '../ports/out/RoomRepository';
+ export class BookRoomService implements BookRoom {
+   private readonly availability = new AvailabilityChecker();
+   private readonly pricing = new PriceCalculator();
++  /** Tail of the pending-booking chain per room; serialises check -> charge -> save. */
++  private readonly roomLocks = new Map<string, Promise<void>>();
+ 
+   constructor(
+     private readonly rooms: RoomRepository,
+@@ -31,6 +35,27 @@ export class BookRoomService implements BookRoom {
+     if (!room.fits(command.guests)) throw new BookingError('invalid', `Room ${room.number} sleeps ${room.capacity}`);
+ 
+     const stay = DateRange.parse(command.checkIn, command.checkOut);
++    return this.withRoomLock(room.id, () => this.bookLocked(command, room, guest, stay));
++  }
++
++  private async withRoomLock<T>(roomId: string, work: () => Promise<T>): Promise<T> {
++    const previous = this.roomLocks.get(roomId) ?? Promise.resolve();
++    let release!: () => void;
++    const current = new Promise<void>((resolve) => {
++      release = resolve;
++    });
++    const tail = previous.then(() => current);
++    this.roomLocks.set(roomId, tail);
++    await previous;
++    try {
++      return await work();
++    } finally {
++      release();
++      if (this.roomLocks.get(roomId) === tail) this.roomLocks.delete(roomId);
++    }
++  }
++
++  private async bookLocked(command: BookRoomCommand, room: Room, guest: Guest, stay: DateRange): Promise<BookingView> {
+     if (!this.availability.isAvailable(room, stay, await this.bookings.findByRoom(room.id))) {
+       throw new BookingError('unavailable', `Room ${room.number} is taken for these dates`);
+     }

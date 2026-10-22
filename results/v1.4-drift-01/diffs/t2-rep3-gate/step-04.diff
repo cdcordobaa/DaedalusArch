@@ -1,0 +1,150 @@
+# t2-rep3-gate step-04 (session c18): tree after the step against the tree before it
+diff --git a/src/adapters/inbound/http/ReportController.ts b/src/adapters/inbound/http/ReportController.ts
+new file mode 100644
+index 000000000..cb816319a
+--- /dev/null
++++ b/src/adapters/inbound/http/ReportController.ts
+@@ -0,0 +1,20 @@
++import { OccupancyReport } from '../../../application/ports/in/OccupancyReport';
++import { BookingError } from '../../../domain/errors/BookingError';
++import { HttpRequest, HttpResponse } from './HttpTypes';
++
++/** Driving adapter for the revenue manager's reports. */
++export class ReportController {
++  constructor(private readonly occupancyReport: OccupancyReport) {}
++
++  /** Occupancy and revenue per night (query: from, to; `to` exclusive, max 90 nights). */
++  async occupancy(request: HttpRequest): Promise<HttpResponse> {
++    try {
++      const { from, to } = request.query;
++      if (from === undefined || to === undefined) throw new BookingError('invalid', 'from and to are required');
++      return { status: 200, body: await this.occupancyReport.report(from, to) };
++    } catch (error) {
++      if (error instanceof BookingError && error.reason === 'invalid') return { status: 400, body: { error: error.message } };
++      return { status: 500, body: { error: 'Internal error' } };
++    }
++  }
++}
+diff --git a/src/application/ports/in/OccupancyReport.ts b/src/application/ports/in/OccupancyReport.ts
+new file mode 100644
+index 000000000..40fbfa123
+--- /dev/null
++++ b/src/application/ports/in/OccupancyReport.ts
+@@ -0,0 +1,21 @@
++export interface RoomNightFigures {
++  roomId: string;
++  occupied: boolean;
++  revenueCents: number;
++}
++
++export interface NightReport {
++  /** The night's date (YYYY-MM-DD, UTC). */
++  date: string;
++  roomsOccupied: number;
++  /** Occupied rooms over all rooms, 0..1. */
++  occupancyRate: number;
++  revenueCents: number;
++  /** Only rooms occupied that night. */
++  rooms: RoomNightFigures[];
++}
++
++export interface OccupancyReport {
++  /** Nights from `from` (inclusive) to `to` (exclusive), at most 90. */
++  report(from: string, to: string): Promise<NightReport[]>;
++}
+diff --git a/src/application/services/OccupancyReportService.ts b/src/application/services/OccupancyReportService.ts
+new file mode 100644
+index 000000000..861644e41
+--- /dev/null
++++ b/src/application/services/OccupancyReportService.ts
+@@ -0,0 +1,62 @@
++import { BookingError } from '../../domain/errors/BookingError';
++import { OccupancyReport, NightReport } from '../ports/in/OccupancyReport';
++import { BookingRepository } from '../ports/out/BookingRepository';
++import { RoomRepository } from '../ports/out/RoomRepository';
++
++const DAY_MS = 24 * 60 * 60 * 1000;
++const MAX_NIGHTS = 90;
++
++export class OccupancyReportService implements OccupancyReport {
++  constructor(
++    private readonly rooms: RoomRepository,
++    private readonly bookings: BookingRepository,
++  ) {}
++
++  async report(from: string, to: string): Promise<NightReport[]> {
++    const first = this.parseDay(from, 'from');
++    const end = this.parseDay(to, 'to');
++    const count = end - first;
++    if (count < 1) throw new BookingError('invalid', '"to" must be after "from"');
++    if (count > MAX_NIGHTS) throw new BookingError('invalid', `Range is limited to ${MAX_NIGHTS} nights`);
++
++    const [rooms, active] = await Promise.all([this.rooms.findAll(), this.bookings.findActive()]);
++    const nights: NightReport[] = Array.from({ length: count }, (_, i) => ({
++      date: new Date((first + i) * DAY_MS).toISOString().slice(0, 10),
++      roomsOccupied: 0,
++      occupancyRate: 0,
++      revenueCents: 0,
++      rooms: [],
++    }));
++
++    // One pass over the bookings, touching only the nights each overlaps with the range.
++    for (const booking of active) {
++      const checkIn = Math.floor(booking.stay.checkIn.getTime() / DAY_MS);
++      const stayNights = Math.max(1, Math.floor(booking.stay.checkOut.getTime() / DAY_MS) - checkIn);
++      const lo = Math.max(checkIn, first);
++      const hi = Math.min(checkIn + stayNights, end);
++      if (lo >= hi) continue;
++      // Even split in whole cents; the remainder goes to the earliest nights so the parts sum to the total.
++      const base = Math.floor(booking.total.cents / stayNights);
++      const extra = booking.total.cents - base * stayNights;
++      for (let day = lo; day < hi; day += 1) {
++        const night = nights[day - first]!;
++        const cents = base + (day - checkIn < extra ? 1 : 0);
++        night.roomsOccupied += 1;
++        night.revenueCents += cents;
++        night.rooms.push({ roomId: booking.roomId, occupied: true, revenueCents: cents });
++      }
++    }
++
++    for (const night of nights) {
++      night.occupancyRate = rooms.length === 0 ? 0 : night.roomsOccupied / rooms.length;
++    }
++    return nights;
++  }
++
++  /** Day number since the epoch (UTC) of an ISO date or timestamp. */
++  private parseDay(value: string, name: string): number {
++    const time = new Date(value).getTime();
++    if (Number.isNaN(time)) throw new BookingError('invalid', `Invalid ${name} date: ${value}`);
++    return Math.floor(time / DAY_MS);
++  }
++}
+diff --git a/src/config/container.ts b/src/config/container.ts
+index d74ea4e1d..151b36af4 100644
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -1,6 +1,8 @@
+ import { BookingCli } from '../adapters/inbound/cli/BookingCli';
+ import { BookingController } from '../adapters/inbound/http/BookingController';
+ import { RoomController } from '../adapters/inbound/http/RoomController';
++import { ReportController } from '../adapters/inbound/http/ReportController';
++import { OccupancyReportService } from '../application/services/OccupancyReportService';
+ import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';
+ import { PaystreamPaymentGateway } from '../adapters/outbound/payment/PaystreamPaymentGateway';
+ import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';
+@@ -15,6 +17,7 @@ export interface Container {
+   bookings: BookingController;
+   rooms: RoomController;
+   cli: BookingCli;
++  reports: ReportController;
+ }
+ 
+ /** Composition root: the one place that plugs concrete adapters into the ports. */
+@@ -35,5 +38,6 @@ export function createContainer(): Container {
+     ),
+     rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings), rooms),
+     cli: new BookingCli(bookRoom),
++    reports: new ReportController(new OccupancyReportService(rooms, bookings)),
+   };
+ }

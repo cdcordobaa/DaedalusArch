@@ -1,0 +1,32 @@
+# t1-rep2-none step-02 (session c12): tree after the step against the tree before it
+diff --git a/src/billing/application/IssueInvoice.ts b/src/billing/application/IssueInvoice.ts
+index 3b6b0d358..9689b3617 100644
+--- a/src/billing/application/IssueInvoice.ts
++++ b/src/billing/application/IssueInvoice.ts
+@@ -12,6 +12,7 @@ export class IssueInvoice {
+   async execute(invoiceId: string, orderId: string): Promise<void> {
+     const order = await this.orders.billableOrder(orderId);
+     if (order === null) throw new Error('Unknown order');
++    if (order.amountCents < 0) throw new Error(`Order ${order.orderId} has a negative total and cannot be invoiced`);
+     const invoice = new Invoice(new InvoiceId(invoiceId), order.orderId, order.customerId, order.currency);
+     invoice.charge(`order ${order.orderId}`, Money.of(order.amountCents, order.currency));
+     invoice.issue(this.taxRate);
+diff --git a/src/ordering/application/PlaceOrder.ts b/src/ordering/application/PlaceOrder.ts
+index 0e5757266..33471e5c7 100644
+--- a/src/ordering/application/PlaceOrder.ts
++++ b/src/ordering/application/PlaceOrder.ts
+@@ -25,6 +25,14 @@ export class PlaceOrder {
+   async execute(cmd: PlaceOrderCommand): Promise<void> {
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+     if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');
++    cmd.lines.forEach((l, i) => {
++      if (!Number.isInteger(l.quantity) || l.quantity <= 0) {
++        throw new Error(`Order line ${i + 1} (product ${l.productId}): quantity must be a positive whole number, got ${l.quantity}`);
++      }
++      if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) {
++        throw new Error(`Order line ${i + 1} (product ${l.productId}): unit price must not be negative, got ${l.unitPriceCents}`);
++      }
++    });
+     const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
+     for (const l of cmd.lines) order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
+     const unpaid = Money.of(await this.exposure.unpaidCents(cmd.customerId, cmd.currency), cmd.currency);
