@@ -1,0 +1,32 @@
+{
+ "key": "48d2424a4757b2a777793c1ada5704370880591d8131e46dba7f97cecaa0c86f",
+ "part": "S2",
+ "item": "pilot/s2-orders-invoices/step-01#D4#src/billing/application/RecordPayment.ts:9",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:56:59.559Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/billing/application/RecordPayment.ts",
+    "line": 15,
+    "quote": "if (e.name === 'billing.invoice-paid') await this.orders.orderPaid(invoice.orderId);"
+   },
+   {
+    "file": "src/billing/application/RecordPayment.ts",
+    "line": 13,
+    "quote": "await this.invoices.save(invoice);"
+   },
+   {
+    "file": "src/ordering/application/MarkOrderPaid.ts",
+    "line": 12,
+    "quote": "await this.orders.save(order);"
+   }
+  ],
+  "rationale": "RecordPayment saves the Invoice, then synchronously awaits the orderPaid notifier. Per the analyser's path, that notifier reaches MarkOrderPaid, which loads, mutates and saves an Order from another bounded context in the same command. The Order update should run in a handler of the invoice-paid event instead of inline."
+ },
+ "invalidReason": null
+}

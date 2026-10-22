@@ -1,0 +1,22 @@
+{
+ "key": "083c661de3d2af248cedb88e947f2744e570bde6e2a8e95532d6a3be369b47ed",
+ "part": "S2",
+ "item": "solution/p1-transfers/trap#D5#src/ledger/application/TransferMoney.ts:16",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:55:53.369Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ledger/application/TransferMoney.ts",
+    "line": 16,
+    "quote": "if (from.currency !== to.currency) throw new LedgerError(`currency mismatch: ${from.currency} to ${to.currency}`);"
+   }
+  ],
+  "rationale": "The currency-match invariant for a transfer is enforced in the application service by reading both accounts' state. Account.deposit and withdraw never check currency, because Money.plus may or may not. The aggregate should own this rule. The daily limit at line 19 is also decided in the service. The check at line 16 is not input parsing and not a uniqueness check, so it is a violation."
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,22 @@
+{
+ "key": "9a72b84689cecc8be90becbb00015e755f383daa06ecc3e02a8cfa9ec225b2fd",
+ "part": "S2",
+ "item": "pilot/s2-orders-invoices/step-05#D9#src/ordering/domain/order/Order.ts:89",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:57:44.777Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/domain/order/Order.ts",
+    "line": 89,
+    "quote": "lineViews(): { lineNo: number; productId: string; grossCents: number; discountCents: number; discountReason: string | null; subtotalCents: number }[] {"
+   }
+  ],
+  "rationale": "The Order aggregate's lineViews() builds a structure whose fields (lineNo, productId, grossCents, discountCents, discountReason, subtotalCents) match OrderLineSummary in the contracts file exactly. A domain object is building a contract- or view-shaped structure, which the rule forbids. The mapping belongs in an application-layer mapper or projection."
+ },
+ "invalidReason": null
+}

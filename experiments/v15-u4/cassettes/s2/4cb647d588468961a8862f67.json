@@ -1,0 +1,22 @@
+{
+ "key": "4cb647d588468961a8862f6742c43cd627113d1b78aeb7aa939d4bd5857b7ec0",
+ "part": "S2",
+ "item": "r2:precision/p10-shared-kernel-types/legit/declared#D5#src/sales/application/PlaceOrder.ts:12",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1+u4-r2",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T19:03:51.058Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/sales/application/PlaceOrder.ts",
+    "line": 12,
+    "quote": "if (open.some((o) => o.total.cents === totalCents)) throw new Error('a matching open order already exists');"
+   }
+  ],
+  "rationale": "The rule that a customer cannot have two open orders with the same total is a rule over a set of Order instances. The application service checks it, not an aggregate. Order.place cannot see sibling orders, and no aggregate owns a customer's open orders. This is not store-wide key uniqueness, so the rule is broken."
+ },
+ "invalidReason": null
+}

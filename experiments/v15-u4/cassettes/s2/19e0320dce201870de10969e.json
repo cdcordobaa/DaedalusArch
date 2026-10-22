@@ -1,0 +1,22 @@
+{
+ "key": "19e0320dce201870de10969eeb9a7e6ae6b4c8bf346d045be55c56965de2cbd2",
+ "part": "S2",
+ "item": "r2:fixture/c1-s1-d5-lock/pos#D5#src/application/services/BookRoomService.ts:14",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1+u4-r2",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T19:03:44.286Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/application/services/BookRoomService.ts",
+    "line": 14,
+    "quote": "if (existing.some((b) => b.isActive() && b.stay.overlaps(stay))) throw new Error(`Room ${roomId} is already booked`);"
+   }
+  ],
+  "rationale": "The no-overlap rule across a room's active bookings must hold at every commit. No aggregate owns that set, since Booking is a single instance. The application service checks it under a lock and uses the domain helpers isActive and overlaps only to compute it. The rule names this case as a violation."
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,27 @@
+{
+ "key": "40de15260bc3a41afd64938672c24e248cdf10d207c1f55257ffc0a4088b4899",
+ "part": "S2",
+ "item": "precision/p05-child-entities/positive/declared#D4#src/sales/application/AddLine.ts:9",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:52.033Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/sales/application/AddLine.ts",
+    "line": 15,
+    "quote": "await this.orders.save(order);"
+   },
+   {
+    "file": "src/sales/application/AddLine.ts",
+    "line": 16,
+    "quote": "await this.products.save(product);"
+   }
+  ],
+  "rationale": "AddLine.execute modifies and saves two different aggregates, Order and Product, in one command. Product stock reservation should instead be done by a domain-event handler reacting to the order line being added."
+ },
+ "invalidReason": null
+}

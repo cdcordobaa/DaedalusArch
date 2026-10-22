@@ -1,0 +1,22 @@
+{
+ "key": "293e748a9da215d2f683edef210f7a32e842ea7e42cf595037a53cc4bfa06b36",
+ "part": "S2",
+ "item": "pilot/s2-orders-invoices/step-04#D5#src/ordering/application/PlaceOrder.ts:33",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:57:37.258Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 33,
+    "quote": "if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');"
+   }
+  ],
+  "rationale": "Customer only exposes the boolean canOrder(). PlaceOrder decides that an inactive customer cannot order and throws. That is a business rule the aggregate should enforce, as checkCredit() does for credit. The null check is only a lookup, but the inactive-customer decision sits in the application service."
+ },
+ "invalidReason": null
+}

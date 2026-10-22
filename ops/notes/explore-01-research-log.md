@@ -278,6 +278,22 @@ is not separable at n = 5.
   comprehension failure. The graph is a cost saver at equal accuracy here, not an accuracy aid. Delivery at the moment
   of action (the edit gate) is the track this points to.
 
+### 17. v1.5 U4: S3 aggregate facts and S2 confirmation (2026-10-22)
+`Docs/DiagnosticRuns/v15-u4-2026-10-23.md`, `experiments/v15-u4/`, note `ops/notes/v15-u4-facts-confirmation-note.md` (r1 before any call, r2 after the S2 failure). 73 of 75 calls, `claude-sonnet-5-5`:
+- **Baseline first (zero calls):** with R1–R3, both declared and inferred roots give one hit on the 13 human DDD repositories, the lucashang true hit. The 12 earlier false hits are gone symbolically, so S3 cannot lift the hit count.
+- **S3 passes:**
+  - the model's grounded roots match 22 of 23 declared roots with none wrong (19/23 by declared name), against 13 of 31 for inferred roots;
+  - under the model's roots the true hit stays and there is no false hit;
+  - it abstains or names no root on the two functional repositories;
+  - ownership is right 44/44, a weak test, because the folders name the contexts;
+  - 131 of 132 verdicts were stable.
+- **S2 fails:**
+  - D5 recall stays at 11/16. The relaxed proposer reaches all 5 lock-form trees, but the model rejects the overlap check as a "cross-aggregate check", which the D5 rule text exempts;
+  - it adds 4 false positives (1 if the H5 fixtures' identical D5 code counts as unlabelled);
+  - 0 confirms on the legit precision fixtures, 1 true D4 rejected (`saveAudited`), 37/37 confirms grounded.
+- **One fix (r2, post-hoc):** a rule text that names unowned set invariants confirms the lock form 5/5. It also confirms the pre-lock step 1 and the P10 legit fixture, so the boundary moved rather than sharpened. Step 1 and step 2 hold the same invariant, and the label separates them only by what the agent introduced.
+- **Reading (dev):** S3 is ready to feed the rules where a spec is silent (the facts contract for U1). S2 needs a decision on what D5 means for set invariants before the confirmation step can help. That is a construct question for the author, not a prompt to tune.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -289,8 +305,10 @@ is not separable at n = 5.
 - [ ] Author: spot-check the two seeded picks of each hand read (entry 15): PUZZLE-03 #9 and #17, PUZZLE-02 #3 and #6.
 - [x] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10). Approved as written, with a cap of 64; run in entry 16.
 - [ ] Author: COMPREHEND-01 key decision on P2-P1 (sales-side handler), whether a ×3 variance run is worth it, and graph revisions 1–2 (entry 16).
+- [ ] Author: decide whether an unowned set invariant (the lock form) is D5 and whether a pre-existing copy counts. This decides S2's next step (entry 17).
 
 ## Changelog
+- 2026-10-22: entry 17 (v1.5 U4 S3 facts and S2 confirmation).
 - 2026-10-22: entry 16 (COMPREHEND-01 pilot).
 - 2026-10-22: entry 15 (hand reads: PUZZLE-03 baseline, PUZZLE-02 tool arm).
 - 2026-10-22: entry 14 (PUZZLE-02 tool arm `mcp-detect`); open item: author hand read of its 6 oracle FAILs (P2-SG2-a, P2-SG1-b).

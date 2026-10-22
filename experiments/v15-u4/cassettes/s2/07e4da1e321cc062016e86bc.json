@@ -1,0 +1,22 @@
+{
+ "key": "07e4da1e321cc062016e86bc477db25c413af123df64bea95c135ae02ee4d13e",
+ "part": "S2",
+ "item": "pilot/s2-orders-invoices/step-02#D5#src/ordering/application/PlaceOrder.ts:31",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:57:13.848Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/ordering/application/PlaceOrder.ts",
+    "line": 31,
+    "quote": "if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');"
+   }
+  ],
+  "rationale": "The service reads Customer state via canOrder() and itself decides to reject the order. The 'must be active to order' rule belongs to Customer, as checkCredit() shows by throwing from inside the aggregate. The null check is a fine lookup, but the inactive-customer decision should live in Customer. Moderate confidence."
+ },
+ "invalidReason": null
+}

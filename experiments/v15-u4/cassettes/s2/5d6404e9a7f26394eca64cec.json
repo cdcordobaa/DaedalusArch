@@ -1,0 +1,32 @@
+{
+ "key": "5d6404e9a7f26394eca64cec8af2e9154138051eb534021607c8756387bc9bf0",
+ "part": "S2",
+ "item": "fixture/c8-s2-d4-issueinvoice/pos#D4#src/billing/application/IssueInvoice.ts:11",
+ "run": 0,
+ "promptVersion": "detect02-sem-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-haiku-5-5+claude-sonnet-5-5",
+ "date": "2026-10-22T18:58:42.575Z",
+ "answer": {
+  "verdict": "confirm",
+  "evidence": [
+   {
+    "file": "src/billing/application/IssueInvoice.ts",
+    "line": 16,
+    "quote": "await this.invoices.save(invoice);"
+   },
+   {
+    "file": "src/billing/application/IssueInvoice.ts",
+    "line": 17,
+    "quote": "await this.invoiced.orderInvoiced(order.orderId);"
+   },
+   {
+    "file": "src/ordering/application/MarkOrderInvoiced.ts",
+    "line": 11,
+    "quote": "await this.orders.save(order);"
+   }
+  ],
+  "rationale": "IssueInvoice.execute saves an Invoice and then synchronously calls the notifier, which goes through the ACL to MarkOrderInvoiced. That loads and saves an Order, an aggregate owned by the ordering context, in the same command. The Order update should instead happen in a handler of the InvoiceIssued event. This breaks the one-aggregate-per-command rule."
+ },
+ "invalidReason": null
+}
