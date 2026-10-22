@@ -1,0 +1,53 @@
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 588a5088..dd34c277 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -8,4 +8,15 @@ export class MembershipDirectory implements MemberDirectory {
+   exists(memberId: string): boolean {
+     return this.membership.card(memberId) !== undefined;
+   }
++
++  discountRate(memberId: string): number {
++    switch (this.membership.card(memberId)?.tier) {
++      case 'gold':
++        return 0.1;
++      case 'silver':
++        return 0.05;
++      default:
++        return 0;
++    }
++  }
+ }
+diff --git a/a/src/sales/application/PlaceOrder.ts b/b/src/sales/application/PlaceOrder.ts
+index 8e2c747a..9a57b39d 100644
+--- a/a/src/sales/application/PlaceOrder.ts
++++ b/b/src/sales/application/PlaceOrder.ts
+@@ -12,6 +12,7 @@ export interface LineRequest {
+ export interface PlacedOrder {
+   readonly orderId: string;
+   readonly total: number;
++  readonly discount: number;
+ }
+ 
+ export class PlaceOrder {
+@@ -24,6 +25,8 @@ export class PlaceOrder {
+     if (memberId !== null && !this.directory.exists(memberId)) throw new Error(`no member ${memberId}`);
+     const order = Order.place(this.orders.nextId(), memberId, lines.map((l) => ({ sku: l.sku, quantity: l.quantity, unitPrice: Money.of(l.unitPrice, currency) })));
+     this.orders.save(order);
+-    return { orderId: order.id.value, total: order.total().amount() };
++    const total = order.total();
++    const discount = memberId === null ? Money.zero(total.currency) : total.times(this.directory.discountRate(memberId));
++    return { orderId: order.id.value, total: total.amount(), discount: discount.amount() };
+   }
+ }
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 98731a5e..9a9e7931 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -1,4 +1,6 @@
+ /** What this part of the system needs to know about club members. */
+ export interface MemberDirectory {
+   exists(memberId: string): boolean;
++  /** Fraction taken off an order for this member (0 to 1); 0 when unknown. */
++  discountRate(memberId: string): number;
+ }

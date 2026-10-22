@@ -199,6 +199,28 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - **Reading (dev):** P6 is the first puzzle the frozen instrument sees that the agent alone fails at 2/5 or below.
   The condition for sizing an `mcp` arm is met, and P5 meets it for a DETECT-02 arm.
 
+### 14. PUZZLE-02 tool arm `mcp-detect` on P1 and P2 (2026-10-22, about 03:20–03:43 UTC; branch `pilot/puzzle-02-tool-arm`, PR not merged)
+- **Spec and records:** run note `puzzle-02-tool-arm-note.md`; plan committed before any call
+  (`experiments/puzzle-02-tool-arm/`); report `Docs/DiagnosticRuns/puzzle-02-tool-arm-2026-10-22.md`; records
+  `results/v1.4-puzzle-02-tool-arm/`.
+- **Setup:** the baseline's plan and isolation, reused. The only additions are the §4 frame sentence and the DETECT-02
+  server (`check_consistency`), which runs as root behind a socket relay. CLI 2.1.307 (baseline 2.1.305, recorded as an
+  exploratory difference).
+- **Calls:** 34 of 38. Smoke, confinement probe and the zero-call isolation checks passed. One container restart:
+  c06 was redrawn as c11.
+- **Result** (provisional until the hand read; per puzzle, against the baseline `none`):
+  - **P1:** 4/5 clean vs 0/5. The agent's own call flagged R-D4 at step 1 in every run, and a later call in the same
+    turn came back clean (caught-and-fixed at tool-call grain: 4; at snapshot grain: 0). The fifth run is a
+    functional failure.
+  - **P2:** 0/5 by the oracle vs 0/5. The tool returned clean everywhere, yet no run wrote points inside the command;
+    all five used an event handler in sales on the relay. That is the pre-registered over-rejection P2-SG2-a, so P2
+    is 3/5 if the author accepts it (two runs are functional failures).
+- **Predictions:** P1 held; "P2 improves less than P1" held, but by another mechanism than predicted.
+- **Reading (dev):**
+  - On P1 the tool + instruction moved an extreme split.
+  - On P2 the structural change came without any finding, so the caveat "tool + instruction vs neither" decides what
+    it can be attributed to. A placebo arm would separate the two.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -206,9 +228,11 @@ Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build repo
 - [ ] Fix the S1 seed `.gitignore` gap on `pilot/hexddd-01`; update the case-bank cards with the entry 6 verdicts.
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
+- [ ] Author: hand-read the PUZZLE-02 tool-arm oracle FAILs (`results/v1.4-puzzle-02-tool-arm/oracle-verdicts-to-read.md`).
 - [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
+- 2026-10-22: entry 14 (PUZZLE-02 tool arm `mcp-detect`); open item: author hand read of its 6 oracle FAILs (P2-SG2-a, P2-SG1-b).
 - 2026-10-22: entry 13 (PUZZLE-03).
 - 2026-10-22: entry 12 (v1.5 U3 severity rubric).
 - 2026-10-22: entry 11 (edit gate built and smoke-tested).

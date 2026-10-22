@@ -3056,3 +3056,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "(coordinator brief) After the plan is committed, run the agent-alone baseline on P3r, P5 and P6 (claude-sonnet-5-5, 5 runs x 3 steps, 0 repair turns, the PUZZLE-01 isolation, hard cap 53 calls), score with zero calls per puzzle, list every oracle failure for a hand read, write the report and a research-log entry, and merge normally once Build & Test is green."
 **AI Response**: "Plan committed before any call (9d6d4453). Isolation reused (first sweep found the world-readable tsx cache; closed, re-swept 0). READ probe and smoke passed; 50 of 53 calls used, including one in-flight call lost to a container restart (c01 redrawn as c16). Scores: P3r 1/5 clean (1 trapped, 3 functional failures on an under-specified fee reading), P5 0/5 (all write the other context synchronously; DETECT-02 flags 5/5), P6 0/5 (all copy the precedent; FF-S03 flags 5/5). 17 oracle FAILs listed with proposed labels (17 trap). Report Docs/DiagnosticRuns/puzzle-03-2026-10-23.md; research-log entry 13. PR #359 (Parts A and B and the plan) merged on green Build & Test; Architectural Firewall fails on src/ only, unrelated."
 **Context**: PUZZLE-03 (exploratory, DEV split); Part C; 50 generator calls
+
+## PUZZLE-02 — tool arm mcp-detect on P1 and P2, plan committed (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T03:18:10Z
+**User Input**: "(coordinator brief, author-approved run) Run the PUZZLE-02 tool arm mcp-detect as specified in ops/notes/puzzle-02-tool-arm-note.md: P1 and P2, 5 sessions each, the baseline's plan and isolation reused exactly, the note's frame sentence, hard cap 38 calls; score at zero calls against the baseline arm none."
+**AI Response**: "Before any generator call: committed experiments/puzzle-02-tool-arm/ with the plan, the frame text, the seeded order (seed 20261022), the isolation procedure (the baseline's, plus the MCP server run as root behind a socket relay so the spec stays unreadable to the generator) and the driver. CLI 2.1.307 recorded as an exploratory difference from the baseline's 2.1.305. Zero-call dry run passed."
+**Context**: Exploratory PUZZLE-02 tool arm; development material only, never applied to Study 2b; no frozen path changed
+
+---
+
+## PUZZLE-02 — tool arm mcp-detect on P1 and P2, run and scored (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T12:49:25Z
+**User Input**: "(same coordinator brief) Run the smoke, the confinement probe and the ten sessions, score at zero calls against the baseline, write the report and the research-log entry, open a PR, do not merge."
+**AI Response**: "Smoke passed on the note's criteria (tool listed, confined, callable; the stricter 'agent names the tool' check not observable, recorded). Probe passed (outside project refused). Isolation achieved (listing, zero-call READ probe, sweep 0; re-sweep 0 after a container restart). 34 of 38 calls; c06 redrawn as c11 after the restart. Provisional: P1 4/5 clean vs baseline 0/5 (tool flagged R-D4 at step 1 in every run and the agent cleared it in the same turn); P2 0/5 by the oracle vs 0/5, all five final trees in the pre-registered over-rejection shape P2-SG2-a (3/5 if accepted); functional failures 1 (P1) and 2 (P2). Report Docs/DiagnosticRuns/puzzle-02-tool-arm-2026-10-22.md; hand-read list in results/v1.4-puzzle-02-tool-arm/."
+**Context**: Exploratory PUZZLE-02 tool arm; development material only, never applied to Study 2b; no frozen path changed
+
+---
