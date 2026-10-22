@@ -1,0 +1,27 @@
+  ddd:
+    source_root: src/
+    contexts:
+      - name: sailings
+        root: src/sailings/
+        public_api: [src/sailings/index.ts, src/sailings/contracts/**]
+        acl: []
+      - name: bookings
+        root: src/bookings/
+        public_api: [src/bookings/index.ts, src/bookings/contracts/**]
+        acl: [src/bookings/acl/**]
+    outside_contexts: [src/shared-kernel/**, src/messaging/**, src/main.ts]
+    aggregates:
+      - name: Sailing
+        context: sailings
+        module: src/sailings/domain/sailing/**
+        root: src/sailings/domain/sailing/Sailing.ts
+        inner_entities: []
+      - name: Booking
+        context: bookings
+        module: src/bookings/domain/booking/**
+        root: src/bookings/domain/booking/Booking.ts
+        inner_entities: []
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/*/application/*.ts"]
