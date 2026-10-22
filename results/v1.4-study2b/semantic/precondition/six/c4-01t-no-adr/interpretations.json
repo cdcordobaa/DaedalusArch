@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "c4-01t-no-adr"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": false
+  },
+  "entries": [
+    {
+      "findingId": "c4f:9b4c6178c70b8d4c",
+      "finding": {
+        "id": "c4f:9b4c6178c70b8d4c",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/order.controller.ts (presentation) skips layers to import src/persistence/order-read.repository.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [
+          "099dcaf263962444"
+        ],
+        "files": [
+          "src/presentation/order.controller.ts",
+          "src/persistence/order-read.repository.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/order.controller.ts",
+          "line": 2,
+          "target": "src/persistence/order-read.repository.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/order.controller.ts:1",
+                "src/presentation/order.controller.ts:2",
+                "src/presentation/order.controller.ts:6",
+                "src/presentation/order.controller.ts:7",
+                "src/presentation/order.controller.ts:11",
+                "src/presentation/order.controller.ts:15",
+                "README.md:3"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "OrderController in the presentation layer imports OrderReadRepository from the persistence layer (src/presentation/order.controller.ts:2), has it injected through its constructor (line 7), and calls reads.findSummaries directly in list() (line 15). The write path, place(), correctly goes through OrderService in the business layer (lines 1, 6, 11). So the controller reaches persistence in two ways: through the business layer for writes, and directly for reads. FF-S03 flags this because presentation skips the business layer and depends straight on persistence. The README says the service is built in three layers: presentation, business and persistence (README.md:3). Neither the README nor any code comment explains or allows a direct read path from the controller to the repository, such as a CQRS-style query shortcut. The README does not say outright that each layer may only call the next one down, so the intent it declares is the three-layer structure itself. That structure supports the rule rather than an exception to it. The fix is small: add a read method such as listSummaries to OrderService, or create a business-layer query service, and remove the repository injection from the controller.",
+              "intentMatch": {
+                "status": "consistent-with-declared-intent",
+                "cites": [
+                  "README.md:3"
+                ]
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "7b5342e01c80bbce8992822713d763759a4baa07c1b5ae1d9d06ce3bb472aca1",
+          "date": "2026-10-22T04:33:17.301Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/order.controller.ts:2",
+                "src/presentation/order.controller.ts:7",
+                "src/presentation/order.controller.ts:11",
+                "src/presentation/order.controller.ts:15",
+                "README.md:3"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "OrderController sits in the presentation layer. It imports OrderReadRepository from the persistence layer (line 2), receives it through its constructor (line 7) and calls `this.reads.findSummaries(customerId)` directly in `list()` (line 15). The write path goes through the business layer as expected: `place()` delegates to OrderService.place (line 11). The read path skips the business layer, so the controller depends on persistence code directly. FF-S03 flags this because a layer may only depend on the layer directly below it, and here presentation reaches past business into persistence. Line 2 is where the dependency starts. The README describes the service as three layers (presentation, business and persistence) but never says whether layering is strict or whether read-only queries may bypass the business layer. No doc or comment allows this shortcut. The fix is small: add a query method to OrderService (or to a business-layer read service) that wraps findSummaries, and inject that into the controller instead of the repository.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": [
+                  "README.md:3"
+                ]
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "7b5342e01c80bbce8992822713d763759a4baa07c1b5ae1d9d06ce3bb472aca1",
+          "date": "2026-10-22T04:33:31.994Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": null,
+          "stability": "disagreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "OrderController in the presentation layer imports OrderReadRepository from the persistence layer (src/presentation/order.controller.ts:2), has it injected through its constructor (line 7), and calls reads.findSummaries directly in list() (line 15). The write path, place(), correctly goes through OrderService in the business layer (lines 1, 6, 11). So the controller reaches persistence in two ways: through the business layer for writes, and directly for reads. FF-S03 flags this because presentation skips the business layer and depends straight on persistence. The README says the service is built in three layers: presentation, business and persistence (README.md:3). Neither the README nor any code comment explains or allows a direct read path from the controller to the repository, such as a CQRS-style query shortcut. The README does not say outright that each layer may only call the next one down, so the intent it declares is the three-layer structure itself. That structure supports the rule rather than an exception to it. The fix is small: add a read method such as listSummaries to OrderService, or create a business-layer query service, and remove the repository injection from the controller.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

@@ -71,3 +71,32 @@ The check goes through the MCP layer: the experimental server with `--confine`, 
 
 `hint-audit/` holds the drafted agent frame for the tool arm and its hint audit (`Docs/v1.3/study2-task-design/
 hint-audit.mjs`, rung L3, the puzzles' specs and the 51 puzzle terms of the baseline audit): 0 FAIL on P1 and P2.
+
+## COMPREHEND-01 comprehension tools (`comprehend/`, `comprehend-server.ts`, `comprehend-main.ts`)
+
+**Exploratory (v1.5-exp), added 2026-10-22.** Four read-only, symbolic tools over the DETECT-02 facts and a call and
+import graph built in the same ts-morph style; no model call. Design: `ops/notes/comprehend-01-design.md` §4; the
+benchmark that uses them: `experiments/comprehend-01/`.
+
+| Tool | Input | Output |
+|---|---|---|
+| `context_map` | none | contexts and aggregates, owners, published files, commands per context; declared or inferred for each |
+| `who_writes` | `aggregate` | the commands that save it, with file:line, context, cross-context flag, instance, store method and call chain |
+| `trace` | `command`, `full?` | the call tree through ports to adapters, with reads, writes, IO and unresolved calls at each step |
+| `impact` | `target` (file or `file#Symbol`) | importers, references, commands reaching it, rules a change there could break, layering |
+
+```
+npx tsx experiments/detect-02/mcp/comprehend-main.ts --spec <spec.yaml> --project <tree> [--tsconfig <tsconfig>] --confine [--call-log <abs path>] [--with-frozen]
+```
+
+- A separate server (`daedalus-graph`), so the `check_consistency` server above and its PUZZLE-02 arm are unchanged.
+  `--with-frozen` also serves the frozen tools and `check_consistency`.
+- The tools answer about the configured project only; under `--confine` a project argument naming another tree is
+  refused. Call-log lines use `seq` from 2,000,001.
+- Lists are capped at 25 rows with the total stated; `trace` hides steps with no port crossing, adapter, read, write,
+  IO or unresolved call below them unless `full: true`.
+- Tests: `npx tsx --test experiments/detect-02/mcp/comprehend/tools.test.ts` (15 tests on the puzzle seeds and a
+  precision fixture, including the MCP layer).
+- Latency (`experiments/comprehend-01/results/latency.json`, one run in a cloud sandbox): the first call builds the
+  index, 0.1–1.9 s from a 13-file fixture to ddd-forum (250 files); warm calls take ≤ 9 ms; the first `impact` also
+  runs the rules once (0.06–1.1 s).

@@ -128,7 +128,78 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - The semantic path covers the rest, and it separates violations from their twins in most cases.
 - That is the first concrete map of where the two paths complement each other. It is not yet a test on held-out cases.
 
-### 8. PUZZLE-02 tool arm `mcp-detect` on P1 and P2 (2026-10-22, about 03:20–03:43 UTC; branch `pilot/puzzle-02-tool-arm`, PR not merged)
+### 8. Puzzle baseline, DETECT-02 tool and precision (2026-10-21 to 2026-10-22)
+**PUZZLE-01 baseline** (`Docs/DiagnosticRuns/puzzle-01-baseline-2026-10-21.md`, `results/v1.4-puzzle-01-baseline/`):
+- **Setup:** agent alone, rules written in each seed's `ARCHITECTURE.md`, 54 of 72 calls.
+- **Clean solves:** P1 0/5, P2 0/5, P4 5/5. P3 was dropped.
+- **Detection:** the frozen instrument and DETECT-01 flagged 0 of the 12 trap failures.
+- Provisional until the hand read.
+
+**DETECT-02** (`experiments/detect-02/`, PR #345): new graph facts (write footprint, context ownership) and the `check_consistency` MCP tool, symbolic only.
+- On the puzzle trees: 19/19 trap trees flagged and 0 false positives (dev).
+- The PUZZLE-02 pull-arm run is launched on P1 and P2 (`ops/notes/puzzle-02-tool-arm-note.md`).
+
+**Precision phase 1** (`ops/notes/detect-02-precision-note.md`, PR #351): 10 correct DDD patterns as fixtures.
+- 4/20 false-positive runs before any change, all of them predicted in the note.
+- 0/20 after three logged rule revisions.
+- On 13 human DDD repos: 1 true cross-context write found with declared specs, and 12 false hits with inferred roots, which are now development material.
+- The held-out check is deferred until the usage reset; the sealed set is unopened.
+
+### 9. Study 2b closed (2026-10-22)
+- **D_sem:** not run, because the C4 precondition was not met. The pilot passed; the six-case set came out 5/6 on a severity field of one near-miss twin.
+- **Evasion items 4 and 5:** not flagged.
+- Results report §7; addendum 4. The C4 severity calibration goes to the v1.5 semantic track (`ops/notes/v15-plan.md` §2).
+
+### 10. COMPREHEND-01 built, not run (2026-10-22)
+**Question:** does the property graph help agents understand an architecture: more accurately, more cheaply, or both?
+Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build report:
+`Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md`. Zero model calls.
+- **Tools:** four symbolic graph tools (`context_map`, `who_writes`, `trace`, `impact`) in a separate experimental
+  server (`experiments/detect-02/mcp/`), 15 tests. The first call builds the index in 0.1–1.9 s (ddd-forum, 250 files,
+  is the slowest); warm calls take ≤ 9 ms.
+- **Bank:** 30 questions over P1, P2 and P4, four precision fixtures and three human DDD repositories with declared
+  specs. Keys were hand-checked and committed before any tool ran.
+- **Cross-check:** the tools answer 16/16 G items correctly after one display fix (T1), and 0/3 of the Gw items, as
+  predicted. All three misses are coverage gaps: a mapped-type parameter, an untyped result from an uninstalled
+  package, and an ORM hook with a callback registry.
+- **Dry run:** a scripted fake model ran both arms. The plan, re-run, cap, confinement, scoring and ledger all behave
+  as scripted (63 fake spawns, 0 calls).
+- **Next:** the author reads the design note and approves or changes the pilot (62 sessions, cap 66).
+
+### 11. Edit gate built and smoke-tested (2026-10-22)
+**Edit gate** (`experiments/edit-gate/`, `Docs/DiagnosticRuns/edit-gate-build-2026-10-23.md`, `experiments/edit-gate/results/`): the push delivery of `ops/notes/v15-edit-gate-design.md`.
+- **Mechanism:** option A works on CLI 2.1.308. PostToolUse and Stop hooks, passed inline through the arm's `--settings`, fire under the frozen argv, with the CLI running as the generator user. A root-side hub runs `check_consistency` and replies with the new findings only. The fallback was not needed.
+- **Zero calls:** 12/12 unit tests pass. The real CLI was run against a scripted API: the hook text reaches the next request, de-duplication holds, the Stop hook blocks once, and a switch-off attempt fails.
+- **Isolation:** 0 readable fingerprint files, after closing root's `tsx` cache, which had been readable.
+- **Calls:** 2 of 4. The smoke passed: the model quoted the finding's file, line and label. The probe passed: 0 canaries leaked, and the gate still fired after the switch-off attempt.
+- **Latency:** hub p50 130–145 ms on P1 and P2 trees, p95 171–204 ms. No puzzle session was run.
+
+### 12. v1.5 U3: the C4 severity rubric (2026-10-22)
+- **Why:** every v1.4 six-case miss was the severity field. The frozen prompt asks C4 only to "rank the work", so it ranked by the size of the fix, while the manifests meant how far the code departs from declared intent (`ops/notes/v15-u3-severity-note.md`).
+- **What:** a rubric as a prompt variant (`experiments/v15-u3/`, `c4-v0.2+u3-r1`: grant → low; declared rule broken → high; otherwise by what the dependency does). It was run on the six-case set plus six new pairs whose answers were written first, with `claude-sonnet-5-5`, 2 runs each.
+- **Result:** 24/24 targets correct in both runs, on both sets. Severity, exception and intent were all stable; 0 false claims and 0 hallucinated citations. A 4-call control with the frozen prompt reproduces case 5's severity miss and shows an intent-label slip ("consistent" read as "the rule matches the docs") that the rubric removes. 52 of 60 calls (`Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md`).
+- **Caveat:** this is a ceiling on a designed set. The same session wrote the rubric and the cases, and severity follows from intent on 14 of the 24 targets. The next checks are the non-author row, a Gemini arm and the non-target findings.
+
+### 13. PUZZLE-03: hand read, three more puzzles, agent baseline (2026-10-22)
+`Docs/DiagnosticRuns/puzzle-03-2026-10-23.md`, `experiments/puzzle-03/`, `results/v1.4-puzzle-03-baseline/`:
+- **Hand read of the PUZZLE-01 baseline:** 11 trap, 1 over-rejection (c07, P2-SG2-a). After it: P1 0/5, P2 1/5
+  (provisional), P4 5/5. Author spot-check pending on c07 and c10.
+- **Three DEV puzzles, all VALID (zero calls):**
+  - P3r: P3 rebuilt; the clean port was written anew.
+  - P5: two-way cross-context ferry seats, with a runtime stack oracle.
+  - P6: Layered, with a planted controller-to-gateway skip that the requests ask to stay consistent with; FF-S03
+    sees the trap.
+  - Gaming fixtures (renames, a batch unit of work, a synchronous fake event) fail the oracles. The PUZZLE-01 P3
+    oracle passes the P3r rename, DETECT-02 misses the fake event, and the frozen instrument misses the P6 rename.
+- **Agent alone** (`claude-sonnet-5-5`, 50 of 53 calls, one restart redraw):
+  - P3r 1/5 clean (4/5 if the fee-on-fallback reading is accepted).
+  - P5 0/5: 5/5 sync writes into the other context, all flagged by DETECT-02.
+  - P6 0/5: 5/5 copied the precedent, all flagged by the frozen instrument (FF-S03).
+  - Provisional until the hand read of 17 FAILs.
+- **Reading (dev):** P6 is the first puzzle the frozen instrument sees that the agent alone fails at 2/5 or below.
+  The condition for sizing an `mcp` arm is met, and P5 meets it for a DETECT-02 arm.
+
+### 14. PUZZLE-02 tool arm `mcp-detect` on P1 and P2 (2026-10-22, about 03:20–03:43 UTC; branch `pilot/puzzle-02-tool-arm`, PR not merged)
 - **Spec and records:** run note `puzzle-02-tool-arm-note.md`; plan committed before any call
   (`experiments/puzzle-02-tool-arm/`); report `Docs/DiagnosticRuns/puzzle-02-tool-arm-2026-10-22.md`; records
   `results/v1.4-puzzle-02-tool-arm/`.
@@ -158,9 +229,15 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
 - [ ] Author: hand-read the PUZZLE-02 tool-arm oracle FAILs (`results/v1.4-puzzle-02-tool-arm/oracle-verdicts-to-read.md`).
+- [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
-- 2026-10-22: entry 8 (PUZZLE-02 tool arm `mcp-detect`); open item: author hand read of its 6 oracle FAILs (P2-SG2-a, P2-SG1-b).
+- 2026-10-22: entry 14 (PUZZLE-02 tool arm `mcp-detect`); open item: author hand read of its 6 oracle FAILs (P2-SG2-a, P2-SG1-b).
+- 2026-10-22: entry 13 (PUZZLE-03).
+- 2026-10-22: entry 12 (v1.5 U3 severity rubric).
+- 2026-10-22: entry 11 (edit gate built and smoke-tested).
+- 2026-10-22: entry 10 (COMPREHEND-01 built, not run).
+- 2026-10-22: entries 8 (puzzle baseline, DETECT-02 tool, precision) and 9 (Study 2b closed).
 - 2026-10-21: the sources this thread cites (HEXDDD-01, DETECT-01 and PUZZLE-01 literature, plus the search-session list) are consolidated in `Docs/sources/sources-ledger.md` (keys in `Docs/sources/sources.bib`).
 - 2026-10-21: entry 7 (DETECT-01 and PUZZLE-01 results).
 - 2026-10-21: entry 6 (hand read against scores); spot-check closed.

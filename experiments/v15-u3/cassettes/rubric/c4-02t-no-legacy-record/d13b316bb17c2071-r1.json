@@ -1,0 +1,31 @@
+{
+  "arm": "rubric",
+  "project": "c4-02t-no-legacy-record",
+  "findingId": "c4f:8c53818e8529494b",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "d096a1181d056d4346edf5f3f4d0738b61b7cf60f9b8c023513afceea3a32fbf",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:24:40.248Z",
+  "answer": {
+    "explanation": "Order is a domain entity holding business logic (adding lines, validating quantity), but it imports the Entity decorator from typeorm on line 1 and is annotated with @Entity(). That ties the domain model to a persistence framework and infrastructure concern. FF-DT04 flags this because the domain layer should stay free of framework and infrastructure packages. Persistence mapping belongs in an infrastructure adapter or a separate persistence model. The README only describes the context as a DDD service and states no rule or exception on this dependency.",
+    "intentMatch": {
+      "status": "no-declared-intent",
+      "cites": [
+        "README.md:3"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "high",
+    "cites": [
+      "src/ordering/domain/order/Order.ts:1",
+      "src/ordering/domain/order/Order.ts:3",
+      "README.md:3"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "comprehend-01-conventions/v1",
+  "conventions": [
+    "Paths are project-relative POSIX paths starting with src/. 'Production files' are .ts files that are not tests (*.spec.ts, *.test.ts) or declarations (.d.ts).",
+    "A unit is named Class.method for a class method, or by its function name. A function stored in an object literal is named by its property name.",
+    "A command saves (writes) an aggregate when, while it runs (including every function it calls synchronously), a repository or store method persists, updates or deletes that aggregate's state. A child entity belongs to its aggregate root, so saving it counts as saving the root. Code that runs later, in a handler of a domain event, is not part of the command unless the question says so.",
+    "Aggregate names are the root class names of the spec's `architecture.ddd.aggregates`; context names are the spec's `architecture.ddd.contexts` names.",
+    "A call chain lists concrete units (methods or functions with a body) in call order; it does not list interface members.",
+    "Rule names: R-D4 = one command saves two or more aggregate instances; R-XCTX = a command saves an aggregate that another bounded context owns; R-D5 = a business rule about an aggregate's state is decided outside the aggregate; R-D9 = a published contract exposes an entity or aggregate type; R-H5 = a port signature carries an infrastructure type or a lock/transaction callback; R-INJ = application code depends on a concrete adapter class instead of a port; R-RTX = a remote call made inside a transaction or lock; LAYER = an import that breaks the architecture's allowed layer dependencies; CTX-ISOLATION = a context imports another context's code that is not part of its published interface; none = no rule."
+  ]
+}

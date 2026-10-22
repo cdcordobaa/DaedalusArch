@@ -8,8 +8,8 @@ Comments go in `> AUTHOR:` lines.
 
 **Inputs.** Families H1–H7 and D1–D11 and the detectability table: `ops/notes/hexddd-01-violation-elicitation-design.md`
 §3 (the families are listed in §3, with the scenarios in §4). The nine hand-read misses:
-`results/pilot-hexddd-01/hand-read-log.csv` on `pilot/hexddd-01` (PR #332, commit `c1805364`). The scorer output:
-`results/pilot-hexddd-01/scores/` on the same branch (opened only now; the hand read is complete). The instrument:
+`results/v1.4-pilot-hexddd-01/hand-read-log.csv` on `pilot/hexddd-01` (PR #332, commit `c1805364`). The scorer output:
+`results/v1.4-pilot-hexddd-01/scores/` on the same branch (opened only now; the hand read is complete). The instrument:
 `presets/hexagonal.yaml`, `presets/ddd.yaml`, the extractor `src/apg-extractor/` (C1a), the C4 prompt
 `src/apg-enrich/ontology/interpretation.ts`.
 
@@ -63,7 +63,7 @@ specific *instances* (§2).
 
 ## 2. The nine hand-read misses
 
-Provenance: `pilot/hexddd-01` commit `c1805364`, the step diffs `results/pilot-hexddd-01/diffs/<task>/step-NN.diff`;
+Provenance: `pilot/hexddd-01` commit `c1805364`, the step diffs `results/v1.4-pilot-hexddd-01/diffs/<task>/step-NN.diff`;
 line numbers are on the new side of the step diff. The tenth log row (S1 step 5, H4) records a **fixed** planted debt
 and is not a miss.
 
@@ -111,7 +111,7 @@ All questions share one contract: answer `present`, `absent` or `abstain`; when 
 
 ## 4. Cross-check against `scores/`: did an advisory finding touch a hand-read case?
 
-Read from `results/pilot-hexddd-01/scores/` (`c1805364`). No **blocking** finding matches any of the nine (S1 has only
+Read from `results/v1.4-pilot-hexddd-01/scores/` (`c1805364`). No **blocking** finding matches any of the nine (S1 has only
 the planted FF-S01 through step 4; S2 has only the planted FF-DS02). Advisory findings in the same **file** as a case:
 
 | Case | Advisory finding in that file | Since | Does it touch the construct? |

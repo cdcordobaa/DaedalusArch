@@ -1,0 +1,110 @@
+diff --git a/a/src/bookings/acl/SailingsDirectory.ts b/b/src/bookings/acl/SailingsDirectory.ts
+index ecb558fd..4b5a3bb5 100644
+--- a/a/src/bookings/acl/SailingsDirectory.ts
++++ b/b/src/bookings/acl/SailingsDirectory.ts
+@@ -12,4 +12,8 @@ export class SailingsDirectory implements SailingDirectory {
+   takeSeats(sailingId: string, holder: string, seats: number): boolean {
+     return this.sailings.tryHoldSeats(sailingId, holder, seats);
+   }
++
++  returnSeats(sailingId: string, holder: string): void {
++    this.sailings.releaseSeats(sailingId, holder);
++  }
+ }
+diff --git a/b/src/bookings/application/CancelBooking.ts b/b/src/bookings/application/CancelBooking.ts
+new file mode 100644
+index 00000000..ea35ffc9
+--- /dev/null
++++ b/b/src/bookings/application/CancelBooking.ts
+@@ -0,0 +1,20 @@
++import { BookingError } from '../domain/BookingError';
++import type { BookingRepository } from '../domain/booking/BookingRepository';
++import { BookingId } from '../domain/booking/value-objects/BookingId';
++import type { SailingDirectory } from './ports/SailingDirectory';
++
++export class CancelBooking {
++  constructor(
++    private readonly bookings: BookingRepository,
++    private readonly sailings: SailingDirectory,
++  ) {}
++
++  execute(bookingId: string): void {
++    const booking = this.bookings.byId(BookingId.of(bookingId));
++    if (booking === undefined) throw new BookingError(`no booking ${bookingId}`);
++    if (booking.status !== 'confirmed') return;
++    booking.cancel();
++    this.sailings.returnSeats(booking.sailingId, `booking:${booking.id.value}`);
++    this.bookings.save(booking);
++  }
++}
+diff --git a/a/src/bookings/application/ports/SailingDirectory.ts b/b/src/bookings/application/ports/SailingDirectory.ts
+index cc0bf5fb..7664b095 100644
+--- a/a/src/bookings/application/ports/SailingDirectory.ts
++++ b/b/src/bookings/application/ports/SailingDirectory.ts
+@@ -3,4 +3,6 @@ export interface SailingDirectory {
+   exists(sailingId: string): boolean;
+   /** Takes the seats for the holder if enough are left; true when taken, false when nothing was taken. */
+   takeSeats(sailingId: string, holder: string, seats: number): boolean;
++  /** Gives back the seats taken for the holder. */
++  returnSeats(sailingId: string, holder: string): void;
+ }
+diff --git a/a/src/bookings/domain/booking/Booking.ts b/b/src/bookings/domain/booking/Booking.ts
+index e87d5f64..03ec9edf 100644
+--- a/a/src/bookings/domain/booking/Booking.ts
++++ b/b/src/bookings/domain/booking/Booking.ts
+@@ -3,7 +3,7 @@ import { BookingError } from '../BookingError';
+ import { BookingRequested } from './events/BookingRequested';
+ import type { BookingId } from './value-objects/BookingId';
+ 
+-export type BookingStatus = 'requested' | 'confirmed' | 'rejected';
++export type BookingStatus = 'requested' | 'confirmed' | 'rejected' | 'cancelled';
+ 
+ /** Seats one passenger asks for on one sailing. */
+ const MAX_SEATS = 9;
+@@ -50,6 +50,11 @@ export class Booking {
+     this.current = 'rejected';
+   }
+ 
++  cancel(): void {
++    if (this.current !== 'confirmed') throw new BookingError(`a ${this.current} booking cannot be cancelled`);
++    this.current = 'cancelled';
++  }
++
+   get status(): BookingStatus {
+     return this.current;
+   }
+diff --git a/a/src/bookings/index.ts b/b/src/bookings/index.ts
+index 25b4eb68..1181b564 100644
+--- a/a/src/bookings/index.ts
++++ b/b/src/bookings/index.ts
+@@ -1,3 +1,4 @@
++import { CancelBooking } from './application/CancelBooking';
+ import { GetBooking } from './application/GetBooking';
+ import { RequestBooking } from './application/RequestBooking';
+ import type { SailingDirectory } from './application/ports/SailingDirectory';
+@@ -10,11 +11,13 @@ export type { BookingView } from './contracts/BookingView';
+ export interface BookingsModule {
+   book(passenger: string, sailingId: string, seats: number): string;
+   booking(bookingId: string): BookingView | undefined;
++  cancel(bookingId: string): void;
+ }
+ 
+ export function createBookings(bookings: BookingRepository, sailings: SailingDirectory): BookingsModule {
+   return {
+     book: (passenger, sailingId, seats) => new RequestBooking(bookings, sailings).execute(passenger, sailingId, seats),
+     booking: (bookingId) => new GetBooking(bookings).execute(bookingId),
++    cancel: (bookingId) => new CancelBooking(bookings, sailings).execute(bookingId),
+   };
+ }
+diff --git a/a/src/main.ts b/b/src/main.ts
+index edf9bbfc..ddf895fe 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -28,6 +28,7 @@ export function createApp() {
+     blockSeats: (sailingId: string, party: string, seats: number): void => command(() => sailings.holdSeats(sailingId, party, seats)),
+     releaseBlock: (sailingId: string, party: string): void => command(() => sailings.releaseSeats(sailingId, party)),
+     book: (passenger: string, sailingId: string, seats: number): string => command(() => bookings.book(passenger, sailingId, seats)),
++    cancelBooking: (bookingId: string): void => command(() => bookings.cancel(bookingId)),
+     booking: (bookingId: string) => bookings.booking(bookingId),
+     deskNotices: (): string[] => notices.all(),
+   };

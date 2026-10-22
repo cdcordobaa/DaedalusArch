@@ -1,0 +1,120 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:5d7547ae3270b218",
+    "finding": {
+      "id": "c4f:5d7547ae3270b218",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/presentation/ticket.controller.ts (presentation) skips layers to import src/persistence/ticket.repository.ts (persistence)",
+      "rule": "FF-S03",
+      "sites": [
+        "c26eb05ac3a66b17"
+      ],
+      "files": [
+        "src/presentation/ticket.controller.ts",
+        "src/persistence/ticket.repository.ts"
+      ],
+      "edge": {
+        "file": "src/presentation/ticket.controller.ts",
+        "line": 2,
+        "target": "src/persistence/ticket.repository.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "TicketController in the presentation layer imports and is constructor-injected with TicketRepository from the persistence layer. Its close method calls repo.close directly. That skips the business layer (TicketService), so any business logic for closing a ticket is bypassed and state is changed straight from the presentation layer. FF-S03 flags this layer-skipping dependency. The only nearby comment is \"TODO: tidy this up later\", which states no rule and grants no exception. No doc or ADR declares anything on this, so the ranking rests on what the dependency does: a layer is bypassed to change state.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": [
+                "src/presentation/ticket.controller.ts:14"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "medium",
+            "cites": [
+              "src/presentation/ticket.controller.ts:2",
+              "src/presentation/ticket.controller.ts:7",
+              "src/presentation/ticket.controller.ts:14",
+              "src/presentation/ticket.controller.ts:16"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "e5de3b67d06c16beee81d5feeb429fa80b947b5fd4eda0b944bcc3bcf57a6119",
+        "date": "2026-10-22T06:29:27.902Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "TicketController in the presentation layer imports TicketRepository from the persistence layer (line 2), injects it, and calls repo.close() directly. That skips the business layer: open() goes through TicketService, but close() writes state straight through the repository, so any business logic for closing a ticket is bypassed or ends up in the controller. FF-S03 flags this layer-skipping dependency. The only nearby comment is \"TODO: tidy this up later\", which states no rule and grants no exception. No docs or ADRs declare anything on this, so no intent is declared. By the rubric, a layer is bypassed to change state, which ranks medium.",
+            "intentMatch": {
+              "status": "no-declared-intent",
+              "cites": []
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "medium",
+            "cites": [
+              "src/presentation/ticket.controller.ts:2",
+              "src/presentation/ticket.controller.ts:7",
+              "src/presentation/ticket.controller.ts:14",
+              "src/presentation/ticket.controller.ts:16"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "e5de3b67d06c16beee81d5feeb429fa80b947b5fd4eda0b944bcc3bcf57a6119",
+        "date": "2026-10-22T06:29:32.913Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": "no-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "medium",
+        "stability": "agreed"
+      },
+      "explanation": "TicketController in the presentation layer imports and is constructor-injected with TicketRepository from the persistence layer. Its close method calls repo.close directly. That skips the business layer (TicketService), so any business logic for closing a ticket is bypassed and state is changed straight from the presentation layer. FF-S03 flags this layer-skipping dependency. The only nearby comment is \"TODO: tidy this up later\", which states no rule and grants no exception. No doc or ADR declares anything on this, so the ranking rests on what the dependency does: a layer is bypassed to change state.",
+      "validRuns": 2
+    }
+  }
+}

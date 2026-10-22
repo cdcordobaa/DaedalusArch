@@ -2919,6 +2919,144 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Study 2b — addendum 4: closing the registered secondaries
+**Timestamp**: 2026-10-22T03:58:00Z
+**User Input**: "Decided to close Study 2b's registered secondaries now by the least costly route: run the C4 precondition and, if it passes, C4 and D_sem; run evasion items 4 and 5; defer C1d."
+**AI Response**: "Added Docs/v1.4/study2b-preregistration-addendum-4.md before any semantic call on 2b data: DA13 (C4 precondition then C4 and D_sem as registered, cap fixed by --estimate and dated before the first 2b call), DA14 (C1d not run, reason), DA15 (evasion item 4 computed post hoc at the freeze tag with a new zero-call driver, registered bar unchanged), DA16 (evasion item 5 read blind by an independent AI session with an author spot-check of two diffs). Zero model calls."
+**Context**: Study 2b closure; registered secondaries
+
+---
+
+## Study 2b — evasion item 4 computed, item 5 packet prepared, three exploratory analyses
+**Timestamp**: 2026-10-22T04:36:05Z
+**User Input**: "(coordinator brief) Under addendum 4 (DA15, DA16), and after it merged: compute evasion item 4 with a zero-call literal-view driver run at the freeze tag, with its hash recorded before the run; prepare, without classifying, the blind item 5 packet; write the three exploratory analyses as a separate, exploratory report."
+**AI Response**: "Item 4 (DA15): scripts/v1.4/study2b-literal-view.ts and its lib, tested on a tiny fixture; sha256 committed in 8f3dc895f before the run; ran from a worktree of v1.4-freeze-2026-10-20 at 04:29–04:35Z after PR #347 merged and the registered hashes verified. 600 snapshots, 0 failures. Mean per-block gap (literal − default D) is 0 in all three cells, so it is not flagged against the registered bar. Default D reproduces the committed D in 120 of 120 runs. Results are in results/v1.4-study2b/evasion/item4/. Item 5 (DA16): the 20-diff packet, its reader sheet, the key and the two spot-check ids were built by scripts/v1.4/study2b-item5-packet.ts (seeds 20261021 and 20261022). They are kept outside the repository and not committed until the read is scored; nothing was classified. Exploratory: Docs/DiagnosticRuns/v1.4-study2b-exploratory-analyses-2026-10-22.md, labelled not registered. Zero model calls; nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, and no registered artefact, changed."
+**Context**: Study 2b closure; evasion items 4 and 5 (DA15, DA16); exploratory analyses
+## Study 2b — semantic secondary (DA13): C4 precondition
+**Timestamp**: 2026-10-22T04:41:41Z
+**User Input**: "Run the registered semantic secondary of Study 2b as fixed by addendum 4 (DA13); later, under a usage limit, do not start C4 on the 2b identities and stop after the precondition phase in progress."
+**AI Response**: "After PR #347 merged and the registered hashes verified (pre-registration, 27 artefacts, OSF package 8/8, frozen paths unchanged), ran from a detached worktree of the freeze tag with the registered post-tag scripts copied in. The C4 pilot (pairs 1-2) passed: 8 calls, cap 16. The six-case set failed its registered bar: 32 calls, cap 64; 5/6 correct, 0 false exception claims on the twins, but near-miss twin 4 not correct (severity low, allowed high or medium). C4 was not run on 2b; D_sem reported as not run: precondition not met. 40 model calls in total, 0 on 2b data. The frozen judge pin CLI 2.1.294 ran without --exploratory. Outputs and cassettes are under results/v1.4-study2b/semantic/, the report is Docs/DiagnosticRuns/v1.4-study2b-semantic-2026-10-22.md, and a dated changelog line was added to addendum 4."
+**Context**: Study 2b registered secondary; semantic layer precondition
+
+---
+
+## Study 2b — registered secondaries closed
+**Timestamp**: 2026-10-22T06:30:00Z
+**User Input**: "Asked to close Study 2b's registered secondaries by the least costly route, then keep progressing toward the next instrument version."
+**AI Response**: "Recorded the closure under addendum 4: C4 precondition not met (pilot pass, six-case 5/6 on one severity field), so D_sem not run and no C4 call on 2b; C1d not run (DA14); evasion item 4 not flagged (literal and default views identical, 600 snapshots); evasion item 5 bar met (0 moved-only in mcp@L2; 20/20 diffs no-removal, blind AI reader, author spot-check of two pending). Updated the results report (§7), null M185, the compendium README row and the exploratory research log (entries 8–9). No model call in this step."
+**Context**: Study 2b closure; exploratory thread bookkeeping
+
+---
+
+## V15-PLAN steps 2 and 3 — edit-gate design note and final-study draft (documentation only)
+**Timestamp**: 2026-10-22T04:40:00Z
+**User Input**: "(coordinator brief) Write the edit-gate design note and a first draft of the final confirmatory study of instrument v1.5, zero calls, and link both from the V15 plan."
+**AI Response**: "Added ops/notes/v15-edit-gate-design.md (DRAFT): mechanism options (PostToolUse hook through a root-side relay, recommended, with a Stop hook; harness injection between turns as fallback), checks, message format and de-duplication, latency budget, confinement, scenarios, predictions against the PUZZLE-01 baseline and the pull arm, measures, a 38-call pilot plan and failure criteria. Added ops/notes/v15-final-study-draft.md (DRAFT v0): research questions, a spec × tool 2×2 per style (Layered and DDD), a task-grain power sketch with candidate grids, outcomes including D_sem, a second vendor and an optional brownfield arm, v1.5 gates before registration, threats, rough cost and open decisions. Linked both from ops/notes/v15-plan.md under a Notes line."
+**Context**: V15-PLAN first three steps (steps 2 and 3); zero model calls; nothing run or built; not part of Study 2b
+## v1.5 — Workspace Detection
+**Timestamp**: 2026-10-22T05:25:00Z
+**User Input**: "Asked that the v1.5 work (semantic layer, detection of the violations agents commit, delivery, spec inference) be tracked through AI-DLC."
+**AI Response**: "Started the v1.5 cycle. Workspace: brownfield, reverse-engineering artifacts exist (not refreshed); state file resumed; Security Baseline extension enabled since v1.2. Proceeding to Requirements Analysis."
+**Context**: v1.5 INCEPTION, Workspace Detection
+
+---
+
+## v1.5 — Requirements Analysis (questions issued)
+**Timestamp**: 2026-10-22T05:26:00Z
+**User Input**: "Agreed that v1.5 should centre on the semantic layer; agreed to the semantic programme (S1–S5 and the three-arm comparison on development material, no sealed sets until the instrument works)."
+**AI Response**: "Wrote ops/notes/v15-semantic-programme.md, the draft aidlc-docs/inception/v1.5/requirements.md (standard depth: 14 FR, 5 NFR) and aidlc-docs/inception/v1.5/requirements-questions.md (7 questions: order, code location, vendor, spec-inference scope, delivery default, final-study design scope, security extension). Awaiting the author's answers before approval."
+**Context**: v1.5 INCEPTION, Requirements Analysis
+
+---
+
+## v1.5 — Requirements Analysis (complete)
+**Timestamp**: 2026-10-22T05:45:00Z
+**User Input**: "Asked the coordinator to settle the remaining scope questions, as the cycle's direction is already set."
+**AI Response**: "Answered the seven questions with the recommended options under the author's standing delegation for gate-level calls (semantic first; experiments/ until each part passes; Claude now, Gemini later; spec inference in scope; pull and edit gate; final-study design as a deliverable; Security Baseline enabled). Requirements marked final."
+**Context**: v1.5 INCEPTION, Requirements Analysis approved under delegation
+
+---
+
+## v1.5 — Workflow Planning (complete)
+**Timestamp**: 2026-10-22T05:46:00Z
+**User Input**: "(standing delegation)"
+**AI Response**: "Wrote aidlc-docs/inception/v1.5/workflow-plan.md: User Stories, NFR and Infrastructure stages skipped; Application Design (minimal) and Units Generation execute; seven units in semantic-first order (U3 S1 calibration, U4 S3/S2, U6 evaluation and puzzles, U1 graph and rules into src, U2 delivery, U5 spec inference, U7 release and final-study draft), with call estimates and gates. Until the usage reset, only cloud-credit pilots and zero-call work run."
+**Context**: v1.5 INCEPTION, Workflow Planning approved under delegation
+
+---
+
+## v1.5 — Application Design (complete, minimal)
+**Timestamp**: 2026-10-22T06:05:00Z
+**User Input**: "Asked for the v1.5 Application Design at minimal depth and the Units Generation, with zero model calls, following the AI-DLC rule files."
+**AI Response**: "Wrote aidlc-docs/inception/v1.5/application-design.md: one page on the new components (S1 severity rubric, S2 candidate confirmer, S3 aggregate and ownership facts, S4 spec-inference pipeline, S5 grounded fix hint, the edit gate, the three-arm harness) and their contracts with C1d (A2 facts), C4 (A5, frozen schema and grounding), the MCP server and the fitness compiler; data flow with a text alternative; cross-cutting NFR rules. No design question was open (scope settled in requirements-questions.md), so no [Answer] plan was issued; the companion files are folded into the page, as in v1.4. Approved under the author's standing delegation for gate-level calls."
+**Context**: v1.5 INCEPTION, Application Design approved under delegation
+
+---
+
+## v1.5 — Units Generation (complete)
+**Timestamp**: 2026-10-22T06:05:30Z
+**User Input**: "(standing delegation)"
+**AI Response**: "Wrote aidlc-docs/inception/v1.5/unit-of-work.md: the seven units of workflow-plan.md (U3, U4, U6, U1, U2, U5, U7), each with its FRs, inputs, outputs, its own test from ops/04-north-star.md, its gate and its call estimate; dependency table and ASCII graph with a text alternative; FR coverage (every FR in one unit). Updated aidlc-state.md: Application Design and Units Generation complete; CONSTRUCTION starts with U3. Approved under the author's standing delegation for gate-level calls."
+**Context**: v1.5 INCEPTION, Units Generation approved under delegation
+
+---
+
+---
+
+## PUZZLE-03 Parts A and B — hand read of the PUZZLE-01 baseline; three puzzles built (zero calls)
+**Timestamp**: 2026-10-22T06:16:12Z
+**User Input**: "(coordinator brief) Hand-read the 12 oracle failures of the PUZZLE-01 baseline against the pre-registered categories, pick two for the author's spot-check and update the counts; then build, with zero generator calls and the PUZZLE-01 retrograde method, P3r (Hexagonal, restored or rebuilt), P5 (a second cross-context DDD puzzle) and P6 (a harder visible Layered puzzle with precedent debt), each with gaming fixtures the oracle must fail; verify all, commit and push before the agent baseline."
+**AI Response**: "Part A: results/v1.4-puzzle-01-baseline/hand-read.md: 11 trap, 1 over-rejection (c07, P2-SG2-a), 0 unclear, file:line each; spot-check picks c07 P2 SG2 and c10 P1 SG2 (recorded seeds equal the committed seeds); counts after the hand read P1 0/5, P2 1/5 (provisional), P4 5/5; a dated section appended to the baseline report. Part B: experiments/puzzle-03/: P3r rebuilt (clean CarrierRates.ts written anew; the rest byte-exact; oracle extended), P5 p5-ferry-seats (runtime stack oracle), P6 p6-workshop-jobs (planted controller-to-gateway skip; FF-S03 sees the trap). Gaming fixtures: P3r renamed vendor shape (passes the PUZZLE-01 oracle), P5 synchronous fake event and batch unit of work, P6 re-exported gateways; one P5 alternative clean design. tools/verify.ts: all three VALID, every trap shorter than its clean line, hint audits 0 FAIL. Nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, the freeze tag or any Study 2b artefact changed."
+**Context**: PUZZLE-03 (exploratory, DEV split); Parts A and B; zero model or generator calls
+
+## COMPREHEND-01 — architecture-comprehension benchmark and graph tools (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T05:52:20Z
+**User Input**: "(coordinator brief) Build an architecture-comprehension benchmark (files-only against files plus graph tools) and four symbolic graph tools in the experimental MCP server, with a question bank whose answers are written and hand-checked first; dry-run the plumbing with a scripted fake model; write the design note first; zero model calls; the pilot runs later, after the author reads the design note."
+**AI Response**: "Started. Classified as an exploratory development task under the coordinator's explicit step list (design note first and committed, then tools, question bank, dry run, report, PR). Scope fence: new material only under experiments/comprehend-01/ and additions under experiments/detect-02/mcp/; nothing under src/, presets/, scripts/lib/, scripts/v1.3/, the v1.4 tag or any registered Study 2b artefact. aidlc-docs/inception/v1.5/ does not exist on main; the v1.5 plan is read from ops/notes/v15-plan.md."
+**Context**: Exploratory COMPREHEND-01, start; development material only, never applied to Study 2b
+
+---
+
+## COMPREHEND-01 — built and dry-run, pilot not run (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T06:16:14Z
+**User Input**: "(same coordinator brief) Build the four graph tools, the question bank with answers written first, a dry run with a scripted fake model, the build report and a research-log entry; open a PR and merge it once Build & Test is green."
+**AI Response**: "Design note committed first (58242c7a). Added context_map, who_writes, trace and impact (experiments/detect-02/mcp/comprehend/, a separate daedalus-graph server; 15 tests; first call 0.1-1.9 s, warm calls under 10 ms). Bank of 30 items over P1, P2, P4, four precision fixtures and lucashang-ddd-payday, meetinger and ddd-forum, keys hand-checked and committed (07ce2918) before the graph cross-check: G 16/16 after one display revision (T1), Gw 0/3 as predicted. Runner with a scripted fake model and 11 tests: 63 fake spawns, 0 model calls. Report Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md; research-log entry 10. Nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, the v1.4 tag or any registered Study 2b artefact changed."
+**Context**: Exploratory COMPREHEND-01, build complete; the pilot waits for the author's reading of the design note
+
+## V15-PLAN step 2 — edit gate built and smoke-tested (exploratory)
+**Timestamp**: 2026-10-22T06:08:00Z
+**User Input**: "Build the edit-gate arm from the design note (hook, relay, root-side checker, de-duplication, arm settings), unit-test it at zero calls, smoke-test it with at most 4 model calls, document it, and merge it through a normal PR. No puzzle session."
+**AI Response**: "Added experiments/edit-gate/: the PostToolUse/Stop hook relay (generator user), the root-side hub running DETECT-02 check_consistency with per-session de-duplication and work-tree refusal, the arm's --settings (the frozen argv with only the --settings value replaced; hooks on for this arm only, recorded as an exploratory difference), a driver (--dry, --smoke, --probe, --sessions), a sandbox setup script, unit tests and a scripted Messages API for zero-call CLI runs. Unit tests 12/12 and --dry passed at zero calls; the dry sweep found root's tsx cache readable and it is now closed. Smoke and probe passed with 2 of 4 calls (the probe re-scored at zero calls after one criterion was corrected, both scorings kept). Hook mechanism works on CLI 2.1.308; fallback not needed. Report Docs/DiagnosticRuns/edit-gate-build-2026-10-23.md; research-log entry 10. Nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, the freeze tag or any Study 2b artefact changed."
+**Context**: V15-PLAN step 2 (edit gate); exploratory v1.5-exp; DEV split; not part of Study 2b
+
+---
+
+---
+
+## v1.5 — CONSTRUCTION, U3 (S1 severity calibration)
+**Timestamp**: 2026-10-22T06:45:00Z
+**User Input**: "Asked for U3: a thinking note first, the severity rubric as an exploratory prompt variant without editing src/, at least six new case/twin pairs with answers written first, a pilot with claude -p (claude-sonnet-5-5) on the six-case set plus the new pairs, two runs each, a hard cap of 60 calls with a ledger, recorded answers, and a report."
+**AI Response**: "Committed ops/notes/v15-u3-severity-note.md, the rubric variant (c4-v0.2+u3-r1) and six new pairs with hashed manifests (da0cfcc2) before the first call. Ran the target finding of each of 24 projects twice with the rubric (48 calls) and the frozen prompt on two v1.4 failures as a control (4 calls): 52 of 60, 0 invalid, replay byte-identical at 0 calls. Rubric arm: 24/24 targets correct on both sets, severity agreement 24/24 per set, 0 false claims on twins, 0 hallucinated citations, all fields stable. Control reproduced case 5's severity miss and showed an intent-label slip. No revision. Report Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md; research log entry 12. U3 gate passed on development material under the author's standing delegation for gate-level calls."
+**Context**: v1.5 CONSTRUCTION, U3 code generation and pilot; gate decision
+
+---
+
+## v1.5 — CONSTRUCTION, U4 thinking note (not run)
+**Timestamp**: 2026-10-22T07:55:00Z
+**User Input**: "Asked for the U4 thinking note (S3 aggregate and ownership facts on the 13 human DDD repositories; S2 confirmation of the D5 candidates and the precision fixtures) with design, scenarios, predictions and a call cap, with zero calls and without running U4."
+**AI Response**: "Wrote ops/notes/v15-u4-facts-confirmation-note.md. Two design consequences recorded: S3 is measured three ways (R1–R3 inferred roots, model facts, declared roots), since R3 already removed the 12 false hits symbolically; and pure confirmation cannot raise D5 recall (the 5 lock-form misses have no candidate, 0 false positives to remove), so S2 adds a relaxed symbolic proposer frozen before any call. Scenarios S3-a to S3-d and S2-a to S2-d, predictions, failure criteria, hard cap 75 (planned ~70), own ledger; the sealed DETECT-02 held-out stays unopened. U4 not run; zero calls."
+**Context**: v1.5 CONSTRUCTION, U4 functional design (thinking note); no run
+
+---
+
+---
+
+## PUZZLE-03 Part C — agent-alone baseline on P3r, P5, P6
+**Timestamp**: 2026-10-22T12:50:41Z
+**User Input**: "(coordinator brief) After the plan is committed, run the agent-alone baseline on P3r, P5 and P6 (claude-sonnet-5-5, 5 runs x 3 steps, 0 repair turns, the PUZZLE-01 isolation, hard cap 53 calls), score with zero calls per puzzle, list every oracle failure for a hand read, write the report and a research-log entry, and merge normally once Build & Test is green."
+**AI Response**: "Plan committed before any call (9d6d4453). Isolation reused (first sweep found the world-readable tsx cache; closed, re-swept 0). READ probe and smoke passed; 50 of 53 calls used, including one in-flight call lost to a container restart (c01 redrawn as c16). Scores: P3r 1/5 clean (1 trapped, 3 functional failures on an under-specified fee reading), P5 0/5 (all write the other context synchronously; DETECT-02 flags 5/5), P6 0/5 (all copy the precedent; FF-S03 flags 5/5). 17 oracle FAILs listed with proposed labels (17 trap). Report Docs/DiagnosticRuns/puzzle-03-2026-10-23.md; research-log entry 13. PR #359 (Parts A and B and the plan) merged on green Build & Test; Architectural Firewall fails on src/ only, unrelated."
+**Context**: PUZZLE-03 (exploratory, DEV split); Part C; 50 generator calls
+
 ## PUZZLE-02 — tool arm mcp-detect on P1 and P2, plan committed (exploratory, v1.5-exp)
 **Timestamp**: 2026-10-22T03:18:10Z
 **User Input**: "(coordinator brief, author-approved run) Run the PUZZLE-02 tool arm mcp-detect as specified in ops/notes/puzzle-02-tool-arm-note.md: P1 and P2, 5 sessions each, the baseline's plan and isolation reused exactly, the note's frame sentence, hard cap 38 calls; score at zero calls against the baseline arm none."

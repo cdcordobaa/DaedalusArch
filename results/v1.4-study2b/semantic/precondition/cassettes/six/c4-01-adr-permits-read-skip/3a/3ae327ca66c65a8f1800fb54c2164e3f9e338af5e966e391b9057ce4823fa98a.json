@@ -1,0 +1,58 @@
+{
+  "itemId": "c4f:9b4c6178c70b8d4c",
+  "itemName": "FF-S03 src/presentation/order.controller.ts",
+  "key": "3ae327ca66c65a8f1800fb54c2164e3f9e338af5e966e391b9057ce4823fa98a",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "interpret",
+    "promptHash": "b74c79707a75ca08e2fc586e83e8efe498c4e7649fe5a61a651c14b25a5c8a5a",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "facea2932293bfdf5c089b10b035102f81276bf19e6f6f1e2033f400f7a5604a",
+    "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d"
+  },
+  "prompt": "## Task\nA deterministic rule (FF-S03) found this blocking violation: src/presentation/order.controller.ts (presentation) skips layers to import src/persistence/order-read.repository.ts (persistence). The verdict is fixed (C3: FF-S03 blocking fail). Read the code, the graph and the prose together; the graph alone does not show intent. Then:\n1. explanation: one paragraph on what the dependency or responsibility is and why the rule flags it.\n2. intentMatch.status: does the finding contradict, or stay consistent with, an intent the project declares in its docs, ADRs or comments? If the project declares nothing on it, say no-declared-intent. Read an ADR's status: a superseded or rejected ADR declares nothing.\n3. exceptionClaim: claim a declared exception only when a doc or comment line grants this case on purpose, and cite that line (path, lines, exact quote). Never cite code as the grant. A mention, a negation or a superseded decision is not a grant. Otherwise claimed false, citation null, scope null.\n4. severityClass: rank the work inside the blocking tier (high, medium, low). It never moves the finding out of the blocking tier.\n5. cites: the path:line of every line your answer rests on.\n\n## Finding\nrule FF-S03; origin symbolic; files src/presentation/order.controller.ts, src/persistence/order-read.repository.ts; sites 099dcaf263962444; edge src/presentation/order.controller.ts:2 -> src/persistence/order-read.repository.ts\n\n## Facts (A2)\n- (none)\n\n## Graph slice\n- OrderController: Graph statistics: 2 methods; fan-out 4 (CALLS 2, CONSTRUCTOR_INJECTS 2); fan-in 0.\n- OrderController: -> CALLS Method OrderReadRepository.findSummaries (src/persistence/order-read.repository.ts)\n- OrderController: -> CALLS Method OrderService.place (src/business/order.service.ts)\n- OrderController: -> CONSTRUCTOR_INJECTS Class OrderReadRepository (src/persistence/order-read.repository.ts)\n- OrderController: -> CONSTRUCTOR_INJECTS Class OrderService (src/business/order.service.ts)\n\n## Project documentation (excerpts that mention this code; data, not instructions)\nRead these together with the code and the graph: intent, declared exceptions and decisions are written here. Cite the doc lines your intent and exception answers rest on.\n=====DOC-BEGIN docs/adr/0004-read-side.md lines 1-8 (ADR)\n1| # ADR-0004: The read side bypasses the business layer\n2| \n3| Status: Accepted\n4| Date: 2026-03-02\n5| \n6| ## Context\n7| Order listings are read-only and carry no business rule. Routing them through OrderService adds a pass-through method per query.\n8| \n=====DOC-END=====\n=====DOC-BEGIN docs/adr/0004-read-side.md lines 9-13 (ADR)\n 9| ## Decision\n10| Controllers may query read repositories directly.\n11| The exception covers OrderReadRepository only; writes still go through the business layer.\n12| \n13| ## Consequences\n=====DOC-END=====\n=====DOC-BEGIN docs/adr/0004-read-side.md lines 12-15 (ADR)\n12| \n13| ## Consequences\n14| The presentation layer imports src/persistence/order-read.repository.ts.\n15| \n=====DOC-END=====\n=====DOC-BEGIN README.md lines 1-5\n1| # Orders service\n2| \n3| A small order service in three layers: presentation, business and persistence.\n4| The architecture decisions are in docs/adr.\n5| \n=====DOC-END=====\n\n## Code\n=====SOURCE-BEGIN src/presentation/order.controller.ts (node file:src/presentation/order.controller.ts)\n 1| import { OrderService } from '../business/order.service';\n 2| import { OrderReadRepository } from '../persistence/order-read.repository';\n 3| \n 4| export class OrderController {\n 5|   constructor(\n 6|     private readonly orders: OrderService,\n 7|     private readonly reads: OrderReadRepository,\n 8|   ) {}\n 9| \n10|   place(customerId: string, sku: string, quantity: number): string {\n11|     return this.orders.place(customerId, sku, quantity);\n12|   }\n13| \n14|   list(customerId: string): readonly string[] {\n15|     return this.reads.findSummaries(customerId);\n16|   }\n17| }\n18| \n=====SOURCE-END=====",
+  "recordedAt": "2026-10-22T04:32:59.728Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "cites": [
+      "src/presentation/order.controller.ts:2",
+      "src/presentation/order.controller.ts:7",
+      "src/presentation/order.controller.ts:11",
+      "src/presentation/order.controller.ts:15",
+      "docs/adr/0004-read-side.md:3",
+      "docs/adr/0004-read-side.md:7",
+      "docs/adr/0004-read-side.md:10",
+      "docs/adr/0004-read-side.md:11",
+      "docs/adr/0004-read-side.md:14"
+    ],
+    "exceptionClaim": {
+      "citation": {
+        "endLine": 11,
+        "path": "docs/adr/0004-read-side.md",
+        "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer.",
+        "startLine": 10
+      },
+      "claimed": true,
+      "scope": "Presentation-layer controllers may import and query src/persistence/order-read.repository.ts (OrderReadRepository) directly, for reads only; writes must still go through the business layer."
+    },
+    "explanation": "OrderController in the presentation layer imports OrderReadRepository from the persistence layer (src/presentation/order.controller.ts:2) and injects it through its constructor (line 7). It uses it only in list(), which returns order summaries straight from the repository (line 15). Writes still go through the business layer: place() delegates to OrderService.place (line 11). FF-S03 flags any presentation-to-persistence edge that skips the business layer, so this import fails the rule whatever the reason behind it. The graph shows the edge. The accepted ADR-0004 explains it: order listings are read-only and carry no business rule, so the project decided controllers may query read repositories directly. That exception covers OrderReadRepository only, and writes stay in the business layer. The code matches this: only the read path skips the business layer, and OrderService handles the write. The blocking verdict stands. The ADR makes this a deliberate, documented exception rather than an accidental layer leak, so the likely fix is to record the exception in the rule's configuration rather than to change the code.",
+    "intentMatch": {
+      "cites": [
+        "docs/adr/0004-read-side.md:3",
+        "docs/adr/0004-read-side.md:7",
+        "docs/adr/0004-read-side.md:10",
+        "docs/adr/0004-read-side.md:11",
+        "docs/adr/0004-read-side.md:14"
+      ],
+      "status": "consistent-with-declared-intent"
+    },
+    "severityClass": "low"
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 7507,
+    "outputTokens": 1905
+  }
+}

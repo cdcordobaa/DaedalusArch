@@ -1,0 +1,133 @@
+{
+  "arm": "control",
+  "promptVersion": "c4-v0.2",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:946c078397fd4f21",
+    "finding": {
+      "id": "c4f:946c078397fd4f21",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "Core file src/domain/subscription.ts imports from src/adapters/outbound/system-clock.ts in adapters-outbound",
+      "rule": "FF-S04",
+      "sites": [
+        "585897513156846c"
+      ],
+      "files": [
+        "src/domain/subscription.ts",
+        "src/adapters/outbound/system-clock.ts"
+      ],
+      "edge": {
+        "file": "src/domain/subscription.ts",
+        "line": 1,
+        "target": "src/adapters/outbound/system-clock.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S04",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "The domain class Subscription imports the concrete SystemClock from the outbound adapter layer (src/domain/subscription.ts:1) and instantiates it directly (line 4), then calls now() in isActive (line 9). This makes the core depend on an adapter, which inverts the intended dependency direction, so FF-S04 flags it. ADR-0002 once allowed this, but it is Superseded. The Accepted ADR-0009 requires the core to depend on a Clock port in src/domain that the adapter implements, and it forbids importing SystemClock. The fix is to define a Clock port in the domain and inject it into Subscription.",
+            "intentMatch": {
+              "status": "contradicts-declared-intent",
+              "cites": [
+                "docs/adr/0009-clock-port.md:3",
+                "docs/adr/0009-clock-port.md:8",
+                "docs/adr/0002-core-uses-system-clock.md:3"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "medium",
+            "cites": [
+              "src/domain/subscription.ts:1",
+              "src/domain/subscription.ts:4",
+              "src/domain/subscription.ts:9",
+              "docs/adr/0002-core-uses-system-clock.md:3",
+              "docs/adr/0002-core-uses-system-clock.md:7",
+              "docs/adr/0009-clock-port.md:3",
+              "docs/adr/0009-clock-port.md:5",
+              "docs/adr/0009-clock-port.md:8"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "1c37d50d947288426f79eeb2aaae2fcda3146b2d062b9c7dbb51b02d54343191",
+        "date": "2026-10-22T06:29:45.480Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "The domain class Subscription imports SystemClock from the outbound adapters layer (line 1) and instantiates it directly (line 4). It then calls clock.now() in isActive (line 9). This makes the core depend on a concrete infrastructure adapter, which inverts the intended dependency direction (adapters should depend on the core, not the reverse). FF-S04 flags it for that reason. ADR-0002 once allowed this import, but it is Superseded. The Accepted ADR-0009 says the core must not import SystemClock or any other adapter. It should depend on a Clock port in src/domain that the outbound adapter implements. The finding therefore agrees with the declared intent, and no exception applies.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/adr/0009-clock-port.md:3",
+                "docs/adr/0009-clock-port.md:8",
+                "docs/adr/0002-core-uses-system-clock.md:3"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": false,
+              "citation": null,
+              "scope": null
+            },
+            "severityClass": "medium",
+            "cites": [
+              "src/domain/subscription.ts:1",
+              "src/domain/subscription.ts:4",
+              "src/domain/subscription.ts:9",
+              "docs/adr/0009-clock-port.md:3",
+              "docs/adr/0009-clock-port.md:8",
+              "docs/adr/0002-core-uses-system-clock.md:3",
+              "docs/adr/0002-core-uses-system-clock.md:7"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "1c37d50d947288426f79eeb2aaae2fcda3146b2d062b9c7dbb51b02d54343191",
+        "date": "2026-10-22T06:29:51.985Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": false,
+        "stability": "agreed",
+        "citation": null,
+        "scope": null
+      },
+      "intentMatch": {
+        "status": null,
+        "stability": "disagreed"
+      },
+      "severityClass": {
+        "value": "medium",
+        "stability": "agreed"
+      },
+      "explanation": "The domain class Subscription imports the concrete SystemClock from the outbound adapter layer (src/domain/subscription.ts:1) and instantiates it directly (line 4), then calls now() in isActive (line 9). This makes the core depend on an adapter, which inverts the intended dependency direction, so FF-S04 flags it. ADR-0002 once allowed this, but it is Superseded. The Accepted ADR-0009 requires the core to depend on a Clock port in src/domain that the adapter implements, and it forbids importing SystemClock. The fix is to define a Clock port in the domain and inject it into Subscription.",
+      "validRuns": 2
+    }
+  }
+}

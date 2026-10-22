@@ -1,0 +1,38 @@
+{
+  "arm": "rubric",
+  "project": "u3-08-active-legacy",
+  "findingId": "c4f:745cc1026279efed",
+  "runIndex": 0,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "724807486a85a1b3b02750e82b04fce5fcfd3fa9a3683b3209334ef136e7c3fe",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:27:16.468Z",
+  "answer": {
+    "explanation": "The domain entity Customer imports the typeorm package for its @Entity() decorator, which couples the domain model to a persistence framework. FF-DT04 flags this because domain code should stay free of infrastructure and framework dependencies. The project tracks this case as an accepted exception: docs/architecture-exceptions.md lists Customer.ts with the rule \"domain purity: TypeORM decorator on Customer\", status \"Active until 2027-03-31\" (legacy mapping, accepted until the persistence split moves it to infrastructure). The code comment points to the same entry. Today is 2026-10-22, so the exception is still current. The README confirms that exceptions are tracked in that file.",
+    "intentMatch": {
+      "status": "consistent-with-declared-intent",
+      "cites": [
+        "docs/architecture-exceptions.md:7",
+        "src/ordering/domain/customer/Customer.ts:1"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": true,
+      "citation": {
+        "path": "docs/architecture-exceptions.md",
+        "startLine": 7,
+        "endLine": 7,
+        "quote": "| src/ordering/domain/customer/Customer.ts | domain purity: TypeORM decorator on Customer | Active until 2027-03-31 | legacy mapping, accepted until the persistence split moves it to infrastructure |"
+      },
+      "scope": "TypeORM decorator (@Entity) on Customer in src/ordering/domain/customer/Customer.ts, until 2027-03-31"
+    },
+    "severityClass": "low",
+    "cites": [
+      "docs/architecture-exceptions.md:7",
+      "src/ordering/domain/customer/Customer.ts:1",
+      "src/ordering/domain/customer/Customer.ts:2",
+      "README.md:3"
+    ]
+  }
+}

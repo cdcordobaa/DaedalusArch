@@ -1,0 +1,100 @@
+diff --git a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+index 10169190..708ded13 100644
+--- a/a/src/adapters/outbound/fastship/FastshipRateAdapter.ts
++++ b/b/src/adapters/outbound/fastship/FastshipRateAdapter.ts
+@@ -1,4 +1,5 @@
+-import type { FastshipClient } from 'fastship-sdk';
++import { FastshipUnavailableError, type FastshipClient } from 'fastship-sdk';
++import { CarrierUnavailableError } from '../../../domain/errors/ShippingError';
+ import { Money } from '../../../domain/model/Money';
+ import type { Parcel } from '../../../domain/model/Parcel';
+ import type { CarrierRate, RatePort } from '../../../application/ports/out/RatePort';
+@@ -7,11 +8,17 @@ export class FastshipRateAdapter implements RatePort {
+   constructor(private readonly client: FastshipClient) {}
+ 
+   async cheapest(parcel: Parcel): Promise<CarrierRate | undefined> {
+-    const response = await this.client.rates({
+-      origin: { country: parcel.from },
+-      destination: { country: parcel.to },
+-      parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
+-    });
++    let response;
++    try {
++      response = await this.client.rates({
++        origin: { country: parcel.from },
++        destination: { country: parcel.to },
++        parcel: { weight: { value: parcel.weightGrams, unit: 'g' } },
++      });
++    } catch (e) {
++      if (e instanceof FastshipUnavailableError) throw new CarrierUnavailableError(e.message);
++      throw e;
++    }
+     let best: CarrierRate | undefined;
+     for (const rate of response.rates) {
+       const price = Money.of(Number(rate.amount.value), rate.amount.currency);
+diff --git a/a/src/application/ports/in/QuoteShipment.ts b/b/src/application/ports/in/QuoteShipment.ts
+index 1232a22e..d93d4df0 100644
+--- a/a/src/application/ports/in/QuoteShipment.ts
++++ b/b/src/application/ports/in/QuoteShipment.ts
+@@ -8,6 +8,7 @@ export interface QuoteView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly service: string;
++  readonly estimated: boolean;
+ }
+ 
+ export interface QuoteShipment {
+diff --git a/a/src/application/services/QuoteShipmentService.ts b/b/src/application/services/QuoteShipmentService.ts
+index 8fd18fc0..f54bf491 100644
+--- a/a/src/application/services/QuoteShipmentService.ts
++++ b/b/src/application/services/QuoteShipmentService.ts
+@@ -1,19 +1,30 @@
+ import { Money } from '../../domain/model/Money';
+ import { Parcel } from '../../domain/model/Parcel';
+-import { ShippingError } from '../../domain/errors/ShippingError';
++import { CarrierUnavailableError, ShippingError } from '../../domain/errors/ShippingError';
++import { PriceTable } from '../../domain/services/PriceTable';
+ import type { QuoteRequest, QuoteShipment, QuoteView } from '../ports/in/QuoteShipment';
+ import type { RatePort } from '../ports/out/RatePort';
+ 
+ const HANDLING_FEE_EUR = 1.5;
+ 
+ export class QuoteShipmentService implements QuoteShipment {
+-  constructor(private readonly rates: RatePort) {}
++  constructor(
++    private readonly rates: RatePort,
++    private readonly fallback: PriceTable = new PriceTable(),
++  ) {}
+ 
+   async quote(request: QuoteRequest): Promise<QuoteView> {
+     const parcel = Parcel.of(request.from, request.to, request.weightGrams);
+-    const rate = await this.rates.cheapest(parcel);
++    let rate;
++    try {
++      rate = await this.rates.cheapest(parcel);
++    } catch (e) {
++      if (!(e instanceof CarrierUnavailableError)) throw e;
++      const own = this.fallback.quote(parcel);
++      return { amount: own.price.amount(), currency: own.price.currency, service: own.service, estimated: true };
++    }
+     if (!rate) throw new ShippingError('no Fastship service available for this parcel');
+     const price = rate.price.plus(Money.of(HANDLING_FEE_EUR, rate.price.currency));
+-    return { amount: price.amount(), currency: price.currency, service: rate.service };
++    return { amount: price.amount(), currency: price.currency, service: rate.service, estimated: false };
+   }
+ }
+diff --git a/a/src/domain/errors/ShippingError.ts b/b/src/domain/errors/ShippingError.ts
+index 2360aa12..cf1adf08 100644
+--- a/a/src/domain/errors/ShippingError.ts
++++ b/b/src/domain/errors/ShippingError.ts
+@@ -4,3 +4,10 @@ export class ShippingError extends Error {
+     this.name = 'ShippingError';
+   }
+ }
++
++export class CarrierUnavailableError extends ShippingError {
++  constructor(message: string) {
++    super(message);
++    this.name = 'CarrierUnavailableError';
++  }
++}

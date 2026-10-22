@@ -1,0 +1,42 @@
+{
+  "itemId": "c4f:56d68cc0176e1d9d",
+  "itemName": "FF-S03 src/presentation/invoice.controller.ts",
+  "key": "14771f4c8af5cb352a062a92c6165af1429bccf3bb51bc15838381d1fb75d95a",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "interpret",
+    "promptHash": "06e2db2574d3d505fcea4fea8444e26529c2df3a721e4807a9a38509e5551c4d",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "facea2932293bfdf5c089b10b035102f81276bf19e6f6f1e2033f400f7a5604a",
+    "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d"
+  },
+  "prompt": "## Task\nA deterministic rule (FF-S03) found this blocking violation: src/presentation/invoice.controller.ts (presentation) skips layers to import src/persistence/invoice.repository.ts (persistence). The verdict is fixed (C3: FF-S03 blocking fail). Read the code, the graph and the prose together; the graph alone does not show intent. Then:\n1. explanation: one paragraph on what the dependency or responsibility is and why the rule flags it.\n2. intentMatch.status: does the finding contradict, or stay consistent with, an intent the project declares in its docs, ADRs or comments? If the project declares nothing on it, say no-declared-intent. Read an ADR's status: a superseded or rejected ADR declares nothing.\n3. exceptionClaim: claim a declared exception only when a doc or comment line grants this case on purpose, and cite that line (path, lines, exact quote). Never cite code as the grant. A mention, a negation or a superseded decision is not a grant. Otherwise claimed false, citation null, scope null.\n4. severityClass: rank the work inside the blocking tier (high, medium, low). It never moves the finding out of the blocking tier.\n5. cites: the path:line of every line your answer rests on.\n\n## Finding\nrule FF-S03; origin symbolic; files src/presentation/invoice.controller.ts, src/persistence/invoice.repository.ts; sites f5fe8607ade613ae; edge src/presentation/invoice.controller.ts:2 -> src/persistence/invoice.repository.ts\n\n## Facts (A2)\n- (none)\n\n## Graph slice\n- InvoiceController: Graph statistics: 2 methods; fan-out 4 (CALLS 2, CONSTRUCTOR_INJECTS 2); fan-in 0.\n- InvoiceController: -> CALLS Method InvoiceRepository.markCancelled (src/persistence/invoice.repository.ts)\n- InvoiceController: -> CALLS Method InvoiceService.issue (src/business/invoice.service.ts)\n- InvoiceController: -> CONSTRUCTOR_INJECTS Class InvoiceRepository (src/persistence/invoice.repository.ts)\n- InvoiceController: -> CONSTRUCTOR_INJECTS Class InvoiceService (src/business/invoice.service.ts)\n\n## Code\n=====SOURCE-BEGIN src/presentation/invoice.controller.ts (node file:src/presentation/invoice.controller.ts)\n 1| import { InvoiceService } from '../business/invoice.service';\n 2| import { InvoiceRepository } from '../persistence/invoice.repository';\n 3| \n 4| export class InvoiceController {\n 5|   constructor(\n 6|     private readonly invoices: InvoiceService,\n 7|     private readonly repo: InvoiceRepository,\n 8|   ) {}\n 9| \n10|   issue(customerId: string, amountCents: number): string {\n11|     return this.invoices.issue(customerId, amountCents);\n12|   }\n13| \n14|   cancel(invoiceId: string): void {\n15|     this.repo.markCancelled(invoiceId);\n16|   }\n17| }\n18| \n=====SOURCE-END=====",
+  "recordedAt": "2026-10-22T04:38:11.377Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "cites": [
+      "src/presentation/invoice.controller.ts:2",
+      "src/presentation/invoice.controller.ts:7",
+      "src/presentation/invoice.controller.ts:11",
+      "src/presentation/invoice.controller.ts:15"
+    ],
+    "exceptionClaim": {
+      "citation": null,
+      "claimed": false,
+      "scope": null
+    },
+    "explanation": "InvoiceController sits in the presentation layer. At line 2 it imports InvoiceRepository from the persistence layer and injects it through the constructor (line 7). Its cancel() method (lines 14-16) then calls repo.markCancelled directly, so the business layer is skipped. The controller's other operation, issue() (lines 10-12), goes through InvoiceService in the business layer as expected. FF-S03 flags this because presentation should only reach persistence through the business layer. As written, cancelling an invoice bypasses any business rules for that state change, such as checking whether the invoice can be cancelled, auditing it or emitting domain events. It also ties the controller to how data is stored. The graph confirms the skip: there is a CONSTRUCTOR_INJECTS edge and a CALLS edge from InvoiceController to InvoiceRepository, alongside the expected edges to InvoiceService. I was given no project docs, ADRs or comments on layering, so I found no declared intent and no declared exception for this dependency.",
+    "intentMatch": {
+      "cites": [],
+      "status": "no-declared-intent"
+    },
+    "severityClass": "medium"
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2709,
+    "outputTokens": 724
+  }
+}

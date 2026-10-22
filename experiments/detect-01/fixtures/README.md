@@ -36,8 +36,8 @@ Every variant typechecks with `tsc --strict` (ES2022, no `@types`).
 | `n3-hex-clean-vendor-adapter` | negative control | — | — |
 
 Provenance: branch `pilot/hexddd-01`, commit `c1805364`; the step diffs are
-`results/pilot-hexddd-01/diffs/<task>/step-NN.diff` there, and the run commits are the `commit` field of
-`results/pilot-hexddd-01/scores/<task>/step-NN.json`. File:line is on the new side of the step diff.
+`results/v1.4-pilot-hexddd-01/diffs/<task>/step-NN.diff` there, and the run commits are the `commit` field of
+`results/v1.4-pilot-hexddd-01/scores/<task>/step-NN.json`. File:line is on the new side of the step diff.
 
 Folders named `ports/out` are kept by a negation in the root `.gitignore` (the generic `out/` rule would drop them; the
 same rule dropped `src/application/ports/out/` from the committed S1 pilot seed on `pilot/hexddd-01`, which

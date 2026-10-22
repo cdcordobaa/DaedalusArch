@@ -1,0 +1,70 @@
+diff --git a/a/src/bookings/acl/SailingsDirectory.ts b/b/src/bookings/acl/SailingsDirectory.ts
+index 49641783..85a740f4 100644
+--- a/a/src/bookings/acl/SailingsDirectory.ts
++++ b/b/src/bookings/acl/SailingsDirectory.ts
+@@ -8,4 +8,11 @@ export class SailingsDirectory implements SailingDirectory {
+   exists(sailingId: string): boolean {
+     return this.sailings.sailing(sailingId) !== undefined;
+   }
++
++  takeSeats(sailingId: string, bookingId: string, seats: number): boolean {
++    const sailing = this.sailings.sailing(sailingId);
++    if (sailing === undefined || sailing.seatsLeft < seats) return false;
++    this.sailings.holdSeats(sailingId, `booking:${bookingId}`, seats);
++    return true;
++  }
+ }
+diff --git a/a/src/bookings/application/RequestBooking.ts b/b/src/bookings/application/RequestBooking.ts
+index ff804341..b3d12d64 100644
+--- a/a/src/bookings/application/RequestBooking.ts
++++ b/b/src/bookings/application/RequestBooking.ts
+@@ -12,6 +12,8 @@ export class RequestBooking {
+   execute(passenger: string, sailingId: string, seats: number): string {
+     if (!this.sailings.exists(sailingId)) throw new BookingError(`no sailing ${sailingId}`);
+     const booking = Booking.request(this.bookings.nextId(), passenger, sailingId, seats);
++    if (this.sailings.takeSeats(sailingId, booking.id.value, seats)) booking.confirm();
++    else booking.reject();
+     this.bookings.save(booking);
+     return booking.id.value;
+   }
+diff --git a/a/src/bookings/application/ports/SailingDirectory.ts b/b/src/bookings/application/ports/SailingDirectory.ts
+index ea82fb7d..9c588795 100644
+--- a/a/src/bookings/application/ports/SailingDirectory.ts
++++ b/b/src/bookings/application/ports/SailingDirectory.ts
+@@ -1,4 +1,6 @@
+ /** What bookings need to know about sailings. */
+ export interface SailingDirectory {
+   exists(sailingId: string): boolean;
++  /** Takes seats on the sailing for a booking; false (and nothing taken) when there are not enough. */
++  takeSeats(sailingId: string, bookingId: string, seats: number): boolean;
+ }
+diff --git a/a/src/bookings/domain/booking/Booking.ts b/b/src/bookings/domain/booking/Booking.ts
+index 138de67b..20d19864 100644
+--- a/a/src/bookings/domain/booking/Booking.ts
++++ b/b/src/bookings/domain/booking/Booking.ts
+@@ -3,7 +3,7 @@ import { BookingError } from '../BookingError';
+ import { BookingRequested } from './events/BookingRequested';
+ import type { BookingId } from './value-objects/BookingId';
+ 
+-export type BookingStatus = 'requested';
++export type BookingStatus = 'requested' | 'confirmed' | 'rejected';
+ 
+ /** Seats one passenger asks for on one sailing. */
+ const MAX_SEATS = 9;
+@@ -44,6 +44,16 @@ export class Booking {
+     return this.current;
+   }
+ 
++  confirm(): void {
++    if (this.current !== 'requested') throw new BookingError(`booking is already ${this.current}`);
++    this.current = 'confirmed';
++  }
++
++  reject(): void {
++    if (this.current !== 'requested') throw new BookingError(`booking is already ${this.current}`);
++    this.current = 'rejected';
++  }
++
+   state(): BookingState {
+     return { id: this.id, passenger: this.passenger, sailingId: this.sailingId, seats: this.seats, status: this.current };
+   }

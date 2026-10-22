@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "c4-03-shared-kernel"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": false
+  },
+  "entries": [
+    {
+      "findingId": "c4f:c2fcd82bc21ea344",
+      "finding": {
+        "id": "c4f:c2fcd82bc21ea344",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/billing/domain/invoice/Invoice.ts (src/billing/) imports src/ordering/domain/value-objects/Money.ts, which is not in the public API of src/ordering/",
+        "rule": "FF-DS02",
+        "sites": [
+          "7a3a68965ba080f4"
+        ],
+        "files": [
+          "src/billing/domain/invoice/Invoice.ts",
+          "src/ordering/domain/value-objects/Money.ts"
+        ],
+        "edge": {
+          "file": "src/billing/domain/invoice/Invoice.ts",
+          "line": 1,
+          "target": "src/ordering/domain/value-objects/Money.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-DS02",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/billing/domain/invoice/Invoice.ts:1",
+                "src/billing/domain/invoice/Invoice.ts:4",
+                "src/billing/domain/invoice/Invoice.ts:9",
+                "src/billing/domain/invoice/Invoice.ts:12",
+                "docs/context-map.md:3",
+                "docs/context-map.md:4",
+                "docs/context-map.md:6",
+                "docs/context-map.md:7",
+                "docs/context-map.md:8"
+              ],
+              "exceptionClaim": {
+                "citation": {
+                  "endLine": 7,
+                  "path": "docs/context-map.md",
+                  "quote": "Money is a shared kernel between ordering and billing: billing imports Money directly from ordering.",
+                  "startLine": 7
+                },
+                "claimed": true,
+                "scope": "billing importing the Money value object directly from the ordering context (shared kernel); the grant does not cover other ordering internals"
+              },
+              "explanation": "Invoice, the aggregate in the billing context, imports Money straight from ordering's internal path src/ordering/domain/value-objects/Money.ts (Invoice.ts:1). It uses Money as its own value type: it builds its total with it (line 4), calls Money.plus when adding lines (line 9) and returns it from amountDue (line 12). FF-DS02 flags this because billing reaches into a file that is not part of ordering's public API, which couples it to ordering's internal layout. The project's context map, though, names Money as a shared kernel between ordering and billing. It says outright that billing imports Money directly from ordering, and that both teams agree any change to Money. So this edge is a deliberate, documented coupling and not an accidental leak. The rule fails it only because Money is not exposed through ordering's public API. The verdict stays a blocking fail. The likely fix is to export Money from ordering's public API, or to move it into a shared-kernel module, and then point the import there. That is a small, mechanical change.",
+              "intentMatch": {
+                "status": "consistent-with-declared-intent",
+                "cites": [
+                  "docs/context-map.md:6",
+                  "docs/context-map.md:7",
+                  "docs/context-map.md:8"
+                ]
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "334caa01e03fb2629b8f58cba8d74a944bb0ab96aaa96189a1a821278d47aa1a",
+          "date": "2026-10-22T04:34:40.416Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/billing/domain/invoice/Invoice.ts:1",
+                "src/billing/domain/invoice/Invoice.ts:4",
+                "src/billing/domain/invoice/Invoice.ts:8",
+                "src/billing/domain/invoice/Invoice.ts:9",
+                "src/billing/domain/invoice/Invoice.ts:12",
+                "docs/context-map.md:3",
+                "docs/context-map.md:4",
+                "docs/context-map.md:7",
+                "docs/context-map.md:8"
+              ],
+              "exceptionClaim": {
+                "citation": {
+                  "endLine": 7,
+                  "path": "docs/context-map.md",
+                  "quote": "Money is a shared kernel between ordering and billing: billing imports Money directly from ordering.",
+                  "startLine": 7
+                },
+                "claimed": true,
+                "scope": "Only billing's imports of the Money value object from ordering, which the docs declare a shared kernel. It does not cover any other ordering internals."
+              },
+              "explanation": "Invoice, the billing aggregate, imports Money straight from ordering's internal path (src/ordering/domain/value-objects/Money.ts) at line 1. It also depends on Money in more than one place: it creates a Money total (line 4), takes Money in addLine and calls Money.plus (lines 8-9), and returns Money from amountDue (line 12). FF-DS02 flags any import from another bounded context that does not go through that context's public API. Money is not exported through ordering's public API, so this edge fails, and the import path ties billing to ordering's internal folder layout. The project does describe this coupling on purpose. docs/context-map.md makes ordering upstream and billing downstream (lines 3-4). It then names Money as a shared kernel between the two contexts and says billing imports Money directly from ordering (line 7), with any change to Money agreed by both teams (line 8). The dependency is intended. What conflicts with the rule is how it is wired: the import reaches into ordering's internals, when the shared kernel could be exposed through ordering's public API or a dedicated shared-kernel module.",
+              "intentMatch": {
+                "status": "consistent-with-declared-intent",
+                "cites": [
+                  "docs/context-map.md:3",
+                  "docs/context-map.md:4",
+                  "docs/context-map.md:7",
+                  "docs/context-map.md:8"
+                ]
+              },
+              "severityClass": "low"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "334caa01e03fb2629b8f58cba8d74a944bb0ab96aaa96189a1a821278d47aa1a",
+          "date": "2026-10-22T04:34:50.843Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": true,
+          "stability": "agreed",
+          "citation": {
+            "endLine": 7,
+            "path": "docs/context-map.md",
+            "quote": "Money is a shared kernel between ordering and billing: billing imports Money directly from ordering.",
+            "startLine": 7
+          },
+          "scope": "billing importing the Money value object directly from the ordering context (shared kernel); the grant does not cover other ordering internals"
+        },
+        "intentMatch": {
+          "status": "consistent-with-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "low",
+          "stability": "agreed"
+        },
+        "explanation": "Invoice, the aggregate in the billing context, imports Money straight from ordering's internal path src/ordering/domain/value-objects/Money.ts (Invoice.ts:1). It uses Money as its own value type: it builds its total with it (line 4), calls Money.plus when adding lines (line 9) and returns it from amountDue (line 12). FF-DS02 flags this because billing reaches into a file that is not part of ordering's public API, which couples it to ordering's internal layout. The project's context map, though, names Money as a shared kernel between ordering and billing. It says outright that billing imports Money directly from ordering, and that both teams agree any change to Money. So this edge is a deliberate, documented coupling and not an accidental leak. The rule fails it only because Money is not exposed through ordering's public API. The verdict stays a blocking fail. The likely fix is to export Money from ordering's public API, or to move it into a shared-kernel module, and then point the import there. That is a small, mechanical change.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

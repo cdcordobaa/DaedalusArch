@@ -1,0 +1,31 @@
+{
+  "arm": "rubric",
+  "project": "c4-02t-no-legacy-record",
+  "findingId": "c4f:8c53818e8529494b",
+  "runIndex": 0,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "d096a1181d056d4346edf5f3f4d0738b61b7cf60f9b8c023513afceea3a32fbf",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:24:34.381Z",
+  "answer": {
+    "explanation": "Order.ts is a domain entity that imports the `Entity` decorator from typeorm (line 1) and uses it on the class (line 3). This ties the domain model to an ORM framework, which is infrastructure. The rule FF-DT04 flags this because the domain layer should stay free of persistence and framework packages. The Order logic itself (adding lines, validating quantity, counting) is plain and needs no ORM. Persistence mapping could live in an infrastructure-layer mapper or schema instead. The README only says this is the ordering context of a DDD service. It declares no rule or exception about typeorm or domain purity.",
+    "intentMatch": {
+      "status": "no-declared-intent",
+      "cites": [
+        "README.md:3"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "high",
+    "cites": [
+      "src/ordering/domain/order/Order.ts:1",
+      "src/ordering/domain/order/Order.ts:3",
+      "README.md:3"
+    ]
+  }
+}

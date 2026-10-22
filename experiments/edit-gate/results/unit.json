@@ -1,0 +1,833 @@
+{
+ "schema": "edit-gate-unit/v1",
+ "at": "2026-10-22T05:59:20.809Z",
+ "calls": 0,
+ "node": "v22.22.0",
+ "passed": true,
+ "latency": {
+  "dummy": {
+   "n": 20,
+   "p50": 87,
+   "p95": 95,
+   "max": 97
+  },
+  "p1-transfers": {
+   "n": 42,
+   "p50": 130,
+   "p95": 171,
+   "max": 177
+  },
+  "p2-loyalty": {
+   "n": 54,
+   "p50": 145,
+   "p95": 204,
+   "max": 223
+  },
+  "relay": {
+   "n": 20,
+   "p50": 114,
+   "p95": 135,
+   "max": 158
+  }
+ },
+ "results": [
+  {
+   "name": "hook input: PostToolUse fields read, transcript_path and contents dropped",
+   "ok": true
+  },
+  {
+   "name": "hook output: PostToolUse additionalContext, Stop decision block, nothing when empty",
+   "ok": true
+  },
+  {
+   "name": "message: at most 12 lines per finding, 3 findings, \"and N more\", transient note",
+   "ok": true,
+   "detail": {
+    "sample": [
+     "Architecture check: src/a/app/Cmd.ts:10 [one aggregate per command]",
+     "Rule: One command saves one aggregate.",
+     "Why: Cmd.execute (src/a/app/Cmd.ts:10) saves more than one aggregate instance in the same call: Account: from, to.",
+     "Write: src/a/app/Cmd.ts:12 AccountRepository.save(…) via Cmd.execute → AccountRepository.save",
+     "Fix: Record an event."
+    ]
+   }
+  },
+  {
+   "name": "de-dup: new shown once, line shift is the same key, resolved once, reappearing is new",
+   "ok": true
+  },
+  {
+   "name": "hub de-dup with the real checker on the dummy project (edit → finding, repeat → nothing, fix → resolved, Stop once per turn)",
+   "ok": true,
+   "detail": {
+    "reply": [
+     "Architecture check: src/billing/application/SettleInvoices.ts:9 [one aggregate per command; cross-context write]",
+     "Rule: One command changes and saves one aggregate instance. Any other aggregate (another instance of the same type, or another type) is updated afterwards by a handler of a domain event that the first aggregate records. A bounded context changes only its own aggregates. Another context's aggregate changes when that context reacts to an event it subscribes to, not inside this command.",
+     "Why: SettleInvoices.execute (src/billing/application/SettleInvoices.ts:9) saves more than one aggregate instance in the same call: Invoice: first; Order: order. SettleInvoices.execute (src/billing/application/SettleInvoices.ts:9), in context billing, changes Order (owned by sales) through SettleInvoices.execute → OrderRepository.save.",
+     "Write: src/billing/application/SettleInvoices.ts:13 InvoiceRepository.save(…) via SettleInvoices.execute → InvoiceRepository.save",
+     "Write: src/billing/application/SettleInvoices.ts:17 OrderRepository.save(…) via SettleInvoices.execute → OrderRepository.save",
+     "Fix: Do not call the other context's write operation from this command. Record a domain event in Invoice (saved with it), and let sales subscribe to that event through its published interface and change its own aggregate there.",
+     "",
+     "If you are in the middle of a change, finish it; the check runs again after each edit."
+    ],
+    "events": [
+     {
+      "event": "PostToolUse",
+      "new": 0,
+      "resolved": 0,
+      "replied": false,
+      "stopBlock": false,
+      "ms": 161
+     },
+     {
+      "event": "PostToolUse",
+      "new": 1,
+      "resolved": 0,
+      "replied": true,
+      "stopBlock": false,
+      "ms": 141
+     },
+     {
+      "event": "PostToolUse",
+      "new": 0,
+      "resolved": 0,
+      "replied": false,
+      "stopBlock": false,
+      "ms": 123
+     },
+     {
+      "event": "PostToolUse",
+      "new": 0,
+      "resolved": 0,
+      "replied": false,
+      "stopBlock": false,
+      "ms": 98
+     },
+     {
+      "event": "Stop",
+      "new": 0,
+      "resolved": 0,
+      "replied": true,
+      "stopBlock": true,
+      "ms": 97
+     },
+     {
+      "event": "Stop",
+      "new": 0,
+      "resolved": 0,
+      "replied": false,
+      "stopBlock": false,
+      "ms": 95
+     },
+     {
+      "event": "Stop",
+      "new": 0,
+      "resolved": 0,
+      "replied": false,
+      "stopBlock": false,
+      "ms": 90
+     },
+     {
+      "event": "PostToolUse",
+      "new": 0,
+      "resolved": 1,
+      "replied": true,
+      "stopBlock": false,
+      "ms": 105
+     },
+     {
+      "event": "Stop",
+      "new": 0,
+      "resolved": 0,
+      "replied": false,
+      "stopBlock": false,
+      "ms": 93
+     }
+    ]
+   }
+  },
+  {
+   "name": "refusal: outside path, traversal, symlink out of the tree, node_modules, other tools, other events, a tree holding an escaping symlink, no cell",
+   "ok": true,
+   "detail": {
+    "refused": [
+     "/etc/passwd: outside the work tree",
+     "spec path: outside the work tree",
+     "traversal: outside the work tree",
+     "symlink: outside the work tree",
+     "tree root: outside the work tree",
+     "node_modules: outside the work tree",
+     "relative traversal: outside the work tree",
+     "Bash: not a gated tool",
+     "Read: not a gated tool",
+     "no file_path: no file_path",
+     "PreToolUse: not a gated hook event",
+     "garbage: unparsable hook input"
+    ]
+   }
+  },
+  {
+   "name": "fail open: a checker error gives no reply and is logged",
+   "ok": true
+  },
+  {
+   "name": "argv: only the --settings value differs from the frozen argv; hooks on; setting sources stay empty",
+   "ok": true,
+   "detail": {
+    "settings": {
+     "autoMemoryEnabled": false,
+     "disableAllHooks": false,
+     "hooks": {
+      "PostToolUse": [
+       {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+         {
+          "type": "command",
+          "command": "/opt/node22/bin/node /srv/h/bin/gate-relay.cjs /srv/m/g.sock",
+          "timeout": 10
+         }
+        ]
+       }
+      ],
+      "Stop": [
+       {
+        "hooks": [
+         {
+          "type": "command",
+          "command": "/opt/node22/bin/node /srv/h/bin/gate-relay.cjs /srv/m/g.sock",
+          "timeout": 10
+         }
+        ]
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "name": "latency: dummy project, 20 edits alternating violating and clean (every edit differs from the seed, so every edit runs the check)",
+   "ok": true,
+   "detail": {
+    "n": 20,
+    "p50": 87,
+    "p95": 95,
+    "max": 97
+   }
+  },
+  {
+   "name": "latency and replay: p1-transfers seed, trap solution then clean solution, file by file (root side)",
+   "ok": true,
+   "detail": {
+    "latency": {
+     "n": 42,
+     "p50": 130,
+     "p95": 171,
+     "max": 177
+    },
+    "replay": [
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/Deposit.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/EventRelay.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/GetBalance.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/OpenAccount.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/SendWelcomeNotice.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/TransferMoney.ts",
+      "new": 1,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/Withdraw.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/ports/Notices.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/application/ports/Outbox.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/domain/LedgerError.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/domain/account/Account.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/domain/account/AccountRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/domain/account/events/AccountOpened.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/domain/account/value-objects/AccountId.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/infrastructure/InMemoryAccountRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/ledger/infrastructure/InMemoryNotices.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/main.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/shared-kernel/DomainEvent.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/shared-kernel/Money.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/Deposit.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/EventRelay.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/GetBalance.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/GetStatement.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/OpenAccount.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/ReceiveTransfer.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/SendWelcomeNotice.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/TransferMoney.ts",
+      "new": 0,
+      "resolved": 1
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/Withdraw.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/ports/Notices.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/application/ports/Outbox.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/domain/LedgerError.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/domain/account/Account.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/domain/account/AccountRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/domain/account/Movement.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/domain/account/events/AccountOpened.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/domain/account/events/TransferSent.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/domain/account/value-objects/AccountId.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/infrastructure/InMemoryAccountRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/ledger/infrastructure/InMemoryNotices.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/main.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/shared-kernel/DomainEvent.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/shared-kernel/Money.ts",
+      "new": 0,
+      "resolved": 0
+     }
+    ]
+   }
+  },
+  {
+   "name": "latency and replay: p2-loyalty seed, trap solution then clean solution, file by file (root side)",
+   "ok": true,
+   "detail": {
+    "latency": {
+     "n": 54,
+     "p50": 145,
+     "p95": 204,
+     "max": 223
+    },
+    "replay": [
+     {
+      "phase": "trap",
+      "file": "src/main.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/application/AwardPoints.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/application/EnrolMember.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/application/GetMemberCard.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/contracts/MemberCard.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/domain/member/Member.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/domain/member/MemberRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/domain/member/value-objects/MemberId.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/index.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/membership/infrastructure/InMemoryMemberRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/acl/MembershipDirectory.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/application/EventRelay.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/application/PlaceOrder.ts",
+      "new": 1,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/application/ReceiptFooter.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/application/SendReceipt.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/application/ports/MemberDirectory.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/application/ports/Outbox.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/application/ports/Receipts.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/domain/order/Order.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/domain/order/OrderRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/domain/order/events/OrderPlaced.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/domain/order/value-objects/OrderId.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/infrastructure/InMemoryOrderRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/sales/infrastructure/InMemoryReceipts.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/shared-kernel/DomainEvent.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "trap",
+      "file": "src/shared-kernel/Money.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/main.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/application/AwardPoints.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/application/CreditPurchase.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/application/EnrolMember.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/application/GetMemberCard.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/contracts/MemberCard.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/domain/member/Member.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/domain/member/MemberRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/domain/member/value-objects/MemberId.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/index.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/membership/infrastructure/InMemoryMemberRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/acl/MembershipDirectory.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/application/EventRelay.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/application/PlaceOrder.ts",
+      "new": 0,
+      "resolved": 1
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/application/ReceiptFooter.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/application/SendReceipt.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/application/ports/MemberDirectory.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/application/ports/Outbox.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/application/ports/Receipts.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/domain/order/Order.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/domain/order/OrderRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/domain/order/events/OrderPlaced.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/domain/order/value-objects/CustomerTier.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/domain/order/value-objects/OrderId.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/infrastructure/InMemoryOrderRepository.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/sales/infrastructure/InMemoryReceipts.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/shared-kernel/DomainEvent.ts",
+      "new": 0,
+      "resolved": 0
+     },
+     {
+      "phase": "clean",
+      "file": "src/shared-kernel/Money.ts",
+      "new": 0,
+      "resolved": 0
+     }
+    ]
+   }
+  },
+  {
+   "name": "latency: relay round trip (relay process + socket + hub), 20 edits on the dummy project",
+   "ok": true,
+   "detail": {
+    "n": 20,
+    "p50": 114,
+    "p95": 135,
+    "max": 158
+   }
+  }
+ ]
+}

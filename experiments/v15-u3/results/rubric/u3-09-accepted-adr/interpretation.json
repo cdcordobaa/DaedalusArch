@@ -1,0 +1,142 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:54a08caaebaceb64",
+    "finding": {
+      "id": "c4f:54a08caaebaceb64",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "Core file src/domain/ticket.ts imports from src/adapters/outbound/uuid-generator.ts in adapters-outbound",
+      "rule": "FF-S04",
+      "sites": [
+        "cfaa00f3923a46ef"
+      ],
+      "files": [
+        "src/domain/ticket.ts",
+        "src/adapters/outbound/uuid-generator.ts"
+      ],
+      "edge": {
+        "file": "src/domain/ticket.ts",
+        "line": 1,
+        "target": "src/adapters/outbound/uuid-generator.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S04",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "src/domain/ticket.ts imports UuidGenerator from the outbound adapter layer (line 1) and instantiates it in the constructor (line 8). The domain core therefore depends directly on an adapter, which FF-S04 flags because the core should not depend on adapters. It should go through a port. ADR-0005 is Accepted and says on purpose that the domain core may import UuidGenerator from src/adapters/outbound/uuid-generator.ts directly, with no IdGenerator port for now. That decision matches this exact import, so the finding is consistent with declared intent and the ADR grants an exception for this case.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/adr/0005-ticket-ids.md:7",
+                "docs/adr/0005-ticket-ids.md:8"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "docs/adr/0005-ticket-ids.md",
+                "startLine": 7,
+                "endLine": 7,
+                "quote": "The domain core is permitted to import UuidGenerator from src/adapters/outbound/uuid-generator.ts directly."
+              },
+              "scope": "Domain core (src/domain/ticket.ts) importing UuidGenerator directly from src/adapters/outbound/uuid-generator.ts, without an IdGenerator port."
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/domain/ticket.ts:1",
+              "src/domain/ticket.ts:8",
+              "docs/adr/0005-ticket-ids.md:3",
+              "docs/adr/0005-ticket-ids.md:7",
+              "docs/adr/0005-ticket-ids.md:8"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "22efde32633ccaad0c677d4c1060796621e89c20589490490c9edadcb67473fa",
+        "date": "2026-10-22T06:27:46.669Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "src/domain/ticket.ts imports UuidGenerator from the outbound adapter layer (line 1) and instantiates it in the constructor (line 8). The domain core therefore depends on an adapter, which FF-S04 flags because core code should depend on ports, not adapters. ADR-0005 is Accepted and current. It says on purpose that the domain core may import UuidGenerator directly from src/adapters/outbound/uuid-generator.ts and that no IdGenerator port is introduced for now. That line grants this exact case, so the finding is consistent with declared intent and falls under a declared exception.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "docs/adr/0005-ticket-ids.md:3",
+                "docs/adr/0005-ticket-ids.md:7",
+                "docs/adr/0005-ticket-ids.md:8"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "docs/adr/0005-ticket-ids.md",
+                "startLine": 7,
+                "endLine": 7,
+                "quote": "The domain core is permitted to import UuidGenerator from src/adapters/outbound/uuid-generator.ts directly."
+              },
+              "scope": "Domain core (src/domain/ticket.ts) importing UuidGenerator directly from src/adapters/outbound/uuid-generator.ts, with no IdGenerator port."
+            },
+            "severityClass": "low",
+            "cites": [
+              "src/domain/ticket.ts:1",
+              "src/domain/ticket.ts:8",
+              "docs/adr/0005-ticket-ids.md:3",
+              "docs/adr/0005-ticket-ids.md:7",
+              "docs/adr/0005-ticket-ids.md:8"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "22efde32633ccaad0c677d4c1060796621e89c20589490490c9edadcb67473fa",
+        "date": "2026-10-22T06:27:52.101Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": true,
+        "stability": "agreed",
+        "citation": {
+          "path": "docs/adr/0005-ticket-ids.md",
+          "startLine": 7,
+          "endLine": 7,
+          "quote": "The domain core is permitted to import UuidGenerator from src/adapters/outbound/uuid-generator.ts directly."
+        },
+        "scope": "Domain core (src/domain/ticket.ts) importing UuidGenerator directly from src/adapters/outbound/uuid-generator.ts, without an IdGenerator port."
+      },
+      "intentMatch": {
+        "status": "consistent-with-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "low",
+        "stability": "agreed"
+      },
+      "explanation": "src/domain/ticket.ts imports UuidGenerator from the outbound adapter layer (line 1) and instantiates it in the constructor (line 8). The domain core therefore depends directly on an adapter, which FF-S04 flags because the core should not depend on adapters. It should go through a port. ADR-0005 is Accepted and says on purpose that the domain core may import UuidGenerator from src/adapters/outbound/uuid-generator.ts directly, with no IdGenerator port for now. That decision matches this exact import, so the finding is consistent with declared intent and the ADR grants an exception for this case.",
+      "validRuns": 2
+    }
+  }
+}

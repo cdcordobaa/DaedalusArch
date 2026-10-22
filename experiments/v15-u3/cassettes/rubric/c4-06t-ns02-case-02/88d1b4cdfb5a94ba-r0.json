@@ -1,0 +1,29 @@
+{
+  "arm": "rubric",
+  "project": "c4-06t-ns02-case-02",
+  "findingId": "c4f:dcea076f600ac767",
+  "runIndex": 0,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "f2f3d0fe6cb8ac5fa6d3cd145112e6fadb6c7806f3565eb7a72b17e7c76527a0",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:26:26.261Z",
+  "answer": {
+    "explanation": "OrderNotificationService, an application-layer service in the notifications context, computes the order discount (10% when an order has more than three lines) and the payable amount itself, at lines 9-10. That is pricing logic, which belongs in the ordering domain, for example on Order. The service already calls Order.subtotal() from the ordering domain, so it reimplements part of the pricing rules in the wrong layer and the wrong context. The rule flags this misplaced responsibility. The discount policy could diverge from the one in the ordering domain. No doc, ADR or comment in the provided material declares an intent or exception about it.",
+    "intentMatch": {
+      "status": "no-declared-intent",
+      "cites": []
+    },
+    "exceptionClaim": {
+      "claimed": false,
+      "citation": null,
+      "scope": null
+    },
+    "severityClass": "medium",
+    "cites": [
+      "src/notifications/application/order-notification.service.ts:8",
+      "src/notifications/application/order-notification.service.ts:9",
+      "src/notifications/application/order-notification.service.ts:10"
+    ]
+  }
+}

@@ -142,3 +142,14 @@
   - [ ] U13 shared step-1 start (STAGE-B-BUILD) — PR open, not merged (`construction/v1.4/U13/plan.md`)
 - **Study plan (2026-10-19):** an exploratory study runs first (`Docs/v1.4/exploratory-study-registration.md`); the drift record stays the confirmatory Study 2 protocol (`Docs/v1.4/study2-deviation-2026-10-19-drift.md`). No study run is approved.
 - **Waiting on the author:** the signing sheet, ADR-V14-04 (V4), deviations X-1 and SO3-a, the F3 rewording, the exploratory study's counts.
+
+### v1.5 SEMANTIC-INSTRUMENT CYCLE (started 2026-10-22T05:25Z) — semantic layer, agent-violation detection, delivery, spec inference
+- [x] Workspace Detection — brownfield; reverse-engineering artifacts exist and are not refreshed; resumes from the v1.4 cycle (Study 2b closed at v1.4)
+- [x] Requirements Analysis — COMPLETE: `inception/v1.5/requirements.md` (14 FR, 5 NFR); questions answered with the recommended options under the author's standing delegation
+- [x] Workflow Planning — COMPLETE: `inception/v1.5/workflow-plan.md` (User Stories, NFR and Infrastructure stages SKIP; 7 units, semantic first)
+- [x] Application Design — COMPLETE (minimal): `inception/v1.5/application-design.md` (S1–S5, the edit gate, the spec-inference pipeline and the three-arm harness; contracts with C1d, C4, the MCP server and the fitness compiler); approved under the author's standing delegation for gate-level calls
+- [x] Units Generation — COMPLETE: `inception/v1.5/unit-of-work.md` (7 units U3, U4, U6, U1, U2, U5, U7, each with its FRs, inputs, outputs, own test and gate; dependencies; FR coverage); approved under the same delegation
+- [x] CONSTRUCTION — U3 (S1 severity calibration): gate PASSED on development material (24/24 targets correct in both runs on the six-case set and six new pairs; 52 of 60 calls; `Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md`); code stays in `experiments/v15-u3/` until promotion
+- [ ] CONSTRUCTION — U4 (S3 facts, S2 confirmation) next: functional design = thinking note `ops/notes/v15-u4-facts-confirmation-note.md` (written 2026-10-22, zero calls; hard cap 75, planned ~70); NOT run yet. First step when it runs: the R1–R3 symbolic pass over the 13 human DDD repositories, hand-read, zero calls
+- Extension: Security Baseline — Enabled (carried over from v1.2; re-confirmed, question 7)
+- **Current Stage** (updated 2026-10-22T06:05Z): INCEPTION complete; CONSTRUCTION starts with U3 (S1 severity calibration). Every unit runs on development material under `experiments/` until it passes its own test; no sealed or held-out set; the v1.4 tag and the registered 2b artefacts unchanged.

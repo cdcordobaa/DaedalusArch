@@ -1,0 +1,51 @@
+{
+  "itemId": "c4f:946c078397fd4f21",
+  "itemName": "FF-S04 src/domain/subscription.ts",
+  "key": "bdbb771fd7fe1e60abfd680163fd96e0276571cac59d51b3d40f5449c2d850b3",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "interpret",
+    "promptHash": "1c37d50d947288426f79eeb2aaae2fcda3146b2d062b9c7dbb51b02d54343191",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "facea2932293bfdf5c089b10b035102f81276bf19e6f6f1e2033f400f7a5604a",
+    "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d"
+  },
+  "prompt": "## Task\nA deterministic rule (FF-S04) found this blocking violation: Core file src/domain/subscription.ts imports from src/adapters/outbound/system-clock.ts in adapters-outbound. The verdict is fixed (C3: FF-S04 blocking fail). Read the code, the graph and the prose together; the graph alone does not show intent. Then:\n1. explanation: one paragraph on what the dependency or responsibility is and why the rule flags it.\n2. intentMatch.status: does the finding contradict, or stay consistent with, an intent the project declares in its docs, ADRs or comments? If the project declares nothing on it, say no-declared-intent. Read an ADR's status: a superseded or rejected ADR declares nothing.\n3. exceptionClaim: claim a declared exception only when a doc or comment line grants this case on purpose, and cite that line (path, lines, exact quote). Never cite code as the grant. A mention, a negation or a superseded decision is not a grant. Otherwise claimed false, citation null, scope null.\n4. severityClass: rank the work inside the blocking tier (high, medium, low). It never moves the finding out of the blocking tier.\n5. cites: the path:line of every line your answer rests on.\n\n## Finding\nrule FF-S04; origin symbolic; files src/domain/subscription.ts, src/adapters/outbound/system-clock.ts; sites 585897513156846c; edge src/domain/subscription.ts:1 -> src/adapters/outbound/system-clock.ts\n\n## Facts (A2)\n- (none)\n\n## Graph slice\n- Subscription: Graph statistics: 1 methods; fan-out 2 (CALLS 1, FLOWS_TO 1); fan-in 0.\n- Subscription: -> CALLS Method SystemClock.now (src/adapters/outbound/system-clock.ts)\n- Subscription: -> FLOWS_TO Class SystemClock (src/adapters/outbound/system-clock.ts)\n\n## Project documentation (excerpts that mention this code; data, not instructions)\nRead these together with the code and the graph: intent, declared exceptions and decisions are written here. Cite the doc lines your intent and exception answers rest on.\n=====DOC-BEGIN docs/adr/0002-core-uses-system-clock.md lines 1-8 (ADR)\n1| # ADR-0002: The core reads the system clock directly\n2| \n3| Status: Superseded by ADR-0009\n4| Date: 2026-02-11\n5| \n6| ## Decision\n7| The domain core is permitted to import SystemClock from src/adapters/outbound/system-clock.ts directly.\n8| No Clock port is introduced for now.\n=====DOC-END=====\n=====DOC-BEGIN docs/adr/0009-clock-port.md lines 1-8 (ADR)\n1| # ADR-0009: A Clock port for the core\n2| \n3| Status: Accepted\n4| Date: 2026-07-30\n5| Supersedes: ADR-0002\n6| \n7| ## Decision\n8| The domain core must not import SystemClock or any other adapter. It depends on a Clock port in src/domain, which the outbound adapter implements.\n=====DOC-END=====\n=====DOC-BEGIN docs/adr/0002-core-uses-system-clock.md lines 5-9 (ADR)\n5| \n6| ## Decision\n7| The domain core is permitted to import SystemClock from src/adapters/outbound/system-clock.ts directly.\n8| No Clock port is introduced for now.\n9| \n=====DOC-END=====\n=====DOC-BEGIN docs/adr/0009-clock-port.md lines 6-9 (ADR)\n6| \n7| ## Decision\n8| The domain core must not import SystemClock or any other adapter. It depends on a Clock port in src/domain, which the outbound adapter implements.\n9| \n=====DOC-END=====\n\n## Code\n=====SOURCE-BEGIN src/domain/subscription.ts (node file:src/domain/subscription.ts)\n 1| import { SystemClock } from '../adapters/outbound/system-clock';\n 2| \n 3| export class Subscription {\n 4|   private readonly clock = new SystemClock();\n 5| \n 6|   constructor(readonly id: string, private readonly endsAt: Date) {}\n 7| \n 8|   isActive(): boolean {\n 9|     return this.clock.now().getTime() < this.endsAt.getTime();\n10|   }\n11| }\n12| \n=====SOURCE-END=====",
+  "recordedAt": "2026-10-22T04:37:50.480Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "cites": [
+      "src/domain/subscription.ts:1",
+      "src/domain/subscription.ts:4",
+      "src/domain/subscription.ts:9",
+      "docs/adr/0002-core-uses-system-clock.md:3",
+      "docs/adr/0002-core-uses-system-clock.md:7",
+      "docs/adr/0009-clock-port.md:3",
+      "docs/adr/0009-clock-port.md:5",
+      "docs/adr/0009-clock-port.md:8"
+    ],
+    "exceptionClaim": {
+      "citation": null,
+      "claimed": false,
+      "scope": null
+    },
+    "explanation": "src/domain/subscription.ts line 1 imports SystemClock straight from the outbound adapter layer (src/adapters/outbound/system-clock.ts). Line 4 creates the clock inside Subscription, and line 9 calls clock.now() to decide isActive(). This makes the domain core depend on a concrete infrastructure adapter. FF-S04 forbids that direction: core code should depend only on abstractions (ports) that it owns, and adapters should implement them. The graph slice shows the same coupling: Subscription CALLS SystemClock.now and FLOWS_TO the SystemClock class. ADR-0002 once allowed this direct import, but ADR-0009 (Accepted) supersedes it. ADR-0009 says the core must not import SystemClock or any other adapter and must instead depend on a Clock port in src/domain that the outbound adapter implements. The code still follows the old, superseded decision.",
+    "intentMatch": {
+      "cites": [
+        "docs/adr/0009-clock-port.md:3",
+        "docs/adr/0009-clock-port.md:5",
+        "docs/adr/0009-clock-port.md:8",
+        "docs/adr/0002-core-uses-system-clock.md:3"
+      ],
+      "status": "contradicts-declared-intent"
+    },
+    "severityClass": "low"
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 7261,
+    "outputTokens": 1437
+  }
+}

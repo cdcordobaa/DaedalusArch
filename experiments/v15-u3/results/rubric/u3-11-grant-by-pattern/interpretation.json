@@ -1,0 +1,141 @@
+{
+  "arm": "rubric",
+  "promptVersion": "c4-v0.2+u3-r1",
+  "requestedModel": "claude-sonnet-5-5",
+  "entry": {
+    "findingId": "c4f:6797aa0b7a8bcbfa",
+    "finding": {
+      "id": "c4f:6797aa0b7a8bcbfa",
+      "origin": "symbolic",
+      "tier": "blocking",
+      "message": "src/presentation/invoice-report.controller.ts (presentation) skips layers to import src/persistence/invoice.repository.ts (persistence)",
+      "rule": "FF-S03",
+      "sites": [
+        "feb542080dfa656d"
+      ],
+      "files": [
+        "src/presentation/invoice-report.controller.ts",
+        "src/persistence/invoice.repository.ts"
+      ],
+      "edge": {
+        "file": "src/presentation/invoice-report.controller.ts",
+        "line": 1,
+        "target": "src/persistence/invoice.repository.ts"
+      },
+      "context": null,
+      "facts": [],
+      "sem": null
+    },
+    "c3Verdict": {
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "verdict": "fail"
+    },
+    "promptVersion": "c4-v0.2+u3-r1",
+    "runs": [
+      {
+        "runIndex": 0,
+        "grounded": {
+          "answer": {
+            "explanation": "InvoiceReportController in the presentation layer imports and is constructor-injected with InvoiceRepository from the persistence layer. It calls totalFor directly, skipping the business layer. FF-S03 flags this because the README declares strict layering (presentation calls business, business calls persistence). The README also grants one exception: report controllers matching src/presentation/*-report.controller.ts may read repositories directly for read-only reports. This file matches that name pattern, and its only use of the repository is the read-only totalFor call, so the case is the declared exception.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "README.md:3",
+                "README.md:4"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "README.md",
+                "startLine": 4,
+                "endLine": 4,
+                "quote": "One exception: report controllers (src/presentation/*-report.controller.ts) are allowed to read repositories directly, for read-only reports."
+              },
+              "scope": "Report controllers matching src/presentation/*-report.controller.ts reading repositories directly for read-only reports; applies to InvoiceReportController reading InvoiceRepository.totalFor."
+            },
+            "severityClass": "low",
+            "cites": [
+              "README.md:3",
+              "README.md:4",
+              "src/presentation/invoice-report.controller.ts:1",
+              "src/presentation/invoice-report.controller.ts:4",
+              "src/presentation/invoice-report.controller.ts:7"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "3e49b5936a0e103db77f56754f2cc870a2ae1ac9d07f39914d35f0f46d7e9aa9",
+        "date": "2026-10-22T06:28:40.708Z",
+        "invalidReason": null
+      },
+      {
+        "runIndex": 1,
+        "grounded": {
+          "answer": {
+            "explanation": "InvoiceReportController, in the presentation layer, imports and is constructor-injected with InvoiceRepository from the persistence layer. It calls totalFor to read a total. This skips the business layer, which is why FF-S03 flags it. The README declares strict layering (presentation calls business, business calls persistence), but it also grants an explicit exception. Report controllers matching src/presentation/*-report.controller.ts may read repositories directly for read-only reports. This file matches that pattern, and its only call is the read-only totalFor, so the case is covered by the declared exception.",
+            "intentMatch": {
+              "status": "consistent-with-declared-intent",
+              "cites": [
+                "README.md:3",
+                "README.md:4"
+              ]
+            },
+            "exceptionClaim": {
+              "claimed": true,
+              "citation": {
+                "path": "README.md",
+                "startLine": 4,
+                "endLine": 4,
+                "quote": "One exception: report controllers (src/presentation/*-report.controller.ts) are allowed to read repositories directly, for read-only reports."
+              },
+              "scope": "Report controllers matching src/presentation/*-report.controller.ts reading repositories directly for read-only reports; covers InvoiceReportController calling InvoiceRepository.totalFor."
+            },
+            "severityClass": "low",
+            "cites": [
+              "README.md:3",
+              "README.md:4",
+              "src/presentation/invoice-report.controller.ts:1",
+              "src/presentation/invoice-report.controller.ts:4",
+              "src/presentation/invoice-report.controller.ts:7"
+            ]
+          },
+          "rejections": [],
+          "hallucinatedException": false,
+          "inconsistent": false
+        },
+        "modelId": "claude-haiku-5-5+claude-sonnet-5-5",
+        "promptHash": "3e49b5936a0e103db77f56754f2cc870a2ae1ac9d07f39914d35f0f46d7e9aa9",
+        "date": "2026-10-22T06:28:48.672Z",
+        "invalidReason": null
+      }
+    ],
+    "merged": {
+      "exception": {
+        "claimed": true,
+        "stability": "agreed",
+        "citation": {
+          "path": "README.md",
+          "startLine": 4,
+          "endLine": 4,
+          "quote": "One exception: report controllers (src/presentation/*-report.controller.ts) are allowed to read repositories directly, for read-only reports."
+        },
+        "scope": "Report controllers matching src/presentation/*-report.controller.ts reading repositories directly for read-only reports; applies to InvoiceReportController reading InvoiceRepository.totalFor."
+      },
+      "intentMatch": {
+        "status": "consistent-with-declared-intent",
+        "stability": "agreed"
+      },
+      "severityClass": {
+        "value": "low",
+        "stability": "agreed"
+      },
+      "explanation": "InvoiceReportController in the presentation layer imports and is constructor-injected with InvoiceRepository from the persistence layer. It calls totalFor directly, skipping the business layer. FF-S03 flags this because the README declares strict layering (presentation calls business, business calls persistence). The README also grants one exception: report controllers matching src/presentation/*-report.controller.ts may read repositories directly for read-only reports. This file matches that name pattern, and its only use of the repository is the read-only totalFor call, so the case is the declared exception.",
+      "validRuns": 2
+    }
+  }
+}

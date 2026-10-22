@@ -1,0 +1,607 @@
+{
+ "schema": "detect-02-precision-v1",
+ "version": "v1.5-exp",
+ "split": "dev",
+ "modelCalls": 0,
+ "summary": {
+  "legitRuns": 20,
+  "legitFalsePositiveRuns": 0,
+  "positiveRuns": 12,
+  "positiveFlagged": 12,
+  "fails": 0
+ },
+ "rows": [
+  {
+   "pattern": "P1",
+   "fixture": "p01-outbox-same-transaction",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P1",
+   "fixture": "p01-outbox-same-transaction",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P2",
+   "fixture": "p02-event-store-append",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P2",
+   "fixture": "p02-event-store-append",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P3",
+   "fixture": "p03-audit-idempotency-records",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P3",
+   "fixture": "p03-audit-idempotency-records",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "AuditEntry",
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P4",
+   "fixture": "p04-one-aggregate-saved-twice",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P4",
+   "fixture": "p04-one-aggregate-saved-twice",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P4",
+   "fixture": "p04-one-aggregate-saved-twice",
+   "variant": "positive",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/MergeOrders.ts",
+     "line": 7,
+     "subject": "MergeOrders.execute",
+     "evidence": "saves 2 aggregate instances: Order x2"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P4",
+   "fixture": "p04-one-aggregate-saved-twice",
+   "variant": "positive",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Order"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/MergeOrders.ts",
+     "line": 7,
+     "subject": "MergeOrders.execute",
+     "evidence": "saves 2 aggregate instances: Order x2"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P5",
+   "fixture": "p05-child-entities",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P5",
+   "fixture": "p05-child-entities",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Order",
+    "OrderLine"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P5",
+   "fixture": "p05-child-entities",
+   "variant": "positive",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order",
+    "Product"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/AddLine.ts",
+     "line": 9,
+     "subject": "AddLine.execute",
+     "evidence": "saves 2 aggregate instances: Order x1, Product x1"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P5",
+   "fixture": "p05-child-entities",
+   "variant": "positive",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Order",
+    "Product",
+    "OrderLine"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/AddLine.ts",
+     "line": 9,
+     "subject": "AddLine.execute",
+     "evidence": "saves 2 aggregate instances: Order x1, Product x1"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P6",
+   "fixture": "p06-declared-batch",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Customer"
+   ],
+   "violations": [],
+   "allowed": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/ImportCustomers.ts",
+     "line": 13,
+     "subject": "ImportCustomers.execute"
+    }
+   ],
+   "info": 0
+  },
+  {
+   "pattern": "P6",
+   "fixture": "p06-declared-batch",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Customer"
+   ],
+   "violations": [],
+   "allowed": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/ImportCustomers.ts",
+     "line": 13,
+     "subject": "ImportCustomers.execute"
+    }
+   ],
+   "info": 0
+  },
+  {
+   "pattern": "P6",
+   "fixture": "p06-declared-batch",
+   "variant": "positive",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Customer"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/ImportCustomers.ts",
+     "line": 13,
+     "subject": "ImportCustomers.execute",
+     "evidence": "saves 2 aggregate instances: Customer x2"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P6",
+   "fixture": "p06-declared-batch",
+   "variant": "positive",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Customer"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/ImportCustomers.ts",
+     "line": 13,
+     "subject": "ImportCustomers.execute",
+     "evidence": "saves 2 aggregate instances: Customer x2"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P7",
+   "fixture": "p07-saga-own-state",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order",
+    "FulfilmentSaga"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P7",
+   "fixture": "p07-saga-own-state",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "FulfilmentSaga",
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P7",
+   "fixture": "p07-saga-own-state",
+   "variant": "positive",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order",
+    "FulfilmentSaga"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/CompleteShipment.ts",
+     "line": 8,
+     "subject": "CompleteShipment.execute",
+     "evidence": "saves 2 aggregate instances: FulfilmentSaga x1, Order x1"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P7",
+   "fixture": "p07-saga-own-state",
+   "variant": "positive",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "FulfilmentSaga",
+    "Order"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/CompleteShipment.ts",
+     "line": 8,
+     "subject": "CompleteShipment.execute",
+     "evidence": "saves 2 aggregate instances: FulfilmentSaga x1, Order x1"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P8",
+   "fixture": "p08-read-only-cross-context",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order",
+    "Member"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P8",
+   "fixture": "p08-read-only-cross-context",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Member",
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P8",
+   "fixture": "p08-read-only-cross-context",
+   "variant": "positive",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order",
+    "Member"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 9,
+     "subject": "PlaceOrder.execute",
+     "evidence": "saves 2 aggregate instances: Order x1, Member x1"
+    },
+    {
+     "rule": "R-XCTX",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 9,
+     "subject": "PlaceOrder.execute",
+     "evidence": "context sales writes Member (owned by membership) through its published interface"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P8",
+   "fixture": "p08-read-only-cross-context",
+   "variant": "positive",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Member",
+    "Order"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 9,
+     "subject": "PlaceOrder.execute",
+     "evidence": "saves 2 aggregate instances: Order x1, Member x1"
+    },
+    {
+     "rule": "R-XCTX",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 9,
+     "subject": "PlaceOrder.execute",
+     "evidence": "context sales writes Member (owned by membership) through its published interface"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P9",
+   "fixture": "p09-anti-corruption-translation",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order",
+    "Customer"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P9",
+   "fixture": "p09-anti-corruption-translation",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Customer",
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P9",
+   "fixture": "p09-anti-corruption-translation",
+   "variant": "positive",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order",
+    "Customer"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/PlaceOrderOnCredit.ts",
+     "line": 17,
+     "subject": "PlaceOrderOnCredit.execute",
+     "evidence": "saves 2 aggregate instances: Order x1, Customer x1"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P9",
+   "fixture": "p09-anti-corruption-translation",
+   "variant": "positive",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "Customer",
+    "Order"
+   ],
+   "violations": [
+    {
+     "rule": "R-D4",
+     "file": "src/sales/application/PlaceOrderOnCredit.ts",
+     "line": 17,
+     "subject": "PlaceOrderOnCredit.execute",
+     "evidence": "saves 2 aggregate instances: Order x1, Customer x1"
+    }
+   ],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P10",
+   "fixture": "p10-shared-kernel-types",
+   "variant": "legit",
+   "condition": "declared",
+   "pass": true,
+   "rootSource": "spec",
+   "roots": [
+    "Order",
+    "Invoice"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  },
+  {
+   "pattern": "P10",
+   "fixture": "p10-shared-kernel-types",
+   "variant": "legit",
+   "condition": "fallback",
+   "pass": true,
+   "rootSource": "fallback",
+   "roots": [
+    "CustomerRef",
+    "Invoice",
+    "Order"
+   ],
+   "violations": [],
+   "allowed": [],
+   "info": 0
+  }
+ ]
+}

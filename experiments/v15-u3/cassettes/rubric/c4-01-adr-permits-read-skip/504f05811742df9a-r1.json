@@ -1,0 +1,43 @@
+{
+  "arm": "rubric",
+  "project": "c4-01-adr-permits-read-skip",
+  "findingId": "c4f:9b4c6178c70b8d4c",
+  "runIndex": 1,
+  "promptVersion": "c4-v0.2+u3-r1",
+  "promptHash": "b111ec0fe054c15f69731476474663c8c6656b0530aa9309a34fa131869e9610",
+  "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d",
+  "model": "claude-haiku-5-5+claude-sonnet-5-5",
+  "date": "2026-10-22T06:23:59.287Z",
+  "answer": {
+    "explanation": "OrderController in the presentation layer imports and calls OrderReadRepository in the persistence layer directly, skipping the business layer. FF-S03 flags this as a layer skip. ADR-0004 (Accepted) declares this case on purpose. It says controllers may query read repositories directly, limits the exception to OrderReadRepository, and keeps writes going through the business layer. The code matches that scope. The controller's place() goes through OrderService, and only the read-only list() uses the repository. The finding is consistent with the declared intent, and the ADR grants this exact import as an exception.",
+    "intentMatch": {
+      "status": "consistent-with-declared-intent",
+      "cites": [
+        "docs/adr/0004-read-side.md:3",
+        "docs/adr/0004-read-side.md:10",
+        "docs/adr/0004-read-side.md:11",
+        "docs/adr/0004-read-side.md:14"
+      ]
+    },
+    "exceptionClaim": {
+      "claimed": true,
+      "citation": {
+        "path": "docs/adr/0004-read-side.md",
+        "startLine": 10,
+        "endLine": 11,
+        "quote": "Controllers may query read repositories directly.\nThe exception covers OrderReadRepository only; writes still go through the business layer."
+      },
+      "scope": "Presentation controllers may directly use OrderReadRepository (read-only queries); writes must still go through the business layer."
+    },
+    "severityClass": "low",
+    "cites": [
+      "docs/adr/0004-read-side.md:3",
+      "docs/adr/0004-read-side.md:10",
+      "docs/adr/0004-read-side.md:11",
+      "docs/adr/0004-read-side.md:14",
+      "src/presentation/order.controller.ts:2",
+      "src/presentation/order.controller.ts:11",
+      "src/presentation/order.controller.ts:15"
+    ]
+  }
+}
