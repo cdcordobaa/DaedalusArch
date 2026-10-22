@@ -31,9 +31,9 @@ export interface DevTree {
 }
 
 const PUZ = 'experiments/puzzle-01/puzzles';
-const SESS = 'results/puzzle-01-baseline/sessions';
+const SESS = 'results/v1.4-puzzle-01-baseline/sessions';
 
-/** Oracle FAILs (results/puzzle-01-baseline/oracle-verdicts-to-read.md), hand-read proposals; c07 is legit-clean. */
+/** Oracle FAILs (results/v1.4-puzzle-01-baseline/oracle-verdicts-to-read.md), hand-read proposals; c07 is legit-clean. */
 const PUZZLE_FAILS: Record<string, Case[]> = {
   c10: [{ id: 'c10-SG1', family: 'D4', file: 'src/ledger/application/Transfer.ts' }, { id: 'c10-SG2', family: 'D5', file: 'src/ledger/application/Transfer.ts', line: 31 }],
   c11: [{ id: 'c11-SG1', family: 'D4', file: 'src/ledger/application/Transfer.ts' }],
@@ -51,7 +51,7 @@ const FAIL_FROM_STEP: Record<string, number> = { SG1: 1, SG2: 2 };
 const P2_SG2_STEP = 3;
 
 function puzzleTrees(): DevTree[] {
-  const map = JSON.parse(fs.readFileSync('results/puzzle-01-baseline/private-id-map.json', 'utf8')) as { sessions: Record<string, { puzzle: string; verdict: string }> };
+  const map = JSON.parse(fs.readFileSync('results/v1.4-puzzle-01-baseline/private-id-map.json', 'utf8')) as { sessions: Record<string, { puzzle: string; verdict: string }> };
   const out: DevTree[] = [];
   for (const [s, v] of Object.entries(map.sessions)) {
     if (v.verdict !== 'done') continue;
@@ -85,7 +85,7 @@ function puzzleTrees(): DevTree[] {
   return out;
 }
 
-/** HEXDDD-01 hand-read cases (results/pilot-hexddd-01/hand-read-log.csv); D3 is out of every rule's scope. */
+/** HEXDDD-01 hand-read cases (results/v1.4-pilot-hexddd-01/hand-read-log.csv); D3 is out of every rule's scope. */
 const PILOT_CASES: { task: string; step: number; c: Case }[] = [
   { task: 's1-hotel-bookings', step: 2, c: { id: 'case1', family: 'D5', file: 'src/application/services/BookRoomService.ts', line: 37, note: 'lock form' } },
   { task: 's1-hotel-bookings', step: 3, c: { id: 'case2', family: 'D4', file: 'src/application/ports/out/BookingRepository.ts', line: 11 } },
