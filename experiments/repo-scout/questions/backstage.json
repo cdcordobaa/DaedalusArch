@@ -1,0 +1,37 @@
+[
+ {
+  "id": "BS-W1",
+  "kind": "writers",
+  "question": "Which units write processed catalog entities through the catalog processing port ProcessingDatabase (its write members updateProcessedEntity, updateEntityCache, updateProcessedEntityErrors)?",
+  "file": "plugins/catalog-backend/src/database/types.ts",
+  "type": "ProcessingDatabase",
+  "memberPattern": "^(updateProcessedEntity|updateEntityCache|updateProcessedEntityErrors)$",
+  "impact": [
+   "plugins/catalog-backend/src/database/types.ts#ProcessingDatabase",
+   "plugins/catalog-backend/src/database/DefaultProcessingDatabase.ts#DefaultProcessingDatabase"
+  ],
+  "trace": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#DefaultCatalogProcessingEngine.start"
+ },
+ {
+  "id": "BS-C1",
+  "kind": "callers",
+  "question": "Which units call the catalog's published CatalogService (any member), i.e. are affected by a change to that port?",
+  "file": "plugins/catalog-node/src/catalogService.ts",
+  "type": "CatalogService",
+  "impact": [
+   "plugins/catalog-node/src/catalogService.ts#CatalogService"
+  ]
+ },
+ {
+  "id": "BS-X1",
+  "kind": "crossCalls",
+  "question": "Which calls do the scaffolder backend packages make into catalog code (catalog plugins or the catalog model package)?",
+  "from": [
+   "plugins/scaffolder-backend*/**"
+  ],
+  "to": [
+   "plugins/catalog-*/**",
+   "packages/catalog-model/**"
+  ]
+ }
+]

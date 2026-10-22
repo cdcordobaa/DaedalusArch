@@ -1,0 +1,1245 @@
+{
+ "tree": "backstage",
+ "truthFiles": 2229,
+ "truthLoadMs": 3051,
+ "index": {
+  "files": 2229,
+  "units": 5929,
+  "callEdges": 12798,
+  "unresolved": 2581,
+  "roots": 0,
+  "rootSource": "none",
+  "commands": 501,
+  "buildMs": 62948,
+  "rssMB": 4877
+ },
+ "contextMap": {
+  "contexts": [
+   {
+    "name": "app",
+    "source": "declared",
+    "files": 21,
+    "aggregates": [],
+    "commands": 4
+   },
+   {
+    "name": "auth",
+    "source": "declared",
+    "files": 159,
+    "aggregates": [],
+    "commands": 71
+   },
+   {
+    "name": "bitbucket-cloud",
+    "source": "declared",
+    "files": 7,
+    "aggregates": [],
+    "commands": 0
+   },
+   {
+    "name": "catalog",
+    "source": "declared",
+    "files": 416,
+    "aggregates": [],
+    "commands": 144
+   },
+   {
+    "name": "catalog-unprocessed-entities",
+    "source": "declared",
+    "files": 0,
+    "aggregates": [],
+    "commands": 0
+   },
+   {
+    "name": "connections-example",
+    "source": "declared",
+    "files": 6,
+    "aggregates": [],
+    "commands": 0
+   },
+   {
+    "name": "devtools",
+    "source": "declared",
+    "files": 12,
+    "aggregates": [],
+    "commands": 6
+   },
+   {
+    "name": "events",
+    "source": "declared",
+    "files": 158,
+    "aggregates": [],
+    "commands": 26
+   },
+   {
+    "name": "example-todo-list",
+    "source": "declared",
+    "files": 7,
+    "aggregates": [],
+    "commands": 0
+   },
+   {
+    "name": "gateway",
+    "source": "declared",
+    "files": 4,
+    "aggregates": [],
+    "commands": 0
+   },
+   {
+    "name": "kubernetes",
+    "source": "declared",
+    "files": 66,
+    "aggregates": [],
+    "commands": 75
+   },
+   {
+    "name": "mcp-actions",
+    "source": "declared",
+    "files": 7,
+    "aggregates": [],
+    "commands": 1
+   },
+   {
+    "name": "notifications",
+    "source": "declared",
+    "files": 74,
+    "aggregates": [],
+    "commands": 25
+   },
+   {
+    "name": "permission",
+    "source": "declared",
+    "files": 38,
+    "aggregates": [],
+    "commands": 10
+   },
+   {
+    "name": "proxy",
+    "source": "declared",
+    "files": 6,
+    "aggregates": [],
+    "commands": 0
+   },
+   {
+    "name": "scaffolder",
+    "source": "declared",
+    "files": 390,
+    "aggregates": [],
+    "commands": 61
+   },
+   {
+    "name": "search",
+    "source": "declared",
+    "files": 90,
+    "aggregates": [],
+    "commands": 41
+   },
+   {
+    "name": "signals",
+    "source": "declared",
+    "files": 11,
+    "aggregates": [],
+    "commands": 3
+   },
+   {
+    "name": "techdocs",
+    "source": "declared",
+    "files": 50,
+    "aggregates": [],
+    "commands": 30
+   },
+   {
+    "name": "user-settings",
+    "source": "declared",
+    "files": 10,
+    "aggregates": [],
+    "commands": 4
+   }
+  ],
+  "aggregates": 0,
+  "aggregatesFrom": "none",
+  "notes": [
+   "No aggregates are declared and none were inferred, so who_writes and the write facts of trace have nothing to report.",
+   "Commands are the public methods of application-layer classes and the functions of a published module interface."
+  ]
+ },
+ "questions": [
+  {
+   "id": "BS-W1",
+   "kind": "writers",
+   "question": "Which units write processed catalog entities through the catalog processing port ProcessingDatabase (its write members updateProcessedEntity, updateEntityCache, updateProcessedEntityErrors)?",
+   "truth": {
+    "sites": 4,
+    "units": 1,
+    "files": 1,
+    "typeRefFiles": 2,
+    "implementations": [
+     "plugins/catalog-backend/src/database/DefaultProcessingDatabase.ts#DefaultProcessingDatabase"
+    ],
+    "unitsNotIndexNamed": 0,
+    "ms": 1573
+   },
+   "index": {
+    "sites": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "sitesEdgesOnly": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 1,
+     "graph": 1,
+     "both": 1,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 1,
+     "graph": 1,
+     "both": 1,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "edge via port": 4
+    }
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "plugins/catalog-backend/src/database/types.ts#ProcessingDatabase",
+      "references": 2,
+      "importers": 6,
+      "commands": 0,
+      "commandsCapped": false,
+      "ms": 42974
+     },
+     {
+      "target": "plugins/catalog-backend/src/database/DefaultProcessingDatabase.ts#DefaultProcessingDatabase",
+      "references": 1,
+      "importers": 1,
+      "commands": 7,
+      "commandsCapped": false,
+      "ms": 56
+     }
+    ],
+    "referenceFiles": {
+     "truth": 2,
+     "graph": 3,
+     "both": 2,
+     "recall": 1,
+     "precision": 0.6666666666666666
+    },
+    "callerFilesByReferences": {
+     "truth": 1,
+     "graph": 3,
+     "both": 1,
+     "recall": 1,
+     "precision": 0.3333333333333333
+    },
+    "commandUnits": {
+     "truth": 1,
+     "graph": 7,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandFiles": {
+     "truth": 1,
+     "graph": 2,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    }
+   },
+   "trace": {
+    "command": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#DefaultCatalogProcessingEngine.start",
+    "nodes": 60,
+    "truncated": true,
+    "adapters": 66,
+    "writes": 0,
+    "units": 60,
+    "notes": [
+     "The trace was cut at 60 steps.",
+     "Reads are calls on a repository, port or adapter that return an aggregate; writes are the store calls of the write-footprint facts."
+    ]
+   },
+   "truthSample": [
+    {
+     "unit": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask",
+     "file": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts",
+     "line": 184,
+     "callee": "ProcessingDatabase.updateEntityCache",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask",
+     "file": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts",
+     "line": 197,
+     "callee": "ProcessingDatabase.updateEntityCache",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask",
+     "file": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts",
+     "line": 279,
+     "callee": "ProcessingDatabase.updateProcessedEntityErrors",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask",
+     "file": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts",
+     "line": 304,
+     "callee": "ProcessingDatabase.updateProcessedEntity",
+     "indexNamed": true
+    }
+   ],
+   "missedByIndex": []
+  },
+  {
+   "id": "BS-C1",
+   "kind": "callers",
+   "question": "Which units call the catalog's published CatalogService (any member), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 39,
+    "units": 31,
+    "files": 29,
+    "typeRefFiles": 40,
+    "implementations": [
+     "plugins/catalog-node/src/catalogService.ts#DefaultCatalogService",
+     "plugins/catalog-node/src/testUtils/types.ts#CatalogServiceMock"
+    ],
+    "unitsNotIndexNamed": 0,
+    "ms": 450
+   },
+   "index": {
+    "sites": {
+     "truth": 39,
+     "graph": 39,
+     "both": 39,
+     "recall": 1,
+     "precision": 1
+    },
+    "sitesEdgesOnly": {
+     "truth": 39,
+     "graph": 39,
+     "both": 39,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 31,
+     "graph": 31,
+     "both": 30,
+     "recall": 0.967741935483871,
+     "precision": 0.967741935483871
+    },
+    "files": {
+     "truth": 29,
+     "graph": 29,
+     "both": 29,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "edge via port": 39
+    }
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "plugins/catalog-node/src/catalogService.ts#CatalogService",
+      "references": 40,
+      "importers": 1,
+      "commands": 0,
+      "commandsCapped": false,
+      "ms": 115
+     }
+    ],
+    "referenceFiles": {
+     "truth": 40,
+     "graph": 40,
+     "both": 40,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 29,
+     "graph": 40,
+     "both": 29,
+     "recall": 1,
+     "precision": 0.725
+    },
+    "commandUnits": {
+     "truth": 31,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 29,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "truthSample": [
+    {
+     "unit": "plugins/auth-backend-module-github-provider/src/resolvers.ts#{}.create",
+     "file": "plugins/auth-backend-module-github-provider/src/resolvers.ts",
+     "line": 203,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/actions/createWhoAmIAction.ts#{}.action",
+     "file": "plugins/auth-backend/src/actions/createWhoAmIAction.ts",
+     "line": 74,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts#CatalogIdentityClient.findUser",
+     "file": "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts",
+     "line": 55,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts#CatalogIdentityClient.resolveCatalogMembership",
+     "file": "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts",
+     "line": 104,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts#CatalogAuthResolverContext.findCatalogUser",
+     "file": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts",
+     "line": 143,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts#CatalogAuthResolverContext.findCatalogUser",
+     "file": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts",
+     "line": 153,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts#CatalogAuthResolverContext.findCatalogUser",
+     "file": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts",
+     "line": 168,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/service/OfflineAccessService.ts#OfflineAccessService.refreshAccessToken",
+     "file": "plugins/auth-backend/src/service/OfflineAccessService.ts",
+     "line": 242,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend-module-bitbucket-cloud/src/providers/BitbucketCloudEntityProvider.ts#BitbucketCloudEntityProvider.findExistingLocations",
+     "file": "plugins/catalog-backend-module-bitbucket-cloud/src/providers/BitbucketCloudEntityProvider.ts",
+     "line": 353,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend-module-bitbucket-server/src/providers/BitbucketServerEntityProvider.ts#BitbucketServerEntityProvider.findExistingLocations",
+     "file": "plugins/catalog-backend-module-bitbucket-server/src/providers/BitbucketServerEntityProvider.ts",
+     "line": 562,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend-module-github/src/analyzers/GithubLocationAnalyzer.ts#GithubLocationAnalyzer.analyze",
+     "file": "plugins/catalog-backend-module-github/src/analyzers/GithubLocationAnalyzer.ts",
+     "line": 111,
+     "callee": "CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createGetCatalogEntityAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createGetCatalogEntityAction.ts",
+     "line": 72,
+     "callee": "CatalogService.queryEntities",
+     "indexNamed": true
+    }
+   ],
+   "missedByIndex": []
+  },
+  {
+   "id": "BS-X1",
+   "kind": "crossCalls",
+   "question": "Which calls do the scaffolder backend packages make into catalog code (catalog plugins or the catalog model package)?",
+   "truth": {
+    "sites": 19,
+    "units": 6,
+    "files": 5,
+    "unitsNotIndexNamed": 0,
+    "ms": 1327
+   },
+   "index": {
+    "sites": {
+     "truth": 19,
+     "graph": 360,
+     "both": 19,
+     "recall": 1,
+     "precision": 0.05277777777777778
+    },
+    "sitesEdgesOnly": {
+     "truth": 19,
+     "graph": 18,
+     "both": 18,
+     "recall": 0.9473684210526315,
+     "precision": 1
+    },
+    "units": {
+     "truth": 6,
+     "graph": 118,
+     "both": 6,
+     "recall": 1,
+     "precision": 0.05084745762711865
+    },
+    "files": {
+     "truth": 5,
+     "graph": 70,
+     "both": 5,
+     "recall": 1,
+     "precision": 0.07142857142857142
+    },
+    "how": {
+     "edge direct": 10,
+     "edge interface": 8,
+     "unresolved (callee unknown)": 352
+    }
+   },
+   "truthSample": [
+    {
+     "unit": "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts#{}.handler",
+     "file": "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts",
+     "line": 188,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntitiesByRefs",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 97,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 98,
+     "callee": "packages/catalog-model/src/entity/ref.ts#stringifyEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 99,
+     "callee": "packages/catalog-model/src/entity/ref.ts#parseEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 113,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntitiesByRefs",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 116,
+     "callee": "packages/catalog-model/src/entity/ref.ts#stringifyEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 117,
+     "callee": "packages/catalog-model/src/entity/ref.ts#parseEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+     "line": 102,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+     "line": 118,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+     "line": 145,
+     "callee": "packages/catalog-model/src/entity/ref.ts#stringifyEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/helpers.ts#getEntityBaseUrl",
+     "file": "plugins/scaffolder-backend/src/service/helpers.ts",
+     "line": 77,
+     "callee": "packages/catalog-model/src/location/helpers.ts#parseLocationRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/helpers.ts#findTemplate",
+     "file": "plugins/scaffolder-backend/src/service/helpers.ts",
+     "line": 104,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntityByRef",
+     "indexNamed": true
+    }
+   ],
+   "missedByIndex": []
+  }
+ ],
+ "truths": [
+  {
+   "id": "BS-W1",
+   "kind": "writers",
+   "question": "Which units write processed catalog entities through the catalog processing port ProcessingDatabase (its write members updateProcessedEntity, updateEntityCache, updateProcessedEntityErrors)?",
+   "members": [
+    "updateProcessedEntity",
+    "updateEntityCache",
+    "updateProcessedEntityErrors"
+   ],
+   "sites": [
+    {
+     "unit": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask",
+     "file": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts",
+     "line": 184,
+     "callee": "ProcessingDatabase.updateEntityCache",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask",
+     "file": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts",
+     "line": 197,
+     "callee": "ProcessingDatabase.updateEntityCache",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask",
+     "file": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts",
+     "line": 279,
+     "callee": "ProcessingDatabase.updateProcessedEntityErrors",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask",
+     "file": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts",
+     "line": 304,
+     "callee": "ProcessingDatabase.updateProcessedEntity",
+     "indexNamed": true
+    }
+   ],
+   "units": [
+    "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#{}.processTask"
+   ],
+   "files": [
+    "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts"
+   ],
+   "typeRefFiles": [
+    "plugins/catalog-backend/src/database/DefaultProcessingDatabase.ts",
+    "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts"
+   ],
+   "implementations": [
+    "plugins/catalog-backend/src/database/DefaultProcessingDatabase.ts#DefaultProcessingDatabase"
+   ],
+   "ms": 1573
+  },
+  {
+   "id": "BS-C1",
+   "kind": "callers",
+   "question": "Which units call the catalog's published CatalogService (any member), i.e. are affected by a change to that port?",
+   "members": [
+    "getEntities",
+    "getEntitiesByRefs",
+    "queryEntities",
+    "getEntityAncestors",
+    "getEntityByRef",
+    "removeEntityByUid",
+    "refreshEntity",
+    "getEntityFacets",
+    "getLocations",
+    "queryLocations",
+    "streamLocations",
+    "getLocationById",
+    "getLocationByRef",
+    "addLocation",
+    "removeLocationById",
+    "updateLocation",
+    "getLocationByEntity",
+    "validateEntity",
+    "analyzeLocation",
+    "streamEntities"
+   ],
+   "sites": [
+    {
+     "unit": "plugins/auth-backend-module-github-provider/src/resolvers.ts#{}.create",
+     "file": "plugins/auth-backend-module-github-provider/src/resolvers.ts",
+     "line": 203,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/actions/createWhoAmIAction.ts#{}.action",
+     "file": "plugins/auth-backend/src/actions/createWhoAmIAction.ts",
+     "line": 74,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts#CatalogIdentityClient.findUser",
+     "file": "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts",
+     "line": 55,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts#CatalogIdentityClient.resolveCatalogMembership",
+     "file": "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts",
+     "line": 104,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts#CatalogAuthResolverContext.findCatalogUser",
+     "file": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts",
+     "line": 143,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts#CatalogAuthResolverContext.findCatalogUser",
+     "file": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts",
+     "line": 153,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts#CatalogAuthResolverContext.findCatalogUser",
+     "file": "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts",
+     "line": 168,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/auth-backend/src/service/OfflineAccessService.ts#OfflineAccessService.refreshAccessToken",
+     "file": "plugins/auth-backend/src/service/OfflineAccessService.ts",
+     "line": 242,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend-module-bitbucket-cloud/src/providers/BitbucketCloudEntityProvider.ts#BitbucketCloudEntityProvider.findExistingLocations",
+     "file": "plugins/catalog-backend-module-bitbucket-cloud/src/providers/BitbucketCloudEntityProvider.ts",
+     "line": 353,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend-module-bitbucket-server/src/providers/BitbucketServerEntityProvider.ts#BitbucketServerEntityProvider.findExistingLocations",
+     "file": "plugins/catalog-backend-module-bitbucket-server/src/providers/BitbucketServerEntityProvider.ts",
+     "line": 562,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend-module-github/src/analyzers/GithubLocationAnalyzer.ts#GithubLocationAnalyzer.analyze",
+     "file": "plugins/catalog-backend-module-github/src/analyzers/GithubLocationAnalyzer.ts",
+     "line": 111,
+     "callee": "CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createGetCatalogEntityAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createGetCatalogEntityAction.ts",
+     "line": 72,
+     "callee": "CatalogService.queryEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createQueryCatalogEntitiesAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createQueryCatalogEntitiesAction.ts",
+     "line": 225,
+     "callee": "CatalogService.queryEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createRefreshCatalogEntityAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createRefreshCatalogEntityAction.ts",
+     "line": 82,
+     "callee": "CatalogService.queryEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createRefreshCatalogEntityAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createRefreshCatalogEntityAction.ts",
+     "line": 103,
+     "callee": "CatalogService.refreshEntity",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createRegisterCatalogEntitiesAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createRegisterCatalogEntitiesAction.ts",
+     "line": 72,
+     "callee": "CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts",
+     "line": 67,
+     "callee": "CatalogService.removeLocationById",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts",
+     "line": 71,
+     "callee": "CatalogService.getLocations",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts",
+     "line": 93,
+     "callee": "CatalogService.removeLocationById",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/catalog-backend/src/actions/createValidateEntityAction.ts#{}.action",
+     "file": "plugins/catalog-backend/src/actions/createValidateEntityAction.ts",
+     "line": 74,
+     "callee": "CatalogService.validateEntity",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/kubernetes-backend/src/actions/createGetKubernetesResourcesForEntityAction.ts#{}.action",
+     "file": "plugins/kubernetes-backend/src/actions/createGetKubernetesResourcesForEntityAction.ts",
+     "line": 135,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/kubernetes-backend/src/cluster-locator/CatalogClusterLocator.ts#CatalogClusterLocator.getClusters",
+     "file": "plugins/kubernetes-backend/src/cluster-locator/CatalogClusterLocator.ts",
+     "line": 98,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/kubernetes-backend/src/routes/resourcesRoutes.ts#getEntityByReq",
+     "file": "plugins/kubernetes-backend/src/routes/resourcesRoutes.ts",
+     "line": 58,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/kubernetes-backend/src/service/KubernetesRouter.ts#KubernetesRouter.buildDefaultRouter",
+     "file": "plugins/kubernetes-backend/src/service/KubernetesRouter.ts",
+     "line": 226,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/notifications-backend-module-email/src/processor/NotificationsEmailProcessor.ts#NotificationsEmailProcessor.getBroadcastEmails",
+     "file": "plugins/notifications-backend-module-email/src/processor/NotificationsEmailProcessor.ts",
+     "line": 180,
+     "callee": "CatalogService.getEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/notifications-backend-module-email/src/processor/NotificationsEmailProcessor.ts#NotificationsEmailProcessor.getUserEmail",
+     "file": "plugins/notifications-backend-module-email/src/processor/NotificationsEmailProcessor.ts",
+     "line": 212,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/notifications-backend-module-slack/src/lib/SlackNotificationProcessor.ts#SlackNotificationProcessor.constructor",
+     "file": "plugins/notifications-backend-module-slack/src/lib/SlackNotificationProcessor.ts",
+     "line": 165,
+     "callee": "CatalogService.getEntitiesByRefs",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/notifications-backend/src/service/DefaultNotificationRecipientResolver.ts#DefaultNotificationRecipientResolver.resolveNotificationRecipients",
+     "file": "plugins/notifications-backend/src/service/DefaultNotificationRecipientResolver.ts",
+     "line": 84,
+     "callee": "CatalogService.getEntitiesByRefs",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts#{}.handler",
+     "file": "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts",
+     "line": 188,
+     "callee": "CatalogService.getEntitiesByRefs",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 97,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 113,
+     "callee": "CatalogService.getEntitiesByRefs",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+     "line": 102,
+     "callee": "CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+     "line": 118,
+     "callee": "CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/helpers.ts#findTemplate",
+     "file": "plugins/scaffolder-backend/src/service/helpers.ts",
+     "line": 104,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+     "file": "plugins/scaffolder-backend/src/service/router.ts",
+     "line": 570,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+     "file": "plugins/scaffolder-backend/src/service/router.ts",
+     "line": 1062,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/search-backend-module-catalog/src/collators/DefaultCatalogCollatorFactory.ts#DefaultCatalogCollatorFactory.execute",
+     "file": "plugins/search-backend-module-catalog/src/collators/DefaultCatalogCollatorFactory.ts",
+     "line": 109,
+     "callee": "CatalogService.queryEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/search-backend-module-techdocs/src/collators/DefaultTechDocsCollatorFactory.ts#DefaultTechDocsCollatorFactory.execute",
+     "file": "plugins/search-backend-module-techdocs/src/collators/DefaultTechDocsCollatorFactory.ts",
+     "line": 154,
+     "callee": "CatalogService.queryEntities",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/techdocs-backend/src/service/CachedEntityLoader.ts#CachedEntityLoader.load",
+     "file": "plugins/techdocs-backend/src/service/CachedEntityLoader.ts",
+     "line": 54,
+     "callee": "CatalogService.getEntityByRef",
+     "indexNamed": true
+    }
+   ],
+   "units": [
+    "plugins/auth-backend-module-github-provider/src/resolvers.ts#{}.create",
+    "plugins/auth-backend/src/actions/createWhoAmIAction.ts#{}.action",
+    "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts#CatalogIdentityClient.findUser",
+    "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts#CatalogIdentityClient.resolveCatalogMembership",
+    "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts#CatalogAuthResolverContext.findCatalogUser",
+    "plugins/auth-backend/src/service/OfflineAccessService.ts#OfflineAccessService.refreshAccessToken",
+    "plugins/catalog-backend-module-bitbucket-cloud/src/providers/BitbucketCloudEntityProvider.ts#BitbucketCloudEntityProvider.findExistingLocations",
+    "plugins/catalog-backend-module-bitbucket-server/src/providers/BitbucketServerEntityProvider.ts#BitbucketServerEntityProvider.findExistingLocations",
+    "plugins/catalog-backend-module-github/src/analyzers/GithubLocationAnalyzer.ts#GithubLocationAnalyzer.analyze",
+    "plugins/catalog-backend/src/actions/createGetCatalogEntityAction.ts#{}.action",
+    "plugins/catalog-backend/src/actions/createQueryCatalogEntitiesAction.ts#{}.action",
+    "plugins/catalog-backend/src/actions/createRefreshCatalogEntityAction.ts#{}.action",
+    "plugins/catalog-backend/src/actions/createRegisterCatalogEntitiesAction.ts#{}.action",
+    "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts#{}.action",
+    "plugins/catalog-backend/src/actions/createValidateEntityAction.ts#{}.action",
+    "plugins/kubernetes-backend/src/actions/createGetKubernetesResourcesForEntityAction.ts#{}.action",
+    "plugins/kubernetes-backend/src/cluster-locator/CatalogClusterLocator.ts#CatalogClusterLocator.getClusters",
+    "plugins/kubernetes-backend/src/routes/resourcesRoutes.ts#getEntityByReq",
+    "plugins/kubernetes-backend/src/service/KubernetesRouter.ts#KubernetesRouter.buildDefaultRouter",
+    "plugins/notifications-backend-module-email/src/processor/NotificationsEmailProcessor.ts#NotificationsEmailProcessor.getBroadcastEmails",
+    "plugins/notifications-backend-module-email/src/processor/NotificationsEmailProcessor.ts#NotificationsEmailProcessor.getUserEmail",
+    "plugins/notifications-backend-module-slack/src/lib/SlackNotificationProcessor.ts#SlackNotificationProcessor.constructor",
+    "plugins/notifications-backend/src/service/DefaultNotificationRecipientResolver.ts#DefaultNotificationRecipientResolver.resolveNotificationRecipients",
+    "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts#{}.handler",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+    "plugins/scaffolder-backend/src/service/helpers.ts#findTemplate",
+    "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+    "plugins/search-backend-module-catalog/src/collators/DefaultCatalogCollatorFactory.ts#DefaultCatalogCollatorFactory.execute",
+    "plugins/search-backend-module-techdocs/src/collators/DefaultTechDocsCollatorFactory.ts#DefaultTechDocsCollatorFactory.execute",
+    "plugins/techdocs-backend/src/service/CachedEntityLoader.ts#CachedEntityLoader.load"
+   ],
+   "files": [
+    "plugins/auth-backend-module-github-provider/src/resolvers.ts",
+    "plugins/auth-backend/src/actions/createWhoAmIAction.ts",
+    "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts",
+    "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts",
+    "plugins/auth-backend/src/service/OfflineAccessService.ts",
+    "plugins/catalog-backend-module-bitbucket-cloud/src/providers/BitbucketCloudEntityProvider.ts",
+    "plugins/catalog-backend-module-bitbucket-server/src/providers/BitbucketServerEntityProvider.ts",
+    "plugins/catalog-backend-module-github/src/analyzers/GithubLocationAnalyzer.ts",
+    "plugins/catalog-backend/src/actions/createGetCatalogEntityAction.ts",
+    "plugins/catalog-backend/src/actions/createQueryCatalogEntitiesAction.ts",
+    "plugins/catalog-backend/src/actions/createRefreshCatalogEntityAction.ts",
+    "plugins/catalog-backend/src/actions/createRegisterCatalogEntitiesAction.ts",
+    "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts",
+    "plugins/catalog-backend/src/actions/createValidateEntityAction.ts",
+    "plugins/kubernetes-backend/src/actions/createGetKubernetesResourcesForEntityAction.ts",
+    "plugins/kubernetes-backend/src/cluster-locator/CatalogClusterLocator.ts",
+    "plugins/kubernetes-backend/src/routes/resourcesRoutes.ts",
+    "plugins/kubernetes-backend/src/service/KubernetesRouter.ts",
+    "plugins/notifications-backend-module-email/src/processor/NotificationsEmailProcessor.ts",
+    "plugins/notifications-backend-module-slack/src/lib/SlackNotificationProcessor.ts",
+    "plugins/notifications-backend/src/service/DefaultNotificationRecipientResolver.ts",
+    "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+    "plugins/scaffolder-backend/src/service/helpers.ts",
+    "plugins/scaffolder-backend/src/service/router.ts",
+    "plugins/search-backend-module-catalog/src/collators/DefaultCatalogCollatorFactory.ts",
+    "plugins/search-backend-module-techdocs/src/collators/DefaultTechDocsCollatorFactory.ts",
+    "plugins/techdocs-backend/src/service/CachedEntityLoader.ts"
+   ],
+   "typeRefFiles": [
+    "plugins/auth-backend-module-github-provider/src/resolvers.ts",
+    "plugins/auth-backend/src/actions/createWhoAmIAction.ts",
+    "plugins/auth-backend/src/actions/index.ts",
+    "plugins/auth-backend/src/lib/catalog/CatalogIdentityClient.ts",
+    "plugins/auth-backend/src/lib/resolvers/CatalogAuthResolverContext.ts",
+    "plugins/auth-backend/src/providers/router.ts",
+    "plugins/auth-backend/src/service/OfflineAccessService.ts",
+    "plugins/auth-backend/src/service/router.ts",
+    "plugins/catalog-backend-module-bitbucket-cloud/src/providers/BitbucketCloudEntityProvider.ts",
+    "plugins/catalog-backend-module-bitbucket-server/src/providers/BitbucketServerEntityProvider.ts",
+    "plugins/catalog-backend-module-github/src/analyzers/GithubLocationAnalyzer.ts",
+    "plugins/catalog-backend/src/actions/createGetCatalogEntityAction.ts",
+    "plugins/catalog-backend/src/actions/createQueryCatalogEntitiesAction.ts",
+    "plugins/catalog-backend/src/actions/createRefreshCatalogEntityAction.ts",
+    "plugins/catalog-backend/src/actions/createRegisterCatalogEntitiesAction.ts",
+    "plugins/catalog-backend/src/actions/createUnregisterCatalogEntitiesAction.ts",
+    "plugins/catalog-backend/src/actions/createValidateEntityAction.ts",
+    "plugins/catalog-backend/src/actions/index.ts",
+    "plugins/catalog-node/src/index.ts",
+    "plugins/catalog-node/src/testUtils/types.ts",
+    "plugins/kubernetes-backend/src/actions/createGetKubernetesResourcesForEntityAction.ts",
+    "plugins/kubernetes-backend/src/actions/index.ts",
+    "plugins/kubernetes-backend/src/cluster-locator/CatalogClusterLocator.ts",
+    "plugins/kubernetes-backend/src/cluster-locator/index.ts",
+    "plugins/kubernetes-backend/src/routes/resourcesRoutes.ts",
+    "plugins/kubernetes-backend/src/service/KubernetesInitializer.ts",
+    "plugins/kubernetes-backend/src/service/KubernetesRouter.ts",
+    "plugins/notifications-backend-module-email/src/processor/NotificationsEmailProcessor.ts",
+    "plugins/notifications-backend-module-slack/src/lib/SlackNotificationProcessor.ts",
+    "plugins/notifications-backend/src/service/DefaultNotificationRecipientResolver.ts",
+    "plugins/notifications-backend/src/service/router.ts",
+    "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+    "plugins/scaffolder-backend/src/service/helpers.ts",
+    "plugins/scaffolder-backend/src/service/router.ts",
+    "plugins/search-backend-module-catalog/src/collators/DefaultCatalogCollatorFactory.ts",
+    "plugins/search-backend-module-techdocs/src/collators/DefaultTechDocsCollatorFactory.ts",
+    "plugins/techdocs-backend/src/service/CachedEntityLoader.ts",
+    "plugins/techdocs-backend/src/service/router.ts"
+   ],
+   "implementations": [
+    "plugins/catalog-node/src/catalogService.ts#DefaultCatalogService",
+    "plugins/catalog-node/src/testUtils/types.ts#CatalogServiceMock"
+   ],
+   "ms": 450
+  },
+  {
+   "id": "BS-X1",
+   "kind": "crossCalls",
+   "question": "Which calls do the scaffolder backend packages make into catalog code (catalog plugins or the catalog model package)?",
+   "members": [],
+   "sites": [
+    {
+     "unit": "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts#{}.handler",
+     "file": "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts",
+     "line": 188,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntitiesByRefs",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 97,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 98,
+     "callee": "packages/catalog-model/src/entity/ref.ts#stringifyEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 99,
+     "callee": "packages/catalog-model/src/entity/ref.ts#parseEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 113,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntitiesByRefs",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 116,
+     "callee": "packages/catalog-model/src/entity/ref.ts#stringifyEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+     "line": 117,
+     "callee": "packages/catalog-model/src/entity/ref.ts#parseEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+     "line": 102,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+     "line": 118,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.addLocation",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+     "file": "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+     "line": 145,
+     "callee": "packages/catalog-model/src/entity/ref.ts#stringifyEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/helpers.ts#getEntityBaseUrl",
+     "file": "plugins/scaffolder-backend/src/service/helpers.ts",
+     "line": 77,
+     "callee": "packages/catalog-model/src/location/helpers.ts#parseLocationRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/helpers.ts#findTemplate",
+     "file": "plugins/scaffolder-backend/src/service/helpers.ts",
+     "line": 104,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/helpers.ts#findTemplate",
+     "file": "plugins/scaffolder-backend/src/service/helpers.ts",
+     "line": 109,
+     "callee": "packages/catalog-model/src/entity/ref.ts#stringifyEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+     "file": "plugins/scaffolder-backend/src/service/router.ts",
+     "line": 543,
+     "callee": "packages/catalog-model/src/entity/ref.ts#parseEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+     "file": "plugins/scaffolder-backend/src/service/router.ts",
+     "line": 570,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntityByRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+     "file": "plugins/scaffolder-backend/src/service/router.ts",
+     "line": 630,
+     "callee": "packages/catalog-model/src/entity/ref.ts#stringifyEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+     "file": "plugins/scaffolder-backend/src/service/router.ts",
+     "line": 840,
+     "callee": "packages/catalog-model/src/entity/ref.ts#parseEntityRef",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+     "file": "plugins/scaffolder-backend/src/service/router.ts",
+     "line": 1053,
+     "callee": "packages/catalog-model/src/kinds/types.ts#check",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/scaffolder-backend/src/service/router.ts#createRouter",
+     "file": "plugins/scaffolder-backend/src/service/router.ts",
+     "line": 1062,
+     "callee": "plugins/catalog-node/src/catalogService.ts#CatalogService.getEntityByRef",
+     "indexNamed": true
+    }
+   ],
+   "units": [
+    "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts#{}.handler",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts#{}.handler",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts#{}.handler",
+    "plugins/scaffolder-backend/src/service/helpers.ts#findTemplate",
+    "plugins/scaffolder-backend/src/service/helpers.ts#getEntityBaseUrl",
+    "plugins/scaffolder-backend/src/service/router.ts#createRouter"
+   ],
+   "files": [
+    "plugins/scaffolder-backend-module-github/src/actions/githubEnvironment.ts",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/fetch.ts",
+    "plugins/scaffolder-backend/src/scaffolder/actions/builtin/catalog/register.ts",
+    "plugins/scaffolder-backend/src/service/helpers.ts",
+    "plugins/scaffolder-backend/src/service/router.ts"
+   ],
+   "ms": 1327
+  }
+ ]
+}

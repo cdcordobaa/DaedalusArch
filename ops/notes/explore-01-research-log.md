@@ -313,6 +313,31 @@ is not separable at n = 5.
 - **Blind spot found:** P5 gate c07 moved a cross-context write into the composition root's facade, where
   `check_consistency` does not look.
 
+### 19. REPO-SCOUT for COMPREHEND-02: large repositories and the graph against the compiler (2026-10-22)
+`Docs/DiagnosticRuns/repo-scout-comprehend-02-2026-10-23.md`, `experiments/repo-scout/`. Zero model calls:
+- **Measured:** 82 repositories at pinned commits (the 74 of the v1.3 external and wild sets, plus Medusa, Backstage,
+  Novu, Amplication, Twenty, Immich, Unleash and Vendure). For each: files, LOC, tsc, declared boundaries and licence.
+  All HEADs matched their pins.
+- **All five criteria:** only **Medusa** (2,447 files, 233,000 lines; own `tsc --build` passes on 13/13 packages) and
+  **Backstage** (1,987 files, 200,000 lines; own `yarn tsc` 0 errors).
+  - **Novu** meets four: its API type check was not reproduced.
+  - **No v1.3 repository qualifies.** N45's three: immich is AGPL, medplum has no declared boundaries, podkrepi-api
+    ranks 5th.
+  - **Copyleft:** Twenty, Immich and Unleash are AGPL, Vendure GPL-3.0.
+- **Extractor at scale:** 4–15 s per tree. tsc coverage in the literal view: 1.000 on Medusa, Novu and Amplication,
+  0.995 on Backstage. Its 26 misses are inline `import('./X').X` types in the core service-ref table, a construct new
+  to the instrument.
+- **Graph against the compiler** (9 questions, compiler truth through the ts-morph language service, one answer per
+  tree checked by hand):
+  - the index has 95–100% of the call sites on Backstage and 87–100% on Novu, at 100% precision. The one exception is
+    Novu's inherited repository writes: 100% recall at 9% precision, because edges do not record the receiver's type;
+  - on Medusa it has 0–3%: the cross-module code is in `createStep`/`createWorkflow` callbacks, which are not units;
+  - `who_writes` was empty on all three trees, and no tool lists the callers of a port.
+- **Reading (dev):** the graph is complete where the code is classes and interfaces. Its tools are not: they lack a
+  caller query and depend on aggregate roots. Recommended trees: Backstage (primary), Novu (after its build is shown),
+  Medusa (the Gw control). No graft is needed for declared boundaries; a graft for a distant-writer trap is sketched
+  only.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -325,9 +350,11 @@ is not separable at n = 5.
 - [x] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10). Approved as written, with a cap of 64; run in entry 16.
 - [ ] Author: COMPREHEND-01 key decision on P2-P1 (sales-side handler), whether a ×3 variance run is worth it, and graph revisions 1–2 (entry 16).
 - [ ] Author: decide whether an unowned set invariant (the lock form) is D5 and whether a pre-existing copy counts. This decides S2's next step (entry 17).
+- [ ] Author: choose the COMPREHEND-02 trees (recommended Backstage, Novu, Medusa as the Gw control) and decide which graph changes come first: a caller query, receiver typing, units for factory callbacks, and edges for overloaded methods and inline import types (entry 19).
 - [ ] Author: hand read of the PUZZLE-04 cases (`results/v1.4-puzzle-04/oracle-verdicts-to-read.md`; new categories P1-SG1-c and P2-SG1-e decide P1 and P2 for the gate) (entry 18).
 
 ## Changelog
+- 2026-10-22: entry 19 (REPO-SCOUT for COMPREHEND-02).
 - 2026-10-22: entry 18 (PUZZLE-04).
 - 2026-10-22: entry 17 (v1.5 U4 S3 facts and S2 confirmation).
 - 2026-10-22: entry 16 (COMPREHEND-01 pilot).
