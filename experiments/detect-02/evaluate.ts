@@ -20,8 +20,8 @@ const HERE = 'experiments/detect-02';
 const RESULTS = path.join(HERE, 'results');
 export const FAMILIES = ['D4', 'D5', 'D9', 'H5', 'H4', 'RTX'] as const;
 
-interface Case { readonly id: string; readonly family: string; readonly file: string; readonly line?: number; readonly note?: string }
-interface DevTree {
+export interface Case { readonly id: string; readonly family: string; readonly file: string; readonly line?: number; readonly note?: string }
+export interface DevTree {
   readonly label: string; readonly group: string; readonly path: string; readonly spec?: string; readonly style?: string;
   /** Labelled violations present in the tree. Families not listed are negatives for this tree. */
   readonly cases: readonly Case[];
@@ -181,9 +181,13 @@ async function runAll(trees: readonly DevTree[], rules: readonly Rule[]): Promis
 
 const scrub = (s: string): string => s.split(path.resolve('.')).join('.').split(os.tmpdir()).join('<tmp>');
 
+export function devTrees(pilotDir: string | undefined): DevTree[] {
+  return [...puzzleTrees(), ...(pilotDir ? pilotTrees(pilotDir) : []), ...fixtureTrees()];
+}
+
 async function dev(pilotDir: string | undefined): Promise<number> {
   const rules = loadRules();
-  const trees = [...puzzleTrees(), ...(pilotDir ? pilotTrees(pilotDir) : []), ...fixtureTrees()];
+  const trees = devTrees(pilotDir);
   const rows = await runAll(trees, rules);
   const groups = [...new Set(trees.map((t) => t.group))];
   const byGroup = Object.fromEntries(groups.map((g) => [g, score(rows.filter((r) => r.group === g), trees)]));
@@ -208,13 +212,13 @@ export function median(xs: readonly number[]): number {
 
 async function trees(manifest: string, name: string): Promise<number> {
   const rules = loadRules();
-  const list = JSON.parse(fs.readFileSync(manifest, 'utf8')) as { label: string; path: string; spec?: string; style?: string }[];
+  const list = JSON.parse(fs.readFileSync(manifest, 'utf8')) as { label: string; path: string; spec?: string; style?: string; tsconfig?: string }[];
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'detect-02-'));
   const rows: Record<string, unknown>[] = [];
   let failed = 0;
   for (const t of list) {
     try {
-      const r = await runTree(t.path, rules, { spec: t.spec, style: t.style, scratch, withApg: process.env.DETECT02_NO_APG !== '1' });
+      const r = await runTree(t.path, rules, { spec: t.spec, style: t.style, scratch, tsconfig: t.tsconfig, withApg: process.env.DETECT02_NO_APG !== '1' });
       rows.push({ label: t.label, ms: r.ms, rootSource: r.facts.rootSource, roots: r.facts.roots.map((x) => x.name), commands: r.facts.commands.length, findings: r.findings });
       const v = r.findings.filter((f) => f.status === 'violation');
       if (v.length > 0 || process.env.DETECT02_VERBOSE === '1') process.stdout.write(`${t.label} [${r.ms} ms]: ${v.map((f) => `${f.rule}@${f.file}:${f.line}`).join(', ') || '-'}\n`);

@@ -1,5 +1,9 @@
 # DETECT-02 design: APG facts and detectors for the violations coding agents commit (v1.5-exp)
 
+> **DRAFT, for discussion. Building is paused (2026-10-21) while the design is discussed.** The WIP code on this
+> branch (`experiments/detect-02/`) is unreviewed and is not a result. No model call has been made for DETECT-02, and
+> no held-out material has been read.
+
 **Date:** 2026-10-21. **Status:** exploratory (dev), written and committed **before** any DETECT-02 code. **Branch:**
 `explore/detect-02`. **Instrument:** unchanged. Nothing under `src/`, `presets/`, `scripts/lib/`, `scripts/v1.3/`, the
 tag `v1.4-freeze-2026-10-20` or any registered Study 2b artefact changes; `src/` is imported read-only. All code lives

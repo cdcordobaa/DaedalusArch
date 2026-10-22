@@ -167,8 +167,8 @@ export async function runTree(tree: string, rules: readonly Rule[], opts: BuildO
       findings.push({
         rule: r.id, family: r.family, file, line: num(o.line), subject, evidence: String(o.evidence),
         path: Array.isArray(o.path) ? [...new Set((o.path as unknown[]).map(String))] : [],
-        status: allowed ? 'allowed' : 'violation',
-        ...(allowed ? { note: `allowed by detect02.allow.yaml: ${allowed.reason}` } : fallbackRoots ? { note: 'aggregate roots inferred (no DDD block in the spec)' } : {}),
+        status: allowed ? 'allowed' : fallbackRoots && spec.style === 'layered' ? 'info' : 'violation',
+        ...(allowed ? { note: `allowed by detect02.allow.yaml: ${allowed.reason}` } : fallbackRoots ? { note: spec.style === 'layered' ? 'information only: a Layered spec declares no aggregates; roots inferred' : 'aggregate roots inferred (no DDD block in the spec)' } : {}),
       });
     }
   }
