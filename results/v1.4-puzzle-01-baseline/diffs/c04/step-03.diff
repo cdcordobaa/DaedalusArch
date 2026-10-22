@@ -1,0 +1,57 @@
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 4d888ffd..297645a3 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -9,6 +9,10 @@ export class MembershipDirectory implements MemberDirectory {
+     return this.membership.card(memberId) !== undefined;
+   }
+ 
++  award(memberId: string, points: number): void {
++    this.membership.awardPoints(memberId, points);
++  }
++
+   discountPercent(memberId: string): number {
+     switch (this.membership.card(memberId)?.tier) {
+       case 'gold':
+diff --git a/a/src/sales/application/PlaceOrder.ts b/b/src/sales/application/PlaceOrder.ts
+index 1476ec9d..61f72cbc 100644
+--- a/a/src/sales/application/PlaceOrder.ts
++++ b/b/src/sales/application/PlaceOrder.ts
+@@ -24,6 +24,10 @@ export class PlaceOrder {
+   execute(memberId: string | null, lines: readonly LineRequest[], currency = 'EUR'): PlacedOrder {
+     if (memberId !== null && !this.directory.exists(memberId)) throw new Error(`no member ${memberId}`);
+     const order = Order.place(this.orders.nextId(), memberId, lines.map((l) => ({ sku: l.sku, quantity: l.quantity, unitPrice: Money.of(l.unitPrice, currency) })), memberId === null ? 0 : this.directory.discountPercent(memberId));
++    // Points are awarded in the same step as the save, so the order and its points never diverge:
++    // everything that can fail has already run, and the discount above used the pre-order tier.
++    const points = order.pointsEarned();
++    if (memberId !== null && points > 0) this.directory.award(memberId, points);
+     this.orders.save(order);
+     return { orderId: order.id.value, total: order.total().amount(), discount: order.discount().amount() };
+   }
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index 378b50f6..cad2017b 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -3,4 +3,6 @@ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** Percentage taken off every order for this member. */
+   discountPercent(memberId: string): number;
++  /** Puts points on the member's card. */
++  award(memberId: string, points: number): void;
+ }
+diff --git a/a/src/sales/domain/order/Order.ts b/b/src/sales/domain/order/Order.ts
+index 59252ac1..e0565d75 100644
+--- a/a/src/sales/domain/order/Order.ts
++++ b/b/src/sales/domain/order/Order.ts
+@@ -57,6 +57,11 @@ export class Order {
+     return this.subtotal().minus(this.discount());
+   }
+ 
++  /** Loyalty points this order earns: one per whole currency unit paid. Guests earn none. */
++  pointsEarned(): number {
++    return this.memberId === null ? 0 : Math.max(0, Math.floor(this.total().cents / 100));
++  }
++
+   state(): OrderState {
+     return { id: this.id, memberId: this.memberId, lines: this.lines, discountPercent: this.discountPercent };
+   }

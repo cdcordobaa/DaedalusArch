@@ -1,0 +1,72 @@
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 639aa381..7b7ba4e7 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -1,6 +1,7 @@
+ import { createMembership } from './membership';
+ import { InMemoryMemberRepository } from './membership/infrastructure/InMemoryMemberRepository';
+ import { MembershipDirectory } from './sales/acl/MembershipDirectory';
++import { EarnPoints } from './sales/application/EarnPoints';
+ import { EventRelay } from './sales/application/EventRelay';
+ import { PlaceOrder, type LineRequest, type PlacedOrder } from './sales/application/PlaceOrder';
+ import { ReceiptFooter } from './sales/application/ReceiptFooter';
+@@ -16,6 +17,9 @@ export function createApp() {
+   const receipts = new InMemoryReceipts();
+   const relay = new EventRelay(orders);
+   const sendReceipt = new SendReceipt(receipts, new ReceiptFooter(members));
++  const earnPoints = new EarnPoints(new MembershipDirectory(membership));
++  // Points first, so the receipt footer shows the balance including this order.
++  relay.on('OrderPlaced', (e) => earnPoints.handle(e));
+   relay.on('OrderPlaced', (e) => sendReceipt.handle(e));
+   const command = <T>(run: () => T): T => {
+     const result = run();
+diff --git a/a/src/sales/acl/MembershipDirectory.ts b/b/src/sales/acl/MembershipDirectory.ts
+index 4d888ffd..fc9975be 100644
+--- a/a/src/sales/acl/MembershipDirectory.ts
++++ b/b/src/sales/acl/MembershipDirectory.ts
+@@ -9,6 +9,10 @@ export class MembershipDirectory implements MemberDirectory {
+     return this.membership.card(memberId) !== undefined;
+   }
+ 
++  awardPoints(memberId: string, points: number): void {
++    this.membership.awardPoints(memberId, points);
++  }
++
+   discountPercent(memberId: string): number {
+     switch (this.membership.card(memberId)?.tier) {
+       case 'gold':
+diff --git a/b/src/sales/application/EarnPoints.ts b/b/src/sales/application/EarnPoints.ts
+new file mode 100644
+index 00000000..036f4a7e
+--- /dev/null
++++ b/b/src/sales/application/EarnPoints.ts
+@@ -0,0 +1,18 @@
++import type { DomainEvent } from '../../shared-kernel/DomainEvent';
++import type { OrderPlaced } from '../domain/order/events/OrderPlaced';
++import type { MemberDirectory } from './ports/MemberDirectory';
++
++/** Members earn one point per whole currency unit paid after the discount. Guests earn nothing. */
++export class EarnPoints {
++  private readonly handled = new Set<string>();
++
++  constructor(private readonly directory: MemberDirectory) {}
++
++  handle(event: DomainEvent): void {
++    const placed = event as OrderPlaced;
++    if (placed.memberId === null || this.handled.has(placed.orderId)) return;
++    const points = Math.floor(placed.totalCents / 100);
++    if (points > 0) this.directory.awardPoints(placed.memberId, points);
++    this.handled.add(placed.orderId);
++  }
++}
+diff --git a/a/src/sales/application/ports/MemberDirectory.ts b/b/src/sales/application/ports/MemberDirectory.ts
+index fd69a17e..77b2fb74 100644
+--- a/a/src/sales/application/ports/MemberDirectory.ts
++++ b/b/src/sales/application/ports/MemberDirectory.ts
+@@ -3,4 +3,6 @@ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** The percentage taken off every order for this member (0 when none). */
+   discountPercent(memberId: string): number;
++  /** Adds points to the member's card. */
++  awardPoints(memberId: string, points: number): void;
+ }

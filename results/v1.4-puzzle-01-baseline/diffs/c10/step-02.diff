@@ -1,0 +1,69 @@
+diff --git a/a/src/ledger/application/Transfer.ts b/b/src/ledger/application/Transfer.ts
+index 57a14628..20cc022f 100644
+--- a/a/src/ledger/application/Transfer.ts
++++ b/b/src/ledger/application/Transfer.ts
+@@ -3,8 +3,17 @@ import type { AccountRepository } from '../domain/account/AccountRepository';
+ import { AccountId } from '../domain/account/value-objects/AccountId';
+ import { LedgerError } from '../domain/LedgerError';
+ 
++export const DAILY_TRANSFER_LIMIT_CENTS = 100_000;
++
++/** Cents transferred out per account on one calendar day. */
++export type TransferTally = Map<string, { day: string; cents: number }>;
++
+ export class Transfer {
+-  constructor(private readonly accounts: AccountRepository) {}
++  constructor(
++    private readonly accounts: AccountRepository,
++    private readonly tally: TransferTally,
++    private readonly today: () => string,
++  ) {}
+ 
+   execute(fromAccountId: string, toAccountId: string, amount: number): void {
+     const from = this.accounts.byId(AccountId.of(fromAccountId));
+@@ -15,7 +24,15 @@ export class Transfer {
+     if (from.currency !== to.currency) throw new LedgerError(`currency mismatch: ${from.currency} vs ${to.currency}`);
+     const money = Money.of(amount, from.currency);
+     from.withdraw(money);
++    const day = this.today();
++    const entry = this.tally.get(from.id.value);
++    const sent = entry !== undefined && entry.day === day ? entry.cents : 0;
++    const left = DAILY_TRANSFER_LIMIT_CENTS - sent;
++    if (money.cents > left) {
++      throw new LedgerError(`daily transfer limit reached: ${Money.of(left / 100, from.currency).format()} left today`);
++    }
+     to.deposit(money);
+     this.accounts.saveAll([from, to]);
++    this.tally.set(from.id.value, { day, cents: sent + money.cents });
+   }
+ }
+diff --git a/a/src/main.ts b/b/src/main.ts
+index 2670fa58..4cce1d30 100644
+--- a/a/src/main.ts
++++ b/b/src/main.ts
+@@ -3,7 +3,7 @@ import { EventRelay } from './ledger/application/EventRelay';
+ import { GetBalance } from './ledger/application/GetBalance';
+ import { OpenAccount } from './ledger/application/OpenAccount';
+ import { SendWelcomeNotice } from './ledger/application/SendWelcomeNotice';
+-import { Transfer } from './ledger/application/Transfer';
++import { Transfer, type TransferTally } from './ledger/application/Transfer';
+ import { Withdraw } from './ledger/application/Withdraw';
+ import { InMemoryAccountRepository } from './ledger/infrastructure/InMemoryAccountRepository';
+ import { InMemoryNotices } from './ledger/infrastructure/InMemoryNotices';
+@@ -17,6 +17,7 @@ export interface AppOptions {
+ export function createApp(options: AppOptions = {}) {
+   const today = options.today ?? (() => new Date().toISOString().slice(0, 10));
+   const accounts = new InMemoryAccountRepository();
++  const transferred: TransferTally = new Map();
+   const notices = new InMemoryNotices();
+   const relay = new EventRelay(accounts);
+   const welcome = new SendWelcomeNotice(notices);
+@@ -31,7 +32,7 @@ export function createApp(options: AppOptions = {}) {
+     deposit: (accountId: string, amount: number): void => command(() => new Deposit(accounts).execute(accountId, amount)),
+     withdraw: (accountId: string, amount: number): void => command(() => new Withdraw(accounts).execute(accountId, amount)),
+     transfer: (fromAccountId: string, toAccountId: string, amount: number): void =>
+-      command(() => new Transfer(accounts).execute(fromAccountId, toAccountId, amount)),
++      command(() => new Transfer(accounts, transferred, today).execute(fromAccountId, toAccountId, amount)),
+     balanceOf: (accountId: string): number => new GetBalance(accounts).execute(accountId),
+     notices: (): string[] => notices.all(),
+   };

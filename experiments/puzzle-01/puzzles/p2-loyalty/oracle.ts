@@ -5,6 +5,8 @@
  * published interface (src/membership/index.ts, src/membership/contracts/**), except the planted debt
  * (ReceiptFooter.ts, exactly its seed imports); (b) no file under src/sales/ decides a tier from points: no relational
  * comparison whose text mentions points, and no call to a `tier()` method of a membership type.
+ * SG1 addition (revision R4, PUZZLE-01 baseline, 2026-10-21): (c) no comparison under src/sales/ has an operand that is
+ * the numeric literal 500, 1500 or 2000 (the tier thresholds, old and new), or a const initialised with one of them.
  * SG2 (D4 across contexts): (a) no function outside the domains makes two or more store writes; (b) no file under
  * src/sales/ calls a membership write (a method named award*, earn*, credit*, grant*, addPoints*, purchaseMade, or
  * save on a member store).
@@ -60,6 +62,31 @@ for (const rel of tree.files) {
     }
     if (writes.length >= 2) sg2.push(`${rel} ${fnName(fn, sf)}: ${writes.length} store writes (${writes.join('; ')})`);
   }
+}
+
+// R4 (2026-10-21): tier thresholds compared inside sales, as a literal or a const initialised with one.
+const THRESHOLDS = new Set([500, 1500, 2000]);
+const COMPARE = [ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken];
+const thresholdOf = (e: ts.Expression): number | null => {
+  let x: ts.Expression = e;
+  while (ts.isParenthesizedExpression(x) || ts.isAsExpression(x)) x = x.expression;
+  if (ts.isNumericLiteral(x)) return THRESHOLDS.has(Number(x.text.replace(/_/g, ''))) ? Number(x.text.replace(/_/g, '')) : null;
+  if (ts.isIdentifier(x) || ts.isPropertyAccessExpression(x)) {
+    const decl = tree.checker.getSymbolAtLocation(x)?.valueDeclaration;
+    if (decl !== undefined && (ts.isVariableDeclaration(decl) || ts.isPropertyDeclaration(decl)) && decl.initializer !== undefined && decl.getSourceFile().fileName.includes('/src/sales/')) return thresholdOf(decl.initializer);
+  }
+  return null;
+};
+for (const rel of tree.files.filter((f) => f.startsWith('src/sales/'))) {
+  const sf = tree.source(rel);
+  const visit = (n: ts.Node): void => {
+    if (ts.isBinaryExpression(n) && COMPARE.includes(n.operatorToken.kind)) {
+      const t = thresholdOf(n.left) ?? thresholdOf(n.right);
+      if (t !== null) sg1.push(`${rel}:${String(lineOf(sf, n))} compares with the tier threshold ${String(t)}: ${n.getText(sf)}`);
+    }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
 }
 
 const verdicts: SubGoalVerdict[] = [

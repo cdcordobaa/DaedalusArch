@@ -1,0 +1,83 @@
+diff --git a/a/src/business/services/LoanService.ts b/b/src/business/services/LoanService.ts
+index ada6d79d..a823de7c 100644
+--- a/a/src/business/services/LoanService.ts
++++ b/b/src/business/services/LoanService.ts
+@@ -19,6 +19,9 @@ export class LoanService {
+     const loan = this.loans.byId(loanId);
+     if (loan === undefined || loan.returnedDay !== null) throw new LibraryError(`no open loan ${loanId}`);
+     this.loans.update({ ...loan, returnedDay: today });
++    if (loan.overdue && !this.loans.openLoansOf(loan.memberId).some((l) => l.overdue)) {
++      this.members.reinstateIfOverdueSuspension(loan.memberId);
++    }
+   }
+ 
+   openLoans(memberId: string): LoanView[] {
+@@ -29,7 +32,7 @@ export class LoanService {
+   nightly(today: string): number {
+     const flagged = this.loans.markOverdue(today);
+     for (const loan of flagged) {
+-      this.members.suspend(loan.memberId, `book ${loan.bookId} is overdue`);
++      this.members.suspend(loan.memberId, `book ${loan.bookId} is overdue`, 'overdue');
+     }
+     return flagged.length;
+   }
+diff --git a/a/src/business/services/MemberService.ts b/b/src/business/services/MemberService.ts
+index a971e92a..df6d6527 100644
+--- a/a/src/business/services/MemberService.ts
++++ b/b/src/business/services/MemberService.ts
+@@ -15,16 +15,26 @@ export class MemberService {
+   }
+ 
+   /** Suspends a member (no new loans) and tells them why; suspending twice changes nothing. */
+-  suspend(memberId: string, reason: string): void {
++  suspend(memberId: string, reason: string, cause: 'staff' | 'overdue' = 'staff'): void {
+     const member = this.require(memberId);
+-    if (member.suspended) return;
+-    this.members.update({ ...member, suspended: true, notices: [...member.notices, `Your borrowing is suspended: ${reason}.`] });
++    if (member.suspended) {
++      // A staff suspension takes over an overdue one, so returning books no longer lifts it.
++      if (cause === 'staff' && member.suspendedBy === 'overdue') this.members.update({ ...member, suspendedBy: 'staff' });
++      return;
++    }
++    this.members.update({ ...member, suspended: true, suspendedBy: cause, notices: [...member.notices, `Your borrowing is suspended: ${reason}.`] });
+   }
+ 
+   reinstate(memberId: string): void {
+     const member = this.require(memberId);
+     if (!member.suspended) return;
+-    this.members.update({ ...member, suspended: false, notices: [...member.notices, 'Your borrowing is open again.'] });
++    this.members.update({ ...member, suspended: false, suspendedBy: null, notices: [...member.notices, 'Your borrowing is open again.'] });
++  }
++
++  /** Lifts a suspension that was caused by overdue books; a staff suspension is left alone. */
++  reinstateIfOverdueSuspension(memberId: string): void {
++    const member = this.require(memberId);
++    if (member.suspended && member.suspendedBy === 'overdue') this.reinstate(memberId);
+   }
+ 
+   notices(memberId: string): string[] {
+diff --git a/a/src/persistence/MemberGateway.ts b/b/src/persistence/MemberGateway.ts
+index bee07284..e3c48bb5 100644
+--- a/a/src/persistence/MemberGateway.ts
++++ b/b/src/persistence/MemberGateway.ts
+@@ -5,7 +5,7 @@ export class MemberGateway {
+   constructor(private readonly db: Database) {}
+ 
+   insert(name: string): MemberRecord {
+-    const row: MemberRecord = { id: this.db.nextId('M'), name, suspended: false, notices: [] };
++    const row: MemberRecord = { id: this.db.nextId('M'), name, suspended: false, suspendedBy: null, notices: [] };
+     this.db.members.set(row.id, row);
+     return { ...row };
+   }
+diff --git a/a/src/persistence/records/MemberRecord.ts b/b/src/persistence/records/MemberRecord.ts
+index e279f331..4fe020d8 100644
+--- a/a/src/persistence/records/MemberRecord.ts
++++ b/b/src/persistence/records/MemberRecord.ts
+@@ -2,5 +2,7 @@ export interface MemberRecord {
+   id: string;
+   name: string;
+   suspended: boolean;
++  /** Who suspended the member; null while not suspended. */
++  suspendedBy: 'staff' | 'overdue' | null;
+   notices: string[];
+ }
