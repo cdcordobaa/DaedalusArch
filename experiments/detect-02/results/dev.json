@@ -1,0 +1,5697 @@
+{
+ "schema": "detect-02-dev-v1",
+ "version": "v1.5-exp",
+ "split": "dev",
+ "modelCalls": 0,
+ "note": "Development material: rules and facts were written and adjusted while looking at these trees. Not an accuracy estimate.",
+ "rules": [
+  {
+   "id": "R-D4",
+   "family": "D4",
+   "title": "one command persists two or more aggregate-root instances in one synchronous flow",
+   "rule": "One command changes and saves one aggregate instance; any other aggregate is updated later, by a handler of a domain event the first one records (Vernon, Effective Aggregate Design).",
+   "fix": "Save only the aggregate this command changes; have it record a domain event (stored with it, as the outbox does) and update the other aggregate(s) in a handler of that event.",
+   "applies": "aggregate roots declared in the spec's DDD block (or inferred: identity-bearing domain types taken by a repository port)",
+   "file": "r-d4-multi-aggregate-write.cypher"
+  },
+  {
+   "id": "R-D5",
+   "family": "D5",
+   "title": "a business decision about an aggregate is taken outside the aggregate",
+   "rule": "An invariant of an aggregate is checked inside the aggregate (its method or a value object), so no caller can bypass or duplicate it (Vernon: model true invariants in consistency boundaries).",
+   "fix": "Move the check into the aggregate method that changes the state (or into a value object it takes) and let the service call that method; keep one copy of the rule.",
+   "applies": "aggregate roots declared (or inferred); application and adapter code only",
+   "file": "r-d5-rule-outside-aggregate.cypher"
+  },
+  {
+   "id": "R-D9",
+   "family": "D9",
+   "title": "a published contract is, or wraps, a domain entity (or the domain builds the contract's shape)",
+   "rule": "The published language of a context is its own types; it never carries an entity or aggregate, and the domain model does not shape itself after a contract (Evans: published language; Fowler: each context has its own model).",
+   "fix": "Declare a contract type with only the fields consumers need and map the entity to it in the application layer (or the published module); do not return or re-export the entity.",
+   "applies": "published places (public_api globs, contracts/, a context index.ts, inbound ports)",
+   "file": "r-d9-contract-exposes-entity.cypher"
+  },
+  {
+   "id": "R-H5",
+   "family": "H5",
+   "title": "a port signature carries an infrastructure type or mechanism",
+   "rule": "A port states what the application needs in its own terms; vendor types, adapter types and locking or transaction mechanisms stay inside the adapter (Cockburn, Ports and Adapters).",
+   "fix": "Express the need as an application-level operation (e.g. `reserve(roomId, dates)`) and keep the lock, transaction or vendor type inside the adapter that implements the port.",
+   "applies": "ports (application/ports, or domain interfaces implemented by an adapter)",
+   "file": "r-h5-port-mechanism.cypher"
+  },
+  {
+   "id": "R-INJ",
+   "family": "H4",
+   "title": "an application class depends on a concrete adapter class instead of a port",
+   "rule": "The application depends on ports; only the composition root knows the adapter classes (Cockburn; dependency inversion).",
+   "fix": "Type the dependency with the port interface the adapter implements (add one if missing) and construct the adapter in the composition root.",
+   "applies": "hexagonal and DDD styles (Layered services may depend on concrete persistence)",
+   "file": "r-inj-concrete-injection.cypher"
+  },
+  {
+   "id": "R-RTX",
+   "family": "RTX",
+   "title": "a remote or vendor call runs inside a transaction or lock scope",
+   "rule": "A transaction or lock covers local state only; remote calls (payment, HTTP, vendor SDK) run before or after it, so a slow or failing remote never holds the lock (Nygard, Release It!: integration points).",
+   "fix": "Call the remote service outside the scoped callback (before it, or after commit through an event/outbox), and pass only its result into the transaction.",
+   "applies": "every style",
+   "file": "r-rtx-remote-in-transaction.cypher"
+  },
+  {
+   "id": "R-XCTX",
+   "family": "D4",
+   "title": "a command of one bounded context persists an aggregate owned by another context in the same flow",
+   "rule": "A context changes only its own aggregates; another context's aggregate changes when that context reacts to a published event, not inside this command (Vernon; Evans, Bounded Context).",
+   "fix": "Record a domain event in this context (saved with this aggregate) and let the owning context subscribe to it through its published interface; do not call its write operation from this command.",
+   "applies": "contexts and aggregates declared in the spec's DDD block (or src/<context>/ folders)",
+   "file": "r-xctx-cross-context-write.cypher"
+  }
+ ],
+ "all": {
+  "D4": {
+   "tp": 33,
+   "fp": 0,
+   "fn": 0,
+   "tn": 58,
+   "fpTrees": [],
+   "fnTrees": [],
+   "pairs": [
+    {
+     "pair": "c2-s1-d4-saveaudited",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    },
+    {
+     "pair": "c5-s2-d4-recordpayment",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    },
+    {
+     "pair": "c8-s2-d4-issueinvoice",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "D5": {
+   "tp": 11,
+   "fp": 0,
+   "fn": 5,
+   "tn": 75,
+   "fpTrees": [],
+   "fnTrees": [
+    "pilot/s1-hotel-bookings/step-02",
+    "pilot/s1-hotel-bookings/step-03",
+    "pilot/s1-hotel-bookings/step-04",
+    "pilot/s1-hotel-bookings/step-05",
+    "fixture/c1-s1-d5-lock/pos"
+   ],
+   "pairs": [
+    {
+     "pair": "c1-s1-d5-lock",
+     "positive": false,
+     "twin": false,
+     "discriminates": false
+    },
+    {
+     "pair": "c6-s2-d5-placeorder",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    },
+    {
+     "pair": "c7-s2-d5-settaxrate",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "D9": {
+   "tp": 3,
+   "fp": 0,
+   "fn": 0,
+   "tn": 88,
+   "fpTrees": [],
+   "fnTrees": [],
+   "pairs": [
+    {
+     "pair": "c9-s2-d9-lineviews",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    },
+    {
+     "pair": "c9v-d9-entity-in-contract",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H5": {
+   "tp": 4,
+   "fp": 0,
+   "fn": 0,
+   "tn": 87,
+   "fpTrees": [],
+   "fnTrees": [],
+   "pairs": [
+    {
+     "pair": "c4-s1-h5-lockport",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    },
+    {
+     "pair": "c4v-h5-vendor-type",
+     "positive": true,
+     "twin": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H4": {
+   "tp": 0,
+   "fp": 0,
+   "fn": 0,
+   "tn": 91,
+   "fpTrees": [],
+   "fnTrees": [],
+   "pairs": []
+  },
+  "RTX": {
+   "tp": 0,
+   "fp": 0,
+   "fn": 0,
+   "tn": 90,
+   "fpTrees": [],
+   "fnTrees": [],
+   "pairs": []
+  }
+ },
+ "byGroup": {
+  "puzzle-intermediate": {
+   "D4": {
+    "tp": 10,
+    "fp": 0,
+    "fn": 0,
+    "tn": 20,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D5": {
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "tn": 28,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D9": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 30,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 30,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 30,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 30,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  },
+  "puzzle-final": {
+   "D4": {
+    "tp": 9,
+    "fp": 0,
+    "fn": 0,
+    "tn": 6,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D5": {
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "tn": 13,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D9": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 15,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 15,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 15,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 15,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  },
+  "solution-clean": {
+   "D4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D9": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  },
+  "solution-trap": {
+   "D4": {
+    "tp": 3,
+    "fp": 0,
+    "fn": 0,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D5": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D9": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 5,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H5": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "tn": 4,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 5,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 5,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  },
+  "pilot-seed": {
+   "D4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D9": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  },
+  "pilot-step": {
+   "D4": {
+    "tp": 8,
+    "fp": 0,
+    "fn": 0,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D5": {
+    "tp": 4,
+    "fp": 0,
+    "fn": 4,
+    "tn": 2,
+    "fpTrees": [],
+    "fnTrees": [
+     "pilot/s1-hotel-bookings/step-02",
+     "pilot/s1-hotel-bookings/step-03",
+     "pilot/s1-hotel-bookings/step-04",
+     "pilot/s1-hotel-bookings/step-05"
+    ],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D9": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "tn": 9,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H5": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "tn": 9,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 10,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 9,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  },
+  "fixture-pos": {
+   "D4": {
+    "tp": 3,
+    "fp": 0,
+    "fn": 0,
+    "tn": 8,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     }
+    ]
+   },
+   "D5": {
+    "tp": 2,
+    "fp": 0,
+    "fn": 1,
+    "tn": 8,
+    "fpTrees": [],
+    "fnTrees": [
+     "fixture/c1-s1-d5-lock/pos"
+    ],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     }
+    ]
+   },
+   "D9": {
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "tn": 9,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     }
+    ]
+   },
+   "H5": {
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "tn": 9,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": true,
+      "twin": false,
+      "discriminates": true
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 11,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 11,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  },
+  "fixture-twin": {
+   "D4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 11,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 11,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D9": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 11,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 11,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 11,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 11,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  },
+  "fixture-clean": {
+   "D4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 3,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c2-s1-d4-saveaudited",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c5-s2-d4-recordpayment",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c8-s2-d4-issueinvoice",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 3,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c1-s1-d5-lock",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c6-s2-d5-placeorder",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c7-s2-d5-settaxrate",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "D9": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 3,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c9-s2-d9-lineviews",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c9v-d9-entity-in-contract",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H5": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 3,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": [
+     {
+      "pair": "c4-s1-h5-lockport",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     },
+     {
+      "pair": "c4v-h5-vendor-type",
+      "positive": false,
+      "twin": false,
+      "discriminates": false
+     }
+    ]
+   },
+   "H4": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 3,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   },
+   "RTX": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 3,
+    "fpTrees": [],
+    "fnTrees": [],
+    "pairs": []
+   }
+  }
+ },
+ "cases": [
+  {
+   "tree": "puzzle/p2-loyalty/c01/step-03",
+   "id": "c01-SG2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p2-loyalty/c02/step-03",
+   "id": "c02-SG2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p2-loyalty/c04/step-03",
+   "id": "c04-SG2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p2-loyalty/c06/step-03",
+   "id": "c06-SG2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c10/step-01",
+   "id": "c10-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c10/step-02",
+   "id": "c10-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c10/step-02",
+   "id": "c10-SG2",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c10/step-03",
+   "id": "c10-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c10/step-03",
+   "id": "c10-SG2",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c11/step-01",
+   "id": "c11-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c11/step-02",
+   "id": "c11-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c11/step-03",
+   "id": "c11-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c13/step-01",
+   "id": "c13-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c13/step-02",
+   "id": "c13-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c13/step-03",
+   "id": "c13-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c15/step-01",
+   "id": "c15-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c15/step-02",
+   "id": "c15-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c15/step-03",
+   "id": "c15-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c16/step-01",
+   "id": "c16-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c16/step-02",
+   "id": "c16-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c16/step-02",
+   "id": "c16-SG2",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c16/step-03",
+   "id": "c16-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "puzzle/p1-transfers/c16/step-03",
+   "id": "c16-SG2",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "solution/p1-transfers/trap",
+   "id": "p1-trap-SG1",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "solution/p1-transfers/trap",
+   "id": "p1-trap-SG2",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "solution/p2-loyalty/trap",
+   "id": "p2-trap-SG2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "solution/p2-loyalty/trap-alt",
+   "id": "p2-trapalt-SG2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "solution/p3-shipping-quotes/trap",
+   "id": "p3-trap-SG1",
+   "family": "H5",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-02",
+   "id": "case1",
+   "family": "D5",
+   "hit": false
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-03",
+   "id": "case1",
+   "family": "D5",
+   "hit": false
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-03",
+   "id": "case2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-04",
+   "id": "case1",
+   "family": "D5",
+   "hit": false
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-04",
+   "id": "case2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-04",
+   "id": "case3",
+   "family": "D3",
+   "hit": false
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-05",
+   "id": "case1",
+   "family": "D5",
+   "hit": false
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-05",
+   "id": "case2",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-05",
+   "id": "case3",
+   "family": "D3",
+   "hit": false
+  },
+  {
+   "tree": "pilot/s1-hotel-bookings/step-05",
+   "id": "case4",
+   "family": "H5",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-01",
+   "id": "case5",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-02",
+   "id": "case5",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-02",
+   "id": "case6",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-03",
+   "id": "case5",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-03",
+   "id": "case6",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-04",
+   "id": "case5",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-04",
+   "id": "case6",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-04",
+   "id": "case7",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-05",
+   "id": "case5",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-05",
+   "id": "case6",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-05",
+   "id": "case7",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-05",
+   "id": "case8",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "pilot/s2-orders-invoices/step-05",
+   "id": "case9",
+   "family": "D9",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c1-s1-d5-lock/pos",
+   "id": "c1-s1-d5-lock",
+   "family": "D5",
+   "hit": false
+  },
+  {
+   "tree": "fixture/c2-s1-d4-saveaudited/pos",
+   "id": "c2-s1-d4-saveaudited",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c3-s1-d3-revenue/pos",
+   "id": "c3-s1-d3-revenue",
+   "family": "D3",
+   "hit": false
+  },
+  {
+   "tree": "fixture/c4-s1-h5-lockport/pos",
+   "id": "c4-s1-h5-lockport",
+   "family": "H5",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c4v-h5-vendor-type/pos",
+   "id": "c4v-h5-vendor-type",
+   "family": "H5",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c5-s2-d4-recordpayment/pos",
+   "id": "c5-s2-d4-recordpayment",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c6-s2-d5-placeorder/pos",
+   "id": "c6-s2-d5-placeorder",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c7-s2-d5-settaxrate/pos",
+   "id": "c7-s2-d5-settaxrate",
+   "family": "D5",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c8-s2-d4-issueinvoice/pos",
+   "id": "c8-s2-d4-issueinvoice",
+   "family": "D4",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c9-s2-d9-lineviews/pos",
+   "id": "c9-s2-d9-lineviews",
+   "family": "D9",
+   "hit": true
+  },
+  {
+   "tree": "fixture/c9v-d9-entity-in-contract/pos",
+   "id": "c9v-d9-entity-in-contract",
+   "family": "D9",
+   "hit": true
+  }
+ ],
+ "latencyMs": {
+  "median": 91,
+  "max": 340
+ },
+ "rows": [
+  {
+   "label": "puzzle/p2-loyalty/c01/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 340,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c01/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 142,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c01/step-03",
+   "group": "puzzle-final",
+   "ms": 144,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c01-SG2",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 24,
+     "subject": "PlaceOrder.execute",
+     "evidence": "saves 2 aggregate instances: Member x1, Order x1",
+     "path": [
+      "src/membership/application/AwardPoints.ts:12 MemberRepository.save",
+      "src/membership/domain/member/MemberRepository.ts:7 (declaration of MemberRepository.save)",
+      "src/sales/application/PlaceOrder.ts:32 OrderRepository.save",
+      "src/sales/domain/order/OrderRepository.ts:8 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 24,
+     "subject": "PlaceOrder.execute",
+     "evidence": "context sales writes Member (owned by membership) through its published interface",
+     "path": [
+      "PlaceOrder.execute",
+      "MembershipDirectory.awardPoints",
+      "{}.awardPoints",
+      "AwardPoints.execute",
+      "MemberRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c01-SG2": true
+   },
+   "stats": {
+    "apgNodes": 120,
+    "apgEdges": 260,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 6,
+    "IS_METHOD": 6,
+    "CONTEXT_WRITE": 1,
+    "units": 69,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 133,
+    "relationships": 275
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c02/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 146,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c02/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 126,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c02/step-03",
+   "group": "puzzle-final",
+   "ms": 126,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c02-SG2",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 24,
+     "subject": "PlaceOrder.execute",
+     "evidence": "saves 2 aggregate instances: Member x1, Order x1",
+     "path": [
+      "src/membership/application/AwardPoints.ts:12 MemberRepository.save",
+      "src/membership/domain/member/MemberRepository.ts:7 (declaration of MemberRepository.save)",
+      "src/sales/application/PlaceOrder.ts:32 OrderRepository.save",
+      "src/sales/domain/order/OrderRepository.ts:8 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 24,
+     "subject": "PlaceOrder.execute",
+     "evidence": "context sales writes Member (owned by membership) through its published interface",
+     "path": [
+      "PlaceOrder.execute",
+      "MembershipDirectory.award",
+      "{}.awardPoints",
+      "AwardPoints.execute",
+      "MemberRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c02-SG2": true
+   },
+   "stats": {
+    "apgNodes": 121,
+    "apgEdges": 262,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 6,
+    "IS_METHOD": 6,
+    "CONTEXT_WRITE": 1,
+    "units": 70,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 134,
+    "relationships": 277
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c03/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 88,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 58,
+    "apgEdges": 131,
+    "units": 37,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 58,
+    "relationships": 131
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c03/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 79,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c03/step-03",
+   "group": "puzzle-final",
+   "ms": 89,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c04/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 122,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c04/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 129,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c04/step-03",
+   "group": "puzzle-final",
+   "ms": 118,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c04-SG2",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 24,
+     "subject": "PlaceOrder.execute",
+     "evidence": "saves 2 aggregate instances: Member x1, Order x1",
+     "path": [
+      "src/membership/application/AwardPoints.ts:12 MemberRepository.save",
+      "src/membership/domain/member/MemberRepository.ts:7 (declaration of MemberRepository.save)",
+      "src/sales/application/PlaceOrder.ts:31 OrderRepository.save",
+      "src/sales/domain/order/OrderRepository.ts:8 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 24,
+     "subject": "PlaceOrder.execute",
+     "evidence": "context sales writes Member (owned by membership) through its published interface",
+     "path": [
+      "PlaceOrder.execute",
+      "MembershipDirectory.award",
+      "{}.awardPoints",
+      "AwardPoints.execute",
+      "MemberRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c04-SG2": true
+   },
+   "stats": {
+    "apgNodes": 121,
+    "apgEdges": 262,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 6,
+    "IS_METHOD": 6,
+    "CONTEXT_WRITE": 1,
+    "units": 70,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 134,
+    "relationships": 277
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c05/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 79,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 58,
+    "apgEdges": 131,
+    "units": 37,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 58,
+    "relationships": 131
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c05/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 75,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c05/step-03",
+   "group": "puzzle-final",
+   "ms": 77,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c06/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 120,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c06/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 120,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c06/step-03",
+   "group": "puzzle-final",
+   "ms": 138,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c06-SG2",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 26,
+     "subject": "PlaceOrder.execute",
+     "evidence": "saves 2 aggregate instances: Member x1, Order x1",
+     "path": [
+      "src/membership/application/AwardPoints.ts:12 MemberRepository.save",
+      "src/membership/domain/member/MemberRepository.ts:7 (declaration of MemberRepository.save)",
+      "src/sales/application/PlaceOrder.ts:40 OrderRepository.save",
+      "src/sales/domain/order/OrderRepository.ts:8 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 26,
+     "subject": "PlaceOrder.execute",
+     "evidence": "context sales writes Member (owned by membership) through its published interface",
+     "path": [
+      "PlaceOrder.execute",
+      "MembershipDirectory.awardPoints",
+      "{}.awardPoints",
+      "AwardPoints.execute",
+      "MemberRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c06-SG2": true
+   },
+   "stats": {
+    "apgNodes": 121,
+    "apgEdges": 262,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 6,
+    "IS_METHOD": 6,
+    "CONTEXT_WRITE": 1,
+    "units": 70,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 134,
+    "relationships": 277
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c07/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 113,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c07/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 122,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 118,
+    "apgEdges": 258,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 5,
+    "IS_METHOD": 6,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 131,
+    "relationships": 271
+   }
+  },
+  {
+   "label": "puzzle/p2-loyalty/c07/step-03",
+   "group": "puzzle-final",
+   "ms": 114,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 123,
+    "apgEdges": 269,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 6,
+    "IS_METHOD": 7,
+    "CONTEXT_WRITE": 1,
+    "units": 71,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 10,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 137,
+    "relationships": 285
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c08/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 76,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 58,
+    "apgEdges": 131,
+    "units": 37,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 58,
+    "relationships": 131
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c08/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 71,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c08/step-03",
+   "group": "puzzle-final",
+   "ms": 74,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c09/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 75,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 58,
+    "apgEdges": 131,
+    "units": 37,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 58,
+    "relationships": 131
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c09/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 71,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c09/step-03",
+   "group": "puzzle-final",
+   "ms": 72,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c10/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 95,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c10-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 9,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:19 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c10-SG1": true
+   },
+   "stats": {
+    "apgNodes": 82,
+    "apgEdges": 187,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "units": 52,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 90,
+    "relationships": 198
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c10/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 97,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c10-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    },
+    {
+     "id": "c10-SG2",
+     "family": "D5",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 31
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 18,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:35 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 31,
+     "subject": "Transfer.execute",
+     "evidence": "if (money.cents > left) throws: decides on money, which is then passed to Account",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5"
+   ],
+   "caseHits": {
+    "c10-SG1": true,
+    "c10-SG2": true
+   },
+   "stats": {
+    "apgNodes": 82,
+    "apgEdges": 188,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "RULE_SITE": 1,
+    "units": 52,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 1,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 92,
+    "relationships": 200
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c10/step-03",
+   "group": "puzzle-final",
+   "ms": 101,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c10-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    },
+    {
+     "id": "c10-SG2",
+     "family": "D5",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 31
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 18,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:35 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 31,
+     "subject": "Transfer.execute",
+     "evidence": "if (money.cents > left) throws: decides on money, which is then passed to Account",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5"
+   ],
+   "caseHits": {
+    "c10-SG1": true,
+    "c10-SG2": true
+   },
+   "stats": {
+    "apgNodes": 87,
+    "apgEdges": 206,
+    "OWNS": 1,
+    "IS_METHOD": 7,
+    "WRITE_FOOTPRINT": 4,
+    "RULE_SITE": 1,
+    "units": 56,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 7,
+    "ruleSites": 1,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 98,
+    "relationships": 219
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c11/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 101,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c11-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 9,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:19 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c11-SG1": true
+   },
+   "stats": {
+    "apgNodes": 82,
+    "apgEdges": 187,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "units": 52,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 90,
+    "relationships": 198
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c11/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 96,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c11-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 12,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:22 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c11-SG1": true
+   },
+   "stats": {
+    "apgNodes": 83,
+    "apgEdges": 196,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "units": 53,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 91,
+    "relationships": 207
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c11/step-03",
+   "group": "puzzle-final",
+   "ms": 105,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c11-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 12,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:22 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c11-SG1": true
+   },
+   "stats": {
+    "apgNodes": 92,
+    "apgEdges": 222,
+    "OWNS": 1,
+    "IS_METHOD": 7,
+    "WRITE_FOOTPRINT": 4,
+    "units": 61,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 7,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 101,
+    "relationships": 234
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c13/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 90,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c13-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 9,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:20 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c13-SG1": true
+   },
+   "stats": {
+    "apgNodes": 82,
+    "apgEdges": 187,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "units": 52,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 90,
+    "relationships": 198
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c13/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 115,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c13-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 12,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:23 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c13-SG1": true
+   },
+   "stats": {
+    "apgNodes": 83,
+    "apgEdges": 195,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "units": 53,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 91,
+    "relationships": 206
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c13/step-03",
+   "group": "puzzle-final",
+   "ms": 104,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c13-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 12,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:23 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c13-SG1": true
+   },
+   "stats": {
+    "apgNodes": 91,
+    "apgEdges": 217,
+    "OWNS": 1,
+    "IS_METHOD": 7,
+    "WRITE_FOOTPRINT": 4,
+    "units": 59,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 7,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 100,
+    "relationships": 229
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c14/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 68,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 58,
+    "apgEdges": 131,
+    "units": 37,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 58,
+    "relationships": 131
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c14/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 71,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p4-library-holds/c14/step-03",
+   "group": "puzzle-final",
+   "ms": 76,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 134,
+    "units": 38,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 59,
+    "relationships": 134
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c15/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 95,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c15-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 9,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:19 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c15-SG1": true
+   },
+   "stats": {
+    "apgNodes": 82,
+    "apgEdges": 187,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "units": 52,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 90,
+    "relationships": 198
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c15/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 91,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c15-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 12,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:22 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c15-SG1": true
+   },
+   "stats": {
+    "apgNodes": 83,
+    "apgEdges": 195,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "units": 53,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 91,
+    "relationships": 206
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c15/step-03",
+   "group": "puzzle-final",
+   "ms": 118,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c15-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 12,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:22 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c15-SG1": true
+   },
+   "stats": {
+    "apgNodes": 91,
+    "apgEdges": 216,
+    "OWNS": 1,
+    "IS_METHOD": 7,
+    "WRITE_FOOTPRINT": 4,
+    "units": 59,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 7,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 100,
+    "relationships": 228
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c16/step-01",
+   "group": "puzzle-intermediate",
+   "ms": 91,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c16-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 9,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:20 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c16-SG1": true
+   },
+   "stats": {
+    "apgNodes": 82,
+    "apgEdges": 187,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "units": 52,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 90,
+    "relationships": 198
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c16/step-02",
+   "group": "puzzle-intermediate",
+   "ms": 97,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c16-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    },
+    {
+     "id": "c16-SG2",
+     "family": "D5",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 29,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:45 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 42,
+     "subject": "Transfer.execute",
+     "evidence": "if (money.cents > left) throws: decides on money, which is then passed to Account",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5"
+   ],
+   "caseHits": {
+    "c16-SG1": true,
+    "c16-SG2": true
+   },
+   "stats": {
+    "apgNodes": 85,
+    "apgEdges": 194,
+    "OWNS": 1,
+    "IS_METHOD": 8,
+    "WRITE_FOOTPRINT": 4,
+    "RULE_SITE": 1,
+    "units": 54,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 8,
+    "ruleSites": 1,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 97,
+    "relationships": 208
+   }
+  },
+  {
+   "label": "puzzle/p1-transfers/c16/step-03",
+   "group": "puzzle-final",
+   "ms": 104,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "c16-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts"
+    },
+    {
+     "id": "c16-SG2",
+     "family": "D5",
+     "file": "src/ledger/application/Transfer.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 31,
+     "subject": "Transfer.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/Transfer.ts:47 AccountRepository.saveAll",
+      "src/ledger/domain/account/AccountRepository.ts:10 (declaration of AccountRepository.saveAll)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ledger/application/Transfer.ts",
+     "line": 44,
+     "subject": "Transfer.execute",
+     "evidence": "if (money.cents > left) throws: decides on money, which is then passed to Account",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5"
+   ],
+   "caseHits": {
+    "c16-SG1": true,
+    "c16-SG2": true
+   },
+   "stats": {
+    "apgNodes": 93,
+    "apgEdges": 227,
+    "OWNS": 1,
+    "IS_METHOD": 11,
+    "WRITE_FOOTPRINT": 4,
+    "RULE_SITE": 1,
+    "units": 59,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 11,
+    "ruleSites": 1,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 108,
+    "relationships": 244
+   }
+  },
+  {
+   "label": "solution/p1-transfers/clean",
+   "group": "solution-clean",
+   "ms": 103,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 97,
+    "apgEdges": 235,
+    "OWNS": 1,
+    "IS_METHOD": 8,
+    "WRITE_FOOTPRINT": 5,
+    "units": 62,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 8,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 107,
+    "relationships": 249
+   }
+  },
+  {
+   "label": "solution/p1-transfers/trap",
+   "group": "solution-trap",
+   "ms": 94,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "p1-trap-SG1",
+     "family": "D4",
+     "file": "src/ledger/application/TransferMoney.ts"
+    },
+    {
+     "id": "p1-trap-SG2",
+     "family": "D5",
+     "file": "src/ledger/application/TransferMoney.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/ledger/application/TransferMoney.ts",
+     "line": 11,
+     "subject": "TransferMoney.execute",
+     "evidence": "saves 2 aggregate instances: Account x2",
+     "path": [
+      "src/ledger/application/TransferMoney.ts:22 AccountRepository.save",
+      "src/ledger/application/TransferMoney.ts:23 AccountRepository.save",
+      "src/ledger/domain/account/AccountRepository.ts:8 (declaration of AccountRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ledger/application/TransferMoney.ts",
+     "line": 19,
+     "subject": "TransferMoney.execute",
+     "evidence": "if (money.cents > left) throws: decides on money, which is then passed to Account",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5"
+   ],
+   "caseHits": {
+    "p1-trap-SG1": true,
+    "p1-trap-SG2": true
+   },
+   "stats": {
+    "apgNodes": 86,
+    "apgEdges": 194,
+    "OWNS": 1,
+    "IS_METHOD": 6,
+    "WRITE_FOOTPRINT": 4,
+    "RULE_SITE": 1,
+    "units": 55,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 6,
+    "ruleSites": 1,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 96,
+    "relationships": 206
+   }
+  },
+  {
+   "label": "solution/p2-loyalty/clean",
+   "group": "solution-clean",
+   "ms": 113,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 125,
+    "apgEdges": 275,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 7,
+    "IS_METHOD": 7,
+    "units": 73,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 11,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 140,
+    "relationships": 291
+   }
+  },
+  {
+   "label": "solution/p2-loyalty/trap",
+   "group": "solution-trap",
+   "ms": 119,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "p2-trap-SG2",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 27,
+     "subject": "PlaceOrder.execute",
+     "evidence": "saves 2 aggregate instances: Order x1, Member x1",
+     "path": [
+      "src/sales/application/PlaceOrder.ts:32 OrderRepository.save",
+      "src/sales/domain/order/OrderRepository.ts:8 (declaration of OrderRepository.save)",
+      "src/membership/domain/member/MemberRepository.ts:7 (declaration of MemberRepository.save)",
+      "src/sales/application/PlaceOrder.ts:36 MemberRepository.save"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 27,
+     "subject": "PlaceOrder.execute",
+     "evidence": "context sales writes Member (owned by membership)",
+     "path": [
+      "PlaceOrder.execute",
+      "MemberRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "p2-trap-SG2": true
+   },
+   "stats": {
+    "apgNodes": 115,
+    "apgEdges": 264,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 6,
+    "IS_METHOD": 6,
+    "CONTEXT_WRITE": 1,
+    "units": 66,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 128,
+    "relationships": 279
+   }
+  },
+  {
+   "label": "solution/p2-loyalty/trap-alt",
+   "group": "solution-trap",
+   "ms": 135,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "p2-trapalt-SG2",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 24,
+     "subject": "PlaceOrder.execute",
+     "evidence": "saves 2 aggregate instances: Order x1, Member x1",
+     "path": [
+      "src/sales/application/PlaceOrder.ts:29 OrderRepository.save",
+      "src/sales/domain/order/OrderRepository.ts:8 (declaration of OrderRepository.save)",
+      "src/membership/application/AwardPoints.ts:12 MemberRepository.save",
+      "src/membership/domain/member/MemberRepository.ts:7 (declaration of MemberRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/sales/application/PlaceOrder.ts",
+     "line": 24,
+     "subject": "PlaceOrder.execute",
+     "evidence": "context sales writes Member (owned by membership) through its published interface",
+     "path": [
+      "PlaceOrder.execute",
+      "MembershipDirectory.addPoints",
+      "{}.awardPoints",
+      "AwardPoints.execute",
+      "MemberRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "p2-trapalt-SG2": true
+   },
+   "stats": {
+    "apgNodes": 119,
+    "apgEdges": 260,
+    "OWNS": 2,
+    "WRITE_FOOTPRINT": 6,
+    "IS_METHOD": 6,
+    "CONTEXT_WRITE": 1,
+    "units": 68,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 9,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 132,
+    "relationships": 275
+   }
+  },
+  {
+   "label": "solution/p3-shipping-quotes/clean",
+   "group": "solution-clean",
+   "ms": 110,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 62,
+    "apgEdges": 134,
+    "IS_METHOD": 2,
+    "units": 29,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 2,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 64,
+    "relationships": 136
+   }
+  },
+  {
+   "label": "solution/p3-shipping-quotes/trap",
+   "group": "solution-trap",
+   "ms": 81,
+   "rootSource": "none",
+   "cases": [
+    {
+     "id": "p3-trap-SG1",
+     "family": "H5",
+     "file": ""
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/out/RatesPort.ts",
+     "line": 4,
+     "subject": "RatesPort.rates",
+     "evidence": "vendor-type: parameter request uses FastshipRateRequest from fastship-sdk",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/out/RatesPort.ts",
+     "line": 4,
+     "subject": "RatesPort.rates",
+     "evidence": "vendor-type: return type uses FastshipRateResponse from fastship-sdk",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/out/TrackingPort.ts",
+     "line": 4,
+     "subject": "TrackingPort.events",
+     "evidence": "vendor-type: return type uses FastshipTrackingEvent from fastship-sdk",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "H5"
+   ],
+   "caseHits": {
+    "p3-trap-SG1": true
+   },
+   "stats": {
+    "apgNodes": 59,
+    "apgEdges": 112,
+    "IS_METHOD": 2,
+    "PORT_MECHANISM": 3,
+    "units": 25,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 2,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 67,
+    "relationships": 117
+   }
+  },
+  {
+   "label": "solution/p4-library-holds/clean",
+   "group": "solution-clean",
+   "ms": 75,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 58,
+    "apgEdges": 133,
+    "units": 37,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 58,
+    "relationships": 133
+   }
+  },
+  {
+   "label": "solution/p4-library-holds/trap",
+   "group": "solution-trap",
+   "ms": 78,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 58,
+    "apgEdges": 135,
+    "units": 37,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 0,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 58,
+    "relationships": 135
+   }
+  },
+  {
+   "label": "pilot/s1-hotel-bookings/step-00",
+   "group": "pilot-seed",
+   "ms": 116,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 115,
+    "apgEdges": 277,
+    "IS_METHOD": 3,
+    "WRITE_FOOTPRINT": 2,
+    "units": 46,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 3,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 119,
+    "relationships": 282
+   }
+  },
+  {
+   "label": "pilot/s1-hotel-bookings/step-01",
+   "group": "pilot-step",
+   "ms": 129,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 128,
+    "apgEdges": 303,
+    "IS_METHOD": 5,
+    "WRITE_FOOTPRINT": 3,
+    "units": 55,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 5,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 134,
+    "relationships": 311
+   }
+  },
+  {
+   "label": "pilot/s1-hotel-bookings/step-02",
+   "group": "pilot-step",
+   "ms": 138,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "case1",
+     "family": "D5",
+     "file": "src/application/services/BookRoomService.ts",
+     "line": 37,
+     "note": "lock form"
+    }
+   ],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {
+    "case1": false
+   },
+   "stats": {
+    "apgNodes": 130,
+    "apgEdges": 312,
+    "IS_METHOD": 5,
+    "WRITE_FOOTPRINT": 3,
+    "units": 57,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 5,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 136,
+    "relationships": 320
+   }
+  },
+  {
+   "label": "pilot/s1-hotel-bookings/step-03",
+   "group": "pilot-step",
+   "ms": 160,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "case1",
+     "family": "D5",
+     "file": "src/application/services/BookRoomService.ts",
+     "line": 37,
+     "note": "lock form"
+    },
+    {
+     "id": "case2",
+     "family": "D4",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 11
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/application/services/BookRoomService.ts",
+     "line": 29,
+     "subject": "BookRoomService.book",
+     "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+     "path": [
+      "src/application/ports/out/BookingRepository.ts:11 (declaration of BookingRepository.saveAudited)",
+      "src/application/services/BookRoomService.ts:110 BookingRepository.saveAudited"
+     ],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "case1": false,
+    "case2": true
+   },
+   "stats": {
+    "apgNodes": 158,
+    "apgEdges": 383,
+    "IS_METHOD": 7,
+    "WRITE_FOOTPRINT": 4,
+    "units": 70,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 7,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 167,
+    "relationships": 394
+   }
+  },
+  {
+   "label": "pilot/s1-hotel-bookings/step-04",
+   "group": "pilot-step",
+   "ms": 193,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "case1",
+     "family": "D5",
+     "file": "src/application/services/BookRoomService.ts",
+     "line": 37,
+     "note": "lock form"
+    },
+    {
+     "id": "case2",
+     "family": "D4",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 11
+    },
+    {
+     "id": "case3",
+     "family": "D3",
+     "file": "src/application/services/OccupancyReportService.ts",
+     "line": 39
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/application/services/BookRoomService.ts",
+     "line": 29,
+     "subject": "BookRoomService.book",
+     "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+     "path": [
+      "src/application/ports/out/BookingRepository.ts:11 (declaration of BookingRepository.saveAudited)",
+      "src/application/services/BookRoomService.ts:110 BookingRepository.saveAudited"
+     ],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "case1": false,
+    "case2": true,
+    "case3": false
+   },
+   "stats": {
+    "apgNodes": 171,
+    "apgEdges": 414,
+    "IS_METHOD": 8,
+    "WRITE_FOOTPRINT": 4,
+    "units": 75,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 8,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 181,
+    "relationships": 426
+   }
+  },
+  {
+   "label": "pilot/s1-hotel-bookings/step-05",
+   "group": "pilot-step",
+   "ms": 215,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "case1",
+     "family": "D5",
+     "file": "src/application/services/BookRoomService.ts",
+     "line": 37,
+     "note": "lock form"
+    },
+    {
+     "id": "case2",
+     "family": "D4",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 11
+    },
+    {
+     "id": "case3",
+     "family": "D3",
+     "file": "src/application/services/OccupancyReportService.ts",
+     "line": 39
+    },
+    {
+     "id": "case4",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 16
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/application/services/BookRoomService.ts",
+     "line": 29,
+     "subject": "BookRoomService.book",
+     "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+     "path": [
+      "src/application/ports/out/BookingRepository.ts:11 (declaration of BookingRepository.saveAudited)",
+      "src/application/services/BookRoomService.ts:99 BookingRepository.saveAudited"
+     ],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    },
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 16,
+     "subject": "BookingRepository.withRoomLock",
+     "evidence": "scope-callback: parameter task is a callback that receives BookingRepository (a scoped repository: a lock or transaction mechanism in the port)",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-RTX",
+     "family": "RTX",
+     "file": "src/application/services/BookRoomService.ts",
+     "line": 39,
+     "subject": "BookRoomService.book",
+     "evidence": "inside withRoomLock(...) reaches @paystream/node at src/adapters/outbound/payment/PaystreamPaymentGateway.ts:17",
+     "path": [
+      "BookRoomService.reserve",
+      "PaystreamPaymentGateway.charge"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "H5",
+    "RTX"
+   ],
+   "caseHits": {
+    "case1": false,
+    "case2": true,
+    "case3": false,
+    "case4": true
+   },
+   "stats": {
+    "apgNodes": 204,
+    "apgEdges": 507,
+    "IS_METHOD": 8,
+    "WRITE_FOOTPRINT": 4,
+    "PORT_MECHANISM": 1,
+    "REMOTE_IN_TX": 1,
+    "units": 98,
+    "roots": 2,
+    "scopeCalls": 3,
+    "commands": 8,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 1,
+    "nodes": 218,
+    "relationships": 521
+   }
+  },
+  {
+   "label": "pilot/s2-orders-invoices/step-00",
+   "group": "pilot-seed",
+   "ms": 108,
+   "rootSource": "spec",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 108,
+    "apgEdges": 269,
+    "OWNS": 3,
+    "IS_METHOD": 4,
+    "WRITE_FOOTPRINT": 3,
+    "units": 54,
+    "roots": 3,
+    "scopeCalls": 0,
+    "commands": 4,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 117,
+    "relationships": 279
+   }
+  },
+  {
+   "label": "pilot/s2-orders-invoices/step-01",
+   "group": "pilot-step",
+   "ms": 140,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "case5",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 15
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+     "path": [
+      "src/billing/application/RecordPayment.ts:13 InvoiceRepository.save",
+      "src/billing/domain/invoice/InvoiceRepository.ts:7 (declaration of InvoiceRepository.save)",
+      "src/ordering/application/MarkOrderPaid.ts:12 OrderRepository.save",
+      "src/ordering/domain/order/OrderRepository.ts:7 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "context billing writes Order (owned by ordering)",
+     "path": [
+      "RecordPayment.execute",
+      "OrderingPaidAcl.orderPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "case5": true
+   },
+   "stats": {
+    "apgNodes": 158,
+    "apgEdges": 402,
+    "OWNS": 3,
+    "IS_METHOD": 8,
+    "WRITE_FOOTPRINT": 7,
+    "CONTEXT_WRITE": 1,
+    "units": 83,
+    "roots": 3,
+    "scopeCalls": 0,
+    "commands": 8,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 171,
+    "relationships": 421
+   }
+  },
+  {
+   "label": "pilot/s2-orders-invoices/step-02",
+   "group": "pilot-step",
+   "ms": 137,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "case5",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 15
+    },
+    {
+     "id": "case6",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 35
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+     "path": [
+      "src/billing/application/RecordPayment.ts:13 InvoiceRepository.save",
+      "src/billing/domain/invoice/InvoiceRepository.ts:7 (declaration of InvoiceRepository.save)",
+      "src/ordering/application/MarkOrderPaid.ts:12 OrderRepository.save",
+      "src/ordering/domain/order/OrderRepository.ts:7 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 35,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 36,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "context billing writes Order (owned by ordering)",
+     "path": [
+      "RecordPayment.execute",
+      "OrderingPaidAcl.orderPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5"
+   ],
+   "caseHits": {
+    "case5": true,
+    "case6": true
+   },
+   "stats": {
+    "apgNodes": 158,
+    "apgEdges": 402,
+    "OWNS": 3,
+    "IS_METHOD": 8,
+    "WRITE_FOOTPRINT": 7,
+    "CONTEXT_WRITE": 1,
+    "RULE_SITE": 2,
+    "units": 83,
+    "roots": 3,
+    "scopeCalls": 0,
+    "commands": 8,
+    "ruleSites": 2,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 175,
+    "relationships": 423
+   }
+  },
+  {
+   "label": "pilot/s2-orders-invoices/step-03",
+   "group": "pilot-step",
+   "ms": 235,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "case5",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 15
+    },
+    {
+     "id": "case6",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 35
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+     "path": [
+      "src/billing/application/RecordPayment.ts:13 InvoiceRepository.save",
+      "src/billing/domain/invoice/InvoiceRepository.ts:9 (declaration of InvoiceRepository.save)",
+      "src/ordering/application/MarkOrderPaid.ts:12 OrderRepository.save",
+      "src/ordering/domain/order/OrderRepository.ts:9 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 35,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 36,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "context billing writes Order (owned by ordering)",
+     "path": [
+      "RecordPayment.execute",
+      "OrderingPaidAcl.orderPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5"
+   ],
+   "caseHits": {
+    "case5": true,
+    "case6": true
+   },
+   "stats": {
+    "apgNodes": 185,
+    "apgEdges": 475,
+    "OWNS": 3,
+    "IS_METHOD": 10,
+    "WRITE_FOOTPRINT": 7,
+    "CONTEXT_WRITE": 1,
+    "RULE_SITE": 2,
+    "units": 98,
+    "roots": 3,
+    "scopeCalls": 0,
+    "commands": 10,
+    "ruleSites": 2,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 204,
+    "relationships": 498
+   }
+  },
+  {
+   "label": "pilot/s2-orders-invoices/step-04",
+   "group": "pilot-step",
+   "ms": 196,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "case5",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 15
+    },
+    {
+     "id": "case6",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 35
+    },
+    {
+     "id": "case7",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts",
+     "line": 8
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+     "path": [
+      "src/billing/application/RecordPayment.ts:13 InvoiceRepository.save",
+      "src/billing/domain/invoice/InvoiceRepository.ts:9 (declaration of InvoiceRepository.save)",
+      "src/ordering/application/MarkOrderPaid.ts:12 OrderRepository.save",
+      "src/ordering/domain/order/OrderRepository.ts:9 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 37,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 38,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts",
+     "line": 8,
+     "subject": "SetTaxRate.execute",
+     "evidence": "if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) throws: decides on rate, which is then passed to TaxRates",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "context billing writes Order (owned by ordering)",
+     "path": [
+      "RecordPayment.execute",
+      "OrderingPaidAcl.orderPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5"
+   ],
+   "caseHits": {
+    "case5": true,
+    "case6": true,
+    "case7": true
+   },
+   "stats": {
+    "apgNodes": 201,
+    "apgEdges": 511,
+    "OWNS": 3,
+    "IS_METHOD": 11,
+    "WRITE_FOOTPRINT": 7,
+    "CONTEXT_WRITE": 1,
+    "RULE_SITE": 3,
+    "units": 107,
+    "roots": 3,
+    "scopeCalls": 0,
+    "commands": 11,
+    "ruleSites": 3,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 223,
+    "relationships": 536
+   }
+  },
+  {
+   "label": "pilot/s2-orders-invoices/step-05",
+   "group": "pilot-step",
+   "ms": 211,
+   "rootSource": "spec",
+   "cases": [
+    {
+     "id": "case5",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 15
+    },
+    {
+     "id": "case6",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 35
+    },
+    {
+     "id": "case7",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts",
+     "line": 8
+    },
+    {
+     "id": "case8",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts",
+     "line": 20
+    },
+    {
+     "id": "case9",
+     "family": "D9",
+     "file": "src/ordering/domain/order/Order.ts",
+     "line": 89
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts",
+     "line": 13,
+     "subject": "IssueInvoice.execute",
+     "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+     "path": [
+      "src/billing/application/IssueInvoice.ts:19 InvoiceRepository.save",
+      "src/billing/domain/invoice/InvoiceRepository.ts:9 (declaration of InvoiceRepository.save)",
+      "src/ordering/application/MarkOrderInvoiced.ts:12 OrderRepository.save",
+      "src/ordering/domain/order/OrderRepository.ts:9 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+     "path": [
+      "src/billing/application/RecordPayment.ts:13 InvoiceRepository.save",
+      "src/billing/domain/invoice/InvoiceRepository.ts:9 (declaration of InvoiceRepository.save)",
+      "src/ordering/application/MarkOrderPaid.ts:12 OrderRepository.save",
+      "src/ordering/domain/order/OrderRepository.ts:9 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 37,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 38,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts",
+     "line": 8,
+     "subject": "SetTaxRate.execute",
+     "evidence": "if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) throws: decides on rate, which is then passed to TaxRates",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/ordering/domain/order/Order.ts",
+     "line": 89,
+     "subject": "OrderLineSummary",
+     "evidence": "Order.lineViews returns the shape of OrderLineSummary (src/ordering/contracts/OrderSummary.ts)",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts",
+     "line": 13,
+     "subject": "IssueInvoice.execute",
+     "evidence": "context billing writes Order (owned by ordering)",
+     "path": [
+      "IssueInvoice.execute",
+      "OrderingInvoicedAcl.orderInvoiced",
+      "MarkOrderInvoiced.markInvoiced",
+      "OrderRepository.save"
+     ],
+     "status": "violation"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 9,
+     "subject": "RecordPayment.execute",
+     "evidence": "context billing writes Order (owned by ordering)",
+     "path": [
+      "RecordPayment.execute",
+      "OrderingPaidAcl.orderPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D4",
+    "D5",
+    "D9"
+   ],
+   "caseHits": {
+    "case5": true,
+    "case6": true,
+    "case7": true,
+    "case8": true,
+    "case9": true
+   },
+   "stats": {
+    "apgNodes": 231,
+    "apgEdges": 596,
+    "OWNS": 3,
+    "IS_METHOD": 13,
+    "WRITE_FOOTPRINT": 11,
+    "CONTEXT_WRITE": 3,
+    "RULE_SITE": 3,
+    "CONTRACT_EXPOSES": 1,
+    "units": 126,
+    "roots": 3,
+    "scopeCalls": 0,
+    "commands": 13,
+    "ruleSites": 3,
+    "contractExposes": 1,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 257,
+    "relationships": 630
+   }
+  },
+  {
+   "label": "fixture/c1-s1-d5-lock/pos",
+   "group": "fixture-pos",
+   "ms": 52,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c1-s1-d5-lock",
+     "family": "D5",
+     "file": "src/application/services/BookRoomService.ts"
+    }
+   ],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {
+    "c1-s1-d5-lock": false
+   },
+   "stats": {
+    "apgNodes": 19,
+    "apgEdges": 31,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 1,
+    "units": 9,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 21,
+    "relationships": 33
+   }
+  },
+  {
+   "label": "fixture/c1-s1-d5-lock/twin",
+   "group": "fixture-twin",
+   "ms": 50,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 21,
+    "apgEdges": 38,
+    "IS_METHOD": 1,
+    "units": 10,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 22,
+    "relationships": 39
+   }
+  },
+  {
+   "label": "fixture/c2-s1-d4-saveaudited/pos",
+   "group": "fixture-pos",
+   "ms": 51,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c2-s1-d4-saveaudited",
+     "family": "D4",
+     "file": "src/application/ports/out/BookingRepository.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/application/services/CancelBookingService.ts",
+     "line": 7,
+     "subject": "CancelBookingService.cancel",
+     "evidence": "saves 2 aggregate instances: Booking x1, AuditEntry x1",
+     "path": [
+      "src/application/ports/out/BookingRepository.ts:8 (declaration of BookingRepository.saveAudited)",
+      "src/application/services/CancelBookingService.ts:12 BookingRepository.saveAudited"
+     ],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c2-s1-d4-saveaudited": true
+   },
+   "stats": {
+    "apgNodes": 21,
+    "apgEdges": 31,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 2,
+    "units": 9,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 24,
+    "relationships": 34
+   }
+  },
+  {
+   "label": "fixture/c2-s1-d4-saveaudited/twin",
+   "group": "fixture-twin",
+   "ms": 51,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 21,
+    "apgEdges": 30,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 1,
+    "units": 10,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 23,
+    "relationships": 32
+   }
+  },
+  {
+   "label": "fixture/c3-s1-d3-revenue/pos",
+   "group": "fixture-pos",
+   "ms": 54,
+   "rootSource": "none",
+   "cases": [
+    {
+     "id": "c3-s1-d3-revenue",
+     "family": "D3",
+     "file": "src/application/services/OccupancyReportService.ts"
+    }
+   ],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {
+    "c3-s1-d3-revenue": false
+   },
+   "stats": {
+    "apgNodes": 19,
+    "apgEdges": 29,
+    "IS_METHOD": 1,
+    "units": 8,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 20,
+    "relationships": 30
+   }
+  },
+  {
+   "label": "fixture/c3-s1-d3-revenue/twin",
+   "group": "fixture-twin",
+   "ms": 55,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 20,
+    "apgEdges": 32,
+    "IS_METHOD": 1,
+    "units": 9,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 21,
+    "relationships": 33
+   }
+  },
+  {
+   "label": "fixture/c4-s1-h5-lockport/pos",
+   "group": "fixture-pos",
+   "ms": 53,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c4-s1-h5-lockport",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 12,
+     "subject": "BookingRepository.withRoomLock",
+     "evidence": "scope-callback: parameter task is a callback that receives BookingRepository (a scoped repository: a lock or transaction mechanism in the port)",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "H5"
+   ],
+   "caseHits": {
+    "c4-s1-h5-lockport": true
+   },
+   "stats": {
+    "apgNodes": 19,
+    "apgEdges": 31,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 1,
+    "PORT_MECHANISM": 1,
+    "units": 8,
+    "roots": 1,
+    "scopeCalls": 1,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 23,
+    "relationships": 34
+   }
+  },
+  {
+   "label": "fixture/c4-s1-h5-lockport/twin",
+   "group": "fixture-twin",
+   "ms": 51,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 21,
+    "apgEdges": 38,
+    "IS_METHOD": 1,
+    "units": 10,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 22,
+    "relationships": 39
+   }
+  },
+  {
+   "label": "fixture/c4v-h5-vendor-type/pos",
+   "group": "fixture-pos",
+   "ms": 48,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c4v-h5-vendor-type",
+     "family": "H5",
+     "file": ""
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 6,
+     "subject": "BookingRepository.findByRoom",
+     "evidence": "vendor-type: parameter tx uses Transaction from sqlwell",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 7,
+     "subject": "BookingRepository.save",
+     "evidence": "vendor-type: parameter tx uses Transaction from sqlwell",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/out/BookingRepository.ts",
+     "line": 9,
+     "subject": "BookingRepository.inTransaction",
+     "evidence": "vendor-type: parameter task uses Transaction from sqlwell",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "H5"
+   ],
+   "caseHits": {
+    "c4v-h5-vendor-type": true
+   },
+   "stats": {
+    "apgNodes": 20,
+    "apgEdges": 32,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 1,
+    "PORT_MECHANISM": 3,
+    "units": 8,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 28,
+    "relationships": 37
+   }
+  },
+  {
+   "label": "fixture/c4v-h5-vendor-type/twin",
+   "group": "fixture-twin",
+   "ms": 59,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 30,
+    "apgEdges": 55,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 1,
+    "units": 13,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 32,
+    "relationships": 57
+   }
+  },
+  {
+   "label": "fixture/c5-s2-d4-recordpayment/pos",
+   "group": "fixture-pos",
+   "ms": 75,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c5-s2-d4-recordpayment",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 8,
+     "subject": "RecordPayment.execute",
+     "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+     "path": [
+      "src/billing/application/RecordPayment.ts:12 InvoiceRepository.save",
+      "src/billing/domain/invoice/InvoiceRepository.ts:5 (declaration of InvoiceRepository.save)",
+      "src/ordering/application/MarkOrderPaid.ts:11 OrderRepository.save",
+      "src/ordering/domain/order/OrderRepository.ts:5 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/billing/application/RecordPayment.ts",
+     "line": 8,
+     "subject": "RecordPayment.execute",
+     "evidence": "context billing writes Order (owned by ordering)",
+     "path": [
+      "RecordPayment.execute",
+      "OrderingPaidAcl.orderPaid",
+      "MarkOrderPaid.markPaid",
+      "OrderRepository.save"
+     ],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c5-s2-d4-recordpayment": true
+   },
+   "stats": {
+    "apgNodes": 46,
+    "apgEdges": 78,
+    "OWNS": 2,
+    "IS_METHOD": 2,
+    "WRITE_FOOTPRINT": 3,
+    "CONTEXT_WRITE": 1,
+    "units": 20,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 2,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 52,
+    "relationships": 86
+   }
+  },
+  {
+   "label": "fixture/c5-s2-d4-recordpayment/twin",
+   "group": "fixture-twin",
+   "ms": 60,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 46,
+    "apgEdges": 76,
+    "OWNS": 2,
+    "IS_METHOD": 3,
+    "WRITE_FOOTPRINT": 3,
+    "units": 20,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 3,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 53,
+    "relationships": 84
+   }
+  },
+  {
+   "label": "fixture/c6-s2-d5-placeorder/pos",
+   "group": "fixture-pos",
+   "ms": 48,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c6-s2-d5-placeorder",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 21,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.quantity) || l.quantity <= 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/PlaceOrder.ts",
+     "line": 22,
+     "subject": "PlaceOrder.execute",
+     "evidence": "if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throws: decides on l, which is then passed to Quantity",
+     "path": [],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    }
+   ],
+   "flagged": [
+    "D5"
+   ],
+   "caseHits": {
+    "c6-s2-d5-placeorder": true
+   },
+   "stats": {
+    "apgNodes": 20,
+    "apgEdges": 34,
+    "OWNS": 1,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 1,
+    "RULE_SITE": 2,
+    "units": 9,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 2,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 27,
+    "relationships": 39
+   }
+  },
+  {
+   "label": "fixture/c6-s2-d5-placeorder/twin",
+   "group": "fixture-twin",
+   "ms": 51,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 20,
+    "apgEdges": 34,
+    "OWNS": 1,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 1,
+    "units": 9,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 23,
+    "relationships": 37
+   }
+  },
+  {
+   "label": "fixture/c7-s2-d5-settaxrate/pos",
+   "group": "fixture-pos",
+   "ms": 58,
+   "rootSource": "none",
+   "cases": [
+    {
+     "id": "c7-s2-d5-settaxrate",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/ordering/application/SetTaxRate.ts",
+     "line": 8,
+     "subject": "SetTaxRate.execute",
+     "evidence": "if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) throws: decides on rate, which is then passed to TaxRates",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D5"
+   ],
+   "caseHits": {
+    "c7-s2-d5-settaxrate": true
+   },
+   "stats": {
+    "apgNodes": 9,
+    "apgEdges": 10,
+    "IS_METHOD": 1,
+    "RULE_SITE": 1,
+    "units": 3,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 1,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 12,
+    "relationships": 12
+   }
+  },
+  {
+   "label": "fixture/c7-s2-d5-settaxrate/twin",
+   "group": "fixture-twin",
+   "ms": 41,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 11,
+    "apgEdges": 16,
+    "IS_METHOD": 1,
+    "units": 4,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 12,
+    "relationships": 17
+   }
+  },
+  {
+   "label": "fixture/c8-s2-d4-issueinvoice/pos",
+   "group": "fixture-pos",
+   "ms": 72,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c8-s2-d4-issueinvoice",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts",
+     "line": 11,
+     "subject": "IssueInvoice.execute",
+     "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+     "path": [
+      "src/billing/application/IssueInvoice.ts:16 InvoiceRepository.save",
+      "src/billing/domain/invoice/InvoiceRepository.ts:5 (declaration of InvoiceRepository.save)",
+      "src/ordering/application/MarkOrderInvoiced.ts:11 OrderRepository.save",
+      "src/ordering/domain/order/OrderRepository.ts:5 (declaration of OrderRepository.save)"
+     ],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/billing/application/IssueInvoice.ts",
+     "line": 11,
+     "subject": "IssueInvoice.execute",
+     "evidence": "context billing writes Order (owned by ordering)",
+     "path": [
+      "IssueInvoice.execute",
+      "OrderingInvoicedAcl.orderInvoiced",
+      "MarkOrderInvoiced.markInvoiced",
+      "OrderRepository.save"
+     ],
+     "status": "violation",
+     "note": "aggregate roots inferred (no DDD block in the spec)"
+    }
+   ],
+   "flagged": [
+    "D4"
+   ],
+   "caseHits": {
+    "c8-s2-d4-issueinvoice": true
+   },
+   "stats": {
+    "apgNodes": 60,
+    "apgEdges": 109,
+    "OWNS": 2,
+    "IS_METHOD": 3,
+    "WRITE_FOOTPRINT": 3,
+    "CONTEXT_WRITE": 1,
+    "units": 24,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 3,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 67,
+    "relationships": 118
+   }
+  },
+  {
+   "label": "fixture/c8-s2-d4-issueinvoice/twin",
+   "group": "fixture-twin",
+   "ms": 64,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 60,
+    "apgEdges": 109,
+    "OWNS": 2,
+    "IS_METHOD": 4,
+    "WRITE_FOOTPRINT": 3,
+    "units": 24,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 4,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 68,
+    "relationships": 118
+   }
+  },
+  {
+   "label": "fixture/c9-s2-d9-lineviews/pos",
+   "group": "fixture-pos",
+   "ms": 56,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c9-s2-d9-lineviews",
+     "family": "D9",
+     "file": "src/ordering/domain/order/Order.ts"
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/ordering/domain/order/Order.ts",
+     "line": 20,
+     "subject": "OrderLineSummary",
+     "evidence": "Order.lineViews returns the shape of OrderLineSummary (src/ordering/contracts/OrderSummary.ts)",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D9"
+   ],
+   "caseHits": {
+    "c9-s2-d9-lineviews": true
+   },
+   "stats": {
+    "apgNodes": 31,
+    "apgEdges": 57,
+    "OWNS": 1,
+    "IS_METHOD": 1,
+    "CONTRACT_EXPOSES": 1,
+    "units": 15,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 1,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 36,
+    "relationships": 60
+   }
+  },
+  {
+   "label": "fixture/c9-s2-d9-lineviews/twin",
+   "group": "fixture-twin",
+   "ms": 55,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 32,
+    "apgEdges": 58,
+    "OWNS": 1,
+    "IS_METHOD": 1,
+    "units": 16,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 35,
+    "relationships": 60
+   }
+  },
+  {
+   "label": "fixture/c9v-d9-entity-in-contract/pos",
+   "group": "fixture-pos",
+   "ms": 56,
+   "rootSource": "fallback",
+   "cases": [
+    {
+     "id": "c9v-d9-entity-in-contract",
+     "family": "D9",
+     "file": ""
+    }
+   ],
+   "findings": [
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/ordering/contracts/OrderSummary.ts",
+     "line": 7,
+     "subject": "OrderSummary",
+     "evidence": "OrderSummary exposes OrderLine (src/ordering/domain/order/OrderLine.ts) via OrderSummary.lines",
+     "path": [],
+     "status": "violation"
+    },
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/ordering/contracts/OrderSummary.ts",
+     "line": 20,
+     "subject": "OrderSummaryQuery",
+     "evidence": "OrderSummaryQuery exposes OrderLine (src/ordering/domain/order/OrderLine.ts) via OrderSummaryQuery.summaryOf() → OrderSummary.lines",
+     "path": [],
+     "status": "violation"
+    }
+   ],
+   "flagged": [
+    "D9"
+   ],
+   "caseHits": {
+    "c9v-d9-entity-in-contract": true
+   },
+   "stats": {
+    "apgNodes": 31,
+    "apgEdges": 55,
+    "OWNS": 1,
+    "IS_METHOD": 1,
+    "CONTRACT_EXPOSES": 2,
+    "units": 15,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 2,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 38,
+    "relationships": 59
+   }
+  },
+  {
+   "label": "fixture/c9v-d9-entity-in-contract/twin",
+   "group": "fixture-twin",
+   "ms": 56,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 32,
+    "apgEdges": 58,
+    "OWNS": 1,
+    "IS_METHOD": 1,
+    "units": 16,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 35,
+    "relationships": 60
+   }
+  },
+  {
+   "label": "fixture/n1-hex-clean-guests/clean",
+   "group": "fixture-clean",
+   "ms": 48,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 25,
+    "apgEdges": 42,
+    "IS_METHOD": 1,
+    "WRITE_FOOTPRINT": 1,
+    "units": 10,
+    "roots": 1,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 27,
+    "relationships": 44
+   }
+  },
+  {
+   "label": "fixture/n2-ddd-clean-outbox/clean",
+   "group": "fixture-clean",
+   "ms": 66,
+   "rootSource": "fallback",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 49,
+    "apgEdges": 87,
+    "OWNS": 2,
+    "IS_METHOD": 3,
+    "WRITE_FOOTPRINT": 2,
+    "units": 20,
+    "roots": 2,
+    "scopeCalls": 0,
+    "commands": 3,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 56,
+    "relationships": 94
+   }
+  },
+  {
+   "label": "fixture/n3-hex-clean-vendor-adapter/clean",
+   "group": "fixture-clean",
+   "ms": 47,
+   "rootSource": "none",
+   "cases": [],
+   "findings": [],
+   "flagged": [],
+   "caseHits": {},
+   "stats": {
+    "apgNodes": 19,
+    "apgEdges": 29,
+    "IS_METHOD": 1,
+    "units": 6,
+    "roots": 0,
+    "scopeCalls": 0,
+    "commands": 1,
+    "ruleSites": 0,
+    "contractExposes": 0,
+    "concreteInjections": 0,
+    "remoteInTx": 0,
+    "nodes": 20,
+    "relationships": 30
+   }
+  }
+ ]
+}
