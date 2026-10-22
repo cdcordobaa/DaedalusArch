@@ -2918,3 +2918,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory DETECT-02, tool delivery; development material only, never applied to Study 2b
 
 ---
+
+## PUZZLE-02 — tool arm mcp-detect on P1 and P2, plan committed (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T03:18:10Z
+**User Input**: "(coordinator brief, author-approved run) Run the PUZZLE-02 tool arm mcp-detect as specified in ops/notes/puzzle-02-tool-arm-note.md: P1 and P2, 5 sessions each, the baseline's plan and isolation reused exactly, the note's frame sentence, hard cap 38 calls; score at zero calls against the baseline arm none."
+**AI Response**: "Before any generator call: committed experiments/puzzle-02-tool-arm/ with the plan, the frame text, the seeded order (seed 20261022), the isolation procedure (the baseline's, plus the MCP server run as root behind a socket relay so the spec stays unreadable to the generator) and the driver. CLI 2.1.307 recorded as an exploratory difference from the baseline's 2.1.305. Zero-call dry run passed."
+**Context**: Exploratory PUZZLE-02 tool arm; development material only, never applied to Study 2b; no frozen path changed
+
+---
