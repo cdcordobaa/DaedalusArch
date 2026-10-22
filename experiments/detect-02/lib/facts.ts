@@ -255,11 +255,37 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   for (const sf of files) {
     for (const i of sf.getInterfaces()) if (i.getProperty('id')) for (const b of i.getBaseDeclarations()) identityViaSubtype.add(b);
   }
+  const ownId = (c: ClassDeclaration): boolean => c.getProperty('id') !== undefined || c.getGetAccessor('id') !== undefined
+    || c.getConstructors().some((k) => k.getParameters().some((q) => q.getName() === 'id' && q.isParameterProperty()));
   const hasIdentity = (d: Node): boolean => {
     if (identityViaSubtype.has(d)) return true;
-    if (Node.isClassDeclaration(d)) return d.getProperty('id') !== undefined || d.getGetAccessor('id') !== undefined
-      || d.getConstructors().some((c) => c.getParameters().some((q) => q.getName() === 'id' && q.isParameterProperty()));
+    if (Node.isClassDeclaration(d)) {
+      if (ownId(d)) return true;
+      // R3: identity inherited from an in-tree entity base class (`class Post extends AggregateRoot<P>`, `Entity` holds `_id`).
+      for (let b = d.getBaseClass(), i = 0; b !== undefined && i < 5; b = b.getBaseClass(), i++) {
+        if (!inTree(b)) break;
+        if (ownId(b) || b.getProperty('_id') !== undefined) return true;
+      }
+      return false;
+    }
     if (Node.isInterfaceDeclaration(d)) return d.getProperty('id') !== undefined;
+    return false;
+  };
+  /**
+   * R3: an identifier type (its only own state is its identity: `class PostId extends Entity { get id() }`, an
+   * interface `{ id }`) is a reference to an aggregate, never an aggregate. Used by root inference only.
+   */
+  const isIdentifierType = (d: Node): boolean => {
+    const isIdName = (n: string): boolean => n === 'id' || n === '_id';
+    if (Node.isClassDeclaration(d)) {
+      const state = [
+        ...d.getProperties().filter((p) => !p.isStatic()).map((p) => p.getName()),
+        ...d.getGetAccessors().filter((g) => !g.isStatic()).map((g) => g.getName()),
+        ...d.getConstructors().flatMap((k) => k.getParameters().filter((q) => q.isParameterProperty()).map((q) => q.getName())),
+      ];
+      return state.every(isIdName);
+    }
+    if (Node.isInterfaceDeclaration(d)) return d.getProperties().every((p) => isIdName(p.getName())) && d.getBaseDeclarations().length === 0;
     return false;
   };
 
@@ -286,7 +312,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
         for (const m of o.getMethods()) for (const t of paramTypesOf(m)) {
           const ds = new Set<Node>(); typeDecls(t, ds);
           for (const d of ds) {
-            if (!inTree(d) || rootDecls.has(d) || !hasIdentity(d)) continue;
+            if (!inTree(d) || rootDecls.has(d) || !hasIdentity(d) || isIdentifierType(d)) continue;
             const r = roleOfNode(d);
             if (r !== 'domain' && r !== 'shared-kernel') continue;
             const f = fileOf(d);
@@ -307,11 +333,60 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   };
   bump('roots', rootDecls.size);
 
-  /** A sink: a storage-owner method with a root-typed parameter, or an external-module call with a root argument. */
+  /**
+   * Precision revision R1 (ops/notes/detect-02-precision-note.md §5): the roots an owner *stores*, i.e. loads by
+   * identity (some method of it or of an interface it extends returns a single root: `T`, `T | undefined`,
+   * `Promise<T | null>`, not a collection). `null` = an owner a spec `repositories` glob declares that loads no root
+   * (a declared write-only repository: every root it takes counts, as before R1).
+   */
+  const storedCache = new Map<Node, Set<string> | null>();
+  const storedRoots = (o: ClassDeclaration | InterfaceDeclaration): Set<string> | null => {
+    if (storedCache.has(o)) return storedCache.get(o)!;
+    const out = new Set<string>();
+    const visit = (x: ClassDeclaration | InterfaceDeclaration, seen: Set<Node>): void => {
+      if (seen.has(x)) return; seen.add(x);
+      for (const m of x.getMethods()) {
+        let t = m.getReturnType();
+        if (t.getSymbol()?.getName() === 'Promise') t = t.getTypeArguments()[0] ?? t;
+        // R3: a tuple return (`[Meeting, number]`: the root and its version) is a single load of each element.
+        const parts = (t.isUnion() ? t.getUnionTypes() : [t]).flatMap((p) => (p.isTuple() ? p.getTupleElements() : [p]));
+        for (const p of parts) if (!isCollection(p)) for (const r of rootsIn(p)) out.add(r.name);
+      }
+      const bases: Node[] = Node.isInterfaceDeclaration(x) ? x.getBaseDeclarations() : [...(x.getBaseClass() ? [x.getBaseClass()!] : []), ...(implementedInterfaces.get(x as ClassDeclaration) ?? [])];
+      for (const b of bases) if (Node.isInterfaceDeclaration(b) || Node.isClassDeclaration(b)) visit(b, seen);
+    };
+    visit(o, new Set());
+    const res = out.size === 0 && spec.repositories.length > 0 && globMatch(spec.repositories, fileOf(o)) ? null : out;
+    storedCache.set(o, res);
+    return res;
+  };
+  /**
+   * The roots of a type that this sink declaration writes (R1): the roots its owner stores; and, when the method
+   * returns nothing (a write method of a store of some root, e.g. `saveAudited(booking, entries)`), every root it is
+   * handed. A method of an owner that stores no root (a question port, an append-only log, a finder) writes none.
+   */
+  const writtenRoots = (d: Node, t: Type): RootInfo[] => {
+    const rs = rootsIn(t);
+    if (!(Node.isMethodSignature(d) || Node.isMethodDeclaration(d))) return rs;
+    const o = memberOwner(d);
+    if (!o || !inTree(o)) return rs;
+    const s = storedRoots(o);
+    let ret = d.getReturnType();
+    if (ret.getSymbol()?.getName() === 'Promise') ret = ret.getTypeArguments()[0] ?? ret;
+    const returnsNothing = ret.isVoid() || ret.isUndefined();
+    // R3: on a declared repository that loads no root, only its write methods (returning nothing) write; a finder or
+    // an existence check (`exists(postId): boolean`) does not.
+    if (s === null) return returnsNothing ? rs : [];
+    const writeMethod = s.size > 0 && returnsNothing;
+    return writeMethod ? rs : rs.filter((r) => s.has(r.name));
+  };
+  /** A sink: a storage-owner method with a parameter typed by a root it stores, or an external-module call with a root argument. */
   const isSink = (d: Node, call: CallExpression | NewExpression): boolean => {
     if (Node.isMethodSignature(d) || Node.isMethodDeclaration(d)) {
       const o = memberOwner(d);
-      if (o && inTree(o) && !rootDecls.has(o) && storageOwner(o) && paramTypesOf(d).some((t) => rootsIn(t).length > 0)) return true;
+      // R2: a static method of an in-tree class (a mapper, a factory) holds no storage and is never a sink.
+      if (o && inTree(o) && Node.isMethodDeclaration(d) && d.isStatic()) return false;
+      if (o && inTree(o) && !rootDecls.has(o) && storageOwner(o) && paramTypesOf(d).some((t) => writtenRoots(d, t).length > 0)) return true;
     }
     if (externalModuleOf(d) !== null) return call.getArguments().some((a) => rootsIn(a.getType()).length > 0);
     return false;
@@ -399,12 +474,12 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
           const sinkName = `${memberOwner(d)?.getName() ?? externalModuleOf(d) ?? '?'}.${(d as unknown as { getName?: () => string }).getName?.() ?? '?'}`;
           const loop = iterated(n, u.node);
           for (const a of args) {
-            const roots = rootsIn(a.getType());
+            const roots = writtenRoots(d, a.getType());
             if (roots.length === 0) continue;
             const base = { file: u.file, line: n.getStartLineNumber(), sink: sinkName, sinkSite: inTree(d) ? `${fileOf(d)}:${d.getStartLineNumber()}` : externalModuleOf(d) ?? '?', via: [...via, u.name], inScope: insideScope(n, u.node) };
             if (Node.isArrayLiteralExpression(a)) {
               for (const el of a.getElements()) {
-                const rs = rootsIn(el.getType());
+                const rs = writtenRoots(d, el.getType());
                 const r = rs[0] ?? roots[0]!;
                 if (Node.isSpreadElement(el)) out.push({ ...base, root: r.name, instance: `${instanceKey(u, el.getExpression(), bind)}[*]`, many: true });
                 else out.push({ ...base, root: r.name, instance: instanceKey(u, el, bind), many: loop });
