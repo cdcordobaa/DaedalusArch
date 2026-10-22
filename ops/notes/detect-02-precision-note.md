@@ -60,4 +60,46 @@ the dev set is re-run to show the 19/19 trap trees and the 0 dev false positives
 
 ## 5. Revisions
 
-(none yet)
+### R1, 2026-10-22: a write goes to the store of the root (sink taxonomy by structure)
+
+**Seen on the fixtures (before R1, `results/precision-before.json`):** 4 false-positive runs of 20 legit runs, all
+R-D4 and all predicted in §2: P3 fallback (the `AuditEntry` record counted as an aggregate), P9 declared and
+fallback (the ACL question `CreditCheck.assess(customer, amount)` counted as a write of the Customer), and P10
+fallback (finders that take the shared-kernel `CustomerRef` counted as writes of it). All 12 positive-twin runs were
+flagged.
+
+**Cause.** A sink was any storage-owner method with a root-typed parameter. A port that only *takes* a root (to ask a
+question, to append a record that mentions it, or to find by a reference) was a write of that root.
+
+**Change (`lib/facts.ts`).** A call writes root `T` only when its owner is a **store of `T`**: the owner (or an
+interface it extends) has a method that returns a single `T` (`T`, `T | undefined`, `Promise<T | null>`; not a
+collection), that is, it loads `T` by identity as a repository does. An owner that a spec `repositories` glob
+declares and that loads no root keeps its old meaning (a declared, write-only repository). External-module calls with
+a root argument (ORM and SDK writes) are unchanged. The test is by type and structure, never by name. Root inference
+(fallback) is unchanged, so `AuditEntry` and `CustomerRef` are still listed as inferred roots; they are no longer
+written by anything.
+
+**Amendment R1b (same day, before any human-repository or held-out run).** The first form of R1 dropped one dev
+case: HEXDDD-01 case 2 (`saveAudited(booking, entries)`, the Booking repository writing identity-bearing audit entries
+in the same call), on 3 pilot step trees and its DETECT-01 positive fixture. The hand read labels that case D4 when
+the audit record is its own aggregate. So a second structural prong is added: a method that **returns nothing** on an
+owner that stores some root (a write method of a repository) writes every root it is handed. A question port
+(returns a decision), an append-only log (stores no single root) and a finder (returns a collection) still write
+nothing. This keeps P3 legitimate (a separate audit port) and case 2 a violation (the aggregate's repository
+persisting a second identity-bearing record). Whether an audit record is an aggregate stays a declaration question:
+with a declared spec it is not a root unless declared.
+
+**Check.** The fixtures and the dev set are re-run after R1 (results below, §6).
+
+## 6. Results after R1 (dev material; written before the human-repository pass)
+
+- **Fixtures** (`experiments/detect-02/results/precision.json`): 0 false-positive runs of 20 legit runs (10 patterns
+  × declared/fallback); the declared batch reported `allowed` in both conditions; 12/12 positive-twin runs flagged by
+  the expected rule (R-D4; P8 also R-XCTX). Before R1 the same fixtures gave 4 false-positive runs
+  (`results/precision-before.json`), each one predicted in §2.
+- **Dev set** (`results/dev.json`, 91 trees): identical to before R1, tree by tree. D4 33/0/0, D5 11/0/5, D9 3/0/0,
+  H5 4/0/0 (TP/FP/FN); 54 of 62 labelled cases hit, as before. R1 only removes sinks, so it cannot add a finding on
+  any guard set (the 520 Layered trees were not re-run).
+- **Observed, not changed (recall, not precision):** a loop that saves a newly created root per element of a
+  non-root collection (`for (const row of rows) save(Customer.register(row))`) is counted as one instance, because the
+  loop is not over a root collection. P6 uses the `saveAll(rows.map(…))` form, which is counted as many.

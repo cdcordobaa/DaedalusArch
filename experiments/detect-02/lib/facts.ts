@@ -307,11 +307,54 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   };
   bump('roots', rootDecls.size);
 
-  /** A sink: a storage-owner method with a root-typed parameter, or an external-module call with a root argument. */
+  /**
+   * Precision revision R1 (ops/notes/detect-02-precision-note.md §5): the roots an owner *stores*, i.e. loads by
+   * identity (some method of it or of an interface it extends returns a single root: `T`, `T | undefined`,
+   * `Promise<T | null>`, not a collection). `null` = an owner a spec `repositories` glob declares that loads no root
+   * (a declared write-only repository: every root it takes counts, as before R1).
+   */
+  const storedCache = new Map<Node, Set<string> | null>();
+  const storedRoots = (o: ClassDeclaration | InterfaceDeclaration): Set<string> | null => {
+    if (storedCache.has(o)) return storedCache.get(o)!;
+    const out = new Set<string>();
+    const visit = (x: ClassDeclaration | InterfaceDeclaration, seen: Set<Node>): void => {
+      if (seen.has(x)) return; seen.add(x);
+      for (const m of x.getMethods()) {
+        let t = m.getReturnType();
+        if (t.getSymbol()?.getName() === 'Promise') t = t.getTypeArguments()[0] ?? t;
+        const parts = t.isUnion() ? t.getUnionTypes() : [t];
+        for (const p of parts) if (!isCollection(p)) for (const r of rootsIn(p)) out.add(r.name);
+      }
+      const bases: Node[] = Node.isInterfaceDeclaration(x) ? x.getBaseDeclarations() : [...(x.getBaseClass() ? [x.getBaseClass()!] : []), ...(implementedInterfaces.get(x as ClassDeclaration) ?? [])];
+      for (const b of bases) if (Node.isInterfaceDeclaration(b) || Node.isClassDeclaration(b)) visit(b, seen);
+    };
+    visit(o, new Set());
+    const res = out.size === 0 && spec.repositories.length > 0 && globMatch(spec.repositories, fileOf(o)) ? null : out;
+    storedCache.set(o, res);
+    return res;
+  };
+  /**
+   * The roots of a type that this sink declaration writes (R1): the roots its owner stores; and, when the method
+   * returns nothing (a write method of a store of some root, e.g. `saveAudited(booking, entries)`), every root it is
+   * handed. A method of an owner that stores no root (a question port, an append-only log, a finder) writes none.
+   */
+  const writtenRoots = (d: Node, t: Type): RootInfo[] => {
+    const rs = rootsIn(t);
+    if (!(Node.isMethodSignature(d) || Node.isMethodDeclaration(d))) return rs;
+    const o = memberOwner(d);
+    if (!o || !inTree(o)) return rs;
+    const s = storedRoots(o);
+    if (s === null) return rs;
+    let ret = d.getReturnType();
+    if (ret.getSymbol()?.getName() === 'Promise') ret = ret.getTypeArguments()[0] ?? ret;
+    const writeMethod = s.size > 0 && (ret.isVoid() || ret.isUndefined());
+    return writeMethod ? rs : rs.filter((r) => s.has(r.name));
+  };
+  /** A sink: a storage-owner method with a parameter typed by a root it stores, or an external-module call with a root argument. */
   const isSink = (d: Node, call: CallExpression | NewExpression): boolean => {
     if (Node.isMethodSignature(d) || Node.isMethodDeclaration(d)) {
       const o = memberOwner(d);
-      if (o && inTree(o) && !rootDecls.has(o) && storageOwner(o) && paramTypesOf(d).some((t) => rootsIn(t).length > 0)) return true;
+      if (o && inTree(o) && !rootDecls.has(o) && storageOwner(o) && paramTypesOf(d).some((t) => writtenRoots(d, t).length > 0)) return true;
     }
     if (externalModuleOf(d) !== null) return call.getArguments().some((a) => rootsIn(a.getType()).length > 0);
     return false;
@@ -399,12 +442,12 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
           const sinkName = `${memberOwner(d)?.getName() ?? externalModuleOf(d) ?? '?'}.${(d as unknown as { getName?: () => string }).getName?.() ?? '?'}`;
           const loop = iterated(n, u.node);
           for (const a of args) {
-            const roots = rootsIn(a.getType());
+            const roots = writtenRoots(d, a.getType());
             if (roots.length === 0) continue;
             const base = { file: u.file, line: n.getStartLineNumber(), sink: sinkName, sinkSite: inTree(d) ? `${fileOf(d)}:${d.getStartLineNumber()}` : externalModuleOf(d) ?? '?', via: [...via, u.name], inScope: insideScope(n, u.node) };
             if (Node.isArrayLiteralExpression(a)) {
               for (const el of a.getElements()) {
-                const rs = rootsIn(el.getType());
+                const rs = writtenRoots(d, el.getType());
                 const r = rs[0] ?? roots[0]!;
                 if (Node.isSpreadElement(el)) out.push({ ...base, root: r.name, instance: `${instanceKey(u, el.getExpression(), bind)}[*]`, many: true });
                 else out.push({ ...base, root: r.name, instance: instanceKey(u, el, bind), many: loop });
