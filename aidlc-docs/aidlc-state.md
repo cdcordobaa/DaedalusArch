@@ -147,6 +147,8 @@
 - [x] Workspace Detection — brownfield; reverse-engineering artifacts exist and are not refreshed; resumes from the v1.4 cycle (Study 2b closed at v1.4)
 - [x] Requirements Analysis — COMPLETE: `inception/v1.5/requirements.md` (14 FR, 5 NFR); questions answered with the recommended options under the author's standing delegation
 - [x] Workflow Planning — COMPLETE: `inception/v1.5/workflow-plan.md` (User Stories, NFR and Infrastructure stages SKIP; 7 units, semantic first)
-- [ ] Application Design (expected: EXECUTE, new components)
-- [ ] Units Generation (expected: EXECUTE)
+- [x] Application Design — COMPLETE (minimal): `inception/v1.5/application-design.md` (S1–S5, the edit gate, the spec-inference pipeline and the three-arm harness; contracts with C1d, C4, the MCP server and the fitness compiler); approved under the author's standing delegation for gate-level calls
+- [x] Units Generation — COMPLETE: `inception/v1.5/unit-of-work.md` (7 units U3, U4, U6, U1, U2, U5, U7, each with its FRs, inputs, outputs, own test and gate; dependencies; FR coverage); approved under the same delegation
+- [ ] CONSTRUCTION — U3 (S1 severity calibration) next: thinking note `ops/notes/v15-u3-severity-note.md` before any call; cap 60
 - Extension: Security Baseline — Enabled (carried over from v1.2; re-confirmed, question 7)
+- **Current Stage** (updated 2026-10-22T06:05Z): INCEPTION complete; CONSTRUCTION starts with U3 (S1 severity calibration). Every unit runs on development material under `experiments/` until it passes its own test; no sealed or held-out set; the v1.4 tag and the registered 2b artefacts unchanged.

@@ -2984,3 +2984,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 INCEPTION, Workflow Planning approved under delegation
 
 ---
+
+## v1.5 — Application Design (complete, minimal)
+**Timestamp**: 2026-10-22T06:05:00Z
+**User Input**: "Asked for the v1.5 Application Design at minimal depth and the Units Generation, with zero model calls, following the AI-DLC rule files."
+**AI Response**: "Wrote aidlc-docs/inception/v1.5/application-design.md: one page on the new components (S1 severity rubric, S2 candidate confirmer, S3 aggregate and ownership facts, S4 spec-inference pipeline, S5 grounded fix hint, the edit gate, the three-arm harness) and their contracts with C1d (A2 facts), C4 (A5, frozen schema and grounding), the MCP server and the fitness compiler; data flow with a text alternative; cross-cutting NFR rules. No design question was open (scope settled in requirements-questions.md), so no [Answer] plan was issued; the companion files are folded into the page, as in v1.4. Approved under the author's standing delegation for gate-level calls."
+**Context**: v1.5 INCEPTION, Application Design approved under delegation
+
+---
+
+## v1.5 — Units Generation (complete)
+**Timestamp**: 2026-10-22T06:05:30Z
+**User Input**: "(standing delegation)"
+**AI Response**: "Wrote aidlc-docs/inception/v1.5/unit-of-work.md: the seven units of workflow-plan.md (U3, U4, U6, U1, U2, U5, U7), each with its FRs, inputs, outputs, its own test from ops/04-north-star.md, its gate and its call estimate; dependency table and ASCII graph with a text alternative; FR coverage (every FR in one unit). Updated aidlc-state.md: Application Design and Units Generation complete; CONSTRUCTION starts with U3. Approved under the author's standing delegation for gate-level calls."
+**Context**: v1.5 INCEPTION, Units Generation approved under delegation
+
+---
