@@ -142,3 +142,11 @@
   - [ ] U13 shared step-1 start (STAGE-B-BUILD) — PR open, not merged (`construction/v1.4/U13/plan.md`)
 - **Study plan (2026-10-19):** an exploratory study runs first (`Docs/v1.4/exploratory-study-registration.md`); the drift record stays the confirmatory Study 2 protocol (`Docs/v1.4/study2-deviation-2026-10-19-drift.md`). No study run is approved.
 - **Waiting on the author:** the signing sheet, ADR-V14-04 (V4), deviations X-1 and SO3-a, the F3 rewording, the exploratory study's counts.
+
+### v1.5 SEMANTIC-INSTRUMENT CYCLE (started 2026-10-22T05:25Z) — semantic layer, agent-violation detection, delivery, spec inference
+- [x] Workspace Detection — brownfield; reverse-engineering artifacts exist and are not refreshed; resumes from the v1.4 cycle (Study 2b closed at v1.4)
+- [ ] Requirements Analysis — IN PROGRESS: draft `inception/v1.5/requirements.md` (14 FR, 5 NFR); questions `inception/v1.5/requirements-questions.md` await the author
+- [ ] Workflow Planning
+- [ ] Application Design (expected: EXECUTE, new components)
+- [ ] Units Generation (expected: EXECUTE)
+- Extension: Security Baseline — Enabled carried over from v1.2; re-confirmed in question 7

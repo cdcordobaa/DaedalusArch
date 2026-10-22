@@ -2939,3 +2939,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Study 2b registered secondary; semantic layer precondition
 
 ---
+
+## v1.5 — Workspace Detection
+**Timestamp**: 2026-10-22T05:25:00Z
+**User Input**: "Asked that the v1.5 work (semantic layer, detection of the violations agents commit, delivery, spec inference) be tracked through AI-DLC."
+**AI Response**: "Started the v1.5 cycle. Workspace: brownfield, reverse-engineering artifacts exist (not refreshed); state file resumed; Security Baseline extension enabled since v1.2. Proceeding to Requirements Analysis."
+**Context**: v1.5 INCEPTION, Workspace Detection
+
+---
+
+## v1.5 — Requirements Analysis (questions issued)
+**Timestamp**: 2026-10-22T05:26:00Z
+**User Input**: "Agreed that v1.5 should centre on the semantic layer; agreed to the semantic programme (S1–S5 and the three-arm comparison on development material, no sealed sets until the instrument works)."
+**AI Response**: "Wrote ops/notes/v15-semantic-programme.md, the draft aidlc-docs/inception/v1.5/requirements.md (standard depth: 14 FR, 5 NFR) and aidlc-docs/inception/v1.5/requirements-questions.md (7 questions: order, code location, vendor, spec-inference scope, delivery default, final-study design scope, security extension). Awaiting the author's answers before approval."
+**Context**: v1.5 INCEPTION, Requirements Analysis
+
+---
