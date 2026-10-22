@@ -2955,3 +2955,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: V15-PLAN first three steps (steps 2 and 3); zero model calls; nothing run or built; not part of Study 2b
 
 ---
+
+## COMPREHEND-01 — architecture-comprehension benchmark and graph tools (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T05:52:20Z
+**User Input**: "(coordinator brief) Build an architecture-comprehension benchmark (files-only against files plus graph tools) and four symbolic graph tools in the experimental MCP server, with a question bank whose answers are written and hand-checked first; dry-run the plumbing with a scripted fake model; write the design note first; zero model calls; the pilot runs later, after the author reads the design note."
+**AI Response**: "Started. Classified as an exploratory development task under the coordinator's explicit step list (design note first and committed, then tools, question bank, dry run, report, PR). Scope fence: new material only under experiments/comprehend-01/ and additions under experiments/detect-02/mcp/; nothing under src/, presets/, scripts/lib/, scripts/v1.3/, the v1.4 tag or any registered Study 2b artefact. aidlc-docs/inception/v1.5/ does not exist on main; the v1.5 plan is read from ops/notes/v15-plan.md."
+**Context**: Exploratory COMPREHEND-01, start; development material only, never applied to Study 2b
+
+---
