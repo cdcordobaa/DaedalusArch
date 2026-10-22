@@ -150,7 +150,23 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - **Evasion items 4 and 5:** not flagged.
 - Results report §7; addendum 4. The C4 severity calibration goes to the v1.5 semantic track (`ops/notes/v15-plan.md` §2).
 
-### 10. v1.5 U3: the C4 severity rubric (2026-10-22)
+### 10. COMPREHEND-01 built, not run (2026-10-22)
+**Question:** does the property graph help agents understand an architecture: more accurately, more cheaply, or both?
+Design: `ops/notes/comprehend-01-design.md` (DRAFT, committed first). Build report:
+`Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md`. Zero model calls.
+- **Tools:** four symbolic graph tools (`context_map`, `who_writes`, `trace`, `impact`) in a separate experimental
+  server (`experiments/detect-02/mcp/`), 15 tests. The first call builds the index in 0.1–1.9 s (ddd-forum, 250 files,
+  is the slowest); warm calls take ≤ 9 ms.
+- **Bank:** 30 questions over P1, P2 and P4, four precision fixtures and three human DDD repositories with declared
+  specs. Keys were hand-checked and committed before any tool ran.
+- **Cross-check:** the tools answer 16/16 G items correctly after one display fix (T1), and 0/3 of the Gw items, as
+  predicted. All three misses are coverage gaps: a mapped-type parameter, an untyped result from an uninstalled
+  package, and an ORM hook with a callback registry.
+- **Dry run:** a scripted fake model ran both arms. The plan, re-run, cap, confinement, scoring and ledger all behave
+  as scripted (63 fake spawns, 0 calls).
+- **Next:** the author reads the design note and approves or changes the pilot (62 sessions, cap 66).
+
+### 11. v1.5 U3: the C4 severity rubric (2026-10-22)
 - **Why:** every v1.4 six-case miss was the severity field. The frozen prompt asks C4 only to "rank the work", so it ranked by the size of the fix, while the manifests meant how far the code departs from declared intent (`ops/notes/v15-u3-severity-note.md`).
 - **What:** a rubric as a prompt variant (`experiments/v15-u3/`, `c4-v0.2+u3-r1`: grant → low; declared rule broken → high; otherwise by what the dependency does). It was run on the six-case set plus six new pairs whose answers were written first, with `claude-sonnet-5-5`, 2 runs each.
 - **Result:** 24/24 targets correct in both runs, on both sets. Severity, exception and intent were all stable; 0 false claims and 0 hallucinated citations. A 4-call control with the frozen prompt reproduces case 5's severity miss and shows an intent-label slip ("consistent" read as "the rule matches the docs") that the rubric removes. 52 of 60 calls (`Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md`).
@@ -163,9 +179,11 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 - [ ] Fix the S1 seed `.gitignore` gap on `pilot/hexddd-01`; update the case-bank cards with the entry 6 verdicts.
 - [ ] Author: approve or change the PUZZLE-01 pilot (40 sessions, cap 44).
 - [ ] After the 2b scoring: decide which prototype detections to promote, as a versioned instrument change, and approve a puzzle pilot budget.
+- [ ] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10).
 
 ## Changelog
-- 2026-10-22: entry 10 (v1.5 U3 severity rubric).
+- 2026-10-22: entry 11 (v1.5 U3 severity rubric).
+- 2026-10-22: entry 10 (COMPREHEND-01 built, not run).
 - 2026-10-22: entries 8 (puzzle baseline, DETECT-02 tool, precision) and 9 (Study 2b closed).
 - 2026-10-21: the sources this thread cites (HEXDDD-01, DETECT-01 and PUZZLE-01 literature, plus the search-session list) are consolidated in `Docs/sources/sources-ledger.md` (keys in `Docs/sources/sources.bib`).
 - 2026-10-21: entry 7 (DETECT-01 and PUZZLE-01 results).

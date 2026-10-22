@@ -3009,12 +3009,28 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Part A: results/v1.4-puzzle-01-baseline/hand-read.md: 11 trap, 1 over-rejection (c07, P2-SG2-a), 0 unclear, file:line each; spot-check picks c07 P2 SG2 and c10 P1 SG2 (recorded seeds equal the committed seeds); counts after the hand read P1 0/5, P2 1/5 (provisional), P4 5/5; a dated section appended to the baseline report. Part B: experiments/puzzle-03/: P3r rebuilt (clean CarrierRates.ts written anew; the rest byte-exact; oracle extended), P5 p5-ferry-seats (runtime stack oracle), P6 p6-workshop-jobs (planted controller-to-gateway skip; FF-S03 sees the trap). Gaming fixtures: P3r renamed vendor shape (passes the PUZZLE-01 oracle), P5 synchronous fake event and batch unit of work, P6 re-exported gateways; one P5 alternative clean design. tools/verify.ts: all three VALID, every trap shorter than its clean line, hint audits 0 FAIL. Nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, the freeze tag or any Study 2b artefact changed."
 **Context**: PUZZLE-03 (exploratory, DEV split); Parts A and B; zero model or generator calls
 
+## COMPREHEND-01 — architecture-comprehension benchmark and graph tools (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T05:52:20Z
+**User Input**: "(coordinator brief) Build an architecture-comprehension benchmark (files-only against files plus graph tools) and four symbolic graph tools in the experimental MCP server, with a question bank whose answers are written and hand-checked first; dry-run the plumbing with a scripted fake model; write the design note first; zero model calls; the pilot runs later, after the author reads the design note."
+**AI Response**: "Started. Classified as an exploratory development task under the coordinator's explicit step list (design note first and committed, then tools, question bank, dry run, report, PR). Scope fence: new material only under experiments/comprehend-01/ and additions under experiments/detect-02/mcp/; nothing under src/, presets/, scripts/lib/, scripts/v1.3/, the v1.4 tag or any registered Study 2b artefact. aidlc-docs/inception/v1.5/ does not exist on main; the v1.5 plan is read from ops/notes/v15-plan.md."
+**Context**: Exploratory COMPREHEND-01, start; development material only, never applied to Study 2b
+
+---
+
+## COMPREHEND-01 — built and dry-run, pilot not run (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-22T06:16:14Z
+**User Input**: "(same coordinator brief) Build the four graph tools, the question bank with answers written first, a dry run with a scripted fake model, the build report and a research-log entry; open a PR and merge it once Build & Test is green."
+**AI Response**: "Design note committed first (58242c7a). Added context_map, who_writes, trace and impact (experiments/detect-02/mcp/comprehend/, a separate daedalus-graph server; 15 tests; first call 0.1-1.9 s, warm calls under 10 ms). Bank of 30 items over P1, P2, P4, four precision fixtures and lucashang-ddd-payday, meetinger and ddd-forum, keys hand-checked and committed (07ce2918) before the graph cross-check: G 16/16 after one display revision (T1), Gw 0/3 as predicted. Runner with a scripted fake model and 11 tests: 63 fake spawns, 0 model calls. Report Docs/DiagnosticRuns/comprehend-01-build-2026-10-23.md; research-log entry 10. Nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, the v1.4 tag or any registered Study 2b artefact changed."
+**Context**: Exploratory COMPREHEND-01, build complete; the pilot waits for the author's reading of the design note
+
+---
+
 ---
 
 ## v1.5 — CONSTRUCTION, U3 (S1 severity calibration)
 **Timestamp**: 2026-10-22T06:45:00Z
 **User Input**: "Asked for U3: a thinking note first, the severity rubric as an exploratory prompt variant without editing src/, at least six new case/twin pairs with answers written first, a pilot with claude -p (claude-sonnet-5-5) on the six-case set plus the new pairs, two runs each, a hard cap of 60 calls with a ledger, recorded answers, and a report."
-**AI Response**: "Committed ops/notes/v15-u3-severity-note.md, the rubric variant (c4-v0.2+u3-r1) and six new pairs with hashed manifests (da0cfcc2) before the first call. Ran the target finding of each of 24 projects twice with the rubric (48 calls) and the frozen prompt on two v1.4 failures as a control (4 calls): 52 of 60, 0 invalid, replay byte-identical at 0 calls. Rubric arm: 24/24 targets correct on both sets, severity agreement 24/24 per set, 0 false claims on twins, 0 hallucinated citations, all fields stable. Control reproduced case 5's severity miss and showed an intent-label slip. No revision. Report Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md; research log entry 10. U3 gate passed on development material under the author's standing delegation for gate-level calls."
+**AI Response**: "Committed ops/notes/v15-u3-severity-note.md, the rubric variant (c4-v0.2+u3-r1) and six new pairs with hashed manifests (da0cfcc2) before the first call. Ran the target finding of each of 24 projects twice with the rubric (48 calls) and the frozen prompt on two v1.4 failures as a control (4 calls): 52 of 60, 0 invalid, replay byte-identical at 0 calls. Rubric arm: 24/24 targets correct on both sets, severity agreement 24/24 per set, 0 false claims on twins, 0 hallucinated citations, all fields stable. Control reproduced case 5's severity miss and showed an intent-label slip. No revision. Report Docs/DiagnosticRuns/v15-u3-severity-2026-10-23.md; research log entry 11. U3 gate passed on development material under the author's standing delegation for gate-level calls."
 **Context**: v1.5 CONSTRUCTION, U3 code generation and pilot; gate decision
 
 ---
