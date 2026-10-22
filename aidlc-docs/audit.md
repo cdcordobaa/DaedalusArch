@@ -2955,3 +2955,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: V15-PLAN first three steps (steps 2 and 3); zero model calls; nothing run or built; not part of Study 2b
 
 ---
+
+## V15-PLAN step 2 — edit gate built and smoke-tested (exploratory)
+**Timestamp**: 2026-10-22T06:08:00Z
+**User Input**: "Build the edit-gate arm from the design note (hook, relay, root-side checker, de-duplication, arm settings), unit-test it at zero calls, smoke-test it with at most 4 model calls, document it, and merge it through a normal PR. No puzzle session."
+**AI Response**: "Added experiments/edit-gate/: the PostToolUse/Stop hook relay (generator user), the root-side hub running DETECT-02 check_consistency with per-session de-duplication and work-tree refusal, the arm's --settings (the frozen argv with only the --settings value replaced; hooks on for this arm only, recorded as an exploratory difference), a driver (--dry, --smoke, --probe, --sessions), a sandbox setup script, unit tests and a scripted Messages API for zero-call CLI runs. Unit tests 12/12 and --dry passed at zero calls; the dry sweep found root's tsx cache readable and it is now closed. Smoke and probe passed with 2 of 4 calls (the probe re-scored at zero calls after one criterion was corrected, both scorings kept). Hook mechanism works on CLI 2.1.308; fallback not needed. Report Docs/DiagnosticRuns/edit-gate-build-2026-10-23.md; research-log entry 10. Nothing under src/, presets/, scripts/lib/ or scripts/v1.3/, the freeze tag or any Study 2b artefact changed."
+**Context**: V15-PLAN step 2 (edit gate); exploratory v1.5-exp; DEV split; not part of Study 2b
+
+---
