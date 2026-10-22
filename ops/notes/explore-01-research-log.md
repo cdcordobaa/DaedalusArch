@@ -32,7 +32,7 @@
   - In S1 the planted blocking finding disappeared at step 5.
 
 ### 3. Blind hand read of the pilot diffs (2026-10-21, commit `c18053641` on `pilot/hexddd-01`)
-- **Procedure:** the coordinator read the diffs and seeds only, and filled `results/pilot-hexddd-01/hand-read-log.csv` before `scores/` was opened. The author's spot-check of two rows is pending.
+- **Procedure:** the coordinator read the diffs and seeds only, and filled `results/v1.4-pilot-hexddd-01/hand-read-log.csv` before `scores/` was opened. The author's spot-check of two rows is pending.
 - **Findings:** 9 violations, none of them import-level.
   - **S1 (4, low or medium confidence):** D5, an in-process lock standing in for a consistency boundary; D4, booking and audit saved by one repository; D3, a revenue rule in an application service; H5, a locking mechanism on the port.
   - **S2 (5):** D4 twice, synchronous cross-aggregate writes without an outbox (medium); D5 twice, rules duplicated in a use case or with no value object; D9, a display view in a published contract.
@@ -88,7 +88,7 @@ The PUZZLE-01 run seeds the bank with cards for its 4 puzzles and for the 9 hand
 
 ### 6. Hand read against the instrument's scores (2026-10-21, commit `b9b0ba96` on `pilot/hexddd-01`)
 - **Spot-check:** the author checked two hand-read rows (S2 step 1 `RecordPayment`; S1 step 5 `withRoomLock` and the payment charge inside the transaction) and agreed with both.
-- **Comparison** (`results/pilot-hexddd-01/hand-read-vs-scores.md`, zero calls): of the 9 hand-read violations, the instrument caught 0, 2 were adjacent and 7 were missed.
+- **Comparison** (`results/v1.4-pilot-hexddd-01/hand-read-vs-scores.md`, zero calls): of the 9 hand-read violations, the instrument caught 0, 2 were adjacent and 7 were missed.
   - The 2 adjacent findings, FF-SO02 and FF-C03, sit on the same port or adapter but are not attributable to the change.
   - Debt status agrees in both runs: S1's planted debt was fixed, S2's persisted.
   - There were 2 false positives: the FF-CV03 "Repo" inside "Report" defect (N18).

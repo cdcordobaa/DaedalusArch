@@ -1,0 +1,353 @@
+# s2-orders-invoices step-05: tree after the step against the tree before it (13 files changed, 178 insertions(+), 7 deletions(-))
+diff --git a/src/billing/acl/OrderingInvoicedAcl.ts b/src/billing/acl/OrderingInvoicedAcl.ts
+new file mode 100644
+index 0000000..9529143
+--- /dev/null
++++ b/src/billing/acl/OrderingInvoicedAcl.ts
+@@ -0,0 +1,10 @@
++import type { OrderInvoicedCommand } from '../../ordering/index.js';
++import type { OrderInvoicedNotifier } from '../application/ports/OrderInvoiced.js';
++
++export class OrderingInvoicedAcl implements OrderInvoicedNotifier {
++  constructor(private readonly ordering: OrderInvoicedCommand) {}
++
++  orderInvoiced(orderId: string): Promise<void> {
++    return this.ordering.markInvoiced(orderId);
++  }
++}
+diff --git a/src/billing/application/IssueInvoice.ts b/src/billing/application/IssueInvoice.ts
+index cbafbf4..e07b9b2 100644
+--- a/src/billing/application/IssueInvoice.ts
++++ b/src/billing/application/IssueInvoice.ts
+@@ -3,11 +3,12 @@ import { Invoice } from '../domain/invoice/Invoice.js';
+ import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository.js';
+ import { InvoiceId } from '../domain/invoice/value-objects/InvoiceId.js';
+ import type { OrderSource } from './ports/OrderSource.js';
++import type { OrderInvoicedNotifier } from './ports/OrderInvoiced.js';
+ import type { Order } from '../../ordering/domain/order/Order.js';
+ 
+ /** Application service: coordinates; the invoice computes its own tax. */
+ export class IssueInvoice {
+-  constructor(private readonly orders: OrderSource, private readonly invoices: InvoiceRepository) {}
++  constructor(private readonly orders: OrderSource, private readonly invoices: InvoiceRepository, private readonly invoiced: OrderInvoicedNotifier) {}
+ 
+   async execute(invoiceId: string, orderId: string): Promise<void> {
+     const order = await this.orders.billableOrder(orderId);
+@@ -16,6 +17,7 @@ export class IssueInvoice {
+     invoice.charge(`order ${order.orderId}`, Money.of(order.amountCents, order.currency));
+     invoice.issue(Money.of(order.taxCents, order.currency));
+     await this.invoices.save(invoice);
++    await this.invoiced.orderInvoiced(order.orderId);
+   }
+ 
+   async executeFor(invoiceId: string, order: Order): Promise<void> {
+diff --git a/src/billing/application/ports/OrderInvoiced.ts b/src/billing/application/ports/OrderInvoiced.ts
+new file mode 100644
+index 0000000..2d89502
+--- /dev/null
++++ b/src/billing/application/ports/OrderInvoiced.ts
+@@ -0,0 +1,4 @@
++/** Port: billing tells the order side that an order has been invoiced. */
++export interface OrderInvoicedNotifier {
++  orderInvoiced(orderId: string): Promise<void>;
++}
+diff --git a/src/main.ts b/src/main.ts
+index f2b81b9..59cc2cb 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -2,6 +2,9 @@
+ import { PlaceOrder } from './ordering/application/PlaceOrder.js';
+ import { GetOrderSummary } from './ordering/application/GetOrderSummary.js';
+ import { MarkOrderPaid } from './ordering/application/MarkOrderPaid.js';
++import { MarkOrderInvoiced } from './ordering/application/MarkOrderInvoiced.js';
++import { DiscountOrderLine } from './ordering/application/DiscountOrderLine.js';
++import { OrderingInvoicedAcl } from './billing/acl/OrderingInvoicedAcl.js';
+ import { SetCreditLimit } from './ordering/application/SetCreditLimit.js';
+ import { SetTaxRate } from './ordering/application/SetTaxRate.js';
+ import { InMemoryTaxRates } from './ordering/infrastructure/InMemoryTaxRates.js';
+@@ -27,13 +30,13 @@ export function compose(): { orders: OrderController; invoices: InvoiceControlle
+   const invoiceRepo = new InMemoryInvoiceRepository();
+   const billingAcl = new BillingAcl(new UnpaidBalance(invoiceRepo));
+   const taxRates = new InMemoryTaxRates();
+-  const orders = new OrderController(new PlaceOrder(orderRepo, customerRepo, billingAcl, taxRates));
++  const orders = new OrderController(new PlaceOrder(orderRepo, customerRepo, billingAcl, taxRates), new DiscountOrderLine(orderRepo));
+   const customers = new CustomerController(new SetCreditLimit(customerRepo), new SetTaxRate(taxRates));
+   const acl = new OrderingAcl(new GetOrderSummary(orderRepo));
+   const paidAcl = new OrderingPaidAcl(new MarkOrderPaid(orderRepo));
+   const countAcl = new OrderingCountAcl(new GetOrderCounts(orderRepo));
+   const invoices = new InvoiceController(
+-    new IssueInvoice(acl, invoiceRepo),
++    new IssueInvoice(acl, invoiceRepo, new OrderingInvoicedAcl(new MarkOrderInvoiced(orderRepo))),
+     new RecordPayment(invoiceRepo, paidAcl),
+     new MonthlyRevenueReport(invoiceRepo, countAcl),
+   );
+diff --git a/src/ordering/api/OrderController.ts b/src/ordering/api/OrderController.ts
+index 12143f3..53b3bf2 100644
+--- a/src/ordering/api/OrderController.ts
++++ b/src/ordering/api/OrderController.ts
+@@ -1,11 +1,22 @@
+ import type { PlaceOrder, PlaceOrderCommand } from '../application/PlaceOrder.js';
++import type { DiscountOrderLine, DiscountOrderLineCommand } from '../application/DiscountOrderLine.js';
+ 
+ /** Inbound adapter: translates a request body into a command. */
+ export class OrderController {
+-  constructor(private readonly placeOrder: PlaceOrder) {}
++  constructor(private readonly placeOrder: PlaceOrder, private readonly discountOrderLine: DiscountOrderLine) {}
+ 
+   async post(body: PlaceOrderCommand): Promise<{ status: number }> {
+     await this.placeOrder.execute(body);
+     return { status: 201 };
+   }
++
++  /** POST /orders/:orderId/lines/:lineNo/discount */
++  async postDiscount(body: DiscountOrderLineCommand): Promise<{ status: number; body?: { error: string } }> {
++    try {
++      await this.discountOrderLine.execute(body);
++      return { status: 201 };
++    } catch (e) {
++      return { status: 400, body: { error: e instanceof Error ? e.message : String(e) } };
++    }
++  }
+ }
+diff --git a/src/ordering/application/DiscountOrderLine.ts b/src/ordering/application/DiscountOrderLine.ts
+new file mode 100644
+index 0000000..54fcc6e
+--- /dev/null
++++ b/src/ordering/application/DiscountOrderLine.ts
+@@ -0,0 +1,26 @@
++import type { OrderRepository } from '../domain/order/OrderRepository.js';
++import { OrderId } from '../domain/order/value-objects/OrderId.js';
++
++export interface DiscountOrderLineCommand {
++  readonly orderId: string;
++  readonly lineNo: number;
++  /** Exactly one of percent or amountCents. */
++  readonly percent?: number;
++  readonly amountCents?: number;
++  readonly reason: string;
++}
++
++/** Application service: loads, delegates to the aggregate, saves. */
++export class DiscountOrderLine {
++  constructor(private readonly orders: OrderRepository) {}
++
++  async execute(cmd: DiscountOrderLineCommand): Promise<void> {
++    const hasPercent = cmd.percent !== undefined;
++    const hasAmount = cmd.amountCents !== undefined;
++    if (hasPercent === hasAmount) throw new Error('Give either a percentage or a fixed amount');
++    const order = await this.orders.byId(new OrderId(cmd.orderId));
++    if (order === null) throw new Error('Unknown order');
++    order.discountLine(cmd.lineNo, hasPercent ? { percent: cmd.percent as number } : { amountCents: cmd.amountCents as number }, cmd.reason);
++    await this.orders.save(order);
++  }
++}
+diff --git a/src/ordering/application/GetOrderSummary.ts b/src/ordering/application/GetOrderSummary.ts
+index 352fc04..48cfd70 100644
+--- a/src/ordering/application/GetOrderSummary.ts
++++ b/src/ordering/application/GetOrderSummary.ts
+@@ -10,6 +10,6 @@ export class GetOrderSummary implements OrderSummaryQuery {
+     const order = await this.orders.byId(new OrderId(orderId));
+     if (order === null) return null;
+     const total = order.total();
+-    return { orderId, customerId: order.customerId.value, totalCents: total.cents, taxCents: order.tax().cents, currency: total.currency, lineCount: order.lineCount(), paid: order.isPaid() };
++    return { orderId, customerId: order.customerId.value, totalCents: total.cents, taxCents: order.tax().cents, currency: total.currency, lineCount: order.lineCount(), paid: order.isPaid(), lines: order.lineViews() };
+   }
+ }
+diff --git a/src/ordering/application/MarkOrderInvoiced.ts b/src/ordering/application/MarkOrderInvoiced.ts
+new file mode 100644
+index 0000000..10782bd
+--- /dev/null
++++ b/src/ordering/application/MarkOrderInvoiced.ts
+@@ -0,0 +1,14 @@
++import type { OrderInvoicedCommand } from '../contracts/OrderSummary.js';
++import type { OrderRepository } from '../domain/order/OrderRepository.js';
++import { OrderId } from '../domain/order/value-objects/OrderId.js';
++
++export class MarkOrderInvoiced implements OrderInvoicedCommand {
++  constructor(private readonly orders: OrderRepository) {}
++
++  async markInvoiced(orderId: string): Promise<void> {
++    const order = await this.orders.byId(new OrderId(orderId));
++    if (order === null) throw new Error('Unknown order');
++    order.markInvoiced();
++    await this.orders.save(order);
++  }
++}
+diff --git a/src/ordering/contracts/OrderSummary.ts b/src/ordering/contracts/OrderSummary.ts
+index 123fb3f..c36d783 100644
+--- a/src/ordering/contracts/OrderSummary.ts
++++ b/src/ordering/contracts/OrderSummary.ts
+@@ -9,6 +9,23 @@ export interface OrderSummary {
+   readonly currency: string;
+   readonly lineCount: number;
+   readonly paid: boolean;
++  readonly lines: readonly OrderLineSummary[];
++}
++
++export interface OrderLineSummary {
++  readonly lineNo: number;
++  readonly productId: string;
++  /** Before discount. */
++  readonly grossCents: number;
++  readonly discountCents: number;
++  readonly discountReason: string | null;
++  /** After discount, before tax. */
++  readonly subtotalCents: number;
++}
++
++/** Published command: billing tells ordering that an order has been invoiced. */
++export interface OrderInvoicedCommand {
++  markInvoiced(orderId: string): Promise<void>;
+ }
+ 
+ /** Published command: billing tells ordering that an order's invoice is fully paid. */
+diff --git a/src/ordering/domain/order/LineDiscount.ts b/src/ordering/domain/order/LineDiscount.ts
+new file mode 100644
+index 0000000..e0aab02
+--- /dev/null
++++ b/src/ordering/domain/order/LineDiscount.ts
+@@ -0,0 +1,26 @@
++import { Money } from '../../../shared-kernel/value-objects/Money.js';
++
++export const MAX_DISCOUNT_PERCENT = 30;
++
++/** Value object: a discount on one order line, with its reason and the amount it takes off. */
++export class LineDiscount {
++  private constructor(readonly amount: Money, readonly reason: string, readonly percent: number | null) {}
++
++  static percentOf(gross: Money, percent: number, reason: string): LineDiscount {
++    if (!Number.isFinite(percent) || percent <= 0 || percent > MAX_DISCOUNT_PERCENT) {
++      throw new Error(`A percentage discount must be above 0 and at most ${MAX_DISCOUNT_PERCENT}%`);
++    }
++    return new LineDiscount(gross.times(percent / 100), LineDiscount.cleanReason(reason), percent);
++  }
++
++  static fixed(amount: Money, reason: string): LineDiscount {
++    if (amount.cents <= 0) throw new Error('A fixed discount must be positive');
++    return new LineDiscount(amount, LineDiscount.cleanReason(reason), null);
++  }
++
++  private static cleanReason(reason: string): string {
++    const r = typeof reason === 'string' ? reason.trim() : '';
++    if (r === '') throw new Error('A discount needs a reason');
++    return r;
++  }
++}
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index 1810250..402ebd0 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -2,6 +2,7 @@ import type { DomainEvent } from '../../../shared-kernel/DomainEvent.js';
+ import { Money } from '../../../shared-kernel/value-objects/Money.js';
+ import { Quantity } from '../value-objects/Quantity.js';
+ import type { CustomerId } from '../customer/value-objects/CustomerId.js';
++import { LineDiscount } from './LineDiscount.js';
+ import { OrderLine } from './OrderLine.js';
+ import { OrderId } from './value-objects/OrderId.js';
+ import { OrderPlaced } from './events/OrderPlaced.js';
+@@ -11,6 +12,7 @@ export class Order {
+   private readonly lines: OrderLine[] = [];
+   private placed = false;
+   private paid = false;
++  private invoiced = false;
+   private placedOn: Date | null = null;
+   private readonly events: DomainEvent[] = [];
+ 
+@@ -40,6 +42,27 @@ export class Order {
+     this.paid = true;
+   }
+ 
++  /** Called when billing has issued an invoice for this order; from then on prices are frozen. */
++  markInvoiced(): void {
++    if (!this.placed) throw new Error('Only a placed order can be invoiced');
++    this.invoiced = true;
++  }
++
++  isInvoiced(): boolean {
++    return this.invoiced;
++  }
++
++  discountLine(lineNo: number, discount: { percent: number } | { amountCents: number }, reason: string): void {
++    if (this.invoiced) throw new Error('An invoiced order cannot be discounted');
++    const line = this.lines.find((l) => l.lineNo === lineNo);
++    if (!line) throw new Error(`Unknown order line ${lineNo}`);
++    if ('percent' in discount) line.applyDiscount(LineDiscount.percentOf(line.gross(), discount.percent, reason));
++    else {
++      if (!Number.isInteger(discount.amountCents)) throw new Error('A fixed discount must be a whole number of cents');
++      line.applyDiscount(LineDiscount.fixed(Money.of(discount.amountCents, this.currency), reason));
++    }
++  }
++
+   placedAt(): Date | null {
+     return this.placedOn;
+   }
+@@ -62,6 +85,18 @@ export class Order {
+     return this.net().add(this.tax());
+   }
+ 
++  /** Lines as shown to staff, including any discount. */
++  lineViews(): { lineNo: number; productId: string; grossCents: number; discountCents: number; discountReason: string | null; subtotalCents: number }[] {
++    return this.lines.map((l) => ({
++      lineNo: l.lineNo,
++      productId: l.productId,
++      grossCents: l.gross().cents,
++      discountCents: l.discountAmount().cents,
++      discountReason: l.discount()?.reason ?? null,
++      subtotalCents: l.subtotal().cents,
++    }));
++  }
++
+   lineCount(): number {
+     return this.lines.length;
+   }
+diff --git a/src/ordering/domain/order/OrderLine.ts b/src/ordering/domain/order/OrderLine.ts
+index 7a7109e..7efd89a 100644
+--- a/src/ordering/domain/order/OrderLine.ts
++++ b/src/ordering/domain/order/OrderLine.ts
+@@ -1,14 +1,37 @@
+ import { Money } from '../../../shared-kernel/value-objects/Money.js';
+ import { Quantity } from '../value-objects/Quantity.js';
++import { LineDiscount } from './LineDiscount.js';
+ 
+ /** Inner entity of the Order aggregate: reachable only through Order. */
+ export class OrderLine {
++  private discountValue: LineDiscount | null = null;
++
+   constructor(readonly lineNo: number, readonly productId: string, private quantity: Quantity, readonly unitPrice: Money) {}
+ 
+-  subtotal(): Money {
++  /** Price before any discount. */
++  gross(): Money {
+     return this.unitPrice.times(this.quantity.value);
+   }
+ 
++  /** Amount charged for the line: gross minus discount, never below zero. */
++  subtotal(): Money {
++    return this.gross().add(Money.of(-this.discountAmount().cents, this.unitPrice.currency));
++  }
++
++  discountAmount(): Money {
++    return this.discountValue?.amount ?? Money.of(0, this.unitPrice.currency);
++  }
++
++  discount(): LineDiscount | null {
++    return this.discountValue;
++  }
++
++  applyDiscount(discount: LineDiscount): void {
++    if (this.discountValue !== null) throw new Error(`Order line ${this.lineNo} already has a discount`);
++    if (discount.amount.cents > this.gross().cents) throw new Error('A discount must not take the line below zero');
++    this.discountValue = discount;
++  }
++
+   increase(by: Quantity): void {
+     this.quantity = this.quantity.plus(by);
+   }
+diff --git a/src/ordering/index.ts b/src/ordering/index.ts
+index e74328e..7180984 100644
+--- a/src/ordering/index.ts
++++ b/src/ordering/index.ts
+@@ -1,2 +1,2 @@
+ // Public API of the ordering context: the only files other contexts may import.
+-export type { OrderSummary, OrderSummaryQuery, OrderPaidCommand, OrderCount, OrderCountQuery } from './contracts/OrderSummary.js';
++export type { OrderSummary, OrderLineSummary, OrderSummaryQuery, OrderInvoicedCommand, OrderPaidCommand, OrderCount, OrderCountQuery } from './contracts/OrderSummary.js';
