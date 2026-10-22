@@ -1,0 +1,218 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/parking-permits/daedalus-mcp/run-9",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "parking-permits",
+    "arm": "daedalus-mcp",
+    "runIndex": 9
+  },
+  "stepIndex": 0,
+  "stepId": "zones-and-permits",
+  "startedAt": "2026-10-21T01:40:51.650Z",
+  "finishedAt": "2026-10-21T01:42:05.615Z",
+  "turns": [
+    {
+      "turnId": "step-01",
+      "kind": "step",
+      "promptSha256": "affed3d1f1f49b5996daeea8e8351d45bedf9a4418f10abe7c6e4310a87c0cef",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.21038880000000001,
+          "inputTokens": 12,
+          "outputTokens": 13691,
+          "cacheReadTokens": 52828,
+          "cacheCreationTokens": 17043,
+          "numTurns": 19,
+          "durationMs": 72220
+        },
+        "wallMs": 73168,
+        "attempts": [
+          {
+            "startedAt": "2026-10-21T01:40:51.650Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-l2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-l2/runs/claude-code-cli/claude-sonnet-5-5/parking-permits/none/run-9/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-01.json",
+        "permissionDenials": 3
+      },
+      "snapshot": {
+        "commit": "eeb1a86f6c8f07d3e1a98d24538a794e697d330d",
+        "sourceFiles": [
+          "business/coinwellClient.ts",
+          "business/errors.ts",
+          "business/permitService.ts",
+          "business/settingsService.ts",
+          "business/zoneService.ts",
+          "persistence/models.ts",
+          "persistence/permitRepository.ts",
+          "persistence/settingsRepository.ts",
+          "persistence/zoneRepository.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 12,
+        "loc": 303,
+        "diff": {
+          "added": 12,
+          "modified": 0,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.695,
+          "blockingAhs": 0.667,
+          "verdict": "fail",
+          "violationCount": 18,
+          "blockingViolationCount": 3,
+          "advisoryViolationCount": 15,
+          "blockingByRule": {
+            "FF-S03": 3
+          },
+          "advisoryByRule": {
+            "FF-C03": 3,
+            "FF-C06": 1,
+            "FF-CV05": 11
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-627ed0f252689fc4",
+              "filePath": "src/presentation/app.ts",
+              "line": 3,
+              "target": "src/persistence/permitRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/permitRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-5a160fa5e91c9ef3",
+              "filePath": "src/presentation/app.ts",
+              "line": 4,
+              "target": "src/persistence/settingsRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/settingsRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-5112d7b3c5f226c2",
+              "filePath": "src/presentation/app.ts",
+              "line": 2,
+              "target": "src/persistence/zoneRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/zoneRepository.ts (persistence)"
+            }
+          ],
+          "durationMs": 2,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 1,
+          "durationMs": 3,
+          "testFileSha256": "35447cb218b439b799125da3987c36302f6a00af83854cd593b7dca1f2aae9fb",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "33ac5aa911b9a4cdc3fce1dcca8d599a9bf90b2969f954ba27b2bb05af6d8b31",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 1,
+    "durationMs": 3,
+    "testFileSha256": "35447cb218b439b799125da3987c36302f6a00af83854cd593b7dca1f2aae9fb",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "33ac5aa911b9a4cdc3fce1dcca8d599a9bf90b2969f954ba27b2bb05af6d8b31",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "eeb1a86f6c8f07d3e1a98d24538a794e697d330d",
+  "cost": {
+    "costUsd": 0.21038880000000001,
+    "inputTokens": 12,
+    "outputTokens": 13691,
+    "wallMs": 73168
+  },
+  "inherited": {
+    "sourceRunId": "claude-code-cli/claude-sonnet-5-5/parking-permits/none/run-9",
+    "sourceSpec": {
+      "adapterId": "claude-code-cli",
+      "modelId": "claude-sonnet-5-5",
+      "taskId": "parking-permits",
+      "arm": "none",
+      "runIndex": 9
+    },
+    "sourceStepRecordSha256": "172027fa7d9d817191027efabcde8f134c62def77d295b3f81211611c4123c9a"
+  }
+}

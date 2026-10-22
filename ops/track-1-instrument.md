@@ -1,6 +1,6 @@
 # Track 1: the instrument (SO1, SO2, SO3)
 
-**As of 2026-10-18, main @ `612b3727`.** No new measurement. Every figure comes from the compendium (`Docs/v1.3/compendium/README.md`) or from a null or limit row (`Nxx`) in `Docs/v1.3/compendium/nulls-and-limits.md`. Two facts bound everything below: **the sealed hold-out has not been run**, and almost all evidence is **development material**, which the tool was tuned on. The exception is the set of 15 external human-written projects.
+**As of 2026-10-18, main @ `612b3727`.** No new measurement. Every figure comes from the compendium (`Docs/v1.3/compendium/README.md`) or from a null or limit row (`Nxx`) in `Docs/v1.3/compendium/nulls-and-limits.md`. *(Status update of 2026-10-21 at the end of this page; rows changed since 2026-10-18 are marked.)* Two facts bound everything below: **the sealed hold-out has not been run**, and almost all evidence is **development material**, which the tool was tuned on. The exception is the set of 15 external human-written projects.
 
 The track is read three ways:
 - **A**, per objective;
@@ -32,8 +32,8 @@ The same evidence shows up in more than one view. That is deliberate: a weak lin
 |---|---|---|
 | Five libraries (clean, layered, NestJS, hexagonal, DDD), with a priori tiers, hashed before any v1.3 measurement | exist, sealed (`rule-tiers.md`, `sealed-hashes.md`). Fixed after the Study 1 data | GREEN |
 | Rules trace to the literature | some rows verbatim, others paraphrased or only partly supported. A supplement adds the missing rows. **No independent expert review** | AMBER |
-| Construct questions (25) | proposed answers are written and adversarially reviewed (decision sheet, Notion). **Not yet confirmed by you** | RED until confirmed |
-| Known rule defects | DDD has no cycle rule, so a real 3-file cycle goes unreported (N17). FF-CV03 matches "Repo" inside "Report" (N18). G6 fires on every clean layered and NestJS variant (N14). FF-S03 double counts FF-S01 (N20) | AMBER |
+| Construct questions (25) | proposed answers are written and adversarially reviewed (decision sheet, Notion). **Not yet confirmed by you** → answered 2026-10-19 via the decision desk; ADR-V13-03 accepted under delegation (DELEG2); gate V1 GREEN (`Docs/v1.4/study2b-gate-verdict.md:25`) *(Updated 2026-10-21.)* | GREEN |
+| Known rule defects | DDD has no cycle rule, so a real 3-file cycle goes unreported (N17). FF-CV03 matches "Repo" inside "Report" (N18). G6 fires on every clean layered and NestJS variant (N14). FF-S03 double counts FF-S01 (N20). N17 is addressed by the declared post-seal rule ADR-V14-01 (FF-S02 in DDD, `Docs/v1.4/adr-v14.md`) *(Updated 2026-10-21.)* | AMBER |
 
 ### SO2: the architectural property graph and its tooling. Overall: **GREEN core, AMBER beyond imports**
 
@@ -54,10 +54,10 @@ The same evidence shows up in more than one view. That is deliberate: a weak lin
 | Rules miss what the judge catches (complementarity b) | 22/26 = 0.85, but **8/12 = 0.67** on the fair cut without the confounded DUP-RULE seeds (N91) | AMBER (dev) |
 | A model alone misses what rules catch (complementarity a) | weak and mixed. No experiment gives the same model the code with and without the graph | RED |
 | Combination beats either alone (complementarity c) | the 31/35 union is arithmetic only. The cost (10/55 twin false fails, N72) is ignored | RED |
-| Registered headline: judge vs cross-vendor panel | **n = 0** (N81) | RED |
+| Registered headline: judge vs cross-vendor panel | **n = 0** (N81). The judge is dropped from Study 2 (V7 waived, drift record §7); F3 now rests on C4 + C1d (D8) *(Updated 2026-10-21.)* | RED (superseded) |
 | Judge improvements | v2.1 is not better (N73). v2.2 was rejected by its own rule (N77). Three-run unanimity doesn't predict correctness (N82) | RED (null) |
 | Effect on verdicts | at its registered 8 % weight, the judge changed 0 of 65 E1 verdicts (N85) | RED (null) |
-| Neural semantic layer (Ontology v0) | **mock-only**. The deterministic proxies catch 0/3 planted ontology defects (N100) | RED |
+| Neural semantic layer (Ontology v0) | **mock-only**. The deterministic proxies catch 0/3 planted ontology defects (N100). → C1d and C4 built (PR #282); C1d 2-case pilot (`Docs/DiagnosticRuns/v1.4-c1d-pilot-2026-10-19.md`); both ran live once in the 2a semantic run, exploratory, without a key (`Docs/DiagnosticRuns/v1.4-exploratory-semantic-claude-2026-10-20.md`) *(Updated 2026-10-21.)* | AMBER (exploratory) |
 
 ---
 
@@ -71,8 +71,8 @@ The chain is code → graph → spec → rules → meaning, plus a neural link a
 | **2. Spec** | a human, or the inferrer, declares layers, contexts and the style | SO1 | spec-author κ ≥ 0.80 on 12 of 15 repos | κ 0.77, **4/15** (N01). Verdict κ 0.21 between two blind spec authors (N02). The style name alone gives κ 0.33 (N04). Mined specs fall to 24/52 plants (N07). Both spec authors were AI sessions | **RED for brownfield**. For greenfield Study 2 the spec is author-declared, so this matters less there |
 | **3. Rules** | Cypher fitness functions over the graph | SO1 + SO2 | blocking recall ≥ 0.90 per style; precision (correct) ≥ 0.90 | author view 54/54. **Blind view 50/64 = 0.78**, with four styles below 0.90 (N105). Correct: 2,669/2,669 (dev) and 283/283 (external). Mutation kill 33 % → 60 % (N134). Convergent κ 0.91–1.00, but low per rule for FF-C04 and FF-S02 (N130) | GREEN for correctness, AMBER for recall |
 | **4. Meaning** | is a correct finding architecturally meaningful? | (SO4 in the repo) | labeller κ ≥ 0.60; meaningful precision reported | **0 labels** (N114). Registered real-code precision in v1.2E was 0.328 (N115). 51 of 60 style-claiming human projects fail (N116), so either human code erodes or the rules are too strict, and we can't tell which yet | **RED** |
-| **5. Neural** | the LLM judge, and the semantic layer that adds edges | SO3 | catch ≥ 0.80; panel agreement | see SO3 above | **RED for the claim**, AMBER for the judge |
-| **6. Delivery** | MCP tools for the agent; the CI gate | (used by SO5) | `check_file`/`check_diff` match the full evaluation | without a project root, the fast path disagrees on 7/71 variants (N54). No blocking feedback at two loop-replay steps (N51). The lexical CI gate finds 50.9 % (N56); with Neo4j it is exact on 197/203 (N57) | AMBER |
+| **5. Neural** | the LLM judge, and the semantic layer that adds edges | SO3 | catch ≥ 0.80; panel agreement | see SO3 above. → The judge is replaced by C4 + C1d; the C4 pilot has not run against a seeded key *(Updated 2026-10-21.)* | **RED for the claim**, AMBER for the judge |
+| **6. Delivery** | MCP tools for the agent; the CI gate | (used by SO5) | `check_file`/`check_diff` match the full evaluation | without a project root, the fast path disagrees on 7/71 variants (N54). No blocking feedback at two loop-replay steps (N51). The lexical CI gate finds 50.9 % (N56); with Neo4j it is exact on 197/203 (N57). → The MCP server was the 2b treatment: tool use in 160/160 `mcp@L2` steps (`Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md` §3); V9 stays a registered limitation (DA1) *(Updated 2026-10-21.)* | AMBER; GREEN for Claude on Layered |
 
 **Reading the chain.** A chain is as strong as its weakest link. For **greenfield DDD and Layered**, which is your focus, the binding links are:
 - **Link 4 (meaning)**, because Y counts blocking edges, and nobody has said a blocking edge matters;
@@ -103,13 +103,23 @@ Ordered by what unblocks most. **Cost** is in model calls; "0" means zero model 
 
 | # | Objective | Move | Cost | Owner |
 |---|---|---|---|---|
-| 1 | SO1 | Confirm the construct answers on the decision sheet (`decisions.md` D1) | 0 | you |
-| 2 | SO3 | **Thinking note on Link 5:** each missed defect, the knowledge it needs, a framing, related work (IRIS, LLift), a pre-mortem. No runs | 0 | agent, then you read it |
-| 3 | Link 4 | Settle how meaning gets labelled without paying (`decisions.md` D3): a free classmate rater, developer-acknowledged ground truth, or both | 0 until labelling starts | you |
+| 1 | SO1 | Confirm the construct answers on the decision sheet (`decisions.md` D1). **Done** 2026-10-19 | 0 | you |
+| 2 | SO3 | **Done** (NS-01). **Thinking note on Link 5:** each missed defect, the knowledge it needs, a framing, related work (IRIS, LLift), a pre-mortem. No runs | 0 | agent, then you read it |
+| 3 | Link 4 | **Settled** 2026-10-18 (D3); MEAN-01 packet ready, 0 labels. Settle how meaning gets labelled without paying (`decisions.md` D3): a free classmate rater, developer-acknowledged ground truth, or both | 0 until labelling starts | you |
 | 4 | SO2 | Adjudicate the agent-proposed fidelity edge rows, or register Link 1 as "matched to tsc, not human-adjudicated" | your time, or 0 | you |
-| 5 | SO1 | DDD cycle rule (N17): the tiers are sealed, so either register it as a limit or add a declared post-seal rule. **Not a silent fix** | 0 | you decide, agent writes it |
-| 6 | SO3 | NS1–NS3, only after note #2: NS1 487 calls, NS2 415, NS3 about 312 (its six-case subset about 110) | about 800 + optional Gemini 330 | your OK per study |
-| 7 | Link 6 | Make the MCP fast path match the full evaluation for DDD and Layered (N51, N54), because Study 2 depends on it | 0 | agent |
+| 5 | SO1 | **Done** (ADR-V14-01). DDD cycle rule (N17): the tiers are sealed, so either register it as a limit or add a declared post-seal rule. **Not a silent fix** | 0 | you decide, agent writes it |
+| 6 | SO3 | **Cut** to future work (`ops/01-instrument-map.md` §8). NS1–NS3, only after note #2: NS1 487 calls, NS2 415, NS3 about 312 (its six-case subset about 110) | about 800 + optional Gemini 330 | your OK per study |
+| 7 | Link 6 | Partly done: S4 with MCP passed; the composition-root disagreement stays a limitation (DA1). Make the MCP fast path match the full evaluation for DDD and Layered (N51, N54), because Study 2 depends on it | 0 | agent |
+
+## Status update, 2026-10-21
+
+No new measurement; each line cites its source.
+- **Hold-out:** attempted three times on 2026-10-20. Attempts 1 and 2 stopped at the structure check; attempt 3 aborted at its first evaluate call, with 0 output files (`Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md`). It is not spent (DELEG-H4) and not scored; fallback F-RF gives Layered a development-set recall for 2b.
+- **C1d** ran live for the first time in the 2a semantic run (exploratory, Claude configuration, no key): it reached its cap of 700 calls with 7 snapshots complete, 1 truncated and 4 not run (`Docs/DiagnosticRuns/v1.4-exploratory-semantic-claude-2026-10-20.md:41`).
+- **C4** was built in PR #282 (BUILD-S, unit U9). In the same 2a run it interpreted the 17 blocking identities with 0 exception claims (`…-semantic-claude-2026-10-20.md:127`). Its pilot and six-case set have not run against a seeded key.
+- **Study 2b** is collected and scored once; the MCP tool and the richer spec both reduce D, scoped to FF-S03 (`Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md`). Engine parity on 2b snapshots: 30 of 30 identical (D8); per-snapshot coverage: 591 of 600 pass.
+- The current inventory of tracks and capabilities is `ops/06-open-tracks-and-capabilities.md`.
 
 ## Changelog
+- 2026-10-21: status update (hold-out attempts, C1d live in 2a, C4 built in PR #282, Study 2b scored); changed rows marked. Fixes conflict 8 of `06-open-tracks-and-capabilities.md`.
 - 2026-10-18: first version.

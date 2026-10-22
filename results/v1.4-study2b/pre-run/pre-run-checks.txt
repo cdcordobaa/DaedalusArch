@@ -1,0 +1,27 @@
+# Study 2b pre-run checks at the run commit (gate rule 3), 2026-10-20, zero model calls. Console output of the
+# check script, hashes and counts only. The sealed files were hashed, never opened or printed.
+start 2026-10-20T18:57:54Z
+run commit 0b17d6013dce689e4df841ea09eb0f0dc85e6de4
+tasks.json sha256 6ac2107916d40b2b8b261613828211f71f39f9581927a6a7286c629ce444c5fc MATCH
+MANIFEST.sha256 sha256 e680aeb06e8c0297c158aa87241bb66e6ba2638ff77e4b1e3bd6c02e02b3abbf MATCH
+MANIFEST content check: exit 0, OK lines 24, other lines 0
+pinned CLI sha256 b9ac5374839f14abf3f1f45610637c332b5daee5ce0d1634726cef87aab78e6a MATCH; version: 2.1.304 (Claude Code)
+claude on PATH version (not used by the run): 2.1.304 (Claude Code)
+tag commit 4d28d2803bec018e48f848e6a0f27ff87b3babf2
+PR #311 inside the tag
+argv.ts --disable-slash-commands count 2
+layered.yaml in build f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8
+frozen-path diff vs tag: EMPTY
+instrument tree vs tag: blobs 30780, missing 0, hashed 30758, differing 0
+MCP build dist/mcp-server/main.js equals the instrument tree's: yes
+MCP build dist/ vs instrument dist/: differing entries 0
+pre-registration registered sha256: exit 0 (1 OK)
+registered artefacts: exit 0, OK 27, other 0
+judge config dir telemetry/ present: no
+shared run dir exists before the run: no; run-dry exists: no
+end 2026-10-20T18:58:00Z; FAIL=0
+# Notes: "hashed 30758" of 30780 tag blobs; the other 22 are symbolic links, checked for presence only.
+# A first pass of this script at 18:57:36Z reported 4 tag files missing; that was a quoting defect of the script
+# (git ls-tree quoted non-ASCII file names), fixed by reading the tree with -z before this pass.
+# The zero-call dry run of the real plans (runbook §4) followed at 18:58:28Z: dry-run-real-plans.txt; run-dry/ was
+# deleted afterwards. The live S4 re-run (9 calls) followed at 19:00:23Z: ../s4-rerun/.

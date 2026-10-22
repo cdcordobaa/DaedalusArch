@@ -1,0 +1,251 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/laundromat/none/run-6",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "laundromat",
+    "arm": "none",
+    "runIndex": 6
+  },
+  "stepIndex": 1,
+  "stepId": "ready-texts",
+  "startedAt": "2026-10-20T23:31:49.283Z",
+  "finishedAt": "2026-10-20T23:32:50.288Z",
+  "turns": [
+    {
+      "turnId": "step-02",
+      "kind": "step",
+      "promptSha256": "96d761aa381ac722aef35f83d8c4aff71489836396d687cabac450cd8a498295",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.1873429,
+          "inputTokens": 12,
+          "outputTokens": 10574,
+          "cacheReadTokens": 58909,
+          "cacheCreationTokens": 18922,
+          "numTurns": 24,
+          "durationMs": 59136
+        },
+        "wallMs": 60355,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T23:31:49.284Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-l2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-l2/runs/claude-code-cli/claude-sonnet-5-5/laundromat/none/run-6/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-02.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "e6b8a295e0790292892d1d0cd571208f3761a537",
+        "sourceFiles": [
+          "business/chirpoService.ts",
+          "business/customerService.ts",
+          "business/cycleService.ts",
+          "business/errors.ts",
+          "business/machineService.ts",
+          "business/notificationService.ts",
+          "business/rinselyService.ts",
+          "business/validation.ts",
+          "persistence/chirpoAccountRepository.ts",
+          "persistence/customerRepository.ts",
+          "persistence/cycleRepository.ts",
+          "persistence/machineRepository.ts",
+          "persistence/models.ts",
+          "persistence/rinselyAccountRepository.ts",
+          "presentation/main.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 17,
+        "loc": 419,
+        "diff": {
+          "added": 4,
+          "modified": 6,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.638,
+          "blockingAhs": 0.667,
+          "verdict": "fail",
+          "violationCount": 24,
+          "blockingViolationCount": 5,
+          "advisoryViolationCount": 19,
+          "blockingByRule": {
+            "FF-S03": 5
+          },
+          "advisoryByRule": {
+            "FF-C02": 1,
+            "FF-C03": 2,
+            "FF-C06": 1,
+            "FF-CV05": 15
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-1860d08913678c51",
+              "filePath": "src/presentation/server.ts",
+              "line": 5,
+              "target": "src/persistence/chirpoAccountRepository.ts",
+              "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/chirpoAccountRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-4e2b2a4e22d26b2b",
+              "filePath": "src/presentation/server.ts",
+              "line": 2,
+              "target": "src/persistence/customerRepository.ts",
+              "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/customerRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-19287f13407cf463",
+              "filePath": "src/presentation/server.ts",
+              "line": 6,
+              "target": "src/persistence/cycleRepository.ts",
+              "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/cycleRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-aefde80d1bc2eef9",
+              "filePath": "src/presentation/server.ts",
+              "line": 3,
+              "target": "src/persistence/machineRepository.ts",
+              "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/machineRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-02ed8a0e1ea03379",
+              "filePath": "src/presentation/server.ts",
+              "line": 4,
+              "target": "src/persistence/rinselyAccountRepository.ts",
+              "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/rinselyAccountRepository.ts (persistence)"
+            }
+          ],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 2,
+          "durationMs": 4,
+          "testFileSha256": "f4c7c9a71d2d365a07878496539d10f7a2eaf6bfdfb56e50d5fb5959e548f124",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "64d30a86bb08ff61c0f31a8a82d687190d46bc32fd13f72e5849a718a92e1952",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            },
+            {
+              "file": "step-02.test.mjs",
+              "sha256": "f354fdfbaedd7fae5e90e23e047294d4b5eaae6c69dacfc22cf8fb6e27c8c2c8",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 2,
+    "durationMs": 4,
+    "testFileSha256": "f4c7c9a71d2d365a07878496539d10f7a2eaf6bfdfb56e50d5fb5959e548f124",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "64d30a86bb08ff61c0f31a8a82d687190d46bc32fd13f72e5849a718a92e1952",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      },
+      {
+        "file": "step-02.test.mjs",
+        "sha256": "f354fdfbaedd7fae5e90e23e047294d4b5eaae6c69dacfc22cf8fb6e27c8c2c8",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "e6b8a295e0790292892d1d0cd571208f3761a537",
+  "cost": {
+    "costUsd": 0.1873429,
+    "inputTokens": 12,
+    "outputTokens": 10574,
+    "wallMs": 60355
+  }
+}

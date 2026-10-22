@@ -2813,6 +2813,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## HEXDDD-01 — violation-elicitation design for Hexagonal and DDD (design note)
+**Timestamp**: 2026-10-20T20:10:51Z
+**User Input**: "(coordinator brief) Research and design an exploratory pilot that reliably elicits and measures coding-agent violations of Hexagonal and DDD with the instrument: web literature on agent architectural degradation, benchmark task design, practitioner violation families and elicitation pressures; ground it in the repo with zero calls (detectability per family, a cheap check of advisory/semantic findings that D ignored in the earlier pilots, brownfield seeds, reusable harness pieces); write ops/notes/hexddd-01-violation-elicitation-design.md with 2-3 scenarios, a recommended 2-case pilot with exact calls and pass bar, threats and the instrument changes for after the 2b scoring; merge normally once Build & Test is green."
+**AI Response**: "Wrote ops/notes/hexddd-01-violation-elicitation-design.md. Cheap check: the earlier runs did err without D counting it: one inbound -> outbound adapter edge (advisory FF-S03 under the sealed tiers, FF-S01 under signed Q5 C, present from step 1 so Y1 not D), FF-P02 concrete injection in 8 of 18 Hexagonal/Clean runs at the vendor and cross-cutting steps, DDD runs unscored (T1) whose re-score shows step-1 FF-DS01/FF-DS02 findings and application services doubling in size (advisory FF-DT06). Detectability table over 18 families (blocking, advisory, semantic-only, undetectable: vendor SDK in the domain, cross-aggregate transaction, shared kernel, DTO/entity confusion, infrastructure-shaped ports). Recommended pilot: two brownfield seeds with planted debt (hex reference v05, DDD reference v08), k = 5 pressure steps, Sonnet, arm none, 10 generator calls (cap 12), pass bar D_seed >= 1 in 1 of 2 runs or a hand-confirmed construct-bearing advisory finding in both, plus a hand-read miss log; run only after the 2b scoring. Zero model calls, no loop, no Neo4j, no jest; no 2b, sealed or mean-01 path opened."
+**Context**: v1.4 follow-up design (Hexagonal/DDD drift and conformance), exploratory; instrument frozen for 2b, so all changes are listed for after the 2b scoring
+
+---
+
 ## HEXDDD-01 exploratory pilot — pre-registration of the pilot inputs (before any generator call)
 **Timestamp**: 2026-10-20T20:35:02Z
 **User Input**: (paraphrase) Run the exploratory 2-case pilot of design ops/notes/hexddd-01-violation-elicitation-design.md §5 in a cloud sandbox, outside Study 2b; commit the task texts, seeds, specs, pass bar and plan before any call; then a 1-call smoke check, the confinement probes, the 10-call pilot (cap 12), zero-call scoring, and results split for a blind hand read.
@@ -2826,5 +2834,53 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: (paraphrase) Continue the HEXDDD-01 run brief: smoke check, confinement probes, the 10-call pilot, zero-call scoring, results split for a blind hand read, a counts-only run report, and an unmerged PR.
 **AI Response**: Smoke check passed (1 call; CLI 2.1.304, Linux sandbox). Confinement probes 1-5 passed (5 calls). Pilot ran 2 runs x 5 steps with no redraw (10 calls; 16 in total, under the cap of 18). Zero-call scoring at main: D_seed 0 in both runs, 0 advisory candidates in FF-S03/FF-P02/FF-DT05/FF-DT06; pass bar of design §5.2 FAIL. Exposure counting is not available for Hexagonal/DDD specs (Layered only). Results under results/pilot-hexddd-01/ (diffs/ for the blind read, scores/ with every finding, hand-read-log.csv template); counts-only report in Docs/DiagnosticRuns/pilot-hexddd-01-2026-10-20.md. The one revision §5.2 allows after a FAIL (a real-repo seed) is left to the author.
 **Context**: HEXDDD-01 exploratory pilot, steps 3-8 of the run brief; not Study 2b; no frozen path, Study 2b file or freeze tag touched
+
+---
+
+## EXPLORE-01 — research log for the exploratory thread
+**Timestamp**: 2026-10-21T00:58:00Z
+**User Input**: "Asked that the exploratory investigation (HEXDDD-01 pilot and hand read, detection coverage, architecture puzzles, case bank) be recorded in the repository."
+**AI Response**: "Added ops/notes/explore-01-research-log.md (entries: HEXDDD-01 design, pilot run, blind hand read, DETECT-01 and PUZZLE-01 launched as cloud routines on unmerged branches, the case-bank proposal; guardrails and open items), linked it from ops/00-overview.md and ops/README.md. Documentation only; no model call, no frozen path, no Study 2b file touched."
+**Context**: exploratory thread alongside Study 2b; dev material only
+
+---
+
+## Study 2b — the author's go for the run
+**Timestamp**: 2026-10-20T18:55:00Z
+**User Input**: "(coordinator brief) The author gave the go for the confirmatory Study 2b run after reviewing the readiness-gate verdict (GO-READY-FOR-AUTHOR; D10 green with the OSF deposit). Record the go, run the pre-run checks at the run commit (hashes, frozen inputs, zero-call re-checks, live S4 re-run for both arms), then run the 40 blocks per the runbook and write a counts-only collection report."
+**AI Response**: "Recorded the go as GO-2B-RUN in ops/decisions.md (gate rule 4, GO-2B), before the pre-run checks and before any 2b call. The run session proceeds per Docs/v1.4/study2b-runbook.md with addenda A-D."
+**Context**: v1.4 Study 2b, drift record order step: run; the time is the approximate time of the go as given by the coordinator
+
+---
+
+## Study 2b — run collected (counts only, not scored)
+**Timestamp**: 2026-10-21T02:17:25Z
+**User Input**: "(coordinator brief) After the go: pre-run checks at the run commit (hashes, frozen inputs, zero-call re-checks, live S4 re-run, 9 calls), then the 40-block run per the runbook, replicate by replicate, two lanes; stop only on an integrity failure; no scoring; archive the out-roots path-free and write a counts-only collection report."
+**AI Response**: "Pre-run checks green at 0b17d601 (sealed tasks.json, MANIFEST and pinned CLI hashes match; frozen-path diff empty; instrument tree equals the tag; dry run of the real plans 30/30; S4 re-run PASS 9/9). Run 2026-10-20T19:07:04Z to 2026-10-21T02:17:25Z: 40 of 40 blocks complete in each of none@L2, none@L3 and mcp@L2; 520 step turns; 0 pauses; 0 redraws; CLI 2.1.304; served model claude-sonnet-5-5 only; no harness failure and no stop. In-run checks: 0 evaluation errors, telemetry as expected, 0 denials naming HOME or the sealed folder. 30 out-roots archived and verified; tarball hashes and pointers committed, full manifests kept with the tarballs until scoring. Report: Docs/DiagnosticRuns/v1.4-study2b-collection-2026-10-20.md."
+**Context**: v1.4 Study 2b, drift record order step: run (collection); scoring follows in a later session
+
+---
+
+## Study 2b — registered scoring pass
+**Timestamp**: 2026-10-21T03:28:06Z
+**User Input**: "(coordinator brief) After PRs #330 and #337 merged, run the single registered scoring pass of Study 2b at the freeze tag: hash checks, re-score, D and D-dagger, the registered tests via study2b-analyse.ts, and the registered post-run checks; C4 / D_sem not in this pass."
+**AI Response**: "Hashes verified (pre-registration, 27 registered artefacts, OSF package 8/8; instrument tree equals the tag blob for blob; frozen-path diff empty; sealed hashes match). Scored at X with zero model calls: 600 snapshots, 0 evaluation failures; D8 parity 30/30 identical on one capped Neo4j; coverage, post-run acceptance, exposure, telemetry and seeded recall run; analysis run once. H1 and H2 rejected after Holm with the predicted sign and supported under D and D-dagger; H3 not rejected; E fails; V4 part B passes. Implementation choices DA9-DA12 recorded in addendum 3 before the figures were read (DA12 before the analysis ran). Report Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md."
+**Context**: v1.4 Study 2b, drift record order step: run (scoring); C4 / D_sem is the next registered step with its own precondition
+
+---
+
+## Inventory — open tracks and built capabilities
+**Timestamp**: 2026-10-21T05:30:00Z
+**User Input**: "Asked for a compilation of all open tracks (to tag as future work or as work that can continue after a first chapter draft) and of all capabilities built for the instrument, at the start of chapter drafting."
+**AI Response**: "Added ops/06-open-tracks-and-capabilities.md: Part A, open tracks in eight groups with status, evidence path, remaining work and a tag (FRIDAY / DRAFT-NEXT / FUTURE-WORK / DROPPED), plus eight status files that disagree; Part B, built capabilities by instrument plane with evidence and maturity (VALIDATED / DEV / PROTOTYPE / SPEC-ONLY); the strongest supportable claims and a chapter-to-evidence map. Linked from ops/README.md and ops/00-overview.md. Documentation only; no model call, no frozen path."
+**Context**: start of chapter drafting, after the Study 2b scoring pass
+
+---
+
+## Status refresh and sources ledger (documentation only)
+**Timestamp**: 2026-10-21T22:08:23Z
+**User Input**: "Asked for every status document to be brought up to date with the facts as of 2026-10-21 (Study 2b collected and scored once), fixing the eight disagreeing status files listed in the inventory, and for the literature and evidence sources to be consolidated into one ledger for thesis writing."
+**AI Response**: "Fixed the eight conflicts listed at the end of Part A of ops/06-open-tracks-and-capabilities.md: rewrote ops/00-overview.md to the current state; marked X-1 and SO3-a declared in ops/notes/deviations-v14.md to agree with ops/decisions.md D8; recorded the F3 rewording as adopted in Docs/v1.3/contribution-statement.md and added Study 2b with its registered scope (FF-S03, Layered, one generator, 4 tasks); in the compendium README, marked the construct questions answered (ADR-V13-03 accepted under delegation, V1 GREEN), repaired the merged SO5 table row and added 2b scope-limit rows pointing at M175-M186; in ops/decisions.md, marked the 9 adjudication rows done (desk 61/61) and pointed the hold-out changelog entries to DELEG-H4 and DELEG5; added a dated note to the hold-out run report (not spent; the author chooses between a spec-format fix addendum and reporting it as not scored); added progress ticks and the registered 520-turn budget to the Friday plan; updated status lines with dated changelog entries in track-1, track-2, the build list, the north star and TRUST-01 (L3, L4, L5, L7). Re-anchored 14 ledger citations whose lines moved and marked one row (C6453) superseded. Added Docs/sources/ (README, sources-ledger.md with 308 rows, sources.bib), harvested from ops/notes, Docs, papers/*/refs.bib, the exploratory branches and a search-session list; 31 figures attributed to sources the ledger cannot verify are flagged. Zero model calls; no registered Study 2b artefact, src/, presets/, scripts/lib/ or scripts/v1.3/ file was changed; no sealed path was read."
+**Context**: documentation upkeep at the start of chapter drafting; no new measurement, no decision taken
 
 ---

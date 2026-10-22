@@ -1,0 +1,247 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/parking-permits/none/run-3",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "parking-permits",
+    "arm": "none",
+    "runIndex": 3
+  },
+  "stepIndex": 1,
+  "stepId": "visitor-passes",
+  "startedAt": "2026-10-20T21:34:59.390Z",
+  "finishedAt": "2026-10-20T21:36:09.546Z",
+  "turns": [
+    {
+      "turnId": "step-02",
+      "kind": "step",
+      "promptSha256": "d338c2af4278339ff6f5e54d14335440f273c647b74afbecd465398e78b2b0a6",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.1965495,
+          "inputTokens": 12,
+          "outputTokens": 11272,
+          "cacheReadTokens": 61655,
+          "cacheCreationTokens": 19410,
+          "numTurns": 26,
+          "durationMs": 68404
+        },
+        "wallMs": 69485,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T21:34:59.390Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-l2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-l2/runs/claude-code-cli/claude-sonnet-5-5/parking-permits/none/run-3/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-02.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "a307587ede4d70e17df8ce5ec5f3a613a2e52df4",
+        "sourceFiles": [
+          "business/coinwellAccountService.ts",
+          "business/errors.ts",
+          "business/permitService.ts",
+          "business/visitorPassService.ts",
+          "business/zoneService.ts",
+          "persistence/coinwellAccountRepository.ts",
+          "persistence/coinwellClient.ts",
+          "persistence/models.ts",
+          "persistence/permitRepository.ts",
+          "persistence/visitorPassRepository.ts",
+          "persistence/zoneRepository.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 13,
+        "loc": 432,
+        "diff": {
+          "added": 2,
+          "modified": 4,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.695,
+          "blockingAhs": 0.667,
+          "verdict": "fail",
+          "violationCount": 22,
+          "blockingViolationCount": 5,
+          "advisoryViolationCount": 17,
+          "blockingByRule": {
+            "FF-S03": 5
+          },
+          "advisoryByRule": {
+            "FF-C03": 3,
+            "FF-C06": 1,
+            "FF-CV05": 13
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-5b7cedb2c1d77351",
+              "filePath": "src/presentation/app.ts",
+              "line": 4,
+              "target": "src/persistence/coinwellAccountRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/coinwellAccountRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-3002b65112433e8a",
+              "filePath": "src/presentation/app.ts",
+              "line": 5,
+              "target": "src/persistence/coinwellClient.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/coinwellClient.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-627ed0f252689fc4",
+              "filePath": "src/presentation/app.ts",
+              "line": 3,
+              "target": "src/persistence/permitRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/permitRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-6439f25cd761f8b3",
+              "filePath": "src/presentation/app.ts",
+              "line": 6,
+              "target": "src/persistence/visitorPassRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/visitorPassRepository.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-5112d7b3c5f226c2",
+              "filePath": "src/presentation/app.ts",
+              "line": 2,
+              "target": "src/persistence/zoneRepository.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/zoneRepository.ts (persistence)"
+            }
+          ],
+          "durationMs": 2,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 2,
+          "durationMs": 3,
+          "testFileSha256": "d26691275f9b1ee35d5f7a74975ce8b9779a9dc4db993c5268d552fb2eb9f6c6",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "33ac5aa911b9a4cdc3fce1dcca8d599a9bf90b2969f954ba27b2bb05af6d8b31",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            },
+            {
+              "file": "step-02.test.mjs",
+              "sha256": "50555fee78690529cccb85d54c248c444dcdf723b470fcb2f63580a2b088fb76",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 2,
+    "durationMs": 3,
+    "testFileSha256": "d26691275f9b1ee35d5f7a74975ce8b9779a9dc4db993c5268d552fb2eb9f6c6",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "33ac5aa911b9a4cdc3fce1dcca8d599a9bf90b2969f954ba27b2bb05af6d8b31",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      },
+      {
+        "file": "step-02.test.mjs",
+        "sha256": "50555fee78690529cccb85d54c248c444dcdf723b470fcb2f63580a2b088fb76",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "a307587ede4d70e17df8ce5ec5f3a613a2e52df4",
+  "cost": {
+    "costUsd": 0.1965495,
+    "inputTokens": 12,
+    "outputTokens": 11272,
+    "wallMs": 69485
+  }
+}

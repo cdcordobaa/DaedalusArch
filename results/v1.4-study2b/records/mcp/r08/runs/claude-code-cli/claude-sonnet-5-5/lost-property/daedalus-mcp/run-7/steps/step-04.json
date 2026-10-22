@@ -1,0 +1,262 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/lost-property/daedalus-mcp/run-7",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "lost-property",
+    "arm": "daedalus-mcp",
+    "runIndex": 7
+  },
+  "stepIndex": 3,
+  "stepId": "e-mail-outage-fix",
+  "startedAt": "2026-10-21T00:42:42.933Z",
+  "finishedAt": "2026-10-21T00:43:36.023Z",
+  "turns": [
+    {
+      "turnId": "step-04",
+      "kind": "step",
+      "promptSha256": "a50f7f5a4e00f7851d81a6a4acef578fa3be7fa4e91b87c73155ad90a98d609b",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.1987575,
+          "inputTokens": 16,
+          "outputTokens": 7769,
+          "cacheReadTokens": 174555,
+          "cacheCreationTokens": 25895,
+          "numTurns": 31,
+          "durationMs": 50687
+        },
+        "wallMs": 52338,
+        "attempts": [
+          {
+            "startedAt": "2026-10-21T00:42:42.934Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--setting-sources",
+          "",
+          "--settings",
+          "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+          "--disable-slash-commands",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-study2b/run/h-a/bin/tsc --noEmit --incremental false -p <shared>/daedalus-study2b/run/h-a/runs/claude-code-cli/claude-sonnet-5-5/lost-property/daedalus-mcp/run-7/tsconfig.json)",
+          "mcp__daedalus-arch__get_architecture_spec",
+          "mcp__daedalus-arch__which_layer",
+          "mcp__daedalus-arch__check_import",
+          "mcp__daedalus-arch__explain_violation",
+          "mcp__daedalus-arch__check_file",
+          "mcp__daedalus-arch__check_diff",
+          "mcp__daedalus-arch__suggest_placement",
+          "mcp__daedalus-arch__infer_spec",
+          "mcp__daedalus-arch__explain_finding",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "mcp__daedalus-arch__evaluate_project",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config",
+          "--mcp-config",
+          "<shared>/daedalus-study2b/run/h-a/runs/claude-code-cli/claude-sonnet-5-5/lost-property/daedalus-mcp/run-7/mcp-daedalus-mcp.json"
+        ],
+        "envelopePath": "envelope-step-04.json",
+        "permissionDenials": 1
+      },
+      "snapshot": {
+        "commit": "c0676e9f3710063c978d3c89851b2cb06bbcf42f",
+        "sourceFiles": [
+          "business/deliveryService.ts",
+          "business/emailService.ts",
+          "business/errors.ts",
+          "business/lostPropertyService.ts",
+          "business/services.ts",
+          "business/staff.ts",
+          "business/transferService.ts",
+          "persistence/deliveryStore.ts",
+          "persistence/hurrydropClient.ts",
+          "persistence/postwingClient.ts",
+          "persistence/store.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 14,
+        "loc": 757,
+        "diff": {
+          "added": 1,
+          "modified": 7,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.814,
+          "blockingAhs": 1,
+          "verdict": "pass",
+          "violationCount": 18,
+          "blockingViolationCount": 0,
+          "advisoryViolationCount": 18,
+          "blockingByRule": {},
+          "advisoryByRule": {
+            "FF-C03": 3,
+            "FF-C06": 1,
+            "FF-CV05": 13,
+            "FF-SO01": 1
+          },
+          "blockingFindings": [],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        },
+        "acceptance": {
+          "schema": "loop-acceptance/v1",
+          "status": "no-start-command",
+          "passed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 4,
+          "durationMs": 5,
+          "testFileSha256": "3aa51db96c1730cf4a41218dbb0d07f20db9c7578e1240aef5c89b876d81bdff",
+          "files": [
+            {
+              "file": "step-01.test.mjs",
+              "sha256": "e90515e77b427e6ba13c8724075e952f713fd53a0a4dfb3b58ca327dec0c64ab",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            },
+            {
+              "file": "step-02.test.mjs",
+              "sha256": "fc024f0ee3eaee287a7b81f9a3e1e06659c2c534f24106631a28f5ad100e51db",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            },
+            {
+              "file": "step-03.test.mjs",
+              "sha256": "5819dbc4c4cf6a1c1420e012b31e5ec841bfe0e36fa7064242dbcb65df8d507b",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            },
+            {
+              "file": "step-04.test.mjs",
+              "sha256": "ad27043ce4c5340636b763b67f1bbdbf3ce44f9d5849c809afcc5b0ae146ffc9",
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "errors": 1,
+              "timedOut": false
+            }
+          ],
+          "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "process": {
+    "schema": "loop-process/v1",
+    "logs": [
+      "calls/step-04.jsonl"
+    ],
+    "logFound": true,
+    "calls": 1,
+    "errors": 0,
+    "callsByTool": {
+      "get_architecture_spec": 1
+    },
+    "firstCallAt": "2026-10-21T00:42:46.421Z",
+    "firstCallBeforeFirstWrite": true,
+    "firstWriteEvidence": "server-fingerprint",
+    "latencyMs": {
+      "p50": 25,
+      "p95": 25
+    }
+  },
+  "acceptance": {
+    "schema": "loop-acceptance/v1",
+    "status": "no-start-command",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 4,
+    "durationMs": 5,
+    "testFileSha256": "3aa51db96c1730cf4a41218dbb0d07f20db9c7578e1240aef5c89b876d81bdff",
+    "files": [
+      {
+        "file": "step-01.test.mjs",
+        "sha256": "e90515e77b427e6ba13c8724075e952f713fd53a0a4dfb3b58ca327dec0c64ab",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      },
+      {
+        "file": "step-02.test.mjs",
+        "sha256": "fc024f0ee3eaee287a7b81f9a3e1e06659c2c534f24106631a28f5ad100e51db",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      },
+      {
+        "file": "step-03.test.mjs",
+        "sha256": "5819dbc4c4cf6a1c1420e012b31e5ec841bfe0e36fa7064242dbcb65df8d507b",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      },
+      {
+        "file": "step-04.test.mjs",
+        "sha256": "ad27043ce4c5340636b763b67f1bbdbf3ce44f9d5849c809afcc5b0ae146ffc9",
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1,
+        "timedOut": false
+      }
+    ],
+    "message": "no acceptance.startCommand in the tasks file and no package.json start script"
+  },
+  "finalCommit": "c0676e9f3710063c978d3c89851b2cb06bbcf42f",
+  "cost": {
+    "costUsd": 0.1987575,
+    "inputTokens": 16,
+    "outputTokens": 7769,
+    "wallMs": 52338
+  }
+}

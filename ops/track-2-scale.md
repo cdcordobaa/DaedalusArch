@@ -1,6 +1,6 @@
 # Track 2: the instrument at scale (SO4, SO5)
 
-**As of 2026-10-18, main @ `612b3727`.** No new measurement. The sources are the same as in track 1, plus:
+**As of 2026-10-18, main @ `612b3727`.** No new measurement. *(Status update of 2026-10-21 at the end of this page; rows changed since 2026-10-18 are marked.)* The sources are the same as in track 1, plus:
 - the Study 2 deviation, `Docs/v1.3/study2-deviation-2026-10-16.md`;
 - the readiness dashboard;
 - the adversarially reviewed decision sheet (Notion, not yet confirmed).
@@ -14,9 +14,9 @@
 
 ## Bottom line
 
-> **SO4.** Correctness transfers to human code (283/283). Two things do not exist yet: a held-out estimate, and any human-grounded sign that the findings *matter*. All three criterion designs based on developer behaviour are **null** for the blocking tier (N128). The independent rater was the planned answer, and paying one is now off the table. So **the rater question is the main SO4 blocker**, and it is yours to decide.
+> **SO4.** Correctness transfers to human code (283/283). Two things do not exist yet: a held-out estimate, and any human-grounded sign that the findings *matter*. All three criterion designs based on developer behaviour are **null** for the blocking tier (N128). The independent rater was the planned answer, and paying one is now off the table. So **the rater question is the main SO4 blocker**, and it is yours to decide. *(2026-10-21: decided: a free rater after the study (D3, LAB); the hold-out is not scored after three attempts, DELEG-H4.)*
 >
-> **SO5.** Study 1 is done and registered, and its effect runs the "wrong" way. Study 2 is **designed, not run**. Its main risk is the **floor effect**: in greenfield code agents rarely break the defining rules, so there is little erosion for the tool to prevent. **DDD reaching the pilot bar is roughly a coin flip.** Study 2 runs once, earliest about **Nov 18–22**.
+> **SO5.** Study 1 is done and registered, and its effect runs the "wrong" way. Study 2 is **designed, not run**. Its main risk is the **floor effect**: in greenfield code agents rarely break the defining rules, so there is little erosion for the tool to prevent. **DDD reaching the pilot bar is roughly a coin flip.** Study 2 runs once, earliest about **Nov 18–22**. *(2026-10-21: superseded. Study 2 ran as the confirmatory Study 2b, Layered only, one generator, and was scored once on 2026-10-21; H1 and H2 supported, scoped to FF-S03.)*
 
 ---
 
@@ -25,13 +25,13 @@
 | Question | Evidence | Status |
 |---|---|---|
 | Correct on human code? | 283/283 blocking findings correct on 15 external repos, with a 500/500 negative control. Clustered: 11/11 repos fully correct, repo-level Wilson [0.741, 1] | **GREEN** (external) |
-| Held-out performance (M1, M3 ≥ 0.90, M7 ≥ 0.95 per style) | **not run**. The hold-out has 207 cases. The agent that enlarged it had seen the contested-construct list, so we will never call it an "independent hold-out" (decision sheet S13) | RED |
+| Held-out performance (M1, M3 ≥ 0.90, M7 ≥ 0.95 per style) | **not run**. The hold-out has 207 cases. The agent that enlarged it had seen the contested-construct list, so we will never call it an "independent hold-out" (decision sheet S13). → Three attempts on 2026-10-20, none scored; not spent (DELEG-H4); fallback F-RF (`Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md`) *(Updated 2026-10-21.)* | RED |
 | Agrees with other tools at scale? | κ 0.913–1.000 on external and wild sets, but low per rule: FF-C04 0.218 external, FF-S02 vs ArchUnitTS 0.382 (N130) | GREEN pooled, AMBER per rule |
 | Do developers fix what it flags? (predictive) | fix mining 2.65×, but that rests on one commit; 0.93 without it (N120). Direction rules are removed *less* often than baseline (N122) | RED (null) |
 | Do "good" repos score better? (known groups) | showcase repos are not less dense in findings (δ = −0.18, p = 0.811) (N118) | RED (null) |
 | Do declared refactors lower the count? | no: −0.27 [−0.95, 0.24], p = 0.572 (N125) | RED (null) |
 | Is a finding *meaningful*? (Link 4) | **0 labels** (N114). No public human-labelled TS conformance dataset exists (N139) | RED |
-| Independent human rater (V5) | **none**. A paid outside developer, the decision sheet's AD4/V5 answer, is now ruled out | RED, needs a new route (`decisions.md` D3) |
+| Independent human rater (V5) | **none**. A paid outside developer, the decision sheet's AD4/V5 answer, is now ruled out. → Route decided: a free rater on about 60 findings (D3), labels after the study (LAB); MEAN-01 packet ready, 0 labels *(Updated 2026-10-21.)* | RED (route decided, not run) |
 | Who wrote the spec | every external figure rests on AI-written specs, and a second blind spec author flipped a third of the verdicts (N02) | AMBER |
 
 ### The free ground-truth routes (the scan of 2026-10-16)
@@ -54,10 +54,10 @@
 | Study 1 (registered, v1.2E) | spec level matters, but in reverse: `none` scores best, 0.951 vs 0.887 (Holm p = 0.0003). No model effect (p = 0.438). The effect runs through project size | **GREEN** (registered) |
 | Study 1 under v1.3 tiers | 0 of 65 accepted cells has a blocking finding (N144). The effect is in advisory coupling rules, not in violations | AMBER (descriptive) |
 | Floor effect | hexagonal `none` 0/14 steps blocking (N146). Layered blocked 14/14, but as a step-1 layout habit that later steps replicated (N147). Probe 2: 0/8 per condition (N150). Probe 3: 0/8. Loop pilot: 0/8 | **RED** (null) |
-| Study 2 design | declared deviation. Y = distinct blocking edges at step 4. Five cells: `none` at L2/L3/L4, `daedalus-mcp` at L2/L4. 24 blocks. Power at RR 0.25: 1.00 / 1.00 / 0.92. At RR 0.5: 0.88 / 0.88 / 0.70. Pilot bar: mean Y ≥ 1.5 at step 4. If no stratum passes, Study 2 does not run | AMBER (design) |
-| DDD in Study 2 | aggregates are declared only in the evaluator's spec. Y uses FF-DS01, FF-DS02, FF-DT03, FF-DT04, FF-S01 and FF-S02. Reaching the bar is about a coin flip. If DDD fails, Study 2 runs on Layered only (12 blocks) and DDD is reported as "characterised, not confirmatory" | AMBER |
-| Readiness | 1 of 42 gate lines GREEN at 2026-10-16 12:00Z. That count was not re-taken after the deviation | RED |
-| Generators | Sonnet 5.5 and Gemini (CDX, `decisions.md:19`). The Gemini coding-agent adapter exists (PR #257), off by default; its S4 probe has not run. *(Updated 2026-10-19; the Codex pin is no longer required.)* | AMBER |
+| Study 2 design | declared deviation. Y = distinct blocking edges at step 4. Five cells: `none` at L2/L3/L4, `daedalus-mcp` at L2/L4. 24 blocks. Power at RR 0.25: 1.00 / 1.00 / 0.92. At RR 0.5: 0.88 / 0.88 / 0.70. Pilot bar: mean Y ≥ 1.5 at step 4. If no stratum passes, Study 2 does not run. → Superseded by the drift record (D, three cells, M3) and run as Study 2b (`Docs/v1.4/study2b-preregistration.md`, OSF osf.io/wctnh) *(Updated 2026-10-21.)* | AMBER (design, historical) |
+| DDD in Study 2 | aggregates are declared only in the evaluator's spec. Y uses FF-DS01, FF-DS02, FF-DT03, FF-DT04, FF-S01 and FF-S02. Reaching the bar is about a coin flip. If DDD fails, Study 2 runs on Layered only (12 blocks) and DDD is reported as "characterised, not confirmatory". → DDD is a beta instrument (DDD-BETA) and is not in Study 2b; its 2 tasks stay unsealed (`Docs/v1.4/confirmatory-tasks-seal.md`) *(Updated 2026-10-21.)* | AMBER |
+| Readiness | 1 of 42 gate lines GREEN at 2026-10-16 12:00Z. That count was not re-taken after the deviation. → Re-taken 2026-10-20: GO-READY-FOR-AUTHOR, no NW line red (`Docs/v1.4/study2b-gate-verdict.md`; DELEG12) *(Updated 2026-10-21.)* | GREEN (2b gate) |
+| Generators | Sonnet 5.5 and Gemini (CDX, `decisions.md:19`). The Gemini coding-agent adapter exists (PR #257), off by default; its S4 probe has not run. *(Updated 2026-10-19; the Codex pin is no longer required.)* → 2b ran Claude-only (GO-2B); the Gemini S4 probe failed (`Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md`), and Gemini is a dated extension arm after its quota resets *(Updated 2026-10-21.)* | AMBER |
 
 ---
 
@@ -67,16 +67,25 @@ The zero-cost steps come first. Each one either kills a risk or tells us whether
 
 | # | Objective | Move | Cost | Owner | Gate |
 |---|---|---|---|---|---|
-| 1 | both | Confirm the decision sheet, OK F23, confirm the composition slot (`decisions.md` D1, D2) | 0 | you | — |
-| 2 | SO5 | **B2:** re-score the 8 kept DDD snapshots (8, not 12: `notes/rev-04-gaps-and-promises-2026-10-19.md:74`) with and without `acl: []`, which gives the expected DDD Y | 0 | agent | decides whether DDD stays in |
-| 3 | SO5 | T1: re-score the 8 pilot snapshots on Neo4j | 0 | agent | — |
-| 4 | SO4 | F23, the sealed-list overlap check | 0 | agent, after your OK | required before the pilot |
+| 1 | both | Confirm the decision sheet, OK F23, confirm the composition slot (`decisions.md` D1, D2). **Done** (D1, D2b; F23 done 2026-10-19) | 0 | you | — |
+| 2 | SO5 | **Done** (`Docs/DiagnosticRuns/v1.4-ddd-b2-and-v9-2026-10-19.md`). **B2:** re-score the 8 kept DDD snapshots (8, not 12: `notes/rev-04-gaps-and-promises-2026-10-19.md:74`) with and without `acl: []`, which gives the expected DDD Y | 0 | agent | decides whether DDD stays in |
+| 3 | SO5 | **Done** (`Docs/DiagnosticRuns/v1.4-ddd-t1-and-d8-2026-10-19.md`). T1: re-score the 8 pilot snapshots on Neo4j | 0 | agent | — |
+| 4 | SO4 | **Done** 2026-10-19. F23, the sealed-list overlap check | 0 | agent, after your OK | required before the pilot |
 | 5 | SO5 | Prerequisites: the layered frame, per-task MCP spec (A25), DDD L3/L4 frames, the binding check, k = 4 fixtures | 0 | agent | — |
 | 6 | SO4 | Pick the rater route (D3). If it includes developer-acknowledged truth, build the set | 0 calls, 3–4 agent-days | you, then agent | — |
-| 7 | SO5 | **Validation pilot**: one lane, Neo4j, go/no-go per stratum, then re-run power | model calls, to be counted before it runs | your OK | stop rule |
-| 8 | SO4 | Freeze, seal the fresh hold-out supplement, run the hold-out once, then the rater labels | small, counted first | your OK | — |
-| 9 | SO5 | From about Nov 9: Codex pin, confinement probes, dress rehearsal, pre-registration, gate, **Study 2 once** | the study budget | you sign | readiness gate |
+| 7 | SO5 | **Replaced** by the exploratory Study 2a (EXP; `Docs/DiagnosticRuns/v1.4-exploratory-report-2026-10-20.md`). **Validation pilot**: one lane, Neo4j, go/no-go per stratum, then re-run power | model calls, to be counted before it runs | your OK | stop rule |
+| 8 | SO4 | Freeze **done** (`v1.4-freeze-2026-10-20`); hold-out **not scored** (three attempts); rater labels after the study. Freeze, seal the fresh hold-out supplement, run the hold-out once, then the rater labels | small, counted first | your OK | — |
+| 9 | SO5 | **Done** as Study 2b, 2026-10-20 to 2026-10-21 (Claude-only, Layered). From about Nov 9: Codex pin, confinement probes, dress rehearsal, pre-registration, gate, **Study 2 once** | the study budget | you sign | readiness gate |
+
+## Status update, 2026-10-21
+
+No new measurement; each line cites its source.
+- **Hold-out (SO4):** three attempts on 2026-10-20, no figure; not spent (DELEG-H4). The author chooses between a spec-format fix under its own addendum and reporting "not scored" (`Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md`, dated note).
+- **Study 2b (SO5):** pre-registered (OSF osf.io/wctnh), collected (40 of 40 blocks per cell, 520 step turns) and scored once. Mean D 2.75 / 1.70 / 1.32 for `none@L2` / `none@L3` / `mcp@L2`; H1 exact p 0.0132 and H2 0.0001, both supported under D and D†; H3 0.4257, not rejected; E fails (`Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md` §3; ledger C8035–C8064). Scope: FF-S03, Layered, one generator, 4 tasks (nulls M175–M186).
+- **Semantic layer on 2b:** D_sem not run yet; it needs the C4 pilot and six-case bars first.
+- The current inventory of tracks and capabilities is `ops/06-open-tracks-and-capabilities.md`.
 
 ## Changelog
+- 2026-10-21: status update (hold-out attempts, Study 2b scored, readiness re-taken, the next-steps table marked); changed rows marked. Fixes conflict 8 of `06-open-tracks-and-capabilities.md`.
 - 2026-10-19: Gemini adapter marked as existing (PR #257); DDD snapshot count corrected to 8 (REV-04 §6 item 5).
 - 2026-10-18: first version.
