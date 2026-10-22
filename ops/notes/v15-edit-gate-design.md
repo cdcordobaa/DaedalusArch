@@ -17,9 +17,7 @@ call a tool. This removes the weak link of pull delivery: in 2b's `mcp@L2`, a `c
 | Pros | Immediate; no extra turn, so no extra call; the agent can fix within the same step; tool-call grain for caught-and-fixed comes for free (one hub log line per edit) | Built and tested; no change to the frozen argv; confinement already shown |
 | Cons | The frozen argv sets `disableAllHooks: true` and `--setting-sources ""` (`scripts/lib/generators/argv.ts`), so the arm needs its own `--settings` value (an exploratory difference, as MCP was for PUZZLE-02). Hooks run as the generator user, so they need a relay (§4). Inline hooks through `--settings` are not yet verified: smoke item | With 0 repair turns the last step's findings are never acted on; repair turns add calls and change the protocol; the agent sees a finding only after it has built on top of it |
 
-A variant of A is a hook of type `mcp_tool` that calls `check_consistency` on the arm's MCP server directly. It saves
-the relay but ties the gate to the pull server, mixes push and pull calls in one log, and its output path to the model
-is unverified. It stays a fallback.
+(A hook of type `mcp_tool` calling the pull server directly is a fallback: it mixes push and pull logs.)
 
 **Recommendation: A**, a command hook through a root-side relay, with B as the fallback if the smoke shows hooks cannot
 run under the confinement settings. A **Stop hook** completes it: when the agent tries to end a turn with findings
@@ -41,8 +39,7 @@ catches mid-refactor states left behind without nagging on every edit.
 - **De-duplication.** The hub keeps, per session, the set of finding keys already shown (rule + command `file:line` +
   aggregate set, line-shift tolerant through the command name). An edit shows only **new** keys. A key that disappears
   gets one short line, `resolved: <file>:<line> [<rule>]`. A key that stays is not repeated until the Stop hook.
-- **Hint audit.** The message templates go through the hint audit (`hint-audit.mjs`, rung L3) like the pull arm's
-  frame. The fix texts are the same as the pull tool's, so pull and push show identical content.
+- **Hint audit** of the templates (`hint-audit.mjs`, L3); the fix texts equal the pull tool's.
 
 ## 3. Latency budget
 
@@ -63,8 +60,7 @@ failure.
 - **The agent cannot switch the gate off.** Settings come only from `--settings` (`--setting-sources ""` stays), so a
   `.claude/settings.json` the agent writes in its tree is ignored. Probe: one turn asked to disable or edit the hook;
   the hub log must show the gate still firing.
-- The baseline isolation checks (listing, fingerprint sweep, READ probe) are repeated at zero calls as the generator
-  user, with the relay, the hub code, the hub logs and the socket added to the list.
+- The baseline isolation checks are repeated at zero calls, with the relay, hub code, hub logs and socket added.
 
 ## 5. Interaction with the pull tool
 
@@ -74,21 +70,16 @@ later cell, only if both arms help on their own.
 
 ## 6. Scenarios and edge cases
 
-- **Noisy repeats.** Prevented by the de-duplication. Measure: messages per session and repeated keys (should be 0).
-- **Partial edits mid-refactor.** Moving a write into an event handler takes several edits, and a transient violation is
-  expected in between. Every message carries one line: "If you are in the middle of a change, finish it; the check runs
-  again after each edit." The Stop hook, not the per-edit message, is where an open finding counts.
-- **False positives.** Precision on correct DDD patterns (outbox, audit and idempotency writes, child entities, sagas,
-  declared batches) is V15-PLAN step 1. Until it passes, the pilot uses only P1 and P2, whose seeds and clean solutions
-  give 0 findings. A finding on an oracle-clean move is logged as a false positive and read by hand.
-- **Gaming.** Renaming `saveAll`, a "batch" wrapper or a unit of work: the rule follows the write footprint, not the
-  name, so these should still fire (zero-call fixtures first). **A fake synchronous event**, recorded and handled in the
-  same command through an in-process bus, is the real risk: calls through ports are not linked in the frozen graph
-  (V15-PLAN §1), so it may pass the check while the oracle fails it. The puzzle answer keys must catch it (V15-PLAN §4);
-  a checker-clean, oracle-fail final tree counts as a gaming signal.
-- **The agent fights the gate.** Repeated edits on the same finding without resolving it, deleting the feature, or
-  weakening the code until the check is quiet. The outside tests catch deletion (a functional failure). Measure: edits
-  between a finding and its resolution, and findings never resolved.
+- **Noisy repeats:** prevented by de-duplication; repeated keys should be 0.
+- **Mid-refactor transients:** each message says "if you are in the middle of a change, finish it; the check runs
+  again after each edit". Only the Stop hook treats an open finding as outstanding.
+- **False positives:** precision on correct DDD patterns is V15-PLAN step 1; until then only P1 and P2 (0 findings on
+  seeds and clean solutions). A finding on an oracle-clean move is read by hand.
+- **Gaming:** renames and "batch" wrappers should still fire (the rule follows the write footprint). A **fake
+  synchronous event** through an in-process bus is the real risk, since port calls are not linked (V15-PLAN §1); a
+  checker-clean, oracle-fail tree counts as gaming.
+- **Fighting the gate:** repeated edits without resolving, or deleting the feature (caught by the outside tests).
+  Measure: edits from finding to resolution, findings never resolved.
 
 ## 7. Predictions (before any run)
 
@@ -106,15 +97,10 @@ Baseline `none` (PUZZLE-01): P1 0/5 clean, P2 0/5 (1/5 if case c07 is accepted),
 
 ## 8. Measures
 
-Per run, from the step snapshots and the hub log (zero calls):
-- **clean solve** by the puzzle oracles plus the outside tests, with a Wilson interval; per-sub-goal success;
-- **first-attempt correctness:** the share of findings resolved by the first edit after the message without a new
-  finding;
-- **edits and turns from finding to fix** (tool-call grain from the hub log);
-- **repair quality:** the fix is the oracle-clean pattern (event plus handler), not a gaming form (§6);
-- **functional failures** (outside tests);
-- **changed lines** against the seed;
-- caught-and-fixed (design §5) at step and at edit grain; latency p50 / p95; fail-open count.
+From snapshots and the hub log (zero calls): **clean solve** (oracles + outside tests, Wilson) and per-sub-goal
+success; **first-attempt correctness** (finding resolved by the first edit after it, with no new finding); **edits and
+turns from finding to fix**; **repair quality** (oracle-clean pattern, not a gaming form); **functional failures**;
+**changed lines**; caught-and-fixed at step and edit grain; latency and fail-open count.
 
 ## 9. Pilot plan and caps
 
@@ -129,8 +115,7 @@ CLI pin recorded, order seed new and fixed in advance, 0 repair turns.
 | Redraws (infrastructure only, at most one per puzzle) | 6 |
 | **Total** | **38** |
 
-Zero-call work first: the relay and hub, de-dup unit tests, gaming fixtures (rename, batch wrapper, fake synchronous
-event), hint audit of the templates, isolation checks. A short run plan is committed before the first call.
+Zero-call work first (relay, hub, de-dup tests, gaming fixtures, hint audit, isolation); a run plan before any call.
 
 ## 10. What counts as failure
 

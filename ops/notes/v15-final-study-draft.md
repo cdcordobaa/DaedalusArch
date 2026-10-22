@@ -9,22 +9,13 @@ pre-registration and is not to be registered yet.** Study 2b stays closed at v1.
 Sources: `Docs/v1.4/study2b-preregistration.md`, `Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md`,
 `ops/06-open-tracks-and-capabilities.md`, `ops/notes/explore-01-research-log.md`.
 
-**What worked.** The pipeline ran as registered: 520 step turns, 0 redraws, 7 h 10 min of wall time; one scoring pass;
-parity, coverage, acceptance and telemetry checks all clean. H1 (`none@L3` < `none@L2`, exact p 0.0132) and H2
-(`mcp@L2` < `none@L2`, exact p 0.0001) were rejected with the predicted sign, under D and D†. H3 was not rejected, and
-E failed, so nothing is claimed about `none@L3` and `mcp@L2` being equal.
+**What worked:** 520 turns, 0 redraws, 7 h 10 min, one scoring pass, all checks clean. H1 (exact p 0.0132) and H2
+(0.0001) rejected with the predicted sign under D and D†; H3 not rejected; E failed.
 
-**The limits** that this study must address:
-1. **One rule.** FF-S03 (composition-root wiring) carried 100 % of the counted identities. D without FF-S03 is 0.
-2. **One style.** Layered only; the DDD tasks were never sealed (DDD beta).
-3. **Four tasks.** The task-level sign-flip cannot go below p = 0.125, so no inference over tasks. The effect sat
-   mostly in two tasks; 12 of 40 blocks had Y₁ = 0.
-4. **No `mcp@L3` cell.** Whether the tool adds anything once the rules are in prose is unanswered.
-5. **A shrinking effect over run order.** d̄ fell from 1.6 to 0.5 (H1) and from 1.9 to 0.95 (H2) between the run-index
-   halves, with no sign reversal.
-6. **One vendor** (Claude Sonnet). The Gemini extension arm awaits S4 and its quota.
-7. **D_sem pending.** The semantic secondary has not run.
-8. **Pull delivery.** A `check_*` call appeared in 28 of 160 `mcp@L2` steps, so "tool" mostly meant spec delivery.
+**Limits to address:** (1) one rule, FF-S03, carried 100 % of identities; (2) Layered only; (3) 4 tasks, so the
+task-level p cannot go below 0.125, with the effect mostly in 2 tasks and Y₁ = 0 in 12 of 40 blocks; (4) no `mcp@L3`
+cell; (5) the effect shrank over run order (H1 d̄ 1.6 → 0.5, H2 1.9 → 0.95); (6) one vendor; (7) D_sem not run;
+(8) pull delivery: a `check_*` call in only 28 of 160 `mcp@L2` steps.
 
 ## 2. Research questions
 
@@ -61,26 +52,17 @@ a seeded step 1 with one planted inherited violation per family the task exercis
 spread or repair. S2 changes the estimand from "drift from the agent's own start" to "spread and repair of planted
 debt", and needs its own short pilot.
 
-**Outcomes.**
-- **Primary: D, extended** to the promoted v1.5 families (R-D4, R-XCTX, and every family that passes its precision and
-  held-out gates), under 2b's identity rule. A family that is not promoted is not counted. D† kept as the registered
-  sensitivity.
-- **Per-opportunity rates** per family and cell (violations / opportunities), from an exposure counter that supports
-  DDD specs (today it supports Layered only).
-- **Repair:** inherited identities removed per step; D | R = 0; and, with the gate, edits from finding to fix and
-  first-attempt correctness.
-- **D_sem, registered from the start** (RQ6): D over the findings C4 does not classify as legitimate exceptions, with
-  the C4 bars fixed before the run. Secondary, or co-primary if the author chooses (§8).
-- **Guards:** functional acceptance (the evasion item 1 bar), composition-root placement and renames, tool-call or gate
-  telemetry, cost.
+**Outcomes.** Primary: **D extended** to the promoted v1.5 families (R-D4, R-XCTX and any family that passes its
+precision and held-out gates), 2b's identity rule, D† as sensitivity. Secondary: **per-opportunity rates** per family
+(the exposure counter needs DDD support); **repair** (inherited removals, D | R = 0, edits from finding to fix,
+first-attempt correctness); **D_sem registered from the start**, C4 bars fixed before the run. Guards: functional
+acceptance, composition-root placement and renames, telemetry, cost.
 
-**Second vendor.** One extension arm on the same sealed tasks and cells, dated before its first call, only if its CLI
-passes S4. Gemini through agy failed S4; its quota resets about 2026-10-25. The vendor result is reported beside
-Claude's, not pooled, and each vendor has its own Holm family.
+**Second vendor:** an extension arm on the same tasks and cells, dated before its first call, only if its CLI passes
+S4 (Gemini via agy failed S4; quota resets about 2026-10-25). Reported beside Claude, own Holm family, not pooled.
 
-**Optional brownfield arm (RQ7).** One more cell, `tool-inferred@L2`: the tool gets the spec inferred by the §6
-pipeline instead of the declared one. Contrast with `tool@L2` (the cost of not knowing the rules) and with `none@L2`.
-Only if the §6 gate passes (the inferred spec recovers the declared one and flags the planted debt).
+**Optional brownfield arm (RQ7):** a cell `tool-inferred@L2` where the tool gets the V15-PLAN §6 inferred spec;
+contrasts with `tool@L2` and `none@L2`. Only if the §6 gate passes.
 
 ## 4. How many tasks: a power sketch
 
@@ -88,18 +70,13 @@ Only if the §6 gate passes (the inferred spec recovers the declared one and fla
 contrasts the smallest threshold is 0.0167, so **m ≥ 7 tasks per style** just to make a task-level rejection possible.
 2b's 4 tasks gave 0.125.
 
-**What m buys.** Rejection at the task level needs the effect in most tasks. With 8 tasks, roughly 7 or 8 of them must
-point the same way; with 12, about 10 or 11. In 2b, two of four tasks carried most of the effect. If half the tasks
-carry no effect, even 12 tasks are unlikely to reach a task-level claim, and the honest statement is "an effect within
-these tasks", as in 2b.
+**What m buys.** A task-level rejection needs the effect in most tasks (about 7–8 of 8, or 10–11 of 12). If half the
+tasks carry no effect, as 2b hints, even 12 tasks are unlikely to reach a task-level claim.
 
-**The computation to do (zero calls, before registration).** Reuse the logic of `scripts/v1.4/study2b-power.ts` at
-task grain:
-1. the exactness floor at task level, per Holm step;
-2. resample m task-level mean differences from a mixture: 2b's four task profiles at full and at half size (the
-   shrinking effect), plus null tasks at share π₀ ∈ {0, 0.25, 0.5}; the DDD profiles come from a DDD pilot, or are
-   assumed at half the Layered size;
-3. report the smallest m with power ≥ 0.80 for each π₀, then r from the block-level power, as in 2b's P3.
+**To compute before registration (zero calls):** `scripts/v1.4/study2b-power.ts` logic at task grain: the task-level
+exactness floor per Holm step; resampling m task-level differences from 2b's four task profiles at full and half size
+plus null tasks at share π₀ ∈ {0, 0.25, 0.5} (DDD profiles from a pilot or assumed at half size); the smallest m with
+power ≥ 0.80 per π₀, then r as in 2b's P3.
 
 **Candidate grids** (17 turns per block; 2b's rate of about 73 turns an hour on two lanes):
 
@@ -109,8 +86,7 @@ task grain:
 | **B (lead)** | **12 × 3** | **36** | **612** | **about 8.5 h** |
 | C | 16 × 2 | 32 | 544 | about 7.5 h |
 
-B is the lead option: it puts the budget into tasks rather than replicates, which is what task-level inference needs,
-and keeps r ≥ 3 for within-task intervals.
+B leads: budget into tasks, not replicates, with r ≥ 3 for within-task intervals.
 
 ## 5. Rough cost (option B)
 
@@ -123,8 +99,7 @@ and keeps r ≥ 3 for within-task intervals.
 | C4 for D_sem | about 1,000–2,000 calls (2b had 1,392 blocking findings over 600 snapshots; one call per distinct identity) | a few hours |
 | Practice-task dress rehearsal, smoke, S4, probes | about 40 | — |
 
-Human cost: 24 new sealed tasks (12 per style), with blind authoring, a hint audit and an examiner. This is the largest
-item and the critical path.
+Human cost: 24 new sealed tasks (blind authoring, hint audit, examiner), the critical path.
 
 ## 6. What must be true of v1.5 before registration
 
@@ -145,19 +120,15 @@ From V15-PLAN:
 
 ## 7. Threats
 
-- **Run-order decay** (2b limit 5): the run order interleaves cells per replicate as in 2b, the model string and CLI
-  version are recorded per turn, and a time-half sensitivity is registered. A CLI auto-update mid-run is a stop.
-- **Concentration on one rule:** the per-family share of D is reported, and the claim is scoped to the families that
-  carry it, as 2b scoped to FF-S03.
-- **Y₁ = 0 dilution:** option S2, or a registered sensitivity that drops those blocks.
-- **Same-vendor authoring and generation:** tasks and instrument come from Claude sessions; the second vendor arm and an
-  independent task author reduce this.
-- **Development contamination:** detectors tuned on the puzzles and 2b trees; counted families must pass held-out
-  checks, and the new tasks are sealed before any detector change is frozen.
-- **Gaming:** renames, batch wrappers, fake synchronous events, composition-root moves; the evasion bars of 2b plus the
-  puzzle answer-key checks.
-- **Construct:** D counts symbolic findings. D_sem and the functional guard bound what a drop in D means.
-- **Delivery confound:** with pull, "tool" includes an instruction; the gate removes it.
+- **Run-order decay:** per-replicate interleaving, model and CLI recorded per turn, a time-half sensitivity; a CLI
+  update mid-run is a stop.
+- **One-rule concentration:** per-family share of D reported; the claim scoped to the carrying families.
+- **Y₁ = 0 dilution:** option S2 or a drop-blocks sensitivity.
+- **Same-vendor authoring:** second vendor and an independent task author.
+- **Dev contamination:** held-out checks for counted families; tasks sealed before the detectors freeze.
+- **Gaming:** 2b's evasion bars plus puzzle answer keys (renames, batch wrappers, fake synchronous events).
+- **Construct:** D is symbolic; D_sem and the functional guard bound it. **Delivery confound:** the gate removes the
+  instruction sentence pull needs.
 
 ## 8. Open decisions for the author
 
