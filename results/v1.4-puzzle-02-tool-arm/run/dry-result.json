@@ -1,0 +1,134 @@
+{
+  "schema": "puzzle-02-tool-arm-dry/v1",
+  "calls": 0,
+  "argv": [
+    "-p",
+    "<prompt>",
+    "--model",
+    "claude-sonnet-5-5",
+    "--output-format",
+    "json",
+    "--setting-sources",
+    "",
+    "--settings",
+    "{\"autoMemoryEnabled\":false,\"disableAllHooks\":true}",
+    "--disable-slash-commands",
+    "--restricted",
+    "--tools",
+    "Read,Write,Edit,Glob,Grep,Bash",
+    "--allowedTools",
+    "Bash(/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c01/tsconfig.json)",
+    "mcp__daedalus-arch__*",
+    "--disallowedTools",
+    "Write(node_modules/**)",
+    "Edit(node_modules/**)",
+    "--permission-mode",
+    "acceptEdits",
+    "--permission-prompts",
+    "none",
+    "--no-session-persistence",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{\"daedalus-arch\":{\"type\":\"stdio\",\"command\":\"/opt/node22/bin/node\",\"args\":[\"/srv/h/bin/mcp-relay.cjs\",\"/srv/m/s.sock\"],\"env\":{}}}}"
+  ],
+  "checks": [
+    {
+      "task": "t1",
+      "inside": {
+        "tools": [
+          "get_architecture_spec",
+          "which_layer",
+          "check_import",
+          "evaluate_project",
+          "explain_violation",
+          "check_file",
+          "check_diff",
+          "suggest_placement",
+          "infer_spec",
+          "explain_finding",
+          "propose_spec",
+          "check_consistency"
+        ],
+        "result": {
+          "isError": false,
+          "text": "check_consistency: No command writes more than one aggregate instance or another context's aggregate (checked 5 commands, aggregates: Account).",
+          "status": "clean"
+        }
+      },
+      "outside": {
+        "tools": [
+          "get_architecture_spec",
+          "which_layer",
+          "check_import",
+          "evaluate_project",
+          "explain_violation",
+          "check_file",
+          "check_diff",
+          "suggest_placement",
+          "infer_spec",
+          "explain_finding",
+          "propose_spec",
+          "check_consistency"
+        ],
+        "result": {
+          "isError": true,
+          "text": "confined: the project argument must lie inside the configured project; omit it to use the configured project",
+          "status": null
+        }
+      }
+    },
+    {
+      "task": "t2",
+      "inside": {
+        "tools": [
+          "get_architecture_spec",
+          "which_layer",
+          "check_import",
+          "evaluate_project",
+          "explain_violation",
+          "check_file",
+          "check_diff",
+          "suggest_placement",
+          "infer_spec",
+          "explain_finding",
+          "propose_spec",
+          "check_consistency"
+        ],
+        "result": {
+          "isError": false,
+          "text": "check_consistency: No command writes more than one aggregate instance or another context's aggregate (checked 9 commands, aggregates: Member, Order).",
+          "status": "clean"
+        }
+      },
+      "outside": {
+        "tools": [
+          "get_architecture_spec",
+          "which_layer",
+          "check_import",
+          "evaluate_project",
+          "explain_violation",
+          "check_file",
+          "check_diff",
+          "suggest_placement",
+          "infer_spec",
+          "explain_finding",
+          "propose_spec",
+          "check_consistency"
+        ],
+        "result": {
+          "isError": true,
+          "text": "confined: the project argument must lie inside the configured project; omit it to use the configured project",
+          "status": null
+        }
+      }
+    },
+    {
+      "task": "t1",
+      "session": "done"
+    },
+    {
+      "task": "t2",
+      "session": "done"
+    }
+  ]
+}
