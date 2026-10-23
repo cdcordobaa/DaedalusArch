@@ -147,3 +147,16 @@ The defensibility register (`ops/02-defensibility-conditions.md`, 2026-10-18) ta
 | Gates before any v1.5 study: v1.5 code into `src/`; at least 7 tasks per style with behaviour tests; the final-study decisions (incl. the scripted confinement check for any second-vendor arm, CONFINE); the hold-out; meaning labels | author; coordinator | `Docs/DiagnosticRuns/v1.5-exploratory-synthesis-2026-10-23.md:61`–`:69` |
 | Correct the lines found by this sync: conflicts K284–K295 (v1.5 synthesis P2 0/5, "0 of 12 trap failures", "n = 3 to 5", the open "12 false hits"; COMPREHEND-01 "-16%"; repo-scout file and LOC ranges and "66"; PUZZLE-04 plan "19 of 19" and the per-puzzle latency; U4 "111 trees") | coordinator | `claims-ledger.md` conflicts (2026-10-23 block) |
 | Thesis: the per-task mean D sentence for Study 2b (build desk Q-20261023-1) has no source line to cite: the exploratory analyses report gives sums (ΣD) only. A line stating the means is needed in the report before the ledger can carry them | coordinator | `Docs/DiagnosticRuns/v1.4-study2b-exploratory-analyses-2026-10-22.md:19`–`:22` |
+
+## 10. State on 2026-10-23, second refresh (after PRs #373–#375)
+
+**This section overrides §1–§9 where they differ.** The readiness dashboard was not re-tallied (it is historical since the 2b gate was re-taken). **Done since §9:** GRAPH-SCALE (U1 groundwork, zero calls), which answers the §9 row "Graph facts at scale" on development material; the Study 2b per-task mean D addendum, which closes the §9 row on build desk Q-20261023-1 (ledger C10194–C10201; the private thesis cites the addendum since its PR #31); and the full-text check of the four closest works (sources read in full now 19 of 308, which updates the §8 row on the sources ledger). The other §9 rows still stand.
+
+| Item | Owner | Source |
+|---|---|---|
+| GRAPH-SCALE: whether `callers` should count base-interface members on base-typed receivers (BS-C3), and whether truth revision R1 becomes the truth for class ports in COMPREHEND-02 | author | `ops/notes/explore-01-research-log.md:393` |
+| U1 proper: promote the GRAPH-SCALE fixes from `experiments/detect-02/` into `src/` and run FR-1's fidelity test | coordinator | `aidlc-docs/aidlc-state.md:154` |
+| COMPREHEND-02: choose the trees (recommended Backstage, Novu, Medusa) now that the graph changes the scout asked for exist | author | `ops/notes/explore-01-research-log.md:394` |
+| Correct K296: the GRAPH-SCALE summary gives `who_writes` precision on Novu as 95–100%; its table gives 63–95% | coordinator | `Docs/DiagnosticRuns/graph-scale-2026-10-23.md:20` |
+| `aidlc-docs/audit.md` on `main` carries unresolved merge-conflict markers from the GRAPH-SCALE merge (both sides' entries are present; only the `<<<<<<<`, `=======` and `>>>>>>>` lines need removing, as an append-only correction note) | coordinator | `aidlc-docs/audit.md:3124`, `:3138`, `:3144` |
+| Tech-talk material: the banner "100% test coverage. Zero architectural compliance." beside the ImpossibleBench citation is not a figure from that paper; drop the attribution before the deck is reused | author | `Docs/sources/sources-ledger.md:481` |

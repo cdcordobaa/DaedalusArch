@@ -141,7 +141,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-o` to `v14-r`
 
 ## Phase 10: tool arms, comprehension, drift and the v1.5 synthesis (2026-10-22 to 2026-10-23)
 
-Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-u` (C9341–C10124); nulls M227–M250; conflicts K284–K295; chronology rows 63–67. Everything in this phase is exploratory development material (`v1.5-exp`), one generator (`claude-sonnet-5-5`), hand reads by a coordinating session with the author's spot-checks pending; none of it feeds Study 2b.
+Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v` (C9341–C10206); nulls M227–M256; conflicts K284–K296; chronology rows 63–68. Everything in this phase is exploratory development material (`v1.5-exp`), one generator (`claude-sonnet-5-5`), hand reads by a coordinating session with the author's spot-checks pending; none of it feeds Study 2b.
 
 | When | Event | Where |
 |---|---|---|
@@ -156,6 +156,11 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-u`
 | 2026-10-23, 00:59 | **REPO-SCOUT for COMPREHEND-02** (zero model calls, 82 repositories): Medusa and Backstage meet all five criteria; graph site recall Backstage 95–100%, Novu 87–100%, Medusa 0–3%; `who_writes` empty. | PR #370 |
 | 2026-10-23, 02:58 | **v1.5 exploratory synthesis**, the COMPREHEND-01 scope note (cost at equal accuracy on small codebases only) and the **CONFINE** decision (scripted confinement checks replace model-driven probes). | PR #371; chronology row 67 |
 | 2026-10-23 | Daily thesis sync: 680 claims from PRs #362–#371 (C9341–C10124, parts `v14-s` to `v14-u`); 47 citations re-anchored; 8 earlier rows superseded by events; conflicts K284–K295 (mostly in the v1.5 synthesis and the repo-scout and PUZZLE-04 plan text); nulls M227–M250; chronology rows 63–67; open items §9. The private thesis draft (Kap9 slot E1 and Kap8 slot E4: the TODO figures filled from the new ledger rows, two sentences narrowed) compiles and is left open for the author because it narrows two claims the slots already made. | [PR #372](https://github.com/cdcordobaa/DaedalusArch/pull/372); private thesis PR #28 |
+| 2026-10-23, 04:04 | Daily thesis sync of 2026-10-23 merged; private thesis PR #28 merged later the same night. | PR #372 |
+| 2026-10-23, 04:18 | **Four closest works read in full** (Dente et al. *Constraint Decay*, Canedo *Architecture as Capability Equalizer*, Zhong et al. *ImpossibleBench*, ContextCov): sources ledger rows checked against the full text; sources read in full 15 → 19 of 308. The tech-talk banner beside the ImpossibleBench citation is not a figure from that paper. | PR #373 |
+| 2026-10-23, 04:32 | **Study 2b per-task mean D** (addendum, zero calls, post hoc): community-radio 5.0 to 0.7 (none@L2 to mcp@L2), parking-permits 2.9 and 2.9; closes build desk Q-20261023-1. | PR #374 |
+| 2026-10-23, 05:29 | **GRAPH-SCALE** (v1.5 U1 groundwork, zero model calls): five fixes to the comprehension graph; on Medusa `callers` and `who_writes` 100% / 100% (index before 0–17%), Novu `callers` 100% / 100%, Backstage tsc coverage 0.995 → 1.000; DETECT-02 dev set and precision fixtures unchanged; one post-hoc truth revision (R1, NV-W2). | PR #375; chronology row 68 |
+| 2026-10-23, 11:10 | Second daily thesis sync of the day: 76 claims from PRs #373–#375 (C10131–C10206, part `v14-v`): GRAPH-SCALE, the Study 2b per-task mean D addendum, the sources-ledger counts; 7 citations re-anchored; C9151–C9153 superseded (read in full 15 → 19); conflict K296; nulls M251–M256; chronology row 68; open items §10 (incl. merge-conflict markers left in `aidlc-docs/audit.md`). The private thesis gains the Kap8 ledger ids for the per-task means and a GRAPH-SCALE paragraph in Kap9 slot E1; it compiles, changes no claim, and was merged. | [PR #376](https://github.com/cdcordobaa/DaedalusArch/pull/376); private thesis PR #34 |
 
 ## What the timeline shows for the thesis
 
