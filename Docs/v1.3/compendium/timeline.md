@@ -139,6 +139,24 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-o` to `v14-r`
 | 2026-10-22, 06:32–08:12 | **PUZZLE-03**: hand read of the 12 baseline failures (11 traps, 1 over-rejection, so P2 moves to 1/5, provisional) and puzzles P3r, P5, P6 built and verified. **COMPREHEND-01** benchmark and graph tools built (zero calls, not run). **Edit gate** built (2 of 4 allowed calls; hooks work on one CLI pin). **U3** severity rubric pilot (52 of 60 calls; 24/24 on a designed set; gate passed). **U4** thinking note (zero calls, not run). | PRs #359, #358, #357, #360, #361; chronology row 62 |
 | 2026-10-22 | Daily thesis sync: 736 claims from PRs #340–#361 (C8441–C9334, parts `v14-o` to `v14-r`): Study 2b secondaries closed, exploratory pilots, v1.5 builds, `ops/` surface; 7 earlier rows superseded, no citation re-anchored; conflicts K273–K283, nulls M198–M226, chronology rows 56–62, open items §8. The private thesis draft (Kap8: slot E2, Study 2b registered secondaries; Kap9: slot E1, exploratory thread) compiles and is left open for the author because it overtakes claims in the open 2026-10-21 draft. | [PR #362](https://github.com/cdcordobaa/DaedalusArch/pull/362); private thesis PR #14 |
 
+## Phase 10: tool arms, comprehension, drift and the v1.5 synthesis (2026-10-22 to 2026-10-23)
+
+Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-u` (C9341–C10124); nulls M227–M250; conflicts K284–K295; chronology rows 63–67. Everything in this phase is exploratory development material (`v1.5-exp`), one generator (`claude-sonnet-5-5`), hand reads by a coordinating session with the author's spot-checks pending; none of it feeds Study 2b.
+
+| When | Event | Where |
+|---|---|---|
+| 2026-10-22, 11:52 | Daily thesis sync of 2026-10-22 merged. | PR #362 |
+| 2026-10-22, 13:13 | **PUZZLE-03 baseline**, agent alone (50 of 53 calls): P3r 1/5, P5 0/5, P6 0/5 clean; every P6 run copied the planted precedent; the frozen instrument flags P6 in 5/5 runs and DETECT-02 flags P5 in 5/5. | PR #364 |
+| 2026-10-22, 18:58 | **PUZZLE-02 tool arm** (pull, DETECT-02 server; 34 of 38 calls): P1 4/5 clean against 0/5 alone; P2 0/5 by the oracle, with no tool finding in any P2 run. | PR #363 |
+| 2026-10-22, 19:15 | **Hand reads** (zero calls): PUZZLE-03 17 trap, 0 over-rejection; PUZZLE-02 0 trap, 6 over-rejection, so P2 reads 3/5 against 1/5; spot-checks pending. | PR #365; chronology row 64 |
+| 2026-10-22, 19:39 | **COMPREHEND-01 pilot** (63 of 64 calls, under R1 and R2): accuracy F 0.933, FG 0.900 (0.963 each on items the graph covers), "more accurately" fails; token ratio 0.835, "more cheaply" holds; small codebases only. | PR #366; chronology row 63 |
+| 2026-10-22, 20:23 | **v1.5 U4** (73 of 75 calls): S3 passes (model roots 22 of 23 declared, lift 0); S2 fails (D5 recall stays 11/16, 4 added false positives; the lock form rejected). | PR #367; chronology row 66 |
+| 2026-10-22, 21:30 | **PUZZLE-04** gate and pull arms (109 of 121 calls; plan committed 18:55Z before any call): P6 0/5 to 5/5 under both; P5 0/5 registered under both (functional test); P1 and P2 gate 2/5; P3r blind control 0/5 with 0 gate replies; one composition-root evasion (P5 c07). | PR #368; chronology row 65 |
+| 2026-10-22, 22:57 | **DRIFT-01** (82 of 94 calls) and its zero-call re-score of the HEXDDD-01 trajectories: DDD ΣD_v15 none 6, pull 0, gate 0; D_frozen 0 in every cell; gate removed the inherited cross-context write in 3/3 blocks, pull in 0/3; the predicted gate-over-pull advantage tied. | PR #369 |
+| 2026-10-23, 00:59 | **REPO-SCOUT for COMPREHEND-02** (zero model calls, 82 repositories): Medusa and Backstage meet all five criteria; graph site recall Backstage 95–100%, Novu 87–100%, Medusa 0–3%; `who_writes` empty. | PR #370 |
+| 2026-10-23, 02:58 | **v1.5 exploratory synthesis**, the COMPREHEND-01 scope note (cost at equal accuracy on small codebases only) and the **CONFINE** decision (scripted confinement checks replace model-driven probes). | PR #371; chronology row 67 |
+| 2026-10-23 | Daily thesis sync: 680 claims from PRs #362–#371 (C9341–C10124, parts `v14-s` to `v14-u`); 47 citations re-anchored; 8 earlier rows superseded by events; conflicts K284–K295 (mostly in the v1.5 synthesis and the repo-scout and PUZZLE-04 plan text); nulls M227–M250; chronology rows 63–67; open items §9. | this sync's PR (see the line below) |
+
 ## What the timeline shows for the thesis
 
 1. **The order of decisions and data is on record.** The rule tiers were fixed before any v1.3 data, but after Study 1. ADR-V13-01 is the only human decision taken before the data it affects. The hold-out was sealed and then enlarged after development results existed (chronology rows 4 and 6). The Study 2 outcome switch is a declared deviation, made after the pilot and the probes and before any Study 2 task was written or any arm comparison existed.
