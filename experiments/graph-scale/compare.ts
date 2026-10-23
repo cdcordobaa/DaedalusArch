@@ -9,7 +9,8 @@
  *
  * Per question, at three grains (call sites `file:line`, units `file#name`, files), recall and precision of:
  *   - `index`      every call edge (and unresolved call) the index holds, matched as the scout matched it
- *                  (`experiments/repo-scout/compare.ts`): the ceiling under the tools;
+ *                  (`experiments/repo-scout/compare.ts`): the ceiling under the tools; `edgesOnly` = resolved edges
+ *                  only (the scout report's "Index" column; with the unresolved calls it is "lenient");
  *   - `callers`    (callers/writers questions; after only) the callers tool on the question's type, restricted to the
  *                  question's members (the truth's member list);
  *   - `who_writes` (questions with `aggregate`): the writer units and their write sites;
@@ -145,7 +146,7 @@ async function main(): Promise<void> {
     const row: Record<string, unknown> = {
       id: q.id, kind: q.kind, question: q.question,
       truth: { sites: tr.sites.length, units: tr.units.length, files: tr.files.length, typeRefFiles: tr.typeRefFiles?.length, implementations: tr.implementations, members: tr.members, ms: tr.ms },
-      index: { ...grains(tr, idx), how: Object.fromEntries([...new Set(idx.map((x) => x.how))].map((h) => [h, idx.filter((x) => x.how === h).length])) },
+      index: { ...grains(tr, idx), edgesOnly: grains(tr, idx.filter((x) => x.how.startsWith('edge'))), how: Object.fromEntries([...new Set(idx.map((x) => x.how))].map((h) => [h, idx.filter((x) => x.how === h).length])) },
     };
     if (q.kind !== 'crossCalls') {
       if (has.callers) {
@@ -196,7 +197,7 @@ async function main(): Promise<void> {
     if (tr1 !== tr) {
       row.r1 = {
         truth: { sites: tr1.sites.length, units: tr1.units.length, files: tr1.files.length, removed: tr.sites.length - tr1.sites.length },
-        index: grains(tr1, idx), ...(selRows ? { callers: grains(tr1, selRows) } : {}), ...(wwRows ? { who_writes: grains(tr1, wwRows) } : {}),
+        index: grains(tr1, idx), indexEdgesOnly: grains(tr1, idx.filter((x) => x.how.startsWith('edge'))), ...(selRows ? { callers: grains(tr1, selRows) } : {}), ...(wwRows ? { who_writes: grains(tr1, wwRows) } : {}),
       };
     }
     row.indexMissed = tr.sites.filter((s) => !idx.some((x) => x.site === `${s.file}:${s.line}`)).slice(0, 12);
