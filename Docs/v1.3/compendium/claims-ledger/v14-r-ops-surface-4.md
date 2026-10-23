@@ -27,11 +27,11 @@ Secondary sources: the new and changed lines of `Docs/v1.3/contribution-statemen
 
 | id | statement | numbers | source | type | set | status | replication | quantity | verified against | notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| C9150 | **Total rows:** 308. | `**Total rows:** 308` | `Docs/sources/sources-ledger.md:477` | descriptive | none | established | — | sources ledger: total source rows | self (recounted: 308 table rows; Docs/sources/sources.bib has 308 entries) | bookkeeping count; PR #342 |
-| C9151 | / read in full / 15 / | `read in full \| 15` | `Docs/sources/sources-ledger.md:481` | descriptive | none | established | — | sources read in full | self (recounted from the Status column) | only 15 of 308 sources are read in full; the README allows quoting figures only from these |
-| C9152 | / summary only / 194 / | `summary only \| 194` | `Docs/sources/sources-ledger.md:482` | descriptive | none | established | — | sources known from a summary only | self (recounted) |  |
-| C9153 | / search summary only, not read in full / 11 / | `search summary only, not read in full \| 11` | `Docs/sources/sources-ledger.md:483` | descriptive | none | established | — | sources known from a search summary only | self (recounted) |  |
-| C9154 | / unverified / 88 / | `unverified \| 88` | `Docs/sources/sources-ledger.md:484` | descriptive | none | established | — | unverified sources | self (recounted) | bare mentions or entries from general knowledge |
+| C9150 | **Total rows:** 308. | `**Total rows:** 308` | `Docs/sources/sources-ledger.md:486` | descriptive | none | established | — | sources ledger: total source rows | self (recounted: 308 table rows; Docs/sources/sources.bib has 308 entries) | bookkeeping count; PR #342 |
+| C9151 | / read in full / 15 / | `read in full \| 19` | `Docs/sources/sources-ledger.md:490` | descriptive | none | superseded | — | sources read in full | self (recounted from the Status column) | only 15 of 308 sources are read in full; the README allows quoting figures only from these; was 15 at 646f92ae; superseded 2026-10-23 by PR #373 (four sources moved to read in full); current count C10203 |
+| C9152 | / summary only / 194 / | `summary only \| 192` | `Docs/sources/sources-ledger.md:491` | descriptive | none | superseded | — | sources known from a summary only | self (recounted) | was 194 at 646f92ae; superseded 2026-10-23 by PR #373 (four sources moved to read in full); current count C10204 |
+| C9153 | / search summary only, not read in full / 11 / | `search summary only, not read in full \| 9` | `Docs/sources/sources-ledger.md:492` | descriptive | none | superseded | — | sources known from a search summary only | self (recounted) | was 11 at 646f92ae; superseded 2026-10-23 by PR #373 (four sources moved to read in full); current count C10205 |
+| C9154 | / unverified / 88 / | `unverified \| 88` | `Docs/sources/sources-ledger.md:493` | descriptive | none | established | — | unverified sources | self (recounted) | bare mentions or entries from general knowledge |
 
 ### `ops/00-overview.md`
 
