@@ -1,0 +1,81 @@
+# REPO-SCOUT spec for backstage @ d7232720 (hand-written from the repository's own declarations: ADR011 plugin
+# package structure (x-backend, x-backend-module-*, x-node, x-common under plugins/), the `backstage.role` of every
+# package.json, and the core packages under packages/). One context per plugin family. Roles for the DETECT-02
+# comprehension tools only.
+architecture:
+  style: ddd
+  layers:
+    - name: common
+      kind: domain
+      directories: ['plugins/*-common/src/**', 'packages/catalog-model/src/**', 'packages/types/src/**', 'packages/errors/src/**', 'packages/config/src/**']
+    - name: node-libraries
+      kind: application
+      directories: ['plugins/*-node/src/**', 'packages/backend-plugin-api/src/**']
+    - name: backend-plugins
+      kind: application
+      directories: ['plugins/*-backend/src/**']
+    - name: backend-modules
+      kind: infrastructure
+      directories: ['plugins/*-backend-module-*/src/**', 'packages/backend-*/src/**']
+  ddd:
+    contexts:
+      - name: app
+        root: plugins/app-
+        public_api: ['plugins/app-node/src/**', 'plugins/app-common/src/**']
+      - name: auth
+        root: plugins/auth-
+        public_api: ['plugins/auth-node/src/**', 'plugins/auth-common/src/**']
+      - name: bitbucket-cloud
+        root: plugins/bitbucket-cloud-
+        public_api: ['plugins/bitbucket-cloud-node/src/**', 'plugins/bitbucket-cloud-common/src/**']
+      - name: catalog
+        root: plugins/catalog-
+        public_api: ['plugins/catalog-node/src/**', 'plugins/catalog-common/src/**']
+      - name: catalog-unprocessed-entities
+        root: plugins/catalog-unprocessed-entities-
+        public_api: ['plugins/catalog-unprocessed-entities-node/src/**', 'plugins/catalog-unprocessed-entities-common/src/**']
+      - name: connections-example
+        root: plugins/connections-example-
+        public_api: ['plugins/connections-example-node/src/**', 'plugins/connections-example-common/src/**']
+      - name: devtools
+        root: plugins/devtools-
+        public_api: ['plugins/devtools-node/src/**', 'plugins/devtools-common/src/**']
+      - name: events
+        root: plugins/events-
+        public_api: ['plugins/events-node/src/**', 'plugins/events-common/src/**']
+      - name: example-todo-list
+        root: plugins/example-todo-list-
+        public_api: ['plugins/example-todo-list-node/src/**', 'plugins/example-todo-list-common/src/**']
+      - name: gateway
+        root: plugins/gateway-
+        public_api: ['plugins/gateway-node/src/**', 'plugins/gateway-common/src/**']
+      - name: kubernetes
+        root: plugins/kubernetes-
+        public_api: ['plugins/kubernetes-node/src/**', 'plugins/kubernetes-common/src/**']
+      - name: mcp-actions
+        root: plugins/mcp-actions-
+        public_api: ['plugins/mcp-actions-node/src/**', 'plugins/mcp-actions-common/src/**']
+      - name: notifications
+        root: plugins/notifications-
+        public_api: ['plugins/notifications-node/src/**', 'plugins/notifications-common/src/**']
+      - name: permission
+        root: plugins/permission-
+        public_api: ['plugins/permission-node/src/**', 'plugins/permission-common/src/**']
+      - name: proxy
+        root: plugins/proxy-
+        public_api: ['plugins/proxy-node/src/**', 'plugins/proxy-common/src/**']
+      - name: scaffolder
+        root: plugins/scaffolder-
+        public_api: ['plugins/scaffolder-node/src/**', 'plugins/scaffolder-common/src/**']
+      - name: search
+        root: plugins/search-
+        public_api: ['plugins/search-node/src/**', 'plugins/search-common/src/**']
+      - name: signals
+        root: plugins/signals-
+        public_api: ['plugins/signals-node/src/**', 'plugins/signals-common/src/**']
+      - name: techdocs
+        root: plugins/techdocs-
+        public_api: ['plugins/techdocs-node/src/**', 'plugins/techdocs-common/src/**']
+      - name: user-settings
+        root: plugins/user-settings-
+        public_api: ['plugins/user-settings-node/src/**', 'plugins/user-settings-common/src/**']

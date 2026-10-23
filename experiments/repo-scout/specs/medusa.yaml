@@ -1,0 +1,139 @@
+# REPO-SCOUT spec for medusa @ 6cc1a4ac (hand-written from the repository's own declarations: one Medusa module per
+# package under packages/modules/, each with its own container (docs: www/apps/book/app/learn/fundamentals/modules/
+# isolation); workflows in packages/core/core-flows orchestrate across modules; packages/core/types holds each
+# module's published service interface). Roles for the DETECT-02 comprehension tools only.
+architecture:
+  style: ddd
+  layers:
+    - name: workflows
+      kind: application
+      directories: ['packages/core/core-flows/src/**']
+    - name: module-services
+      kind: application
+      directories: ['packages/modules/*/src/services/**', 'packages/modules/providers/*/src/services/**']
+    - name: models
+      kind: domain
+      directories: ['packages/modules/*/src/models/**']
+    - name: module-infrastructure
+      kind: infrastructure
+      directories: ['packages/modules/*/src/repositories/**', 'packages/modules/*/src/migrations/**', 'packages/modules/providers/**']
+    - name: contracts
+      kind: application
+      directories: ['packages/core/types/src/**']
+  ddd:
+    repositories: ['packages/modules/*/src/repositories/**']
+    contexts:
+      - name: analytics
+        root: packages/modules/analytics/
+        public_api: ['packages/core/types/src/analytics/**']
+      - name: api-key
+        root: packages/modules/api-key/
+        public_api: ['packages/core/types/src/api-key/**']
+      - name: auth
+        root: packages/modules/auth/
+        public_api: ['packages/core/types/src/auth/**']
+      - name: cache-inmemory
+        root: packages/modules/cache-inmemory/
+        public_api: ['packages/core/types/src/cache-inmemory/**']
+      - name: cache-redis
+        root: packages/modules/cache-redis/
+        public_api: ['packages/core/types/src/cache-redis/**']
+      - name: caching
+        root: packages/modules/caching/
+        public_api: ['packages/core/types/src/caching/**']
+      - name: cart
+        root: packages/modules/cart/
+        public_api: ['packages/core/types/src/cart/**']
+      - name: currency
+        root: packages/modules/currency/
+        public_api: ['packages/core/types/src/currency/**']
+      - name: customer
+        root: packages/modules/customer/
+        public_api: ['packages/core/types/src/customer/**']
+      - name: event-bus-local
+        root: packages/modules/event-bus-local/
+        public_api: ['packages/core/types/src/event-bus-local/**']
+      - name: event-bus-redis
+        root: packages/modules/event-bus-redis/
+        public_api: ['packages/core/types/src/event-bus-redis/**']
+      - name: file
+        root: packages/modules/file/
+        public_api: ['packages/core/types/src/file/**']
+      - name: fulfillment
+        root: packages/modules/fulfillment/
+        public_api: ['packages/core/types/src/fulfillment/**']
+      - name: index
+        root: packages/modules/index/
+        public_api: ['packages/core/types/src/index/**']
+      - name: inventory
+        root: packages/modules/inventory/
+        public_api: ['packages/core/types/src/inventory/**']
+      - name: link-modules
+        root: packages/modules/link-modules/
+        public_api: ['packages/core/types/src/link-modules/**']
+      - name: locking
+        root: packages/modules/locking/
+        public_api: ['packages/core/types/src/locking/**']
+      - name: notification
+        root: packages/modules/notification/
+        public_api: ['packages/core/types/src/notification/**']
+      - name: order
+        root: packages/modules/order/
+        public_api: ['packages/core/types/src/order/**']
+      - name: payment
+        root: packages/modules/payment/
+        public_api: ['packages/core/types/src/payment/**']
+      - name: pricing
+        root: packages/modules/pricing/
+        public_api: ['packages/core/types/src/pricing/**']
+      - name: product
+        root: packages/modules/product/
+        public_api: ['packages/core/types/src/product/**']
+      - name: promotion
+        root: packages/modules/promotion/
+        public_api: ['packages/core/types/src/promotion/**']
+      - name: rbac
+        root: packages/modules/rbac/
+        public_api: ['packages/core/types/src/rbac/**']
+      - name: region
+        root: packages/modules/region/
+        public_api: ['packages/core/types/src/region/**']
+      - name: sales-channel
+        root: packages/modules/sales-channel/
+        public_api: ['packages/core/types/src/sales-channel/**']
+      - name: search
+        root: packages/modules/search/
+        public_api: ['packages/core/types/src/search/**']
+      - name: settings
+        root: packages/modules/settings/
+        public_api: ['packages/core/types/src/settings/**']
+      - name: stock-location
+        root: packages/modules/stock-location/
+        public_api: ['packages/core/types/src/stock-location/**']
+      - name: store
+        root: packages/modules/store/
+        public_api: ['packages/core/types/src/store/**']
+      - name: tax
+        root: packages/modules/tax/
+        public_api: ['packages/core/types/src/tax/**']
+      - name: translation
+        root: packages/modules/translation/
+        public_api: ['packages/core/types/src/translation/**']
+      - name: user
+        root: packages/modules/user/
+        public_api: ['packages/core/types/src/user/**']
+      - name: workflow-engine-inmemory
+        root: packages/modules/workflow-engine-inmemory/
+        public_api: ['packages/core/types/src/workflow-engine-inmemory/**']
+      - name: workflow-engine-redis
+        root: packages/modules/workflow-engine-redis/
+        public_api: ['packages/core/types/src/workflow-engine-redis/**']
+    aggregates:
+      - name: Product
+        context: product
+        module: 'packages/modules/product/src/models/**'
+        root: packages/modules/product/src/models/product.ts
+      - name: Order
+        context: order
+        module: 'packages/modules/order/src/models/**'
+        root: packages/modules/order/src/models/order.ts

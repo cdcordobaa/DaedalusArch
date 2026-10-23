@@ -1,0 +1,150 @@
+# REPO-SCOUT spec for novu @ 894d63ff (hand-written from the repository's own structure: one NestJS feature module
+# per folder under apps/api/src/app/ (each declares an @Module), use cases under usecases/, persistence in
+# libs/dal (one repository and entity per collection), shared use cases and services in libs/application-generic).
+# Roles for the DETECT-02 comprehension tools only.
+architecture:
+  style: ddd
+  layers:
+    - name: api
+      kind: infrastructure
+      directories: ['apps/api/src/app/*/*.controller.ts', 'apps/api/src/app/*/dtos/**', 'apps/api/src/app/*/e2e/**']
+    - name: usecases
+      kind: application
+      directories: ['apps/api/src/app/*/usecases/**', 'libs/application-generic/src/usecases/**']
+    - name: services
+      kind: application
+      directories: ['apps/api/src/app/*/services/**', 'libs/application-generic/src/services/**']
+    - name: entities
+      kind: domain
+      directories: ['libs/dal/src/repositories/**/*.entity.ts']
+    - name: dal
+      kind: infrastructure
+      directories: ['libs/dal/src/**']
+  ddd:
+    repositories: ['libs/dal/src/repositories/**/*.repository.ts']
+    contexts:
+      - name: activity
+        root: apps/api/src/app/activity/
+      - name: agents
+        root: apps/api/src/app/agents/
+      - name: analytics
+        root: apps/api/src/app/analytics/
+      - name: auth
+        root: apps/api/src/app/auth/
+      - name: billing
+        root: apps/api/src/app/billing/
+      - name: blueprint
+        root: apps/api/src/app/blueprint/
+      - name: bridge
+        root: apps/api/src/app/bridge/
+      - name: change
+        root: apps/api/src/app/change/
+      - name: channel-connections
+        root: apps/api/src/app/channel-connections/
+      - name: channel-endpoints
+        root: apps/api/src/app/channel-endpoints/
+      - name: cli-auth
+        root: apps/api/src/app/cli-auth/
+      - name: connect
+        root: apps/api/src/app/connect/
+      - name: content-templates
+        root: apps/api/src/app/content-templates/
+      - name: contexts
+        root: apps/api/src/app/contexts/
+      - name: domains
+        root: apps/api/src/app/domains/
+      - name: environment-variables
+        root: apps/api/src/app/environment-variables/
+      - name: environments-v1
+        root: apps/api/src/app/environments-v1/
+      - name: environments-v2
+        root: apps/api/src/app/environments-v2/
+      - name: events
+        root: apps/api/src/app/events/
+      - name: execution-details
+        root: apps/api/src/app/execution-details/
+      - name: feeds
+        root: apps/api/src/app/feeds/
+      - name: health
+        root: apps/api/src/app/health/
+      - name: human
+        root: apps/api/src/app/human/
+      - name: inbound-parse
+        root: apps/api/src/app/inbound-parse/
+      - name: inbox
+        root: apps/api/src/app/inbox/
+      - name: integrations
+        root: apps/api/src/app/integrations/
+      - name: internal
+        root: apps/api/src/app/internal/
+      - name: invites
+        root: apps/api/src/app/invites/
+      - name: keyless
+        root: apps/api/src/app/keyless/
+      - name: layouts-v1
+        root: apps/api/src/app/layouts-v1/
+      - name: layouts-v2
+        root: apps/api/src/app/layouts-v2/
+      - name: message-template
+        root: apps/api/src/app/message-template/
+      - name: messages
+        root: apps/api/src/app/messages/
+      - name: notification-groups
+        root: apps/api/src/app/notification-groups/
+      - name: notifications
+        root: apps/api/src/app/notifications/
+      - name: novu-context
+        root: apps/api/src/app/novu-context/
+      - name: organization
+        root: apps/api/src/app/organization/
+      - name: outbound-webhooks
+        root: apps/api/src/app/outbound-webhooks/
+      - name: partner-integrations
+        root: apps/api/src/app/partner-integrations/
+      - name: preferences
+        root: apps/api/src/app/preferences/
+      - name: rate-limiting
+        root: apps/api/src/app/rate-limiting/
+      - name: shared
+        root: apps/api/src/app/shared/
+      - name: step-resolvers
+        root: apps/api/src/app/step-resolvers/
+      - name: storage
+        root: apps/api/src/app/storage/
+      - name: subscribers
+        root: apps/api/src/app/subscribers/
+      - name: subscribers-v2
+        root: apps/api/src/app/subscribers-v2/
+      - name: subscriptions
+        root: apps/api/src/app/subscriptions/
+      - name: support
+        root: apps/api/src/app/support/
+      - name: telegram-linking
+        root: apps/api/src/app/telegram-linking/
+      - name: tenant
+        root: apps/api/src/app/tenant/
+      - name: testing
+        root: apps/api/src/app/testing/
+      - name: topics-v1
+        root: apps/api/src/app/topics-v1/
+      - name: topics-v2
+        root: apps/api/src/app/topics-v2/
+      - name: translations
+        root: apps/api/src/app/translations/
+      - name: user
+        root: apps/api/src/app/user/
+      - name: well-known
+        root: apps/api/src/app/well-known/
+      - name: widgets
+        root: apps/api/src/app/widgets/
+      - name: workflow-overrides
+        root: apps/api/src/app/workflow-overrides/
+      - name: workflows-v1
+        root: apps/api/src/app/workflows-v1/
+      - name: workflows-v2
+        root: apps/api/src/app/workflows-v2/
+    aggregates:
+      - name: SubscriberEntity
+        context: subscribers
+        module: 'libs/dal/src/repositories/subscriber/**'
+        root: libs/dal/src/repositories/subscriber/subscriber.entity.ts

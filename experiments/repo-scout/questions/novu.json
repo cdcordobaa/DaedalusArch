@@ -1,0 +1,13 @@
+[
+ {"id":"NV-W1","kind":"writers","question":"Which units write subscribers through the subscriber repository (create, insert, update, upsert, delete or bulk writes)?",
+  "file":"libs/dal/src/repositories/subscriber/subscriber.repository.ts","type":"SubscriberRepository",
+  "memberPattern":"^(create|insertMany|update|updateOne|upsert|upsertMany|delete|findOneAndUpdate|findOneAndDelete|bulkWrite|bulkCreateSubscribers)$",
+  "graphOwners":["SubscriberRepository","BaseRepository"],
+  "aggregate":"SubscriberEntity","impact":["libs/dal/src/repositories/subscriber/subscriber.repository.ts#SubscriberRepository"],
+  "trace":"apps/api/src/app/subscribers-v2/usecases/patch-subscriber/patch-subscriber.usecase.ts#PatchSubscriber.execute"},
+ {"id":"NV-C1","kind":"callers","question":"Which units call the authentication port IAuthService (any member), i.e. are affected by a change to that port?",
+  "file":"libs/application-generic/src/services/auth/auth.service.interface.ts","type":"IAuthService",
+  "impact":["libs/application-generic/src/services/auth/auth.service.interface.ts#IAuthService","apps/api/src/app/auth/services/community.auth.service.ts#CommunityAuthService"]},
+ {"id":"NV-X1","kind":"crossCalls","question":"Which calls does the subscribers-v2 API module make into code of another API module under apps/api/src/app?",
+  "from":["apps/api/src/app/subscribers-v2/**"],"to":["apps/api/src/app/!(subscribers-v2)/**"]}
+]

@@ -1,0 +1,38 @@
+[
+ {
+  "id": "MD-W1",
+  "kind": "writers",
+  "question": "Which units write products through the Product Module's published service (create, update, upsert, delete, soft-delete or restore of products)?",
+  "file": "packages/core/types/src/product/service.ts",
+  "type": "IProductModuleService",
+  "memberPattern": "^(create|update|upsert|delete|softDelete|restore)Products$",
+  "aggregate": "Product",
+  "impact": [
+   "packages/core/types/src/product/service.ts#IProductModuleService",
+   "packages/modules/product/src/services/product-module-service.ts#ProductModuleService"
+  ],
+  "trace": "ProductModuleService.updateProducts"
+ },
+ {
+  "id": "MD-C1",
+  "kind": "callers",
+  "question": "Which units call the Inventory Module's published service (any member of IInventoryService), i.e. are affected by a change to that port?",
+  "file": "packages/core/types/src/inventory/service.ts",
+  "type": "IInventoryService",
+  "impact": [
+   "packages/core/types/src/inventory/service.ts#IInventoryService",
+   "packages/modules/inventory/src/services/inventory-module.ts#InventoryModuleService"
+  ]
+ },
+ {
+  "id": "MD-X1",
+  "kind": "crossCalls",
+  "question": "Which calls do the order workflows (core-flows/src/order) make into another domain's steps or workflows in core-flows (the order flows' cross-module calls)?",
+  "from": [
+   "packages/core/core-flows/src/order/**"
+  ],
+  "to": [
+   "packages/core/core-flows/src/!(order)/**"
+  ]
+ }
+]

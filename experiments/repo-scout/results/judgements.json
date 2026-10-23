@@ -1,0 +1,168 @@
+{
+ "note": "Hand-recorded judgements for experiments/repo-scout/rank.mjs. boundaries: strong = the project declares its modules or contexts in code or manifests AND states or enforces the rule between them; medium = declared modules (e.g. NestJS @Module per feature) with no stated or enforced rule between them; weak = folder conventions only; none. tscVerified: the repository's own type check or build was run here with its dependencies installed and passed.",
+ "repos": {
+  "medusa": {
+   "boundaries": "strong",
+   "boundaryEvidence": "One package per Medusa module under packages/modules/ (30 Module(Modules.X) definitions); the isolation rule is documented (www/apps/book/app/learn/fundamentals/modules/isolation: a module cannot resolve another module's services or models; cross-module work goes through workflows and module links); each module's service interface is published in packages/core/types/src/<module>/service.ts.",
+   "tsc": "own build: 13/13 packages (product module, core-flows and their dependencies) pass `tsc --build`",
+   "tscVerified": true,
+   "licenceNote": "MIT except the Enterprise Edition materials named in ENTERPRISE-LICENSE.md; packages/modules and packages/core are MIT",
+   "fidelity": {
+    "v12e": {
+     "tscEdges": 5447,
+     "apgEdges": 6868,
+     "coverage": 0.646962,
+     "confirmation": 0.513104
+    },
+    "literal": {
+     "tscEdges": 5447,
+     "apgEdges": 5447,
+     "coverage": 1,
+     "confirmation": 1
+    },
+    "resolved": {
+     "tscEdges": 5447,
+     "apgEdges": 6868,
+     "coverage": 0.646962,
+     "confirmation": 0.513104
+    }
+   }
+  },
+  "backstage": {
+   "boundaries": "strong",
+   "boundaryEvidence": "ADR011 (docs/architecture-decisions) fixes the plugin package structure (x-backend, x-backend-module-*, x-node, x-common); every package.json declares backstage.role (18 backend-plugin, 78 backend-plugin-module, 31 node-library, 23 common-library, ...); the lint rule @backstage/no-mixed-plugin-imports forbids a backend plugin importing another backend plugin; 17 ADR files.",
+   "tsc": "own check: `yarn tsc` over the whole monorepo passes, 0 errors (164 s)",
+   "tscVerified": true,
+   "fidelity": {
+    "v12e": {
+     "tscEdges": 5296,
+     "apgEdges": 6484,
+     "coverage": 0.557402,
+     "confirmation": 0.455275
+    },
+    "literal": {
+     "tscEdges": 5296,
+     "apgEdges": 5270,
+     "coverage": 0.995091,
+     "confirmation": 1
+    },
+    "resolved": {
+     "tscEdges": 5296,
+     "apgEdges": 6491,
+     "coverage": 0.558724,
+     "confirmation": 0.455862
+    }
+   }
+  },
+  "novu": {
+   "boundaries": "medium",
+   "boundaryEvidence": "apps/api has one NestJS feature module per folder under src/app (64 @Module declarations), use cases under usecases/, persistence in libs/dal (one repository and entity per collection); no ADR or enforced rule for the API (the 7 ADRs and CONTEXT.md files describe the SDK packages, not the API).",
+   "tsc": "partly: libs/dal, packages/shared and libs/application-generic pass their own `tsc` build; the apps/api type check was not reproduced (filtered install: 889 errors, 575 of them unbuilt workspace or enterprise packages)",
+   "tscVerified": false,
+   "licenceNote": "MIT outside enterprise/ (LICENSE-ENTERPRISE); apps/api and libs/dal, libs/application-generic are MIT",
+   "fidelity": {
+    "v12e": {
+     "tscEdges": 9496,
+     "apgEdges": 12071,
+     "coverage": 0.738627,
+     "confirmation": 0.581062
+    },
+    "literal": {
+     "tscEdges": 9496,
+     "apgEdges": 9496,
+     "coverage": 1,
+     "confirmation": 1
+    },
+    "resolved": {
+     "tscEdges": 9496,
+     "apgEdges": 12073,
+     "coverage": 0.738837,
+     "confirmation": 0.581131
+    }
+   }
+  },
+  "amplication": {
+   "boundaries": "medium",
+   "boundaryEvidence": "packages/amplication-server: 59 NestJS @Module declarations, one folder per feature under src/core; the Nx enforce-module-boundaries rule is configured with sourceTag '*' / onlyDependOnLibsWithTags ['*'], i.e. no constraint.",
+   "tsc": "not verified with dependencies; without them 524 non-module errors",
+   "tscVerified": false,
+   "licenceNote": "Apache-2.0 outside ee/",
+   "fidelity": {
+    "v12e": {
+     "tscEdges": 2582,
+     "apgEdges": 2841,
+     "coverage": 0.850891,
+     "confirmation": 0.773319
+    },
+    "literal": {
+     "tscEdges": 2582,
+     "apgEdges": 2582,
+     "coverage": 1,
+     "confirmation": 1
+    },
+    "resolved": {
+     "tscEdges": 2582,
+     "apgEdges": 2841,
+     "coverage": 0.850891,
+     "confirmation": 0.773319
+    }
+   }
+  },
+  "podkrepi-api": {
+   "boundaries": "medium",
+   "boundaryEvidence": "46 NestJS @Module declarations, one folder per feature; Nx enforce-module-boundaries configured with '*' (no constraint); no ADR."
+  },
+  "hoppscotch-backend": {
+   "boundaries": "medium",
+   "boundaryEvidence": "26 NestJS @Module declarations; no ADR or rule."
+  },
+  "medplum-server": {
+   "boundaries": "weak",
+   "boundaryEvidence": "Feature folders under packages/server/src (fhir, auth, admin, ...); subsystem architecture notes in packages/docs; no declared modules or rule."
+  },
+  "immich-server": {
+   "boundaries": "weak",
+   "boundaryEvidence": "Technical folders (controllers, services, repositories); one architecture page in docs."
+  },
+  "immich": {
+   "boundaries": "weak",
+   "boundaryEvidence": "As immich-server at a newer commit."
+  },
+  "twenty": {
+   "boundaries": "strong",
+   "boundaryEvidence": "packages/twenty-server/src/engine and src/modules with NestJS modules; not examined further: the licence fails (e)."
+  },
+  "unleash": {
+   "boundaries": "medium",
+   "boundaryEvidence": "src/lib/features/* feature folders and contributing/ADRs; not examined further: the licence fails (e)."
+  },
+  "vendure": {
+   "boundaries": "medium",
+   "boundaryEvidence": "packages/core/src service/ api/ entity/ layering and a plugin system; not examined further: the licence fails (e)."
+  },
+  "standardnotes-auth": {
+   "boundaries": "medium",
+   "boundaryEvidence": "Domain/Infra/Controller/Bootstrap layers by folder; licence fails (e)."
+  },
+  "hedgedoc-backend": {
+   "boundaries": "medium",
+   "boundaryEvidence": "21 NestJS @Module declarations; licence fails (e)."
+  },
+  "staart-api": {
+   "boundaries": "medium",
+   "boundaryEvidence": "31 NestJS @Module declarations."
+  },
+  "bitloops-ddd-backend": {
+   "boundaries": "strong",
+   "boundaryEvidence": "Bounded contexts as folders with DDD/hexagonal layering (v1.3 wild selection)."
+  },
+  "domain-driven-hexagon": {
+   "boundaries": "strong",
+   "boundaryEvidence": "Modules with hexagonal layers, documented in its README."
+  },
+  "ddd-forum": {
+   "boundaries": "strong",
+   "boundaryEvidence": "Subdomains users and forum with domain/useCases/infra (v1.3 external spec declares them)."
+  }
+ }
+}
