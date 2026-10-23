@@ -57,6 +57,9 @@ Arrow between top and bottom labeled "The gap."
 Dark bg (#0d1117), violet/blue/lavender palette. Crisp typography.`,
   },
   {
+    // Note 2026-10-23 (ImpossibleBench read in full, see Docs/sources/sources-ledger.md): the banner
+    // "100% test coverage. Zero architectural compliance." is not a figure from the paper, which measures
+    // cheating on impossible tests only. Citation detail: arXiv 2025, ICLR 2026; authors at CMU and Anthropic.
     slug: "slide-11b-reward-hacking",
     label: "Reward Hacking",
     aspectRatio: "4:3",

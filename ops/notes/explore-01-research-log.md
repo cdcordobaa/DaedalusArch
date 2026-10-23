@@ -357,7 +357,10 @@ Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Do
   Medusa (the Gw control). No graft is needed for declared boundaries; a graft for a distant-writer trap is sketched
   only.
 
-### 21. GRAPH-SCALE: the graph facts complete and precise at scale (2026-10-23)
+### 21. COMPREHEND-01 scope note (2026-10-23)
+The pilot's codebases fit in context, so files-only accuracy was at ceiling (0.933). The finding is limited to: on small codebases the graph cuts cost (tokens -16%, time -25%, tool calls -44%) at equal accuracy. Whether it improves completeness on large codebases is untested. The repo scout (entry 20, `Docs/DiagnosticRuns/repo-scout-comprehend-02-2026-10-23.md`) found the facts incomplete at scale (`who_writes` empty on Backstage, Novu and Medusa; Medusa recall 0-3%). The GRAPH-SCALE work is in progress. A dated scope note was added to the entry 16 report. Synthesis of entries 8-20: `Docs/DiagnosticRuns/v1.5-exploratory-synthesis-2026-10-23.md`.
+
+### 22. GRAPH-SCALE: the graph facts complete and precise at scale (2026-10-23)
 `Docs/DiagnosticRuns/graph-scale-2026-10-23.md`, fixes in `experiments/detect-02/`, measurement in
 `experiments/graph-scale/`. v1.5 U1 groundwork, zero model calls:
 - **Fixes (comprehension index and tools only; the rules' `facts.ts` unchanged):** factory callback units, receiver-aware
@@ -387,13 +390,13 @@ Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Do
 - [x] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10). Approved as written, with a cap of 64; run in entry 16.
 - [ ] Author: COMPREHEND-01 key decision on P2-P1 (sales-side handler), whether a ×3 variance run is worth it, and graph revisions 1–2 (entry 16).
 - [ ] Author: decide whether an unowned set invariant (the lock form) is D5 and whether a pre-existing copy counts. This decides S2's next step (entry 17).
-- [ ] Author: GRAPH-SCALE (entry 21): whether `callers` should count base-interface members on base-typed receivers (BS-C3), and whether R1 becomes the truth for class ports in COMPREHEND-02.
+- [ ] Author: GRAPH-SCALE (entry 22): whether `callers` should count base-interface members on base-typed receivers (BS-C3), and whether R1 becomes the truth for class ports in COMPREHEND-02.
 - [ ] Author: choose the COMPREHEND-02 trees (recommended Backstage, Novu, Medusa as the Gw control) and decide which graph changes come first: a caller query, receiver typing, units for factory callbacks, and edges for overloaded methods and inline import types (entry 20).
 - [ ] Author: hand read of the PUZZLE-04 cases (`results/v1.4-puzzle-04/oracle-verdicts-to-read.md`; new categories P1-SG1-c and P2-SG1-e decide P1 and P2 for the gate) (entry 18).
 - [ ] Author: hand-read the 4 new DRIFT-01 identities and the inherited `RecordPayment` pair (entry 19).
 
 ## Changelog
-- 2026-10-23: entry 21 (GRAPH-SCALE, U1 groundwork).
+- 2026-10-23: entry 22 (GRAPH-SCALE, U1 groundwork).
 - 2026-10-22: entry 20 (REPO-SCOUT for COMPREHEND-02).
 - 2026-10-22: entry 19 (DRIFT-01).
 - 2026-10-22: entry 18 (PUZZLE-04).
