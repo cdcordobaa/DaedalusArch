@@ -1,0 +1,353 @@
+# t1-rep1-pull step-03 (session c07): tree after the step against the tree before it
+diff --git a/src/billing/acl/OrderActivityAcl.ts b/src/billing/acl/OrderActivityAcl.ts
+new file mode 100644
+index 000000000..f96cb3020
+--- /dev/null
++++ b/src/billing/acl/OrderActivityAcl.ts
+@@ -0,0 +1,12 @@
++import type { OrderActivityQuery } from '../../ordering/index.js';
++import type { OrderActivitySource, OrdersPlaced } from '../application/ports/OrderActivity.js';
++
++/** Anti-corruption layer: translates ordering's order counts into billing's model. */
++export class OrderActivityAcl implements OrderActivitySource {
++  constructor(private readonly ordering: OrderActivityQuery) {}
++
++  async placedBetween(from: Date, to: Date): Promise<OrdersPlaced[]> {
++    const counts = await this.ordering.placedBetween(from, to);
++    return counts.map((c) => ({ customerId: c.customerId, month: c.month, currency: c.currency, count: c.count }));
++  }
++}
+diff --git a/src/billing/api/RevenueReportController.ts b/src/billing/api/RevenueReportController.ts
+new file mode 100644
+index 000000000..d06eeba16
+--- /dev/null
++++ b/src/billing/api/RevenueReportController.ts
+@@ -0,0 +1,11 @@
++import type { GetMonthlyRevenueReport } from '../application/GetMonthlyRevenueReport.js';
++import type { RevenueReportRow } from '../contracts/RevenueReport.js';
++
++/** Inbound adapter: GET /reports/revenue?from=YYYY-MM&to=YYYY-MM (at most 24 months). */
++export class RevenueReportController {
++  constructor(private readonly report: GetMonthlyRevenueReport) {}
++
++  async get(query: { from: string; to: string }): Promise<{ status: number; body: RevenueReportRow[] }> {
++    return { status: 200, body: await this.report.execute(query.from, query.to) };
++  }
++}
+diff --git a/src/billing/application/GetMonthlyRevenueReport.ts b/src/billing/application/GetMonthlyRevenueReport.ts
+new file mode 100644
+index 000000000..d0f4c9370
+--- /dev/null
++++ b/src/billing/application/GetMonthlyRevenueReport.ts
+@@ -0,0 +1,52 @@
++import type { RevenueReportRow } from '../contracts/RevenueReport.js';
++import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository.js';
++import type { OrderActivitySource } from './ports/OrderActivity.js';
++
++export const MAX_REPORT_MONTHS = 24;
++
++type MutableRow = { -readonly [K in keyof RevenueReportRow]: RevenueReportRow[K] };
++
++/** Read-only query: invoices are attributed to the month they were issued, orders to the month they were placed. */
++export class GetMonthlyRevenueReport {
++  constructor(private readonly invoices: InvoiceRepository, private readonly orders: OrderActivitySource) {}
++
++  /** fromMonth and toMonth are inclusive, as YYYY-MM. */
++  async execute(fromMonth: string, toMonth: string): Promise<RevenueReportRow[]> {
++    const from = parseMonth(fromMonth);
++    const last = parseMonth(toMonth);
++    const months = (last.getUTCFullYear() - from.getUTCFullYear()) * 12 + last.getUTCMonth() - from.getUTCMonth() + 1;
++    if (months < 1) throw new Error('The report range must not end before it starts');
++    if (months > MAX_REPORT_MONTHS) throw new Error(`The report range is limited to ${MAX_REPORT_MONTHS} months`);
++    const to = new Date(Date.UTC(last.getUTCFullYear(), last.getUTCMonth() + 1, 1));
++
++    const rows = new Map<string, MutableRow>();
++    const rowFor = (customerId: string, month: string, currency: string): MutableRow => {
++      const key = `${customerId}|${month}|${currency}`;
++      let row = rows.get(key);
++      if (!row) {
++        row = { customerId, month, currency, ordersPlaced: 0, netCents: 0, taxCents: 0, paidCents: 0, outstandingCents: 0 };
++        rows.set(key, row);
++      }
++      return row;
++    };
++
++    for (const o of await this.orders.placedBetween(from, to)) rowFor(o.customerId, o.month, o.currency).ordersPlaced += o.count;
++    for (const inv of await this.invoices.issuedBetween(from, to)) {
++      const month = (inv.issuedOn() as Date).toISOString().slice(0, 7);
++      const row = rowFor(inv.customerId, month, inv.currency);
++      row.netCents += inv.net().cents;
++      row.taxCents += inv.tax().cents;
++      row.paidCents += inv.paid().cents;
++      row.outstandingCents += inv.outstanding().cents;
++    }
++    return [...rows.values()].sort(
++      (a, b) => a.customerId.localeCompare(b.customerId) || a.month.localeCompare(b.month) || a.currency.localeCompare(b.currency),
++    );
++  }
++}
++
++function parseMonth(value: string): Date {
++  const m = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(value);
++  if (!m) throw new Error(`Invalid month "${value}", expected YYYY-MM`);
++  return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, 1));
++}
+diff --git a/src/billing/application/ports/OrderActivity.ts b/src/billing/application/ports/OrderActivity.ts
+new file mode 100644
+index 000000000..23fd797fa
+--- /dev/null
++++ b/src/billing/application/ports/OrderActivity.ts
+@@ -0,0 +1,11 @@
++/** Port: how many orders were placed, in billing's own terms. */
++export interface OrdersPlaced {
++  readonly customerId: string;
++  readonly month: string;
++  readonly currency: string;
++  readonly count: number;
++}
++
++export interface OrderActivitySource {
++  placedBetween(from: Date, to: Date): Promise<OrdersPlaced[]>;
++}
+diff --git a/src/billing/contracts/RevenueReport.ts b/src/billing/contracts/RevenueReport.ts
+new file mode 100644
+index 000000000..79b41f35d
+--- /dev/null
++++ b/src/billing/contracts/RevenueReport.ts
+@@ -0,0 +1,12 @@
++/** One row of the monthly revenue report: a customer, a calendar month (UTC) and a currency. */
++export interface RevenueReportRow {
++  readonly customerId: string;
++  /** Calendar month as YYYY-MM. */
++  readonly month: string;
++  readonly currency: string;
++  readonly ordersPlaced: number;
++  readonly netCents: number;
++  readonly taxCents: number;
++  readonly paidCents: number;
++  readonly outstandingCents: number;
++}
+diff --git a/src/billing/domain/invoice/Invoice.ts b/src/billing/domain/invoice/Invoice.ts
+index afb6a9e94..63a53e465 100644
+--- a/src/billing/domain/invoice/Invoice.ts
++++ b/src/billing/domain/invoice/Invoice.ts
+@@ -12,6 +12,7 @@ export class Invoice {
+   private readonly payments: Payment[] = [];
+   private readonly events: DomainEvent[] = [];
+   private issued = false;
++  private issuedAt: Date | null = null;
+ 
+   constructor(readonly id: InvoiceId, readonly orderId: string, readonly customerId: string, readonly currency: string) {}
+ 
+@@ -21,11 +22,12 @@ export class Invoice {
+     this.lines.push(new InvoiceLine(this.lines.length + 1, description, amount));
+   }
+ 
+-  issue(taxRate: number): void {
++  issue(taxRate: number, at: Date = new Date()): void {
+     if (this.lines.length === 0) throw new Error('Nothing to invoice');
+     const net = this.net();
+     this.lines.push(new InvoiceLine(this.lines.length + 1, 'tax', net.times(taxRate)));
+     this.issued = true;
++    this.issuedAt = at;
+     this.events.push(new InvoiceIssued(this.id.value, this.orderId));
+   }
+ 
+@@ -43,6 +45,14 @@ export class Invoice {
+     return this.issued;
+   }
+ 
++  issuedOn(): Date | null {
++    return this.issuedAt;
++  }
++
++  tax(): Money {
++    return this.total().subtract(this.net());
++  }
++
+   paid(): Money {
+     return this.payments.reduce((s, p) => s.add(p.amount), Money.of(0, this.currency));
+   }
+diff --git a/src/billing/domain/invoice/InvoiceRepository.ts b/src/billing/domain/invoice/InvoiceRepository.ts
+index 6e1f26776..30e1a766e 100644
+--- a/src/billing/domain/invoice/InvoiceRepository.ts
++++ b/src/billing/domain/invoice/InvoiceRepository.ts
+@@ -4,5 +4,7 @@ import type { InvoiceId } from './value-objects/InvoiceId.js';
+ export interface InvoiceRepository {
+   byId(id: InvoiceId): Promise<Invoice | null>;
+   issuedFor(customerId: string): Promise<Invoice[]>;
++  /** Issued invoices with from <= issue time < to. */
++  issuedBetween(from: Date, to: Date): Promise<Invoice[]>;
+   save(invoice: Invoice): Promise<void>;
+ }
+diff --git a/src/billing/index.ts b/src/billing/index.ts
+index 1357b4aeb..b6cdd7ee2 100644
+--- a/src/billing/index.ts
++++ b/src/billing/index.ts
+@@ -1,3 +1,4 @@
+ // Public API of the billing context.
+ export type { InvoiceView } from './contracts/InvoiceView.js';
++export type { RevenueReportRow } from './contracts/RevenueReport.js';
+ export type { CustomerExposureQuery } from './contracts/CustomerExposure.js';
+diff --git a/src/billing/infrastructure/InMemoryInvoiceRepository.ts b/src/billing/infrastructure/InMemoryInvoiceRepository.ts
+index 003cdb4b2..b52d17213 100644
+--- a/src/billing/infrastructure/InMemoryInvoiceRepository.ts
++++ b/src/billing/infrastructure/InMemoryInvoiceRepository.ts
+@@ -13,6 +13,13 @@ export class InMemoryInvoiceRepository implements InvoiceRepository {
+     return [...this.rows.values()].filter((i) => i.customerId === customerId && i.isIssued());
+   }
+ 
++  async issuedBetween(from: Date, to: Date): Promise<Invoice[]> {
++    return [...this.rows.values()].filter((i) => {
++      const at = i.issuedOn();
++      return at !== null && at >= from && at < to;
++    });
++  }
++
+   async save(invoice: Invoice): Promise<void> {
+     this.rows.set(invoice.id.value, invoice);
+   }
+diff --git a/src/main.ts b/src/main.ts
+index 98c772510..cf80a1e27 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -15,8 +15,12 @@ import { OrderingAcl } from './billing/acl/OrderingAcl.js';
+ import { OrderPaymentsAcl } from './billing/acl/OrderPaymentsAcl.js';
+ import { InMemoryInvoiceRepository } from './billing/infrastructure/InMemoryInvoiceRepository.js';
+ import { InvoiceController } from './billing/api/InvoiceController.js';
++import { GetMonthlyRevenueReport } from './billing/application/GetMonthlyRevenueReport.js';
++import { OrderActivityAcl } from './billing/acl/OrderActivityAcl.js';
++import { RevenueReportController } from './billing/api/RevenueReportController.js';
++import { GetOrderActivity } from './ordering/application/GetOrderActivity.js';
+ 
+-export function compose(): { orders: OrderController; invoices: InvoiceController; customers: CustomerController } {
++export function compose(): { orders: OrderController; invoices: InvoiceController; customers: CustomerController; revenueReport: RevenueReportController } {
+   const orderRepo = new InMemoryOrderRepository();
+   const customerRepo = new InMemoryCustomerRepository(new Map());
+   const invoiceRepo = new InMemoryInvoiceRepository();
+@@ -26,5 +30,6 @@ export function compose(): { orders: OrderController; invoices: InvoiceControlle
+   const acl = new OrderingAcl(new GetOrderSummary(orderRepo));
+   const payments = new OrderPaymentsAcl(new MarkOrderPaid(orderRepo));
+   const invoices = new InvoiceController(new IssueInvoice(acl, invoiceRepo, 0.2), new RecordPayment(invoiceRepo, payments));
+-  return { orders, invoices, customers };
++  const revenueReport = new RevenueReportController(new GetMonthlyRevenueReport(invoiceRepo, new OrderActivityAcl(new GetOrderActivity(orderRepo))));
++  return { orders, invoices, customers, revenueReport };
+ }
+diff --git a/src/ordering/application/GetOrderActivity.ts b/src/ordering/application/GetOrderActivity.ts
+new file mode 100644
+index 000000000..bff8b7df3
+--- /dev/null
++++ b/src/ordering/application/GetOrderActivity.ts
+@@ -0,0 +1,19 @@
++import type { OrderActivityQuery, OrderCount } from '../contracts/OrderActivity.js';
++import type { OrderRepository } from '../domain/order/OrderRepository.js';
++
++/** Query service behind the published OrderActivityQuery contract. */
++export class GetOrderActivity implements OrderActivityQuery {
++  constructor(private readonly orders: OrderRepository) {}
++
++  async placedBetween(from: Date, to: Date): Promise<OrderCount[]> {
++    const counts = new Map<string, { customerId: string; month: string; currency: string; count: number }>();
++    for (const order of await this.orders.placedBetween(from, to)) {
++      const month = (order.placedOn() as Date).toISOString().slice(0, 7);
++      const key = `${order.customerId.value}|${month}|${order.currency}`;
++      const row = counts.get(key) ?? { customerId: order.customerId.value, month, currency: order.currency, count: 0 };
++      row.count += 1;
++      counts.set(key, row);
++    }
++    return [...counts.values()];
++  }
++}
+diff --git a/src/ordering/contracts/OrderActivity.ts b/src/ordering/contracts/OrderActivity.ts
+new file mode 100644
+index 000000000..a3b7636a3
+--- /dev/null
++++ b/src/ordering/contracts/OrderActivity.ts
+@@ -0,0 +1,13 @@
++/** Published language of ordering: how many orders a customer placed in a calendar month (UTC), per currency. */
++export interface OrderCount {
++  readonly customerId: string;
++  /** Calendar month as YYYY-MM. */
++  readonly month: string;
++  readonly currency: string;
++  readonly count: number;
++}
++
++export interface OrderActivityQuery {
++  /** Order counts for placement times with from <= time < to. */
++  placedBetween(from: Date, to: Date): Promise<OrderCount[]>;
++}
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index 8c536b364..db64c1bea 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -11,6 +11,7 @@ export class Order {
+   private readonly lines: OrderLine[] = [];
+   private placed = false;
+   private paid = false;
++  private placedAt: Date | null = null;
+   private readonly events: DomainEvent[] = [];
+ 
+   constructor(readonly id: OrderId, readonly customerId: CustomerId, readonly currency: string) {}
+@@ -24,9 +25,10 @@ export class Order {
+     else this.lines.push(new OrderLine(this.lines.length + 1, productId, quantity, unitPrice));
+   }
+ 
+-  place(): void {
++  place(at: Date = new Date()): void {
+     if (this.lines.length === 0) throw new Error('An order needs at least one line');
+     this.placed = true;
++    this.placedAt = at;
+     this.events.push(new OrderPlaced(this.id.value, this.total().cents));
+   }
+ 
+@@ -35,6 +37,10 @@ export class Order {
+     this.paid = true;
+   }
+ 
++  placedOn(): Date | null {
++    return this.placedAt;
++  }
++
+   isPaid(): boolean {
+     return this.paid;
+   }
+diff --git a/src/ordering/domain/order/OrderRepository.ts b/src/ordering/domain/order/OrderRepository.ts
+index f7c246e2c..38d9a7792 100644
+--- a/src/ordering/domain/order/OrderRepository.ts
++++ b/src/ordering/domain/order/OrderRepository.ts
+@@ -4,5 +4,7 @@ import type { OrderId } from './value-objects/OrderId.js';
+ /** Repository for the Order aggregate root. */
+ export interface OrderRepository {
+   byId(id: OrderId): Promise<Order | null>;
++  /** Placed orders with from <= placement time < to. */
++  placedBetween(from: Date, to: Date): Promise<Order[]>;
+   save(order: Order): Promise<void>;
+ }
+diff --git a/src/ordering/index.ts b/src/ordering/index.ts
+index 9404bb0af..0115c2290 100644
+--- a/src/ordering/index.ts
++++ b/src/ordering/index.ts
+@@ -1,3 +1,4 @@
+ // Public API of the ordering context: the only files other contexts may import.
+ export type { OrderSummary, OrderSummaryQuery } from './contracts/OrderSummary.js';
++export type { OrderActivityQuery, OrderCount } from './contracts/OrderActivity.js';
+ export type { OrderPaymentCommand } from './contracts/OrderPayment.js';
+diff --git a/src/ordering/infrastructure/InMemoryOrderRepository.ts b/src/ordering/infrastructure/InMemoryOrderRepository.ts
+index 283912449..9734b5d7b 100644
+--- a/src/ordering/infrastructure/InMemoryOrderRepository.ts
++++ b/src/ordering/infrastructure/InMemoryOrderRepository.ts
+@@ -9,6 +9,13 @@ export class InMemoryOrderRepository implements OrderRepository {
+     return this.rows.get(id.value) ?? null;
+   }
+ 
++  async placedBetween(from: Date, to: Date): Promise<Order[]> {
++    return [...this.rows.values()].filter((o) => {
++      const at = o.placedOn();
++      return at !== null && at >= from && at < to;
++    });
++  }
++
+   async save(order: Order): Promise<void> {
+     this.rows.set(order.id.value, order);
+   }

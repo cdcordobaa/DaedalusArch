@@ -1,0 +1,401 @@
+# t2-rep1-pull step-03 (session c03): tree after the step against the tree before it
+diff --git a/src/adapters/inbound/http/AuditController.ts b/src/adapters/inbound/http/AuditController.ts
+new file mode 100644
+index 000000000..71cf79455
+--- /dev/null
++++ b/src/adapters/inbound/http/AuditController.ts
+@@ -0,0 +1,50 @@
++import { AuditQuery } from '../../../application/ports/in/AuditQuery';
++import { BookingError } from '../../../domain/errors/BookingError';
++import { AuditRecord } from '../../../domain/model/AuditRecord';
++import { HttpRequest, HttpResponse } from './HttpTypes';
++
++const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;
++
++function toBody(record: AuditRecord) {
++  return {
++    bookingId: record.bookingId,
++    staffId: record.staffId,
++    action: record.action,
++    at: record.at.toISOString(),
++    before: record.before,
++    after: record.after,
++  };
++}
++
++/** Driving adapter: read access to the audit trail for staff. */
++export class AuditController {
++  constructor(private readonly audit: AuditQuery) {}
++
++  async forBooking(request: HttpRequest): Promise<HttpResponse> {
++    try {
++      const records = await this.audit.listForBooking(String(request.params['id']));
++      return { status: 200, body: records.map(toBody) };
++    } catch (error) {
++      return this.toResponse(error);
++    }
++  }
++
++  /** Query: from and to (ISO dates), both inclusive. */
++  async forStaff(request: HttpRequest): Promise<HttpResponse> {
++    try {
++      const records = await this.audit.listForStaff(
++        String(request.params['staffId']),
++        String(request.query['from']),
++        String(request.query['to']),
++      );
++      return { status: 200, body: records.map(toBody) };
++    } catch (error) {
++      return this.toResponse(error);
++    }
++  }
++
++  private toResponse(error: unknown): HttpResponse {
++    if (error instanceof BookingError) return { status: STATUS[error.reason], body: { error: error.message } };
++    return { status: 500, body: { error: 'Internal error' } };
++  }
++}
+diff --git a/src/adapters/inbound/http/BookingController.ts b/src/adapters/inbound/http/BookingController.ts
+index 0f3eb176d..2793f4d92 100644
+--- a/src/adapters/inbound/http/BookingController.ts
++++ b/src/adapters/inbound/http/BookingController.ts
+@@ -5,6 +5,12 @@ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+ const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;
+ 
++/** Staff user from the X-Staff-Id header; 'guest' when absent. */
++export function staffIdOf(request: HttpRequest): string {
++  const value = request.headers?.['x-staff-id'] ?? request.headers?.['X-Staff-Id'];
++  return value !== undefined && value.trim() !== '' ? value.trim() : 'guest';
++}
++
+ /** Driving adapter: translates HTTP into calls on the application's driving ports. */
+ export class BookingController {
+   constructor(
+@@ -20,6 +26,7 @@ export class BookingController {
+         checkIn: String(request.body['checkIn']),
+         checkOut: String(request.body['checkOut']),
+         guests: Number(request.body['guests'] ?? 1),
++        staffId: staffIdOf(request),
+         ...(typeof request.body['idempotencyKey'] === 'string' ? { idempotencyKey: request.body['idempotencyKey'] } : {}),
+       });
+       return { status: 201, body: view };
+@@ -30,7 +37,7 @@ export class BookingController {
+ 
+   async cancel(request: HttpRequest): Promise<HttpResponse> {
+     try {
+-      return { status: 200, body: await this.cancelBooking.cancel(String(request.params['id'])) };
++      return { status: 200, body: await this.cancelBooking.cancel(String(request.params['id']), staffIdOf(request)) };
+     } catch (error) {
+       return this.toResponse(error);
+     }
+@@ -46,7 +53,7 @@ export class BookingController {
+ 
+   async retryRefund(request: HttpRequest): Promise<HttpResponse> {
+     try {
+-      return { status: 200, body: await this.cancelBooking.retryRefund(String(request.params['id'])) };
++      return { status: 200, body: await this.cancelBooking.retryRefund(String(request.params['id']), staffIdOf(request)) };
+     } catch (error) {
+       return this.toResponse(error);
+     }
+diff --git a/src/adapters/inbound/http/HttpTypes.ts b/src/adapters/inbound/http/HttpTypes.ts
+index 1cd2f6ebd..8f21fdb6d 100644
+--- a/src/adapters/inbound/http/HttpTypes.ts
++++ b/src/adapters/inbound/http/HttpTypes.ts
+@@ -2,6 +2,8 @@ export interface HttpRequest {
+   params: Record<string, string>;
+   query: Record<string, string>;
+   body: Record<string, unknown>;
++  /** Request headers, names lower-cased. */
++  headers?: Record<string, string | undefined>;
+ }
+ 
+ export interface HttpResponse {
+diff --git a/src/adapters/outbound/persistence/InMemoryBookingRepository.ts b/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
+index f4908e712..4820d562e 100644
+--- a/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
++++ b/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
+@@ -1,8 +1,11 @@
++import { AuditTrail } from '../../../application/ports/out/AuditTrail';
+ import { BookingRepository } from '../../../application/ports/out/BookingRepository';
++import { AuditRecord } from '../../../domain/model/AuditRecord';
+ import { Booking } from '../../../domain/model/Booking';
+ 
+-export class InMemoryBookingRepository implements BookingRepository {
++export class InMemoryBookingRepository implements BookingRepository, AuditTrail {
+   private readonly rows = new Map<string, Booking>();
++  private readonly audit: AuditRecord[] = [];
+   private sequence = 0;
+ 
+   async findById(id: string): Promise<Booking | undefined> {
+@@ -21,8 +24,18 @@ export class InMemoryBookingRepository implements BookingRepository {
+     return [...this.rows.values()].filter((b) => b.refundPending);
+   }
+ 
+-  async save(booking: Booking): Promise<void> {
++  async save(booking: Booking, audit: readonly AuditRecord[]): Promise<void> {
++    // Both writes happen in one synchronous step, so neither can be stored alone.
+     this.rows.set(booking.id, booking);
++    this.audit.push(...audit);
++  }
++
++  async findByBooking(bookingId: string): Promise<AuditRecord[]> {
++    return this.audit.filter((r) => r.bookingId === bookingId);
++  }
++
++  async findByStaff(staffId: string, from: Date, to: Date): Promise<AuditRecord[]> {
++    return this.audit.filter((r) => r.staffId === staffId && r.at >= from && r.at <= to);
+   }
+ 
+   nextId(): string {
+diff --git a/src/application/ports/in/AuditQuery.ts b/src/application/ports/in/AuditQuery.ts
+new file mode 100644
+index 000000000..7d83b05e5
+--- /dev/null
++++ b/src/application/ports/in/AuditQuery.ts
+@@ -0,0 +1,7 @@
++import { AuditRecord } from '../../../domain/model/AuditRecord';
++
++/** Driving port: lets staff read the audit trail. */
++export interface AuditQuery {
++  listForBooking(bookingId: string): Promise<AuditRecord[]>;
++  listForStaff(staffId: string, from: string, to: string): Promise<AuditRecord[]>;
++}
+diff --git a/src/application/ports/in/BookRoom.ts b/src/application/ports/in/BookRoom.ts
+index 39a0698ec..fa739d57d 100644
+--- a/src/application/ports/in/BookRoom.ts
++++ b/src/application/ports/in/BookRoom.ts
+@@ -8,6 +8,8 @@ export interface BookRoomCommand {
+   guests: number;
+   /** Caller-chosen key identifying this booking attempt; derived from the request when absent. */
+   idempotencyKey?: string;
++  /** Staff user making the request, recorded in the audit trail; 'guest' when absent. */
++  staffId?: string;
+ }
+ 
+ /** Driving port (Cockburn 2005): what the outside world may ask the application to do. */
+diff --git a/src/application/ports/in/CancelBooking.ts b/src/application/ports/in/CancelBooking.ts
+index a8ce483b8..214448c6e 100644
+--- a/src/application/ports/in/CancelBooking.ts
++++ b/src/application/ports/in/CancelBooking.ts
+@@ -1,8 +1,8 @@
+ import { BookingView } from './BookingView';
+ 
+ export interface CancelBooking {
+-  cancel(bookingId: string): Promise<BookingView>;
++  cancel(bookingId: string, staffId?: string): Promise<BookingView>;
+   /** Cancelled bookings whose refund failed, for the front desk to retry. */
+   listPendingRefunds(): Promise<BookingView[]>;
+-  retryRefund(bookingId: string): Promise<BookingView>;
++  retryRefund(bookingId: string, staffId?: string): Promise<BookingView>;
+ }
+diff --git a/src/application/ports/out/AuditTrail.ts b/src/application/ports/out/AuditTrail.ts
+new file mode 100644
+index 000000000..7840b950d
+--- /dev/null
++++ b/src/application/ports/out/AuditTrail.ts
+@@ -0,0 +1,8 @@
++import { AuditRecord } from '../../../domain/model/AuditRecord';
++
++/** Driven port: read side of the audit trail written by BookingRepository.save. */
++export interface AuditTrail {
++  findByBooking(bookingId: string): Promise<AuditRecord[]>;
++  /** Records made by one staff user with from <= at <= to. */
++  findByStaff(staffId: string, from: Date, to: Date): Promise<AuditRecord[]>;
++}
+diff --git a/src/application/ports/out/BookingRepository.ts b/src/application/ports/out/BookingRepository.ts
+index 8bfd2ae6d..7d279df45 100644
+--- a/src/application/ports/out/BookingRepository.ts
++++ b/src/application/ports/out/BookingRepository.ts
+@@ -1,3 +1,4 @@
++import { AuditRecord } from '../../../domain/model/AuditRecord';
+ import { Booking } from '../../../domain/model/Booking';
+ 
+ /** Driven port (Cockburn 2005): booking persistence, implemented by an outbound adapter. */
+@@ -6,6 +7,7 @@ export interface BookingRepository {
+   findByRoom(roomId: string): Promise<Booking[]>;
+   findActive(): Promise<Booking[]>;
+   findPendingRefunds(): Promise<Booking[]>;
+-  save(booking: Booking): Promise<void>;
++  /** Saves the booking and its audit records in one atomic write: both are stored or neither. */
++  save(booking: Booking, audit: readonly AuditRecord[]): Promise<void>;
+   nextId(): string;
+ }
+diff --git a/src/application/services/AuditQueryService.ts b/src/application/services/AuditQueryService.ts
+new file mode 100644
+index 000000000..8b2b21c10
+--- /dev/null
++++ b/src/application/services/AuditQueryService.ts
+@@ -0,0 +1,21 @@
++import { BookingError } from '../../domain/errors/BookingError';
++import { AuditRecord } from '../../domain/model/AuditRecord';
++import { AuditQuery } from '../ports/in/AuditQuery';
++import { AuditTrail } from '../ports/out/AuditTrail';
++
++export class AuditQueryService implements AuditQuery {
++  constructor(private readonly trail: AuditTrail) {}
++
++  listForBooking(bookingId: string): Promise<AuditRecord[]> {
++    return this.trail.findByBooking(bookingId);
++  }
++
++  listForStaff(staffId: string, from: string, to: string): Promise<AuditRecord[]> {
++    const start = new Date(from);
++    const end = new Date(to);
++    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
++      throw new BookingError('invalid', 'Invalid date range');
++    }
++    return this.trail.findByStaff(staffId, start, end);
++  }
++}
+diff --git a/src/application/services/BookRoomService.ts b/src/application/services/BookRoomService.ts
+index 6eb525f5c..38064567c 100644
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -1,4 +1,5 @@
+ import { BookingError } from '../../domain/errors/BookingError';
++import { AuditRecord, snapshotOf } from '../../domain/model/AuditRecord';
+ import { Booking } from '../../domain/model/Booking';
+ import { DateRange } from '../../domain/model/DateRange';
+ import { AvailabilityChecker } from '../../domain/services/AvailabilityChecker';
+@@ -43,7 +44,13 @@ export class BookRoomService implements BookRoom {
+         `book:${room.id}:${guest.id}:${command.checkIn}:${command.checkOut}:${command.guests}`;
+       const paymentRef = await this.payments.charge(guest.id, total, idempotencyKey);
+       const created = new Booking(this.bookings.nextId(), room.id, guest.id, stay, total, paymentRef);
+-      await this.bookings.save(created);
++      const staffId = command.staffId ?? 'guest';
++      const at = new Date();
++      const after = snapshotOf(created);
++      await this.bookings.save(created, [
++        new AuditRecord(created.id, staffId, 'charge', at, null, after),
++        new AuditRecord(created.id, staffId, 'booking', at, null, after),
++      ]);
+       return created;
+     });
+     await this.notifications.send(guest.email, `Room ${room.number} is booked (${booking.id})`);
+diff --git a/src/application/services/CancelBookingService.ts b/src/application/services/CancelBookingService.ts
+index 3234aebf0..dcfcc0663 100644
+--- a/src/application/services/CancelBookingService.ts
++++ b/src/application/services/CancelBookingService.ts
+@@ -1,4 +1,5 @@
+ import { BookingError } from '../../domain/errors/BookingError';
++import { AuditRecord, snapshotOf } from '../../domain/model/AuditRecord';
+ import { CancelBooking } from '../ports/in/CancelBooking';
+ import { BookingView, toBookingView } from '../ports/in/BookingView';
+ import { BookingRepository } from '../ports/out/BookingRepository';
+@@ -14,16 +15,23 @@ export class CancelBookingService implements CancelBooking {
+     private readonly notifications: NotificationSender,
+   ) {}
+ 
+-  async cancel(bookingId: string): Promise<BookingView> {
++  async cancel(bookingId: string, staffId = 'guest'): Promise<BookingView> {
+     const booking = await this.bookings.findById(bookingId);
+     if (booking === undefined) throw new BookingError('not-found', `No booking ${bookingId}`);
++    const before = snapshotOf(booking);
+     booking.cancel();
++    let refunded = true;
+     try {
+       await this.payments.refund(booking.paymentRef);
+     } catch {
++      refunded = false;
+       booking.markRefundFailed();
+     }
+-    await this.bookings.save(booking);
++    const at = new Date();
++    const after = snapshotOf(booking);
++    const audit = [new AuditRecord(booking.id, staffId, 'cancellation', at, before, after)];
++    if (refunded) audit.push(new AuditRecord(booking.id, staffId, 'refund', at, before, after));
++    await this.bookings.save(booking, audit);
+     const guest = await this.guests.findById(booking.guestId);
+     if (guest !== undefined) await this.notifications.send(guest.email, `Booking ${booking.id} is cancelled`);
+     return toBookingView(booking);
+@@ -33,7 +41,7 @@ export class CancelBookingService implements CancelBooking {
+     return (await this.bookings.findPendingRefunds()).map(toBookingView);
+   }
+ 
+-  async retryRefund(bookingId: string): Promise<BookingView> {
++  async retryRefund(bookingId: string, staffId = 'guest'): Promise<BookingView> {
+     const booking = await this.bookings.findById(bookingId);
+     if (booking === undefined) throw new BookingError('not-found', `No booking ${bookingId}`);
+     if (!booking.refundPending) throw new BookingError('invalid', `Booking ${bookingId} has no refund pending`);
+@@ -42,8 +50,11 @@ export class CancelBookingService implements CancelBooking {
+     } catch {
+       return toBookingView(booking);
+     }
++    const before = snapshotOf(booking);
+     booking.markRefunded();
+-    await this.bookings.save(booking);
++    await this.bookings.save(booking, [
++      new AuditRecord(booking.id, staffId, 'refund', new Date(), before, snapshotOf(booking)),
++    ]);
+     return toBookingView(booking);
+   }
+ }
+diff --git a/src/config/container.ts b/src/config/container.ts
+index dc756d5c5..3261afe2b 100644
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -1,4 +1,6 @@
+ import { BookingCli } from '../adapters/inbound/cli/BookingCli';
++import { AuditController } from '../adapters/inbound/http/AuditController';
++import { AuditQueryService } from '../application/services/AuditQueryService';
+ import { BookingController } from '../adapters/inbound/http/BookingController';
+ import { RoomController } from '../adapters/inbound/http/RoomController';
+ import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';
+@@ -14,6 +16,7 @@ export interface Container {
+   bookings: BookingController;
+   rooms: RoomController;
+   cli: BookingCli;
++  audit: AuditController;
+ }
+ 
+ /** Composition root: the one place that plugs concrete adapters into the ports. */
+@@ -29,5 +32,6 @@ export function createContainer(): Container {
+     bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications)),
+     rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings), rooms),
+     cli: new BookingCli(bookRoom),
++    audit: new AuditController(new AuditQueryService(bookings)),
+   };
+ }
+diff --git a/src/domain/model/AuditRecord.ts b/src/domain/model/AuditRecord.ts
+new file mode 100644
+index 000000000..5f61dd3b4
+--- /dev/null
++++ b/src/domain/model/AuditRecord.ts
+@@ -0,0 +1,36 @@
++import { Booking } from './Booking';
++
++export type AuditAction = 'booking' | 'cancellation' | 'charge' | 'refund';
++
++/** The auditable values of a booking at one moment. */
++export interface BookingSnapshot {
++  readonly status: string;
++  readonly refundPending: boolean;
++  readonly totalCents: number;
++  readonly checkIn: string;
++  readonly checkOut: string;
++  readonly paymentRef: string;
++}
++
++export function snapshotOf(booking: Booking): BookingSnapshot {
++  return {
++    status: booking.status,
++    refundPending: booking.refundPending,
++    totalCents: booking.total.cents,
++    checkIn: booking.stay.checkIn.toISOString(),
++    checkOut: booking.stay.checkOut.toISOString(),
++    paymentRef: booking.paymentRef,
++  };
++}
++
++/** Who did what to a booking, when, and the values before and after. */
++export class AuditRecord {
++  constructor(
++    readonly bookingId: string,
++    readonly staffId: string,
++    readonly action: AuditAction,
++    readonly at: Date,
++    readonly before: BookingSnapshot | null,
++    readonly after: BookingSnapshot,
++  ) {}
++}

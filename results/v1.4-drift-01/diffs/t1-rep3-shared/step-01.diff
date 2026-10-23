@@ -1,0 +1,565 @@
+# t1-rep3-shared step-01 (session c21): tree after the step against the tree before it
+diff --git a/src/billing/acl/OrderingAcl.ts b/src/billing/acl/OrderingAcl.ts
+index 8bafb377d..4bfaeef4f 100644
+--- a/src/billing/acl/OrderingAcl.ts
++++ b/src/billing/acl/OrderingAcl.ts
+@@ -1,13 +1,17 @@
+-import type { OrderSummaryQuery } from '../../ordering/index.js';
+-import type { BillableOrder, OrderSource } from '../application/ports/OrderSource.js';
++import type { OrderPaidCommand, OrderSummaryQuery } from '../../ordering/index.js';
++import type { BillableOrder, OrderSettlement, OrderSource } from '../application/ports/OrderSource.js';
+ 
+ /** Anti-corruption layer: translates ordering's published language into billing's model. */
+-export class OrderingAcl implements OrderSource {
+-  constructor(private readonly ordering: OrderSummaryQuery) {}
++export class OrderingAcl implements OrderSource, OrderSettlement {
++  constructor(private readonly ordering: OrderSummaryQuery, private readonly paidCommand: OrderPaidCommand) {}
++
++  markPaid(orderId: string): Promise<void> {
++    return this.paidCommand.markPaid(orderId);
++  }
+ 
+   async billableOrder(orderId: string): Promise<BillableOrder | null> {
+     const summary = await this.ordering.summaryOf(orderId);
+     if (summary === null) return null;
+-    return { orderId: summary.orderId, amountCents: summary.totalCents, currency: summary.currency };
++    return { orderId: summary.orderId, customerId: summary.customerId, amountCents: summary.totalCents, currency: summary.currency };
+   }
+ }
+diff --git a/src/billing/api/InvoiceController.ts b/src/billing/api/InvoiceController.ts
+index af761b0d4..01aecb795 100644
+--- a/src/billing/api/InvoiceController.ts
++++ b/src/billing/api/InvoiceController.ts
+@@ -1,14 +1,20 @@
+ import type { InvoiceView } from '../contracts/InvoiceView.js';
+ import type { IssueInvoice } from '../application/IssueInvoice.js';
++import type { RecordPayment } from '../application/RecordPayment.js';
+ 
+ export class InvoiceController {
+-  constructor(private readonly issueInvoice: IssueInvoice) {}
++  constructor(private readonly issueInvoice: IssueInvoice, private readonly recordPayment: RecordPayment) {}
+ 
+   async post(body: { invoiceId: string; orderId: string }): Promise<{ status: number; location: string }> {
+     await this.issueInvoice.execute(body.invoiceId, body.orderId);
+     return { status: 201, location: `/invoices/${body.invoiceId}` };
+   }
+ 
++  async postPayment(body: { invoiceId: string; amountCents: number; paidOn: string }): Promise<{ status: number }> {
++    await this.recordPayment.execute(body.invoiceId, body.amountCents, new Date(body.paidOn));
++    return { status: 201 };
++  }
++
+   describe(view: InvoiceView): string {
+     return `${view.invoiceId}: ${String(view.totalCents)} ${view.currency}`;
+   }
+diff --git a/src/billing/application/GetOutstanding.ts b/src/billing/application/GetOutstanding.ts
+new file mode 100644
+index 000000000..e36c346f5
+--- /dev/null
++++ b/src/billing/application/GetOutstanding.ts
+@@ -0,0 +1,14 @@
++import type { OutstandingQuery } from '../contracts/InvoiceView.js';
++import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository.js';
++
++/** Query service behind the published OutstandingQuery contract. */
++export class GetOutstanding implements OutstandingQuery {
++  constructor(private readonly invoices: InvoiceRepository) {}
++
++  async unpaidInvoiceCents(customerId: string, currency: string): Promise<number> {
++    const invoices = await this.invoices.byCustomer(customerId);
++    return invoices
++      .filter((i) => i.isIssued() && i.currency === currency)
++      .reduce((sum, i) => sum + i.outstanding().cents, 0);
++  }
++}
+diff --git a/src/billing/application/IssueInvoice.ts b/src/billing/application/IssueInvoice.ts
+index b093a0ea3..3b6b0d358 100644
+--- a/src/billing/application/IssueInvoice.ts
++++ b/src/billing/application/IssueInvoice.ts
+@@ -12,7 +12,7 @@ export class IssueInvoice {
+   async execute(invoiceId: string, orderId: string): Promise<void> {
+     const order = await this.orders.billableOrder(orderId);
+     if (order === null) throw new Error('Unknown order');
+-    const invoice = new Invoice(new InvoiceId(invoiceId), order.orderId, order.currency);
++    const invoice = new Invoice(new InvoiceId(invoiceId), order.orderId, order.customerId, order.currency);
+     invoice.charge(`order ${order.orderId}`, Money.of(order.amountCents, order.currency));
+     invoice.issue(this.taxRate);
+     await this.invoices.save(invoice);
+diff --git a/src/billing/application/RecordPayment.ts b/src/billing/application/RecordPayment.ts
+new file mode 100644
+index 000000000..1c8c25258
+--- /dev/null
++++ b/src/billing/application/RecordPayment.ts
+@@ -0,0 +1,17 @@
++import { Money } from '../../shared-kernel/value-objects/Money.js';
++import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository.js';
++import { InvoiceId } from '../domain/invoice/value-objects/InvoiceId.js';
++import type { OrderSettlement } from './ports/OrderSource.js';
++
++/** Application service: finance records a payment against an invoice. */
++export class RecordPayment {
++  constructor(private readonly invoices: InvoiceRepository, private readonly orders: OrderSettlement) {}
++
++  async execute(invoiceId: string, amountCents: number, paidOn: Date): Promise<void> {
++    const invoice = await this.invoices.byId(new InvoiceId(invoiceId));
++    if (invoice === null) throw new Error('Unknown invoice');
++    const settled = invoice.pay(Money.of(amountCents, invoice.currency), paidOn);
++    await this.invoices.save(invoice);
++    if (settled) await this.orders.markPaid(invoice.orderId);
++  }
++}
+diff --git a/src/billing/application/ports/OrderSource.ts b/src/billing/application/ports/OrderSource.ts
+index 677841796..fdf1f10f9 100644
+--- a/src/billing/application/ports/OrderSource.ts
++++ b/src/billing/application/ports/OrderSource.ts
+@@ -1,10 +1,16 @@
+ /** Port: what billing needs to know about an order, in billing's own terms. */
+ export interface BillableOrder {
+   readonly orderId: string;
++  readonly customerId: string;
+   readonly amountCents: number;
+   readonly currency: string;
+ }
+ 
++/** Port: tells the order side that an order has been paid in full. */
++export interface OrderSettlement {
++  markPaid(orderId: string): Promise<void>;
++}
++
+ export interface OrderSource {
+   billableOrder(orderId: string): Promise<BillableOrder | null>;
+ }
+diff --git a/src/billing/contracts/InvoiceView.ts b/src/billing/contracts/InvoiceView.ts
+index 322a24834..0ae516767 100644
+--- a/src/billing/contracts/InvoiceView.ts
++++ b/src/billing/contracts/InvoiceView.ts
+@@ -4,3 +4,8 @@ export interface InvoiceView {
+   readonly totalCents: number;
+   readonly currency: string;
+ }
++
++/** Published query: a customer's issued-but-unpaid invoice amounts in one currency. */
++export interface OutstandingQuery {
++  unpaidInvoiceCents(customerId: string, currency: string): Promise<number>;
++}
+diff --git a/src/billing/domain/invoice/Invoice.ts b/src/billing/domain/invoice/Invoice.ts
+index a84f0122c..8901f699e 100644
+--- a/src/billing/domain/invoice/Invoice.ts
++++ b/src/billing/domain/invoice/Invoice.ts
+@@ -1,6 +1,7 @@
+ import type { DomainEvent } from '../../../shared-kernel/DomainEvent.js';
+ import { Money } from '../../../shared-kernel/value-objects/Money.js';
+ import { InvoiceLine } from './InvoiceLine.js';
++import { Payment } from './Payment.js';
+ import { InvoiceId } from './value-objects/InvoiceId.js';
+ import { InvoiceIssued } from './events/InvoiceIssued.js';
+ 
+@@ -8,9 +9,10 @@ import { InvoiceIssued } from './events/InvoiceIssued.js';
+ export class Invoice {
+   private readonly lines: InvoiceLine[] = [];
+   private readonly events: DomainEvent[] = [];
++  private readonly payments: Payment[] = [];
+   private issued = false;
+ 
+-  constructor(readonly id: InvoiceId, readonly orderId: string, readonly currency: string) {}
++  constructor(readonly id: InvoiceId, readonly orderId: string, readonly customerId: string, readonly currency: string) {}
+ 
+   charge(description: string, amount: Money): void {
+     if (this.issued) throw new Error('An issued invoice cannot change');
+@@ -25,6 +27,33 @@ export class Invoice {
+     this.events.push(new InvoiceIssued(this.id.value, this.orderId));
+   }
+ 
++  /** Records a (part) payment; never beyond the invoice total. Returns true when this payment settles the invoice. */
++  pay(amount: Money, paidOn: Date): boolean {
++    if (!this.issued) throw new Error('Only an issued invoice can be paid');
++    if (amount.currency !== this.currency) throw new Error('Currency mismatch');
++    if (amount.cents <= 0) throw new Error('A payment must be positive');
++    if (Number.isNaN(paidOn.getTime())) throw new Error('Invalid payment date');
++    if (amount.isGreaterThan(this.outstanding())) throw new Error('Payment exceeds the outstanding amount');
++    this.payments.push(new Payment(this.payments.length + 1, amount, paidOn));
++    return this.isPaid();
++  }
++
++  paid(): Money {
++    return this.payments.reduce((s, p) => s.add(p.amount), Money.of(0, this.currency));
++  }
++
++  outstanding(): Money {
++    return this.total().subtract(this.paid());
++  }
++
++  isPaid(): boolean {
++    return this.issued && this.outstanding().cents === 0;
++  }
++
++  isIssued(): boolean {
++    return this.issued;
++  }
++
+   net(): Money {
+     return this.lines.filter((l) => l.description !== 'tax').reduce((s, l) => s.add(l.amount), Money.of(0, this.currency));
+   }
+diff --git a/src/billing/domain/invoice/InvoiceRepository.ts b/src/billing/domain/invoice/InvoiceRepository.ts
+index 5d852d8d3..0010e3b83 100644
+--- a/src/billing/domain/invoice/InvoiceRepository.ts
++++ b/src/billing/domain/invoice/InvoiceRepository.ts
+@@ -3,5 +3,6 @@ import type { InvoiceId } from './value-objects/InvoiceId.js';
+ 
+ export interface InvoiceRepository {
+   byId(id: InvoiceId): Promise<Invoice | null>;
++  byCustomer(customerId: string): Promise<Invoice[]>;
+   save(invoice: Invoice): Promise<void>;
+ }
+diff --git a/src/billing/domain/invoice/Payment.ts b/src/billing/domain/invoice/Payment.ts
+new file mode 100644
+index 000000000..fd63ce178
+--- /dev/null
++++ b/src/billing/domain/invoice/Payment.ts
+@@ -0,0 +1,6 @@
++import type { Money } from '../../../shared-kernel/value-objects/Money.js';
++
++/** Entity inside Invoice: one recorded payment (possibly a part payment). */
++export class Payment {
++  constructor(readonly sequence: number, readonly amount: Money, readonly paidOn: Date) {}
++}
+diff --git a/src/billing/index.ts b/src/billing/index.ts
+index 9142ffe96..849b33f54 100644
+--- a/src/billing/index.ts
++++ b/src/billing/index.ts
+@@ -1,2 +1,2 @@
+ // Public API of the billing context.
+-export type { InvoiceView } from './contracts/InvoiceView.js';
++export type { InvoiceView, OutstandingQuery } from './contracts/InvoiceView.js';
+diff --git a/src/billing/infrastructure/InMemoryInvoiceRepository.ts b/src/billing/infrastructure/InMemoryInvoiceRepository.ts
+index e37e18060..b4e432818 100644
+--- a/src/billing/infrastructure/InMemoryInvoiceRepository.ts
++++ b/src/billing/infrastructure/InMemoryInvoiceRepository.ts
+@@ -9,6 +9,10 @@ export class InMemoryInvoiceRepository implements InvoiceRepository {
+     return this.rows.get(id.value) ?? null;
+   }
+ 
++  async byCustomer(customerId: string): Promise<Invoice[]> {
++    return [...this.rows.values()].filter((i) => i.customerId === customerId);
++  }
++
+   async save(invoice: Invoice): Promise<void> {
+     this.rows.set(invoice.id.value, invoice);
+   }
+diff --git a/src/main.ts b/src/main.ts
+index 5ad5e8b40..a70808808 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -1,19 +1,29 @@
+ // Composition root: outside every bounded context, wires both contexts.
+ import { PlaceOrder } from './ordering/application/PlaceOrder.js';
+ import { GetOrderSummary } from './ordering/application/GetOrderSummary.js';
++import { MarkOrderPaid } from './ordering/application/MarkOrderPaid.js';
++import { SetCreditLimit } from './ordering/application/SetCreditLimit.js';
+ import { InMemoryOrderRepository } from './ordering/infrastructure/InMemoryOrderRepository.js';
+ import { InMemoryCustomerRepository } from './ordering/infrastructure/InMemoryCustomerRepository.js';
+ import { OrderController } from './ordering/api/OrderController.js';
++import { CustomerController } from './ordering/api/CustomerController.js';
++import { BillingAcl } from './ordering/acl/BillingAcl.js';
++import type { Customer } from './ordering/domain/customer/Customer.js';
+ import { IssueInvoice } from './billing/application/IssueInvoice.js';
++import { RecordPayment } from './billing/application/RecordPayment.js';
++import { GetOutstanding } from './billing/application/GetOutstanding.js';
+ import { OrderingAcl } from './billing/acl/OrderingAcl.js';
+ import { InMemoryInvoiceRepository } from './billing/infrastructure/InMemoryInvoiceRepository.js';
+ import { InvoiceController } from './billing/api/InvoiceController.js';
+ 
+-export function compose(): { orders: OrderController; invoices: InvoiceController } {
++export function compose(): { orders: OrderController; invoices: InvoiceController; customers: CustomerController } {
+   const orderRepo = new InMemoryOrderRepository();
+-  const customers = new InMemoryCustomerRepository(new Map());
+-  const orders = new OrderController(new PlaceOrder(orderRepo, customers));
+-  const acl = new OrderingAcl(new GetOrderSummary(orderRepo));
+-  const invoices = new InvoiceController(new IssueInvoice(acl, new InMemoryInvoiceRepository(), 0.2));
+-  return { orders, invoices };
++  const customerRepo = new InMemoryCustomerRepository(new Map<string, Customer>());
++  const invoiceRepo = new InMemoryInvoiceRepository();
++  const billingAcl = new BillingAcl(new GetOutstanding(invoiceRepo));
++  const orders = new OrderController(new PlaceOrder(orderRepo, customerRepo, billingAcl));
++  const customers = new CustomerController(new SetCreditLimit(customerRepo));
++  const acl = new OrderingAcl(new GetOrderSummary(orderRepo), new MarkOrderPaid(orderRepo));
++  const invoices = new InvoiceController(new IssueInvoice(acl, invoiceRepo, 0.2), new RecordPayment(invoiceRepo, acl));
++  return { orders, invoices, customers };
+ }
+diff --git a/src/ordering/acl/BillingAcl.ts b/src/ordering/acl/BillingAcl.ts
+new file mode 100644
+index 000000000..76d74bc3f
+--- /dev/null
++++ b/src/ordering/acl/BillingAcl.ts
+@@ -0,0 +1,11 @@
++import type { OutstandingQuery } from '../../billing/index.js';
++import type { ReceivablesSource } from '../application/ports/ReceivablesSource.js';
++
++/** Anti-corruption layer: translates billing's published language into ordering's model. */
++export class BillingAcl implements ReceivablesSource {
++  constructor(private readonly billing: OutstandingQuery) {}
++
++  unpaidCents(customerId: string, currency: string): Promise<number> {
++    return this.billing.unpaidInvoiceCents(customerId, currency);
++  }
++}
+diff --git a/src/ordering/api/CustomerController.ts b/src/ordering/api/CustomerController.ts
+new file mode 100644
+index 000000000..5c9635c4c
+--- /dev/null
++++ b/src/ordering/api/CustomerController.ts
+@@ -0,0 +1,11 @@
++import type { SetCreditLimit } from '../application/SetCreditLimit.js';
++
++/** Inbound adapter for finance: per-customer credit limits. */
++export class CustomerController {
++  constructor(private readonly setCreditLimit: SetCreditLimit) {}
++
++  async put(body: { customerId: string; limitCents: number }): Promise<{ status: number }> {
++    await this.setCreditLimit.execute(body.customerId, body.limitCents);
++    return { status: 204 };
++  }
++}
+diff --git a/src/ordering/application/GetOrderSummary.ts b/src/ordering/application/GetOrderSummary.ts
+index 6f804b5d9..932ae1641 100644
+--- a/src/ordering/application/GetOrderSummary.ts
++++ b/src/ordering/application/GetOrderSummary.ts
+@@ -10,6 +10,6 @@ export class GetOrderSummary implements OrderSummaryQuery {
+     const order = await this.orders.byId(new OrderId(orderId));
+     if (order === null) return null;
+     const total = order.total();
+-    return { orderId, customerId: order.customerId.value, totalCents: total.cents, currency: total.currency, lineCount: order.lineCount() };
++    return { orderId, customerId: order.customerId.value, totalCents: total.cents, currency: total.currency, lineCount: order.lineCount(), paid: order.isPaid() };
+   }
+ }
+diff --git a/src/ordering/application/MarkOrderPaid.ts b/src/ordering/application/MarkOrderPaid.ts
+new file mode 100644
+index 000000000..2c26a97f9
+--- /dev/null
++++ b/src/ordering/application/MarkOrderPaid.ts
+@@ -0,0 +1,14 @@
++import type { OrderPaidCommand } from '../contracts/OrderSummary.js';
++import type { OrderRepository } from '../domain/order/OrderRepository.js';
++import { OrderId } from '../domain/order/value-objects/OrderId.js';
++
++export class MarkOrderPaid implements OrderPaidCommand {
++  constructor(private readonly orders: OrderRepository) {}
++
++  async markPaid(orderId: string): Promise<void> {
++    const order = await this.orders.byId(new OrderId(orderId));
++    if (order === null) throw new Error('Unknown order');
++    order.markPaid();
++    await this.orders.save(order);
++  }
++}
+diff --git a/src/ordering/application/PlaceOrder.ts b/src/ordering/application/PlaceOrder.ts
+index 890f0be71..b1a40fb45 100644
+--- a/src/ordering/application/PlaceOrder.ts
++++ b/src/ordering/application/PlaceOrder.ts
+@@ -4,6 +4,7 @@ import type { OrderRepository } from '../domain/order/OrderRepository.js';
+ import { OrderId } from '../domain/order/value-objects/OrderId.js';
+ import type { CustomerRepository } from '../domain/customer/CustomerRepository.js';
+ import { CustomerId } from '../domain/customer/value-objects/CustomerId.js';
++import type { ReceivablesSource } from './ports/ReceivablesSource.js';
+ import { Quantity } from '../domain/value-objects/Quantity.js';
+ 
+ export interface PlaceOrderCommand {
+@@ -15,7 +16,7 @@ export interface PlaceOrderCommand {
+ 
+ /** Application service: loads, delegates to the aggregate, saves. No business rule lives here. */
+ export class PlaceOrder {
+-  constructor(private readonly orders: OrderRepository, private readonly customers: CustomerRepository) {}
++  constructor(private readonly orders: OrderRepository, private readonly customers: CustomerRepository, private readonly receivables: ReceivablesSource) {}
+ 
+   async execute(cmd: PlaceOrderCommand): Promise<void> {
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+@@ -23,6 +24,8 @@ export class PlaceOrder {
+     const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
+     for (const l of cmd.lines) order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
+     order.place();
++    const unpaid = Money.of(await this.receivables.unpaidCents(cmd.customerId, cmd.currency), cmd.currency);
++    customer.assertWithinCredit(unpaid, order.total());
+     await this.orders.save(order);
+   }
+ }
+diff --git a/src/ordering/application/SetCreditLimit.ts b/src/ordering/application/SetCreditLimit.ts
+new file mode 100644
+index 000000000..b87571d40
+--- /dev/null
++++ b/src/ordering/application/SetCreditLimit.ts
+@@ -0,0 +1,14 @@
++import type { CustomerRepository } from '../domain/customer/CustomerRepository.js';
++import { CustomerId } from '../domain/customer/value-objects/CustomerId.js';
++
++/** Finance sets a per-customer credit limit (minor units, applied in each order's currency). */
++export class SetCreditLimit {
++  constructor(private readonly customers: CustomerRepository) {}
++
++  async execute(customerId: string, limitCents: number): Promise<void> {
++    const customer = await this.customers.byId(new CustomerId(customerId));
++    if (customer === null) throw new Error('Unknown customer');
++    customer.setCreditLimit(limitCents);
++    await this.customers.save(customer);
++  }
++}
+diff --git a/src/ordering/application/ports/ReceivablesSource.ts b/src/ordering/application/ports/ReceivablesSource.ts
+new file mode 100644
+index 000000000..add5b09ef
+--- /dev/null
++++ b/src/ordering/application/ports/ReceivablesSource.ts
+@@ -0,0 +1,4 @@
++/** Port: what ordering needs to know about a customer's unpaid issued invoices. */
++export interface ReceivablesSource {
++  unpaidCents(customerId: string, currency: string): Promise<number>;
++}
+diff --git a/src/ordering/contracts/OrderSummary.ts b/src/ordering/contracts/OrderSummary.ts
+index 82f1cf92e..2ca45e38e 100644
+--- a/src/ordering/contracts/OrderSummary.ts
++++ b/src/ordering/contracts/OrderSummary.ts
+@@ -5,6 +5,12 @@ export interface OrderSummary {
+   readonly totalCents: number;
+   readonly currency: string;
+   readonly lineCount: number;
++  readonly paid: boolean;
++}
++
++/** Published command: billing tells ordering that an order's invoice is fully paid. */
++export interface OrderPaidCommand {
++  markPaid(orderId: string): Promise<void>;
+ }
+ 
+ export interface OrderSummaryQuery {
+diff --git a/src/ordering/domain/customer/Customer.ts b/src/ordering/domain/customer/Customer.ts
+index ea93ff35d..7743a1d60 100644
+--- a/src/ordering/domain/customer/Customer.ts
++++ b/src/ordering/domain/customer/Customer.ts
+@@ -1,8 +1,12 @@
++import { Money } from '../../../shared-kernel/value-objects/Money.js';
+ import { CustomerId } from './value-objects/CustomerId.js';
+ 
++export const DEFAULT_CREDIT_LIMIT_CENTS = 500000;
++
+ /** Aggregate root with no inner entity. */
+ export class Customer {
+   private active = true;
++  private creditLimitCents: number = DEFAULT_CREDIT_LIMIT_CENTS;
+ 
+   constructor(readonly id: CustomerId, readonly name: string) {}
+ 
+@@ -13,4 +17,30 @@ export class Customer {
+   deactivate(): void {
+     this.active = false;
+   }
++
++  /** Finance override; the limit applies in the currency of each order. */
++  setCreditLimit(cents: number): void {
++    if (!Number.isInteger(cents) || cents < 0) throw new Error('Credit limit must be a non-negative whole number of minor units');
++    this.creditLimitCents = cents;
++  }
++
++  creditLimit(currency: string): Money {
++    return Money.of(this.creditLimitCents, currency);
++  }
++
++  /** Refuses an order that would take unpaid invoiced amounts above the credit limit. */
++  assertWithinCredit(unpaid: Money, orderTotal: Money): void {
++    const limit = this.creditLimit(orderTotal.currency);
++    const exposure = unpaid.add(orderTotal);
++    if (exposure.isGreaterThan(limit)) {
++      const over = exposure.subtract(limit);
++      throw new Error(`Credit limit exceeded by ${formatMoney(over)}`);
++    }
++  }
++}
++
++function formatMoney(m: Money): string {
++  const abs = Math.abs(m.cents);
++  const frac = String(abs % 100).padStart(2, '0');
++  return `${String(Math.floor(abs / 100))}.${frac} ${m.currency}`;
+ }
+diff --git a/src/ordering/domain/customer/CustomerRepository.ts b/src/ordering/domain/customer/CustomerRepository.ts
+index e8f2ba10c..c4f9e93d5 100644
+--- a/src/ordering/domain/customer/CustomerRepository.ts
++++ b/src/ordering/domain/customer/CustomerRepository.ts
+@@ -3,4 +3,5 @@ import type { CustomerId } from './value-objects/CustomerId.js';
+ 
+ export interface CustomerRepository {
+   byId(id: CustomerId): Promise<Customer | null>;
++  save(customer: Customer): Promise<void>;
+ }
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index d05f4a03c..437e8aeee 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -10,6 +10,7 @@ import { OrderPlaced } from './events/OrderPlaced.js';
+ export class Order {
+   private readonly lines: OrderLine[] = [];
+   private placed = false;
++  private paid = false;
+   private readonly events: DomainEvent[] = [];
+ 
+   constructor(readonly id: OrderId, readonly customerId: CustomerId, readonly currency: string) {}
+@@ -28,6 +29,15 @@ export class Order {
+     this.events.push(new OrderPlaced(this.id.value, this.total().cents));
+   }
+ 
++  markPaid(): void {
++    if (!this.placed) throw new Error('Only a placed order can be paid');
++    this.paid = true;
++  }
++
++  isPaid(): boolean {
++    return this.paid;
++  }
++
+   total(): Money {
+     return this.lines.reduce((sum, l) => sum.add(l.subtotal()), Money.of(0, this.currency));
+   }
+diff --git a/src/ordering/index.ts b/src/ordering/index.ts
+index eb25f35e8..e9cf70d51 100644
+--- a/src/ordering/index.ts
++++ b/src/ordering/index.ts
+@@ -1,2 +1,2 @@
+ // Public API of the ordering context: the only files other contexts may import.
+-export type { OrderSummary, OrderSummaryQuery } from './contracts/OrderSummary.js';
++export type { OrderSummary, OrderSummaryQuery, OrderPaidCommand } from './contracts/OrderSummary.js';
+diff --git a/src/ordering/infrastructure/InMemoryCustomerRepository.ts b/src/ordering/infrastructure/InMemoryCustomerRepository.ts
+index cf426e586..0570c3fb8 100644
+--- a/src/ordering/infrastructure/InMemoryCustomerRepository.ts
++++ b/src/ordering/infrastructure/InMemoryCustomerRepository.ts
+@@ -3,9 +3,13 @@ import type { CustomerRepository } from '../domain/customer/CustomerRepository.j
+ import type { CustomerId } from '../domain/customer/value-objects/CustomerId.js';
+ 
+ export class InMemoryCustomerRepository implements CustomerRepository {
+-  constructor(private readonly rows: ReadonlyMap<string, Customer>) {}
++  constructor(private readonly rows: Map<string, Customer>) {}
+ 
+   async byId(id: CustomerId): Promise<Customer | null> {
+     return this.rows.get(id.value) ?? null;
+   }
++
++  async save(customer: Customer): Promise<void> {
++    this.rows.set(customer.id.value, customer);
++  }
+ }
+diff --git a/src/shared-kernel/value-objects/Money.ts b/src/shared-kernel/value-objects/Money.ts
+index 84aaf5da0..6ef25524d 100644
+--- a/src/shared-kernel/value-objects/Money.ts
++++ b/src/shared-kernel/value-objects/Money.ts
+@@ -12,6 +12,16 @@ export class Money {
+     return new Money(this.cents + other.cents, this.currency);
+   }
+ 
++  subtract(other: Money): Money {
++    if (other.currency !== this.currency) throw new Error('Currency mismatch');
++    return new Money(this.cents - other.cents, this.currency);
++  }
++
++  isGreaterThan(other: Money): boolean {
++    if (other.currency !== this.currency) throw new Error('Currency mismatch');
++    return this.cents > other.cents;
++  }
++
+   times(factor: number): Money {
+     return new Money(Math.round(this.cents * factor), this.currency);
+   }

@@ -313,7 +313,26 @@ is not separable at n = 5.
 - **Blind spot found:** P5 gate c07 moved a cross-context write into the composition root's facade, where
   `check_consistency` does not look.
 
-### 19. REPO-SCOUT for COMPREHEND-02: large repositories and the graph against the compiler (2026-10-22)
+### 19. DRIFT-01: the Study 2b drift protocol on DDD and Hexagonal seeds (2026-10-22)
+Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Docs/DiagnosticRuns/drift-01-rescores-2026-10-23.md` (Part A, zero calls) and `Docs/DiagnosticRuns/drift-01-pilot-2026-10-23.md`. Records: `results/v1.4-drift-01/`.
+- **Part A, re-score of HEXDDD-01** with the frozen rules plus R-D4 and R-XCTX:
+  - D_v15 is 2 on both S1 (inferred roots) and S2, against a frozen D of 0;
+  - the per-step new identities are S1 0/0/2/0/0 and S2 2/0/0/0/2;
+  - 3 of the 9 hand-read cases are caught at their step (7 of 9 with every DETECT-02 rule; fitted, dev);
+  - the Study 2b step-5 trees are not in the repository, so that precision check was skipped.
+- **Pilot:** `claude-sonnet-5-5`, CLI 2.1.308, shared step 1 then steps 2–5 per arm, 3 replicates, the puzzle isolation with the clone closed in place. 82 of 94 calls, 0 redraws, 78/78 turns completed.
+- **ΣD_v15** (never pooled):
+  - DDD `t1`: none 6 (2, 2, 2), pull 0, gate 0;
+  - Hexagonal `t2`: none 1, pull 0, gate 0;
+  - D_frozen is 0 everywhere;
+  - `none`'s identities are the step-5 synchronous `IssueInvoice → Order` write, the HEXDDD-01 case-8 shape.
+- **The mechanisms differ:**
+  - the gate showed the inherited step-1 `RecordPayment` cross-context write at step 2, and the agent removed it in 3/3 blocks;
+  - pull's tool reported that write in 13 of 14 calls, and it stayed in 3/3 blocks. Pull's agents still avoided the new write (a read-only status query instead).
+- **Predictions:** P1, P2 and P5 hold; P3 (gate beats pull on D) fails as a tie at 0; P4 holds for the gate and fails for pull.
+- **Caveats:** the replicates are nearly identical, t2 rests on inferred roots (its one `none` identity is a candidate false positive), and there is no functional acceptance beyond tsc. Four identities are listed for the author's hand read.
+
+### 20. REPO-SCOUT for COMPREHEND-02: large repositories and the graph against the compiler (2026-10-22)
 `Docs/DiagnosticRuns/repo-scout-comprehend-02-2026-10-23.md`, `experiments/repo-scout/`. Zero model calls:
 - **Measured:** 82 repositories at pinned commits (the 74 of the v1.3 external and wild sets, plus Medusa, Backstage,
   Novu, Amplication, Twenty, Immich, Unleash and Vendure). For each: files, LOC, tsc, declared boundaries and licence.
@@ -350,11 +369,13 @@ is not separable at n = 5.
 - [x] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10). Approved as written, with a cap of 64; run in entry 16.
 - [ ] Author: COMPREHEND-01 key decision on P2-P1 (sales-side handler), whether a ×3 variance run is worth it, and graph revisions 1–2 (entry 16).
 - [ ] Author: decide whether an unowned set invariant (the lock form) is D5 and whether a pre-existing copy counts. This decides S2's next step (entry 17).
-- [ ] Author: choose the COMPREHEND-02 trees (recommended Backstage, Novu, Medusa as the Gw control) and decide which graph changes come first: a caller query, receiver typing, units for factory callbacks, and edges for overloaded methods and inline import types (entry 19).
+- [ ] Author: choose the COMPREHEND-02 trees (recommended Backstage, Novu, Medusa as the Gw control) and decide which graph changes come first: a caller query, receiver typing, units for factory callbacks, and edges for overloaded methods and inline import types (entry 20).
 - [ ] Author: hand read of the PUZZLE-04 cases (`results/v1.4-puzzle-04/oracle-verdicts-to-read.md`; new categories P1-SG1-c and P2-SG1-e decide P1 and P2 for the gate) (entry 18).
+- [ ] Author: hand-read the 4 new DRIFT-01 identities and the inherited `RecordPayment` pair (entry 19).
 
 ## Changelog
-- 2026-10-22: entry 19 (REPO-SCOUT for COMPREHEND-02).
+- 2026-10-22: entry 20 (REPO-SCOUT for COMPREHEND-02).
+- 2026-10-22: entry 19 (DRIFT-01).
 - 2026-10-22: entry 18 (PUZZLE-04).
 - 2026-10-22: entry 17 (v1.5 U4 S3 facts and S2 confirmation).
 - 2026-10-22: entry 16 (COMPREHEND-01 pilot).

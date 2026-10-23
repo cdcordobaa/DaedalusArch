@@ -1,0 +1,159 @@
+# t2-rep2-pull step-04 (session c16): tree after the step against the tree before it
+diff --git a/src/adapters/inbound/http/RoomController.ts b/src/adapters/inbound/http/RoomController.ts
+index 0a44c1a31..029ed6116 100644
+--- a/src/adapters/inbound/http/RoomController.ts
++++ b/src/adapters/inbound/http/RoomController.ts
+@@ -1,4 +1,6 @@
+ import { FindAvailableRooms } from '../../../application/ports/in/FindAvailableRooms';
++import { OccupancyReport } from '../../../application/ports/in/OccupancyReport';
++import { BookingError } from '../../../domain/errors/BookingError';
+ import { InMemoryRoomRepository } from '../../outbound/persistence/InMemoryRoomRepository';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+@@ -6,6 +8,7 @@ export class RoomController {
+   constructor(
+     private readonly findAvailableRooms: FindAvailableRooms,
+     private readonly roomStore: InMemoryRoomRepository,
++    private readonly occupancyReport: OccupancyReport,
+   ) {}
+ 
+   async show(request: HttpRequest): Promise<HttpResponse> {
+@@ -21,4 +24,15 @@ export class RoomController {
+     );
+     return { status: 200, body: rooms };
+   }
++
++  /** GET /reports/occupancy?from=YYYY-MM-DD&to=YYYY-MM-DD (to exclusive, up to 90 nights). */
++  async occupancy(request: HttpRequest): Promise<HttpResponse> {
++    try {
++      const nights = await this.occupancyReport.report(String(request.query['from']), String(request.query['to']));
++      return { status: 200, body: nights };
++    } catch (e) {
++      if (e instanceof BookingError) return { status: 400, body: { error: e.message } };
++      throw e;
++    }
++  }
+ }
+diff --git a/src/application/ports/in/OccupancyReport.ts b/src/application/ports/in/OccupancyReport.ts
+new file mode 100644
+index 000000000..12ffb2990
+--- /dev/null
++++ b/src/application/ports/in/OccupancyReport.ts
+@@ -0,0 +1,19 @@
++export interface OccupancyRoomRevenue {
++  roomId: string;
++  revenueCents: number;
++}
++
++export interface OccupancyNight {
++  /** The night, as an ISO date (the night starting that day). */
++  date: string;
++  roomsOccupied: number;
++  /** Rooms occupied divided by all rooms, 0..1. */
++  occupancyRate: number;
++  revenueCents: number;
++  revenueByRoom: OccupancyRoomRevenue[];
++}
++
++export interface OccupancyReport {
++  /** `from` inclusive, `to` exclusive; at most 90 nights. */
++  report(from: string, to: string): Promise<OccupancyNight[]>;
++}
+diff --git a/src/application/services/OccupancyReportService.ts b/src/application/services/OccupancyReportService.ts
+new file mode 100644
+index 000000000..a5b2471a1
+--- /dev/null
++++ b/src/application/services/OccupancyReportService.ts
+@@ -0,0 +1,71 @@
++import { BookingError } from '../../domain/errors/BookingError';
++import { DateRange } from '../../domain/model/DateRange';
++import { OccupancyNight, OccupancyReport } from '../ports/in/OccupancyReport';
++import { BookingRepository } from '../ports/out/BookingRepository';
++import { RoomRepository } from '../ports/out/RoomRepository';
++
++const DAY_MS = 24 * 60 * 60 * 1000;
++const MAX_NIGHTS = 90;
++
++export class OccupancyReportService implements OccupancyReport {
++  constructor(
++    private readonly rooms: RoomRepository,
++    private readonly bookings: BookingRepository,
++  ) {}
++
++  async report(from: string, to: string): Promise<OccupancyNight[]> {
++    const range = DateRange.parse(from, to);
++    if (Number.isNaN(range.checkIn.getTime()) || Number.isNaN(range.checkOut.getTime())) {
++      throw new BookingError('invalid', 'Invalid date');
++    }
++    const nights = range.nights();
++    if (nights < 1 || nights > MAX_NIGHTS) {
++      throw new BookingError('invalid', `Range must be 1 to ${MAX_NIGHTS} nights`);
++    }
++    const start = range.checkIn.getTime();
++
++    const [rooms, active] = await Promise.all([this.rooms.findAll(), this.bookings.findActive()]);
++
++    // One pass over the bookings; each only touches the nights it shares with the range.
++    const occupied = new Array<number>(nights).fill(0);
++    const revenue = new Map<string, number[]>();
++    for (const booking of active) {
++      const stayNights = booking.stay.nights();
++      const first = Math.round((booking.stay.checkIn.getTime() - start) / DAY_MS);
++      const lo = Math.max(first, 0);
++      const hi = Math.min(first + stayNights, nights);
++      if (lo >= hi) continue;
++      let perRoom = revenue.get(booking.roomId);
++      if (perRoom === undefined) {
++        perRoom = new Array<number>(nights).fill(0);
++        revenue.set(booking.roomId, perRoom);
++      }
++      const share = booking.total.cents / stayNights;
++      for (let i = lo; i < hi; i++) {
++        occupied[i] += 1;
++        perRoom[i] += share;
++      }
++    }
++
++    const roomCount = rooms.length;
++    const result: OccupancyNight[] = [];
++    for (let i = 0; i < nights; i++) {
++      const revenueByRoom: { roomId: string; revenueCents: number }[] = [];
++      let total = 0;
++      for (const [roomId, perRoom] of revenue) {
++        const cents = Math.round(perRoom[i]);
++        if (cents === 0 && perRoom[i] === 0) continue;
++        revenueByRoom.push({ roomId, revenueCents: cents });
++        total += cents;
++      }
++      result.push({
++        date: new Date(start + i * DAY_MS).toISOString().slice(0, 10),
++        roomsOccupied: occupied[i],
++        occupancyRate: roomCount === 0 ? 0 : occupied[i] / roomCount,
++        revenueCents: total,
++        revenueByRoom,
++      });
++    }
++    return result;
++  }
++}
+diff --git a/src/config/container.ts b/src/config/container.ts
+index 606395b0a..b5ec76fae 100644
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -11,6 +11,7 @@ import { AuditTrailService } from '../application/services/AuditTrailService';
+ import { BookRoomService } from '../application/services/BookRoomService';
+ import { CancelBookingService } from '../application/services/CancelBookingService';
+ import { FindAvailableRoomsService } from '../application/services/FindAvailableRoomsService';
++import { OccupancyReportService } from '../application/services/OccupancyReportService';
+ 
+ export interface Container {
+   bookings: BookingController;
+@@ -30,7 +31,7 @@ export function createContainer(): Container {
+   const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications);
+   return {
+     bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications, failedRefunds), new AuditTrailService(bookings)),
+-    rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings), rooms),
++    rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings), rooms, new OccupancyReportService(rooms, bookings)),
+     cli: new BookingCli(bookRoom),
+   };
+ }

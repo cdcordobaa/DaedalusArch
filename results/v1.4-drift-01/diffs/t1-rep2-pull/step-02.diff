@@ -1,0 +1,96 @@
+# t1-rep2-pull step-02 (session c10): tree after the step against the tree before it
+diff --git a/src/billing/domain/invoice/Invoice.ts b/src/billing/domain/invoice/Invoice.ts
+index 2e6d7c30d..4d5f47949 100644
+--- a/src/billing/domain/invoice/Invoice.ts
++++ b/src/billing/domain/invoice/Invoice.ts
+@@ -17,6 +17,7 @@ export class Invoice {
+ 
+   charge(description: string, amount: Money): void {
+     if (this.issued) throw new Error('An issued invoice cannot change');
++    if (amount.cents < 0) throw new Error('An invoice charge must not be negative');
+     this.lines.push(new InvoiceLine(this.lines.length + 1, description, amount));
+   }
+ 
+diff --git a/src/ordering/api/OrderController.ts b/src/ordering/api/OrderController.ts
+index 12143f39b..525252ba6 100644
+--- a/src/ordering/api/OrderController.ts
++++ b/src/ordering/api/OrderController.ts
+@@ -1,11 +1,17 @@
+ import type { PlaceOrder, PlaceOrderCommand } from '../application/PlaceOrder.js';
++import { InvalidOrderLineError } from '../domain/order/InvalidOrderLineError.js';
+ 
+ /** Inbound adapter: translates a request body into a command. */
+ export class OrderController {
+   constructor(private readonly placeOrder: PlaceOrder) {}
+ 
+-  async post(body: PlaceOrderCommand): Promise<{ status: number }> {
+-    await this.placeOrder.execute(body);
++  async post(body: PlaceOrderCommand): Promise<{ status: number; message?: string }> {
++    try {
++      await this.placeOrder.execute(body);
++    } catch (e) {
++      if (e instanceof InvalidOrderLineError) return { status: 400, message: e.message };
++      throw e;
++    }
+     return { status: 201 };
+   }
+ }
+diff --git a/src/ordering/application/PlaceOrder.ts b/src/ordering/application/PlaceOrder.ts
+index 0e5757266..a9755252e 100644
+--- a/src/ordering/application/PlaceOrder.ts
++++ b/src/ordering/application/PlaceOrder.ts
+@@ -5,6 +5,7 @@ import { OrderId } from '../domain/order/value-objects/OrderId.js';
+ import type { CustomerRepository } from '../domain/customer/CustomerRepository.js';
+ import { CustomerId } from '../domain/customer/value-objects/CustomerId.js';
+ import type { CreditExposure } from './ports/CreditExposure.js';
++import { InvalidOrderLineError } from '../domain/order/InvalidOrderLineError.js';
+ import { Quantity } from '../domain/value-objects/Quantity.js';
+ 
+ export interface PlaceOrderCommand {
+@@ -23,6 +24,11 @@ export class PlaceOrder {
+   ) {}
+ 
+   async execute(cmd: PlaceOrderCommand): Promise<void> {
++    cmd.lines.forEach((l, i) => {
++      const where = `Line ${i + 1} (${l.productId})`;
++      if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new InvalidOrderLineError(`${where}: quantity must be a positive whole number, got ${l.quantity}`);
++      if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throw new InvalidOrderLineError(`${where}: unit price must not be negative, got ${l.unitPriceCents}`);
++    });
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+     if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');
+     const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
+diff --git a/src/ordering/domain/order/InvalidOrderLineError.ts b/src/ordering/domain/order/InvalidOrderLineError.ts
+new file mode 100644
+index 000000000..d1917b31a
+--- /dev/null
++++ b/src/ordering/domain/order/InvalidOrderLineError.ts
+@@ -0,0 +1,7 @@
++/** Raised when a requested order line breaks a rule; the message names the line. */
++export class InvalidOrderLineError extends Error {
++  constructor(message: string) {
++    super(message);
++    this.name = 'InvalidOrderLineError';
++  }
++}
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index 437e8aeee..63718abc6 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -3,6 +3,7 @@ import { Money } from '../../../shared-kernel/value-objects/Money.js';
+ import { Quantity } from '../value-objects/Quantity.js';
+ import type { CustomerId } from '../customer/value-objects/CustomerId.js';
+ import { OrderLine } from './OrderLine.js';
++import { InvalidOrderLineError } from './InvalidOrderLineError.js';
+ import { OrderId } from './value-objects/OrderId.js';
+ import { OrderPlaced } from './events/OrderPlaced.js';
+ 
+@@ -18,7 +19,8 @@ export class Order {
+   addLine(productId: string, quantity: Quantity, unitPrice: Money): void {
+     if (this.placed) throw new Error('A placed order cannot change');
+     if (unitPrice.currency !== this.currency) throw new Error('Currency mismatch');
+-    const existing = this.lines.find((l) => l.isFor(productId));
++    if (unitPrice.cents < 0) throw new InvalidOrderLineError(`Line ${this.lines.length + 1} (${productId}): unit price must not be negative`);
++    const existing =this.lines.find((l) => l.isFor(productId));
+     if (existing) existing.increase(quantity);
+     else this.lines.push(new OrderLine(this.lines.length + 1, productId, quantity, unitPrice));
+   }

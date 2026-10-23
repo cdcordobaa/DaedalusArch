@@ -1,0 +1,262 @@
+# t1-rep3-gate step-02 (session c23): tree after the step against the tree before it
+diff --git a/src/billing/acl/OrderingAcl.ts b/src/billing/acl/OrderingAcl.ts
+index 4bfaeef4f..94e33ab0e 100644
+--- a/src/billing/acl/OrderingAcl.ts
++++ b/src/billing/acl/OrderingAcl.ts
+@@ -1,13 +1,9 @@
+-import type { OrderPaidCommand, OrderSummaryQuery } from '../../ordering/index.js';
+-import type { BillableOrder, OrderSettlement, OrderSource } from '../application/ports/OrderSource.js';
++import type { OrderSummaryQuery } from '../../ordering/index.js';
++import type { BillableOrder, OrderSource } from '../application/ports/OrderSource.js';
+ 
+ /** Anti-corruption layer: translates ordering's published language into billing's model. */
+-export class OrderingAcl implements OrderSource, OrderSettlement {
+-  constructor(private readonly ordering: OrderSummaryQuery, private readonly paidCommand: OrderPaidCommand) {}
+-
+-  markPaid(orderId: string): Promise<void> {
+-    return this.paidCommand.markPaid(orderId);
+-  }
++export class OrderingAcl implements OrderSource {
++  constructor(private readonly ordering: OrderSummaryQuery) {}
+ 
+   async billableOrder(orderId: string): Promise<BillableOrder | null> {
+     const summary = await this.ordering.summaryOf(orderId);
+diff --git a/src/billing/application/RecordPayment.ts b/src/billing/application/RecordPayment.ts
+index 1c8c25258..0a0b4dfa6 100644
+--- a/src/billing/application/RecordPayment.ts
++++ b/src/billing/application/RecordPayment.ts
+@@ -1,17 +1,17 @@
+ import { Money } from '../../shared-kernel/value-objects/Money.js';
++import type { EventPublisher } from '../../shared-kernel/EventBus.js';
+ import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository.js';
+ import { InvoiceId } from '../domain/invoice/value-objects/InvoiceId.js';
+-import type { OrderSettlement } from './ports/OrderSource.js';
+ 
+-/** Application service: finance records a payment against an invoice. */
++/** Application service: finance records a payment against an invoice. Other contexts react to the events it records. */
+ export class RecordPayment {
+-  constructor(private readonly invoices: InvoiceRepository, private readonly orders: OrderSettlement) {}
++  constructor(private readonly invoices: InvoiceRepository, private readonly events: EventPublisher) {}
+ 
+   async execute(invoiceId: string, amountCents: number, paidOn: Date): Promise<void> {
+     const invoice = await this.invoices.byId(new InvoiceId(invoiceId));
+     if (invoice === null) throw new Error('Unknown invoice');
+-    const settled = invoice.pay(Money.of(amountCents, invoice.currency), paidOn);
++    invoice.pay(Money.of(amountCents, invoice.currency), paidOn);
+     await this.invoices.save(invoice);
+-    if (settled) await this.orders.markPaid(invoice.orderId);
++    await this.events.publish(invoice.pullEvents());
+   }
+ }
+diff --git a/src/billing/application/ports/OrderSource.ts b/src/billing/application/ports/OrderSource.ts
+index fdf1f10f9..0be02247e 100644
+--- a/src/billing/application/ports/OrderSource.ts
++++ b/src/billing/application/ports/OrderSource.ts
+@@ -6,11 +6,6 @@ export interface BillableOrder {
+   readonly currency: string;
+ }
+ 
+-/** Port: tells the order side that an order has been paid in full. */
+-export interface OrderSettlement {
+-  markPaid(orderId: string): Promise<void>;
+-}
+-
+ export interface OrderSource {
+   billableOrder(orderId: string): Promise<BillableOrder | null>;
+ }
+diff --git a/src/billing/domain/invoice/Invoice.ts b/src/billing/domain/invoice/Invoice.ts
+index 8901f699e..86b3156d0 100644
+--- a/src/billing/domain/invoice/Invoice.ts
++++ b/src/billing/domain/invoice/Invoice.ts
+@@ -4,6 +4,7 @@ import { InvoiceLine } from './InvoiceLine.js';
+ import { Payment } from './Payment.js';
+ import { InvoiceId } from './value-objects/InvoiceId.js';
+ import { InvoiceIssued } from './events/InvoiceIssued.js';
++import { InvoicePaid } from './events/InvoicePaid.js';
+ 
+ /** Aggregate root of billing. The tax rule lives here, not in the application service. */
+ export class Invoice {
+@@ -16,12 +17,14 @@ export class Invoice {
+ 
+   charge(description: string, amount: Money): void {
+     if (this.issued) throw new Error('An issued invoice cannot change');
++    if (amount.cents < 0) throw new Error('An invoice charge cannot be negative');
+     this.lines.push(new InvoiceLine(this.lines.length + 1, description, amount));
+   }
+ 
+   issue(taxRate: number): void {
+     if (this.lines.length === 0) throw new Error('Nothing to invoice');
+     const net = this.net();
++    if (!(taxRate >= 0)) throw new Error('The tax rate cannot be negative');
+     this.lines.push(new InvoiceLine(this.lines.length + 1, 'tax', net.times(taxRate)));
+     this.issued = true;
+     this.events.push(new InvoiceIssued(this.id.value, this.orderId));
+@@ -35,7 +38,9 @@ export class Invoice {
+     if (Number.isNaN(paidOn.getTime())) throw new Error('Invalid payment date');
+     if (amount.isGreaterThan(this.outstanding())) throw new Error('Payment exceeds the outstanding amount');
+     this.payments.push(new Payment(this.payments.length + 1, amount, paidOn));
+-    return this.isPaid();
++    const settled = this.isPaid();
++    if (settled) this.events.push(new InvoicePaid(this.id.value, this.orderId));
++    return settled;
+   }
+ 
+   paid(): Money {
+diff --git a/src/billing/domain/invoice/events/InvoicePaid.ts b/src/billing/domain/invoice/events/InvoicePaid.ts
+new file mode 100644
+index 000000000..b04f38557
+--- /dev/null
++++ b/src/billing/domain/invoice/events/InvoicePaid.ts
+@@ -0,0 +1,8 @@
++import type { DomainEvent } from '../../../../shared-kernel/DomainEvent.js';
++
++export class InvoicePaid implements DomainEvent {
++  readonly name = 'billing.invoice-paid';
++  readonly occurredAt = new Date();
++
++  constructor(readonly invoiceId: string, readonly orderId: string) {}
++}
+diff --git a/src/billing/index.ts b/src/billing/index.ts
+index 849b33f54..a10b338c3 100644
+--- a/src/billing/index.ts
++++ b/src/billing/index.ts
+@@ -1,2 +1,4 @@
+ // Public API of the billing context.
+ export type { InvoiceView, OutstandingQuery } from './contracts/InvoiceView.js';
++export type { InvoicePaid } from './domain/invoice/events/InvoicePaid.js';
++export const INVOICE_PAID = 'billing.invoice-paid';
+diff --git a/src/main.ts b/src/main.ts
+index a70808808..ef582ba39 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -8,6 +8,9 @@ import { InMemoryCustomerRepository } from './ordering/infrastructure/InMemoryCu
+ import { OrderController } from './ordering/api/OrderController.js';
+ import { CustomerController } from './ordering/api/CustomerController.js';
+ import { BillingAcl } from './ordering/acl/BillingAcl.js';
++import { InvoicePaidSubscriber } from './ordering/acl/InvoicePaidSubscriber.js';
++import { INVOICE_PAID } from './billing/index.js';
++import { EventBus } from './shared-kernel/EventBus.js';
+ import type { Customer } from './ordering/domain/customer/Customer.js';
+ import { IssueInvoice } from './billing/application/IssueInvoice.js';
+ import { RecordPayment } from './billing/application/RecordPayment.js';
+@@ -23,7 +26,10 @@ export function compose(): { orders: OrderController; invoices: InvoiceControlle
+   const billingAcl = new BillingAcl(new GetOutstanding(invoiceRepo));
+   const orders = new OrderController(new PlaceOrder(orderRepo, customerRepo, billingAcl));
+   const customers = new CustomerController(new SetCreditLimit(customerRepo));
+-  const acl = new OrderingAcl(new GetOrderSummary(orderRepo), new MarkOrderPaid(orderRepo));
+-  const invoices = new InvoiceController(new IssueInvoice(acl, invoiceRepo, 0.2), new RecordPayment(invoiceRepo, acl));
++  const acl = new OrderingAcl(new GetOrderSummary(orderRepo));
++  const bus = new EventBus();
++  const paidSubscriber = new InvoicePaidSubscriber(new MarkOrderPaid(orderRepo));
++  bus.subscribe(INVOICE_PAID, (e) => paidSubscriber.handle(e));
++  const invoices = new InvoiceController(new IssueInvoice(acl, invoiceRepo, 0.2), new RecordPayment(invoiceRepo, bus));
+   return { orders, invoices, customers };
+ }
+diff --git a/src/ordering/acl/InvoicePaidSubscriber.ts b/src/ordering/acl/InvoicePaidSubscriber.ts
+new file mode 100644
+index 000000000..91a05c0ab
+--- /dev/null
++++ b/src/ordering/acl/InvoicePaidSubscriber.ts
+@@ -0,0 +1,12 @@
++import type { InvoicePaid } from '../../billing/index.js';
++import type { DomainEvent } from '../../shared-kernel/DomainEvent.js';
++import type { OrderPaidCommand } from '../contracts/OrderSummary.js';
++
++/** Reacts to billing's published InvoicePaid event by marking the order paid, in ordering's own transaction. */
++export class InvoicePaidSubscriber {
++  constructor(private readonly markOrderPaid: OrderPaidCommand) {}
++
++  async handle(event: DomainEvent): Promise<void> {
++    await this.markOrderPaid.markPaid((event as InvoicePaid).orderId);
++  }
++}
+diff --git a/src/ordering/api/OrderController.ts b/src/ordering/api/OrderController.ts
+index 12143f39b..1f8a59fb4 100644
+--- a/src/ordering/api/OrderController.ts
++++ b/src/ordering/api/OrderController.ts
+@@ -1,11 +1,16 @@
+-import type { PlaceOrder, PlaceOrderCommand } from '../application/PlaceOrder.js';
++import { InvalidOrderLineError, type PlaceOrder, type PlaceOrderCommand } from '../application/PlaceOrder.js';
+ 
+ /** Inbound adapter: translates a request body into a command. */
+ export class OrderController {
+   constructor(private readonly placeOrder: PlaceOrder) {}
+ 
+-  async post(body: PlaceOrderCommand): Promise<{ status: number }> {
+-    await this.placeOrder.execute(body);
++  async post(body: PlaceOrderCommand): Promise<{ status: number; error?: string }> {
++    try {
++      await this.placeOrder.execute(body);
++    } catch (e) {
++      if (e instanceof InvalidOrderLineError) return { status: 400, error: e.message };
++      throw e;
++    }
+     return { status: 201 };
+   }
+ }
+diff --git a/src/ordering/application/PlaceOrder.ts b/src/ordering/application/PlaceOrder.ts
+index b1a40fb45..9d729ad81 100644
+--- a/src/ordering/application/PlaceOrder.ts
++++ b/src/ordering/application/PlaceOrder.ts
+@@ -14,6 +14,9 @@ export interface PlaceOrderCommand {
+   readonly lines: readonly { productId: string; quantity: number; unitPriceCents: number }[];
+ }
+ 
++/** Raised when a submitted order line is unacceptable; the message names the line. */
++export class InvalidOrderLineError extends Error {}
++
+ /** Application service: loads, delegates to the aggregate, saves. No business rule lives here. */
+ export class PlaceOrder {
+   constructor(private readonly orders: OrderRepository, private readonly customers: CustomerRepository, private readonly receivables: ReceivablesSource) {}
+@@ -22,7 +25,12 @@ export class PlaceOrder {
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+     if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');
+     const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
+-    for (const l of cmd.lines) order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
++    cmd.lines.forEach((l, i) => {
++      const where = `Order line ${i + 1} (product ${l.productId})`;
++      if (!Number.isInteger(l.quantity) || l.quantity <= 0) throw new InvalidOrderLineError(`${where}: quantity must be a positive whole number, got ${l.quantity}`);
++      if (!Number.isInteger(l.unitPriceCents) || l.unitPriceCents < 0) throw new InvalidOrderLineError(`${where}: unit price must not be negative, got ${l.unitPriceCents}`);
++      order.addLine(l.productId, new Quantity(l.quantity), Money.of(l.unitPriceCents, cmd.currency));
++    });
+     order.place();
+     const unpaid = Money.of(await this.receivables.unpaidCents(cmd.customerId, cmd.currency), cmd.currency);
+     customer.assertWithinCredit(unpaid, order.total());
+diff --git a/src/ordering/domain/order/Order.ts b/src/ordering/domain/order/Order.ts
+index 437e8aeee..0daf6ca67 100644
+--- a/src/ordering/domain/order/Order.ts
++++ b/src/ordering/domain/order/Order.ts
+@@ -18,6 +18,7 @@ export class Order {
+   addLine(productId: string, quantity: Quantity, unitPrice: Money): void {
+     if (this.placed) throw new Error('A placed order cannot change');
+     if (unitPrice.currency !== this.currency) throw new Error('Currency mismatch');
++    if (unitPrice.cents < 0) throw new Error('A unit price cannot be negative');
+     const existing = this.lines.find((l) => l.isFor(productId));
+     if (existing) existing.increase(quantity);
+     else this.lines.push(new OrderLine(this.lines.length + 1, productId, quantity, unitPrice));
+diff --git a/src/shared-kernel/EventBus.ts b/src/shared-kernel/EventBus.ts
+new file mode 100644
+index 000000000..59ab55abb
+--- /dev/null
++++ b/src/shared-kernel/EventBus.ts
+@@ -0,0 +1,20 @@
++import type { DomainEvent } from './DomainEvent.js';
++
++export interface EventPublisher {
++  publish(events: readonly DomainEvent[]): Promise<void>;
++}
++
++export type EventHandler = (event: DomainEvent) => Promise<void>;
++
++/** In-process bus: handlers subscribe by event name and run after the publishing command has saved its aggregate. */
++export class EventBus implements EventPublisher {
++  private readonly handlers = new Map<string, EventHandler[]>();
++
++  subscribe(name: string, handler: EventHandler): void {
++    this.handlers.set(name, [...(this.handlers.get(name) ?? []), handler]);
++  }
++
++  async publish(events: readonly DomainEvent[]): Promise<void> {
++    for (const e of events) for (const h of this.handlers.get(e.name) ?? []) await h(e);
++  }
++}

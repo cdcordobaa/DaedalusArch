@@ -1,0 +1,942 @@
+{
+ "schema": "drift-01-scores/v1",
+ "version": "v1.5-exp",
+ "params": {
+  "instrumentCommit": "231a9345d5048788b2ff86fe9ec1bf52d343b832",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "detect02": "detect-02/v1.5-exp",
+  "counted": {
+   "frozen": "check-correct verdict correct",
+   "v15": "status violation (R-D4, R-XCTX)"
+  },
+  "D_v15": {
+   "grain": "edge",
+   "cycleIdentity": "sorted-files",
+   "edgeOnly": true,
+   "renamePolicy": "continue",
+   "rePointed": false,
+   "merged": false,
+   "s02Cap": 100,
+   "leftCensor": "first-valid",
+   "kFrom": 2,
+   "kTo": 5,
+   "priorUnion": "final-snapshots",
+   "y1Min": 1
+  },
+  "D_v15_seed": {
+   "grain": "edge",
+   "cycleIdentity": "sorted-files",
+   "edgeOnly": true,
+   "renamePolicy": "continue",
+   "rePointed": false,
+   "merged": false,
+   "s02Cap": 100,
+   "leftCensor": "first-valid",
+   "kFrom": 2,
+   "kTo": 6,
+   "priorUnion": "final-snapshots",
+   "y1Min": 1
+  },
+  "evaluationFailures": 0,
+  "modelCalls": 0
+ },
+ "blocks": [
+  {
+   "block": "hexddd-01/s1-hotel-bookings",
+   "task": "s1-hotel-bookings",
+   "arm": "none",
+   "spec": "experiments/pilot-hexddd-01/specs/s1-hexagonal.yaml",
+   "D_frozen": {
+    "D": 0,
+    "Y1": 1,
+    "Yk": 0,
+    "perStepNew": [
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 0
+     }
+    ],
+    "inheritedRemoved": 1,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "D_v15": {
+    "D": 2,
+    "Y1": 1,
+    "Yk": 2,
+    "perStepNew": [
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 2
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 0
+     }
+    ],
+    "inheritedRemoved": 1,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "D_v15_only": {
+    "D": 2,
+    "Y1": 0,
+    "Yk": 2,
+    "perStepNew": [
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 2
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 0
+     }
+    ],
+    "inheritedRemoved": 0,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "D_v15_seed": {
+    "D": 2,
+    "Y1": 1,
+    "Yk": 2,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 2
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 0
+     }
+    ],
+    "inheritedRemoved": 1,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "D_v15_only_seed": {
+    "D": 2,
+    "Y1": 0,
+    "Yk": 2,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 2
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 0
+     }
+    ],
+    "inheritedRemoved": 0,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "steps": [
+    {
+     "step": 0,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "fallback",
+     "identities": 1,
+     "v15Identities": 0,
+     "frozenIdentities": 1,
+     "removedVsPrevious": null,
+     "v15RemovedVsPrevious": null,
+     "v15NewVsPrevious": null,
+     "exposure": {
+      "opportunities": 2,
+      "violations": 0
+     },
+     "v15Keys": [],
+     "frozenKeys": [
+      "src/adapters/inbound/http/RoomController.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+     ],
+     "v15Findings": [],
+     "otherDetect02": [],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-S01",
+       "file": "src/adapters/inbound/http/RoomController.ts",
+       "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 1,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "fallback",
+     "identities": 1,
+     "v15Identities": 0,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 0,
+     "exposure": {
+      "opportunities": 3,
+      "violations": 0
+     },
+     "v15Keys": [],
+     "frozenKeys": [
+      "src/adapters/inbound/http/RoomController.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+     ],
+     "v15Findings": [],
+     "otherDetect02": [],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-S01",
+       "file": "src/adapters/inbound/http/RoomController.ts",
+       "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 2,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "fallback",
+     "identities": 1,
+     "v15Identities": 0,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 0,
+     "exposure": {
+      "opportunities": 3,
+      "violations": 0
+     },
+     "v15Keys": [],
+     "frozenKeys": [
+      "src/adapters/inbound/http/RoomController.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+     ],
+     "v15Findings": [],
+     "otherDetect02": [],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-S01",
+       "file": "src/adapters/inbound/http/RoomController.ts",
+       "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 3,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "fallback",
+     "identities": 3,
+     "v15Identities": 2,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 2,
+     "exposure": {
+      "opportunities": 3,
+      "violations": 1
+     },
+     "v15Keys": [
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/AuditRecord.ts",
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/Booking.ts"
+     ],
+     "frozenKeys": [
+      "src/adapters/inbound/http/RoomController.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/application/services/BookRoomService.ts",
+       "line": 29,
+       "subject": "BookRoomService.book",
+       "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+       "status": "violation",
+       "note": "aggregate roots inferred (no DDD block in the spec)"
+      }
+     ],
+     "otherDetect02": [],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-S01",
+       "file": "src/adapters/inbound/http/RoomController.ts",
+       "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 4,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "fallback",
+     "identities": 3,
+     "v15Identities": 2,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 0,
+     "exposure": {
+      "opportunities": 3,
+      "violations": 1
+     },
+     "v15Keys": [
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/AuditRecord.ts",
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/Booking.ts"
+     ],
+     "frozenKeys": [
+      "src/adapters/inbound/http/RoomController.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/application/services/BookRoomService.ts",
+       "line": 29,
+       "subject": "BookRoomService.book",
+       "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+       "status": "violation",
+       "note": "aggregate roots inferred (no DDD block in the spec)"
+      }
+     ],
+     "otherDetect02": [],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-S01",
+       "file": "src/adapters/inbound/http/RoomController.ts",
+       "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 5,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "fallback",
+     "identities": 2,
+     "v15Identities": 2,
+     "frozenIdentities": 0,
+     "removedVsPrevious": 1,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 0,
+     "exposure": {
+      "opportunities": 3,
+      "violations": 1
+     },
+     "v15Keys": [
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/AuditRecord.ts",
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/Booking.ts"
+     ],
+     "frozenKeys": [],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/application/services/BookRoomService.ts",
+       "line": 29,
+       "subject": "BookRoomService.book",
+       "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+       "status": "violation",
+       "note": "aggregate roots inferred (no DDD block in the spec)"
+      }
+     ],
+     "otherDetect02": [
+      {
+       "rule": "R-H5",
+       "file": "src/application/ports/out/BookingRepository.ts",
+       "line": 16,
+       "subject": "BookingRepository.withRoomLock",
+       "status": "violation"
+      },
+      {
+       "rule": "R-RTX",
+       "file": "src/application/services/BookRoomService.ts",
+       "line": 39,
+       "subject": "BookRoomService.book",
+       "status": "violation"
+      }
+     ],
+     "frozenBlocking": []
+    }
+   ]
+  },
+  {
+   "block": "hexddd-01/s2-orders-invoices",
+   "task": "s2-orders-invoices",
+   "arm": "none",
+   "spec": "experiments/pilot-hexddd-01/specs/s2-ddd.yaml",
+   "D_frozen": {
+    "D": 0,
+    "Y1": 1,
+    "Yk": 1,
+    "perStepNew": [
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 0
+     }
+    ],
+    "inheritedRemoved": 0,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "D_v15": {
+    "D": 2,
+    "Y1": 3,
+    "Yk": 5,
+    "perStepNew": [
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 2
+     }
+    ],
+    "inheritedRemoved": 0,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "D_v15_only": {
+    "D": 2,
+    "Y1": 2,
+    "Yk": 4,
+    "perStepNew": [
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 2
+     }
+    ],
+    "inheritedRemoved": 0,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "D_v15_seed": {
+    "D": 4,
+    "Y1": 1,
+    "Yk": 5,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 2
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 2
+     }
+    ],
+    "inheritedRemoved": 0,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "D_v15_only_seed": {
+    "D": 4,
+    "Y1": 0,
+    "Yk": 4,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 2
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     },
+     {
+      "step": 4,
+      "new": 0
+     },
+     {
+      "step": 5,
+      "new": 2
+     }
+    ],
+    "inheritedRemoved": 0,
+    "incomplete": false,
+    "renameMapMissing": false
+   },
+   "steps": [
+    {
+     "step": 0,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "spec",
+     "identities": 1,
+     "v15Identities": 0,
+     "frozenIdentities": 1,
+     "removedVsPrevious": null,
+     "v15RemovedVsPrevious": null,
+     "v15NewVsPrevious": null,
+     "exposure": {
+      "opportunities": 2,
+      "violations": 0
+     },
+     "v15Keys": [],
+     "frozenKeys": [
+      "src/billing/application/IssueInvoice.ts|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [],
+     "otherDetect02": [],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-DS02",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "target": "src/ordering/domain/order/Order.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 1,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "spec",
+     "identities": 3,
+     "v15Identities": 2,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 2,
+     "exposure": {
+      "opportunities": 5,
+      "violations": 1
+     },
+     "v15Keys": [
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "frozenKeys": [
+      "src/billing/application/IssueInvoice.ts|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "otherDetect02": [],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-DS02",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "target": "src/ordering/domain/order/Order.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 2,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "spec",
+     "identities": 3,
+     "v15Identities": 2,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 0,
+     "exposure": {
+      "opportunities": 5,
+      "violations": 1
+     },
+     "v15Keys": [
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "frozenKeys": [
+      "src/billing/application/IssueInvoice.ts|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "otherDetect02": [
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/PlaceOrder.ts",
+       "line": 35,
+       "subject": "PlaceOrder.execute",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/PlaceOrder.ts",
+       "line": 36,
+       "subject": "PlaceOrder.execute",
+       "status": "violation"
+      }
+     ],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-DS02",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "target": "src/ordering/domain/order/Order.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 3,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "spec",
+     "identities": 3,
+     "v15Identities": 2,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 0,
+     "exposure": {
+      "opportunities": 5,
+      "violations": 1
+     },
+     "v15Keys": [
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "frozenKeys": [
+      "src/billing/application/IssueInvoice.ts|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "otherDetect02": [
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/PlaceOrder.ts",
+       "line": 35,
+       "subject": "PlaceOrder.execute",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/PlaceOrder.ts",
+       "line": 36,
+       "subject": "PlaceOrder.execute",
+       "status": "violation"
+      }
+     ],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-DS02",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "target": "src/ordering/domain/order/Order.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 4,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "spec",
+     "identities": 3,
+     "v15Identities": 2,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 0,
+     "exposure": {
+      "opportunities": 5,
+      "violations": 1
+     },
+     "v15Keys": [
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "frozenKeys": [
+      "src/billing/application/IssueInvoice.ts|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "otherDetect02": [
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/PlaceOrder.ts",
+       "line": 37,
+       "subject": "PlaceOrder.execute",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/PlaceOrder.ts",
+       "line": 38,
+       "subject": "PlaceOrder.execute",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/SetTaxRate.ts",
+       "line": 8,
+       "subject": "SetTaxRate.execute",
+       "status": "violation"
+      }
+     ],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-DS02",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "target": "src/ordering/domain/order/Order.ts",
+       "verdict": "correct"
+      }
+     ]
+    },
+    {
+     "step": 5,
+     "ok": true,
+     "typecheckErrors": 0,
+     "rootSource": "spec",
+     "identities": 5,
+     "v15Identities": 4,
+     "frozenIdentities": 1,
+     "removedVsPrevious": 0,
+     "v15RemovedVsPrevious": 0,
+     "v15NewVsPrevious": 2,
+     "exposure": {
+      "opportunities": 7,
+      "violations": 2
+     },
+     "v15Keys": [
+      "src/billing/application/IssueInvoice.ts#IssueInvoice.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/IssueInvoice.ts#IssueInvoice.execute|src/ordering/domain/order/Order.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "frozenKeys": [
+      "src/billing/application/IssueInvoice.ts|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "line": 13,
+       "subject": "IssueInvoice.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "line": 13,
+       "subject": "IssueInvoice.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "otherDetect02": [
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/PlaceOrder.ts",
+       "line": 37,
+       "subject": "PlaceOrder.execute",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/PlaceOrder.ts",
+       "line": 38,
+       "subject": "PlaceOrder.execute",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D5",
+       "file": "src/ordering/application/SetTaxRate.ts",
+       "line": 8,
+       "subject": "SetTaxRate.execute",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D9",
+       "file": "src/ordering/domain/order/Order.ts",
+       "line": 89,
+       "subject": "OrderLineSummary",
+       "status": "violation"
+      }
+     ],
+     "frozenBlocking": [
+      {
+       "ruleId": "FF-DS02",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "target": "src/ordering/domain/order/Order.ts",
+       "verdict": "correct"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
