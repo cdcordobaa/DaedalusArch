@@ -25,7 +25,7 @@ const tsconfig = path.resolve(tsconfigArg);
 const t0 = Date.now();
 const res = await extractAPG(root, { ...V13_DEFAULT_OPTIONS }, tsconfig);
 const extractMs = Date.now() - t0;
-if (!res.success || !res.data) throw new Error(`extraction failed: ${(res.errors ?? []).map((e) => e.message).join('; ')}`);
+if (!res.success || !res.data) throw new Error(`extraction failed: ${JSON.stringify((res as unknown as { error?: unknown }).error ?? null).slice(0, 300)}`);
 const data = res.data as unknown as ApgLike;
 const literal = { ...data, edges: data.edges.filter((e) => !(e.type === 'IMPORTS' && (e.properties as Record<string, unknown>).viaReExport === true)) };
 const apg = projectApg(literal);
