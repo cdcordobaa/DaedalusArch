@@ -226,7 +226,7 @@ Summary first; detail per job below. "Strength once run" uses the scale of the v
   *Empirical Software Engineering*, 2023. https://doi.org/10.1007/s10664-023-10380-1 [V-DOI]: replays real
   vulnerability-introducing contexts.
 - Dente, F., Satriani, D., Papotti, P. "Constraint Decay: The Fragility of LLM Agents in Backend Code Generation".
-  arXiv:2605.06445, 2026 [V-arXiv] *(venue not checked against a record)*. The abstract reports 80 greenfield and 20
+  arXiv:2605.06445, 2026 [V-arXiv] *(venue not checked against a record; note 2026-10-23: the v2 PDF states COLM 2026, figures checked in `Docs/sources/sources-ledger.md`)*. The abstract reports 80 greenfield and 20
   feature tasks over 8 web frameworks, with success falling as structural constraints accumulate.
 
 **What it implies for our design.**
@@ -556,9 +556,9 @@ Venues in brackets were **not** checked against a record; confirm them before ci
 - Agarwal, S. et al. Spec-Driven Development as Prescribed and as Practiced. arXiv:2608.25202 (2026).
 - Becker, J. et al. Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity. arXiv:2507.09089 (2025).
 - Blyth, S. et al. Static Analysis as a Feedback Loop: Enhancing LLM-Generated Code Beyond Correctness. arXiv:2508.14419 (2025) [SCAM 2025 per search snippet].
-- Canedo, A. Architecture as Capability Equalizer for Coding Agents. arXiv:2608.21747 (2026). **Closest related work**; read in full before the defence.
+- Canedo, A. Architecture as Capability Equalizer for Coding Agents. arXiv:2608.21747 (2026). **Closest related work**; read in full before the defence. *(Note 2026-10-23: read in full; arXiv preprint, no venue; verified figures in `Docs/sources/sources-ledger.md`.)*
 - Chen, X. et al. Teaching Large Language Models to Self-Debug. arXiv:2304.05128 (2023).
-- Dente, F., Satriani, D., Papotti, P. Constraint Decay: The Fragility of LLM Agents in Backend Code Generation. arXiv:2605.06445 (2026) [COLM 2026 per EURECOM listing].
+- Dente, F., Satriani, D., Papotti, P. Constraint Decay: The Fragility of LLM Agents in Backend Code Generation. arXiv:2605.06445 (2026) [COLM 2026 per EURECOM listing; note 2026-10-23: confirmed on the v2 PDF].
 - Dhar, R., Vaidhyanathan, K., Varma, V. Can LLMs Generate Architectural Design Decisions? arXiv:2403.01709 (2024).
 - Dinh, T. et al. Large Language Models of Code Fail at Completing Code with Potential Bugs. arXiv:2306.03438 (2023).
 - Endres, M. et al. Can Large Language Models Transform Natural Language Intent into Formal Method Postconditions? arXiv:2310.01831 (2023).

@@ -45,7 +45,7 @@ DaedalusArch is described here only through what the repository shows on `origin
 - **Audit.** `FreezingArchRule.freeze(rule)` keeps a violation baseline in plain text files (§8.6).
 - **LLM, MCP, IDE.** None found.
 - **TypeScript.** No (JVM bytecode).
-- **Validation evidence.** No peer-reviewed evaluation of ArchUnit itself was found in three searches *(unverified negative; ACM/IEEE not searched directly)*. Canedo 2026 (§1.21) uses "ArchUnit-style rules" as one spec format; that claim comes from a snippet only *(unverified)*.
+- **Validation evidence.** No peer-reviewed evaluation of ArchUnit itself was found in three searches *(unverified negative; ACM/IEEE not searched directly)*. Canedo 2026 (§1.21) uses "ArchUnit-style rules" as one spec format; that claim comes from a snippet only *(unverified)*. *(Note 2026-10-23, full text read: the "ArchUnit-style rules" are pseudo-code RULE declarations inside the TypeScript-contracts spec, not ArchUnit, §III-C and Table I.)*
 
 #### 1.2 ArchUnitTS (npm `archunit`)
 - **Version and licence.** 2.5.4, published 2026-09-13 (npm registry). MIT ([repo](https://github.com/LukasNiessen/ArchUnitTS)). The convergent run pins exactly 2.5.4 (`experiments/validity-convergent/archunit/package.json` on `v1.3-validity-convergent`).
@@ -322,7 +322,7 @@ None of the four tools below takes a declared intended architecture. All detect 
 
 #### 1.23 Architecture-aware agent papers (verified)
 - **Slater, arXiv [2512.04273](https://arxiv.org/abs/2512.04273).** A hexagonal pilot: "Llama 3 demonstrated an 80% Architectural Violation Rate" vs 0% for GPT-5.1. Small, single scenario.
-- **Canedo, "Architecture as Capability Equalizer for Coding Agents", arXiv [2608.21747](https://arxiv.org/abs/2608.21747).** Five spec formats, including TS contracts with ArchUnit-style rules; 6 models, 90 trials; structured specs narrow the gap for weaker models. **Directly relevant to SO5 (spec level).** Its measurement method (static imports plus an LLM judge) *(unverified: snippet)*. Read in full before citing.
+- **Canedo, "Architecture as Capability Equalizer for Coding Agents", arXiv [2608.21747](https://arxiv.org/abs/2608.21747).** Five spec formats, including TS contracts with ArchUnit-style rules; 6 models, 90 trials; structured specs narrow the gap for weaker models. **Directly relevant to SO5 (spec level).** Its measurement method (static imports plus an LLM judge) *(unverified: snippet)*. Read in full before citing. *(Note 2026-10-23, full text read: 6 models and 90 trials confirmed, §IV and Table V. The method is a static import check plus a weighted compliance score covering about 80 % of the architecture, §VI-E, and a Claude Sonnet 4.6 judge; the two correlate weakly, r = 0.21, Table XI. Details in `Docs/sources/sources-ledger.md`.)*
 - **Madatha, arXiv [2606.26924](https://arxiv.org/abs/2606.26924).** Argues governance of coding agents "must be deterministic … not delegated to further LLM orchestration". It targets agent configuration drift, not generated code. Useful framing for the "symbolic gate first" design.
 - **Not opened** *(unverified)*: SBES 2025 "Language Models as Architectural Gatekeepers" ([link](https://sol.sbc.org.br/index.php/sbes/article/view/37049)); MDE4SA 2025 LLM recommenders for architectural-violation resolution ([link](https://www.ipr.mdu.se/publications/7131-LLM_Based_Recommender_Systems_for_Violation_Resolutions_in_Continuous_Architectural_Conformance)). **Both are possible direct competitors on the "LLM plus conformance" claim and must be read before Ch2 is final.**
 
