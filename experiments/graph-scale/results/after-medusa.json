@@ -1,0 +1,1111 @@
+{
+ "tree": "medusa",
+ "modelCalls": 0,
+ "truthFiles": 2815,
+ "truthLoadMs": 6867,
+ "index": {
+  "files": 2815,
+  "units": 4312,
+  "callEdges": 10978,
+  "unresolved": 2875,
+  "memberCalls": 5802,
+  "entities": 109,
+  "importTypeEdges": 0,
+  "roots": 0,
+  "rootSource": "spec",
+  "commands": 672,
+  "buildMs": 108182,
+  "rssMB": 5861
+ },
+ "questions": [
+  {
+   "id": "MD-W1",
+   "kind": "writers",
+   "question": "Which units write products through the Product Module's published service (create, update, upsert, delete, soft-delete or restore of products)?",
+   "truth": {
+    "sites": 10,
+    "units": 5,
+    "files": 5,
+    "typeRefFiles": 37,
+    "implementations": [
+     "packages/modules/product/src/services/index.ts#default",
+     "packages/modules/product/src/services/product-module-service.ts#ProductModuleService"
+    ],
+    "members": [
+     "createProducts",
+     "createProducts",
+     "upsertProducts",
+     "upsertProducts",
+     "updateProducts",
+     "updateProducts",
+     "deleteProducts",
+     "softDeleteProducts",
+     "restoreProducts"
+    ],
+    "ms": 3873
+   },
+   "index": {
+    "sites": {
+     "truth": 10,
+     "graph": 10,
+     "both": 10,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 5,
+     "graph": 5,
+     "both": 5,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 5,
+     "graph": 5,
+     "both": 5,
+     "recall": 1,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 10,
+      "graph": 7,
+      "both": 7,
+      "recall": 0.7,
+      "precision": 1
+     },
+     "units": {
+      "truth": 5,
+      "graph": 4,
+      "both": 4,
+      "recall": 0.8,
+      "precision": 1
+     },
+     "files": {
+      "truth": 5,
+      "graph": 4,
+      "both": 4,
+      "recall": 0.8,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 1,
+     "edge via port": 6,
+     "unresolved": 3
+    }
+   },
+   "callers": {
+    "sites": {
+     "truth": 10,
+     "graph": 10,
+     "both": 10,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 5,
+     "graph": 5,
+     "both": 5,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 5,
+     "graph": 5,
+     "both": 5,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "port": 9,
+     "implementation": 1
+    },
+    "implementations": 1,
+    "ms": 12
+   },
+   "callersMissed": [],
+   "callersExtra": [],
+   "who_writes": {
+    "total": 5,
+    "capped": false,
+    "basis": "entity stores",
+    "source": "declared",
+    "sites": {
+     "truth": 10,
+     "graph": 10,
+     "both": 10,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 5,
+     "graph": 5,
+     "both": 5,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 5,
+     "graph": 5,
+     "both": 5,
+     "recall": 1,
+     "precision": 1
+    },
+    "commands": {
+     "truth": 5,
+     "graph": 5,
+     "both": 5,
+     "recall": 1,
+     "precision": 1
+    },
+    "notes": [
+     "Product is named in the spec, but its declaration was found by inference: schema, define(\"Product\") at packages/modules/product/src/models/product.ts:15.",
+     "Stores: IProductModuleService (member named after it), ProductModuleService (member named after it). A store member writes when its name starts with a mutation verb or it returns nothing and takes an argument; inherited members count only when the receiver is the store.",
+     "Writers are the units that make the store call (one level); the commands that reach them are found with impact or callers."
+    ],
+    "entities": [
+     {
+      "name": "Product",
+      "file": "packages/modules/product/src/models/product.ts",
+      "source": "declared",
+      "evidence": [
+       {
+        "kind": "schema",
+        "detail": "define(\"Product\") at packages/modules/product/src/models/product.ts:15"
+       }
+      ],
+      "stores": [
+       {
+        "key": "packages/core/types/src/product/service.ts#IProductModuleService",
+        "how": "member named after it"
+       },
+       {
+        "key": "packages/modules/product/src/services/product-module-service.ts#ProductModuleService",
+        "how": "member named after it"
+       }
+      ]
+     }
+    ]
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/product/service.ts#IProductModuleService",
+      "references": 37,
+      "importers": 1,
+      "commands": 0,
+      "ms": 77660
+     },
+     {
+      "target": "packages/modules/product/src/services/product-module-service.ts#ProductModuleService",
+      "references": 1,
+      "importers": 1,
+      "commands": 47,
+      "ms": 324
+     }
+    ],
+    "referenceFiles": {
+     "truth": 37,
+     "graph": 38,
+     "both": 37,
+     "recall": 1,
+     "precision": 0.9736842105263158
+    },
+    "callerFilesByReferences": {
+     "truth": 5,
+     "graph": 38,
+     "both": 5,
+     "recall": 1,
+     "precision": 0.13157894736842105
+    },
+    "commandUnits": {
+     "truth": 5,
+     "graph": 25,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandFiles": {
+     "truth": 5,
+     "graph": 1,
+     "both": 1,
+     "recall": 0.2,
+     "precision": 1
+    }
+   },
+   "trace": {
+    "command": "ProductModuleService.updateProducts",
+    "nodes": 60,
+    "adapters": 0,
+    "writes": 0
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "MD-C1",
+   "kind": "callers",
+   "question": "Which units call the Inventory Module's published service (any member of IInventoryService), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 33,
+    "units": 15,
+    "files": 15,
+    "typeRefFiles": 11,
+    "implementations": [
+     "packages/modules/inventory/src/services/index.ts#default",
+     "packages/modules/inventory/src/services/inventory-module.ts#InventoryModuleService"
+    ],
+    "members": [
+     "listInventoryItems",
+     "listAndCountInventoryItems",
+     "listReservationItems",
+     "listAndCountReservationItems",
+     "listInventoryLevels",
+     "listAndCountInventoryLevels",
+     "retrieveInventoryItem",
+     "retrieveInventoryLevelByItemAndLocation",
+     "retrieveInventoryLevel",
+     "retrieveReservationItem",
+     "createReservationItems",
+     "createReservationItems",
+     "createInventoryItems",
+     "createInventoryItems",
+     "createInventoryLevels",
+     "createInventoryLevels",
+     "updateInventoryLevels",
+     "updateInventoryLevels",
+     "updateInventoryItems",
+     "updateInventoryItems",
+     "updateReservationItems",
+     "updateReservationItems",
+     "deleteReservationItemsByLineItem",
+     "restoreReservationItemsByLineItem",
+     "deleteReservationItems",
+     "softDeleteReservationItems",
+     "restoreReservationItems",
+     "deleteInventoryItems",
+     "softDeleteInventoryItems",
+     "restoreInventoryItems",
+     "deleteInventoryItemLevelByLocationId",
+     "deleteReservationItemByLocationId",
+     "deleteInventoryLevel",
+     "deleteInventoryLevels",
+     "softDeleteInventoryLevels",
+     "restoreInventoryLevels",
+     "adjustInventory",
+     "adjustInventory",
+     "confirmInventory",
+     "retrieveAvailableQuantity",
+     "retrieveStockedQuantity",
+     "retrieveReservedQuantity",
+     "__joinerConfig",
+     "__hooks"
+    ],
+    "ms": 1373
+   },
+   "index": {
+    "sites": {
+     "truth": 33,
+     "graph": 33,
+     "both": 33,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 15,
+     "graph": 15,
+     "both": 15,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 15,
+     "graph": 15,
+     "both": 15,
+     "recall": 1,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 33,
+      "graph": 21,
+      "both": 21,
+      "recall": 0.6363636363636364,
+      "precision": 1
+     },
+     "units": {
+      "truth": 15,
+      "graph": 13,
+      "both": 13,
+      "recall": 0.8666666666666667,
+      "precision": 1
+     },
+     "files": {
+      "truth": 15,
+      "graph": 13,
+      "both": 13,
+      "recall": 0.8666666666666667,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 1,
+     "edge via port": 20,
+     "unresolved": 12
+    }
+   },
+   "callers": {
+    "sites": {
+     "truth": 33,
+     "graph": 33,
+     "both": 33,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 15,
+     "graph": 15,
+     "both": 15,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 15,
+     "graph": 15,
+     "both": 15,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "port": 32,
+     "implementation": 1
+    },
+    "implementations": 1,
+    "ms": 6
+   },
+   "callersMissed": [],
+   "callersExtra": [],
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/inventory/service.ts#IInventoryService",
+      "references": 11,
+      "importers": 1,
+      "commands": 0,
+      "ms": 124
+     },
+     {
+      "target": "packages/modules/inventory/src/services/inventory-module.ts#InventoryModuleService",
+      "references": 2,
+      "importers": 2,
+      "commands": 28,
+      "ms": 103
+     }
+    ],
+    "referenceFiles": {
+     "truth": 15,
+     "graph": 13,
+     "both": 11,
+     "recall": 0.7333333333333333,
+     "precision": 0.8461538461538461
+    },
+    "callerFilesByReferences": {
+     "truth": 15,
+     "graph": 13,
+     "both": 11,
+     "recall": 0.7333333333333333,
+     "precision": 0.8461538461538461
+    },
+    "commandUnits": {
+     "truth": 15,
+     "graph": 25,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandFiles": {
+     "truth": 15,
+     "graph": 1,
+     "both": 1,
+     "recall": 0.06666666666666667,
+     "precision": 1
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "MD-X1",
+   "kind": "crossCalls",
+   "question": "Which calls do the order workflows (core-flows/src/order) make into another domain's steps or workflows in core-flows (the order flows' cross-module calls)?",
+   "truth": {
+    "sites": 323,
+    "units": 94,
+    "files": 93,
+    "members": [],
+    "ms": 3751
+   },
+   "index": {
+    "sites": {
+     "truth": 323,
+     "graph": 638,
+     "both": 323,
+     "recall": 1,
+     "precision": 0.5062695924764891
+    },
+    "units": {
+     "truth": 94,
+     "graph": 147,
+     "both": 94,
+     "recall": 1,
+     "precision": 0.6394557823129252
+    },
+    "files": {
+     "truth": 93,
+     "graph": 143,
+     "both": 93,
+     "recall": 1,
+     "precision": 0.6503496503496503
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 323,
+      "graph": 323,
+      "both": 323,
+      "recall": 1,
+      "precision": 1
+     },
+     "units": {
+      "truth": 94,
+      "graph": 94,
+      "both": 94,
+      "recall": 1,
+      "precision": 1
+     },
+     "files": {
+      "truth": 93,
+      "graph": 93,
+      "both": 93,
+      "recall": 1,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 323,
+     "unresolved (callee unknown)": 402
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "MD-C2",
+   "kind": "callers",
+   "question": "Which units call the Pricing Module's published service (any member of IPricingModuleService), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 46,
+    "units": 24,
+    "files": 18,
+    "typeRefFiles": 18,
+    "implementations": [
+     "packages/modules/pricing/src/services/index.ts#default",
+     "packages/modules/pricing/src/services/pricing-module.ts#PricingModuleService"
+    ],
+    "members": [
+     "calculatePrices",
+     "retrievePriceSet",
+     "listPriceSets",
+     "listAndCountPriceSets",
+     "createPriceSets",
+     "createPriceSets",
+     "upsertPriceSets",
+     "upsertPriceSets",
+     "updatePriceSets",
+     "updatePriceSets",
+     "deletePriceSets",
+     "addPrices",
+     "addPrices",
+     "listPrices",
+     "softDeletePrices",
+     "restorePrices",
+     "listAndCountPrices",
+     "retrievePriceRule",
+     "listPriceRules",
+     "listAndCountPriceRules",
+     "createPriceRules",
+     "updatePriceRules",
+     "deletePriceRules",
+     "retrievePriceList",
+     "listPriceLists",
+     "listAndCountPriceLists",
+     "createPriceLists",
+     "updatePriceLists",
+     "deletePriceLists",
+     "softDeletePriceLists",
+     "restorePriceLists",
+     "retrievePriceListRule",
+     "listPriceListRules",
+     "listAndCountPriceListRules",
+     "deletePriceListRules",
+     "addPriceListPrices",
+     "updatePriceListPrices",
+     "setPriceListRules",
+     "removePriceListRules",
+     "removePrices",
+     "retrievePricePreference",
+     "listPricePreferences",
+     "createPricePreferences",
+     "createPricePreferences",
+     "upsertPricePreferences",
+     "upsertPricePreferences",
+     "updatePricePreferences",
+     "updatePricePreferences",
+     "softDeletePricePreferences",
+     "restorePricePreferences",
+     "deletePricePreferences",
+     "__joinerConfig",
+     "__hooks"
+    ],
+    "ms": 1107
+   },
+   "index": {
+    "sites": {
+     "truth": 46,
+     "graph": 46,
+     "both": 46,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 24,
+     "graph": 24,
+     "both": 24,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 18,
+     "graph": 18,
+     "both": 18,
+     "recall": 1,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 46,
+      "graph": 30,
+      "both": 30,
+      "recall": 0.6521739130434783,
+      "precision": 1
+     },
+     "units": {
+      "truth": 24,
+      "graph": 18,
+      "both": 18,
+      "recall": 0.75,
+      "precision": 1
+     },
+     "files": {
+      "truth": 18,
+      "graph": 13,
+      "both": 13,
+      "recall": 0.7222222222222222,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 6,
+     "edge via port": 24,
+     "unresolved": 16
+    }
+   },
+   "callers": {
+    "sites": {
+     "truth": 46,
+     "graph": 46,
+     "both": 46,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 24,
+     "graph": 24,
+     "both": 24,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 18,
+     "graph": 18,
+     "both": 18,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "port": 40,
+     "implementation": 6
+    },
+    "implementations": 1,
+    "ms": 5
+   },
+   "callersMissed": [],
+   "callersExtra": [],
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/pricing/service.ts#IPricingModuleService",
+      "references": 18,
+      "importers": 1,
+      "commands": 0,
+      "ms": 105
+     }
+    ],
+    "referenceFiles": {
+     "truth": 18,
+     "graph": 18,
+     "both": 18,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 18,
+     "graph": 18,
+     "both": 18,
+     "recall": 1,
+     "precision": 1
+    },
+    "commandUnits": {
+     "truth": 24,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 18,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "MD-W2",
+   "kind": "writers",
+   "question": "Which units write orders through the Order Module's published service (create, update, upsert, delete, soft-delete or restore of orders)?",
+   "truth": {
+    "sites": 12,
+    "units": 8,
+    "files": 8,
+    "typeRefFiles": 55,
+    "implementations": [
+     "packages/modules/order/src/services/index.ts#default",
+     "packages/modules/order/src/services/order-module-service.ts#OrderModuleService"
+    ],
+    "members": [
+     "createOrders",
+     "createOrders",
+     "updateOrders",
+     "updateOrders",
+     "updateOrders",
+     "deleteOrders",
+     "deleteOrders",
+     "softDeleteOrders",
+     "restoreOrders"
+    ],
+    "ms": 645
+   },
+   "index": {
+    "sites": {
+     "truth": 12,
+     "graph": 12,
+     "both": 12,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 12,
+      "graph": 12,
+      "both": 12,
+      "recall": 1,
+      "precision": 1
+     },
+     "units": {
+      "truth": 8,
+      "graph": 8,
+      "both": 8,
+      "recall": 1,
+      "precision": 1
+     },
+     "files": {
+      "truth": 8,
+      "graph": 8,
+      "both": 8,
+      "recall": 1,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge via port": 12
+    }
+   },
+   "callers": {
+    "sites": {
+     "truth": 12,
+     "graph": 12,
+     "both": 12,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "port": 12
+    },
+    "implementations": 1,
+    "ms": 5
+   },
+   "callersMissed": [],
+   "callersExtra": [],
+   "who_writes": {
+    "total": 8,
+    "capped": false,
+    "basis": "entity stores",
+    "source": "declared",
+    "sites": {
+     "truth": 12,
+     "graph": 12,
+     "both": 12,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "commands": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "notes": [
+     "Order is named in the spec, but its declaration was found by inference: schema, define(\"Order\") at packages/modules/order/src/models/order.ts:10.",
+     "Stores: IOrderModuleService (member named after it), OrderModuleService (member named after it). A store member writes when its name starts with a mutation verb or it returns nothing and takes an argument; inherited members count only when the receiver is the store.",
+     "Writers are the units that make the store call (one level); the commands that reach them are found with impact or callers."
+    ],
+    "entities": [
+     {
+      "name": "Order",
+      "file": "packages/modules/order/src/models/order.ts",
+      "source": "declared",
+      "evidence": [
+       {
+        "kind": "schema",
+        "detail": "define(\"Order\") at packages/modules/order/src/models/order.ts:10"
+       }
+      ],
+      "stores": [
+       {
+        "key": "packages/core/types/src/order/service.ts#IOrderModuleService",
+        "how": "member named after it"
+       },
+       {
+        "key": "packages/modules/order/src/services/order-module-service.ts#OrderModuleService",
+        "how": "member named after it"
+       }
+      ]
+     }
+    ]
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/order/service.ts#IOrderModuleService",
+      "references": 55,
+      "importers": 1,
+      "commands": 0,
+      "ms": 662
+     }
+    ],
+    "referenceFiles": {
+     "truth": 55,
+     "graph": 55,
+     "both": 55,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 8,
+     "graph": 55,
+     "both": 8,
+     "recall": 1,
+     "precision": 0.14545454545454545
+    },
+    "commandUnits": {
+     "truth": 8,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 8,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "MD-W3",
+   "kind": "writers",
+   "question": "Which units write customers through the Customer Module's published service (create, update, upsert, delete, soft-delete or restore of customers)?",
+   "truth": {
+    "sites": 8,
+    "units": 4,
+    "files": 4,
+    "typeRefFiles": 18,
+    "implementations": [
+     "packages/modules/customer/src/services/customer-module.ts#CustomerModuleService",
+     "packages/modules/customer/src/services/index.ts#default"
+    ],
+    "members": [
+     "createCustomers",
+     "createCustomers",
+     "updateCustomers",
+     "updateCustomers",
+     "updateCustomers",
+     "deleteCustomers",
+     "deleteCustomers",
+     "deleteCustomers",
+     "softDeleteCustomers",
+     "restoreCustomers"
+    ],
+    "ms": 484
+   },
+   "index": {
+    "sites": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 8,
+      "graph": 4,
+      "both": 4,
+      "recall": 0.5,
+      "precision": 1
+     },
+     "units": {
+      "truth": 4,
+      "graph": 3,
+      "both": 3,
+      "recall": 0.75,
+      "precision": 1
+     },
+     "files": {
+      "truth": 4,
+      "graph": 3,
+      "both": 3,
+      "recall": 0.75,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge via port": 4,
+     "unresolved": 4
+    }
+   },
+   "callers": {
+    "sites": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "port": 8
+    },
+    "implementations": 1,
+    "ms": 42
+   },
+   "callersMissed": [],
+   "callersExtra": [],
+   "who_writes": {
+    "total": 4,
+    "capped": false,
+    "basis": "entity stores",
+    "source": "inferred",
+    "sites": {
+     "truth": 8,
+     "graph": 8,
+     "both": 8,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "commands": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "notes": [
+     "Customer is an inferred entity (not declared in the spec): schema, define(\"Customer\") at packages/modules/customer/src/models/customer.ts:6.",
+     "Stores: ICustomerModuleService (member named after it), CustomerModuleService (member named after it). A store member writes when its name starts with a mutation verb or it returns nothing and takes an argument; inherited members count only when the receiver is the store.",
+     "Writers are the units that make the store call (one level); the commands that reach them are found with impact or callers."
+    ],
+    "entities": [
+     {
+      "name": "Customer",
+      "file": "packages/modules/customer/src/models/customer.ts",
+      "source": "inferred",
+      "evidence": [
+       {
+        "kind": "schema",
+        "detail": "define(\"Customer\") at packages/modules/customer/src/models/customer.ts:6"
+       }
+      ],
+      "stores": [
+       {
+        "key": "packages/core/types/src/customer/service.ts#ICustomerModuleService",
+        "how": "member named after it"
+       },
+       {
+        "key": "packages/modules/customer/src/services/customer-module.ts#CustomerModuleService",
+        "how": "member named after it"
+       }
+      ]
+     }
+    ]
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/customer/service.ts#ICustomerModuleService",
+      "references": 18,
+      "importers": 1,
+      "commands": 0,
+      "ms": 2838
+     }
+    ],
+    "referenceFiles": {
+     "truth": 18,
+     "graph": 18,
+     "both": 18,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 4,
+     "graph": 18,
+     "both": 4,
+     "recall": 1,
+     "precision": 0.2222222222222222
+    },
+    "commandUnits": {
+     "truth": 4,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 4,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": []
+  }
+ ]
+}

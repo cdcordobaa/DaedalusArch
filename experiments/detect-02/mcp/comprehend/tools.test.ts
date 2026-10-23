@@ -10,7 +10,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { buildIndex } from './index.js';
 import { contextMap, impact, ToolInputError, trace, whoWrites } from './tools.js';
 import type { TraceStep } from './tools.js';
-import { COMPREHEND_TOOLS, createComprehendServer } from '../comprehend-server.js';
+import { COMPREHEND_TOOLS, createComprehendServer, GRAPH_SCALE_TOOLS } from '../comprehend-server.js';
 import { contextFrom } from '../server.js';
 
 const PUZ = 'experiments/puzzle-01/puzzles';
@@ -130,8 +130,8 @@ describe('determinism', () => {
 });
 
 describe('MCP layer', () => {
-  const connect = async (argv: string[]): Promise<Client> => {
-    const server = createComprehendServer(contextFrom(argv, {}));
+  const connect = async (argv: string[], withCallers = false): Promise<Client> => {
+    const server = createComprehendServer(contextFrom(argv, {}), { withCallers });
     const [a, b] = InMemoryTransport.createLinkedPair();
     const client = new Client({ name: 'comprehend-test', version: '0' });
     await Promise.all([server.connect(a), client.connect(b)]);
@@ -146,6 +146,14 @@ describe('MCP layer', () => {
     assert.match((r.content as { text: string }[])[0]!.text, /PlaceOrder\.execute/);
     const bad = await c.callTool({ name: 'who_writes', arguments: { aggregate: 'Invoice' } });
     assert.equal(bad.isError, true);
+    await c.close();
+  });
+  it('serves callers as a fifth tool with withCallers (GRAPH-SCALE)', async () => {
+    const c = await connect(['--spec', P2.spec, '--project', P2.tree, '--engine', 'cypher-interp', '--confine'], true);
+    assert.deepEqual((await c.listTools()).tools.map((t) => t.name).sort(), [...GRAPH_SCALE_TOOLS].sort());
+    const cr = await c.callTool({ name: 'callers', arguments: { port_or_method: 'OrderRepository' } });
+    assert.notEqual(cr.isError, true);
+    assert.match((cr.content as { text: string }[])[0]!.text, /PlaceOrder\.execute/);
     await c.close();
   });
   it('refuses another project under --confine', async () => {

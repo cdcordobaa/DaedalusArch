@@ -3121,10 +3121,42 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+<<<<<<< HEAD
+## v1.5 CONSTRUCTION — U1 groundwork GRAPH-SCALE: code-generation plan (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-23T04:30:00Z
+**User Input**: Intent (paraphrased): make the DETECT-02 graph facts complete and precise on large real codebases, measured against compiler truth: factory and callback units, receiver-aware call edges, a callers-of-port fact and tool, a populated who_writes on code without declared aggregates (inferred roots labelled), inline import types for coverage; no regression on the DETECT-02 material; measure before and after on Backstage, Novu and Medusa at the scout's pins on the scout's 3 questions plus 3 new ones per repository; report, research-log entry, state update, PR merged normally on green Build & Test. Zero model calls.
+**AI Response**: Plan written at aidlc-docs/construction/v1.5/u1-graph-scale-plan.md (10 steps). Approved at gate level under the author's standing delegation. Baseline taken on the unchanged code before any fix (dev set identical to the committed results apart from timings; precision 0 false-positive legit runs, 12/12 positives; tool tests 15/15). The 9 new questions were committed in experiments/graph-scale/questions/ before any fix was written or measured.
+**Context**: v1.5 CONSTRUCTION, U1 groundwork (exploratory, DEV material); code stays in experiments/
+
+---
+
+## v1.5 CONSTRUCTION — U1 groundwork GRAPH-SCALE: generation, measurement and records (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-23T07:40:00Z
+**User Input**: (same brief as the plan entry above; no new input)
+**AI Response**: Fixes (a)–(e) in experiments/detect-02/ (comprehension index and tools; the rules' facts.ts unchanged), with 18 new unit tests and 16 existing; committed and pushed (143f77a0) before the first after-measurement. Regression: dev set (91 trees) and precision fixtures identical to the baseline. Before run reproduced the scout's 9 numbers exactly (Medusa installed and built as the scout did). Measured 18 questions on Backstage, Novu and Medusa before and after. One dated harness revision after the first measurement (truth R1: receiver check for overridden members; NV-W2 136 → 36 truth sites), re-measured; the fixes were not changed after measuring. Report Docs/DiagnosticRuns/graph-scale-2026-10-23.md; research-log entry 21; plan ticked; aidlc-state updated. Gate-level calls under the author's standing delegation.
+**Context**: v1.5 CONSTRUCTION, U1 groundwork (exploratory, DEV); zero model calls; no frozen path changed
+=======
 ## v1.5 exploratory synthesis, COMPREHEND-01 scope note, confinement decision, v1.5 results-folder guard
 **Timestamp**: 2026-10-22T23:59:00Z
 **User Input**: "(coordinator brief) Zero-call documentation pass: add a scope note to the COMPREHEND-01 report and research log; record the confinement-testing decision; allow results/v1.5-<name>/ folders in the results guard; write a one-page synthesis of research-log entries 8-20; notify the thesis build desk."
 **AI Response**: "Scope note added (small codebases, files-only at ceiling; large-codebase completeness untested; repo scout and GRAPH-SCALE pointed to). Decision CONFINE recorded in ops/decisions.md and v15-plan section 7. V13_RESULTS_DIR_PATTERN extended to v1.5-<name>; guards test extended (6/6 pass with jest --maxWorkers=2), typecheck clean. Synthesis written at Docs/DiagnosticRuns/v1.5-exploratory-synthesis-2026-10-23.md. No src/, presets/, scripts/lib/, scripts/v1.3/ or registered artefact touched."
 **Context**: Documentation (exploratory, v1.5-exp); zero model calls
+>>>>>>> origin/main
+
+---
+
+## Merge note — GRAPH-SCALE research-log number
+**Timestamp**: 2026-10-23T07:50:00Z
+**User Input**: (none; merge of origin/main into the GRAPH-SCALE branch)
+**AI Response**: main had taken research-log entry 21 (COMPREHEND-01 scope note); the GRAPH-SCALE entry is renumbered 22. The entry above that says "research-log entry 21" refers to entry 22.
+**Context**: v1.5 CONSTRUCTION, U1 groundwork; append-only correction
+
+---
+
+## Timestamp correction — GRAPH-SCALE entries
+**Timestamp**: 2026-10-23T05:03:00Z
+**User Input**: (none)
+**AI Response**: The three GRAPH-SCALE entries above carry estimated times. The real times, from the commits: plan and pre-registered questions 2026-10-23T04:24:48Z (entry stamped 04:30:00Z); generation, measurement and records 2026-10-23T05:01:08Z (stamped 07:40:00Z); merge note 2026-10-23T05:01:38Z (stamped 07:50:00Z).
+**Context**: v1.5 CONSTRUCTION, U1 groundwork; append-only correction
 
 ---

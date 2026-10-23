@@ -10,7 +10,9 @@ import { loadRules, runTree } from '../../lib/graph.js';
 import type { Finding } from '../../lib/graph.js';
 import type { FootprintWrite } from '../../lib/facts.js';
 import { globMatch } from '../../lib/spec.js';
-import type { ComprehendIndex, UnitInfo } from './index.js';
+import { entityNameForms, isWriteMember, WRITE_VERB } from './entities.js';
+import type { EntityInfo } from './entities.js';
+import type { ComprehendIndex, MemberCall, MemberSig, TypeInfo, UnitInfo } from './index.js';
 
 export const MAX_ROWS = 25;
 export const MAX_TRACE_DEPTH = 8;
@@ -75,25 +77,147 @@ export function contextMap(ix: ComprehendIndex): ContextMap {
 export interface WriteRow { readonly at: string; readonly store: string; readonly storeDeclaredAt: string; readonly instance: string; readonly several: boolean; readonly chain: readonly string[] }
 export interface WriterRow {
   readonly command: string; readonly id: string; readonly file: string; readonly line: number; readonly context: string | null;
-  readonly entry: 'application service' | 'published interface'; readonly eventHandler: boolean; readonly crossContext: boolean;
+  /** `direct write`: a unit that calls a write member of an inferred entity's store (GRAPH-SCALE (d)). */
+  readonly entry: 'application service' | 'published interface' | 'direct write'; readonly eventHandler: boolean; readonly crossContext: boolean;
   readonly writes: readonly WriteRow[];
 }
 export interface WhoWrites {
   readonly aggregate: string; readonly owner: string | null; readonly source: 'declared' | 'inferred';
   readonly writers: Capped<WriterRow>; readonly notes: readonly string[];
+  /** Where the writers come from: the DETECT-02 write footprints of commands, or the stores of an inferred entity. */
+  readonly basis?: 'footprint' | 'entity stores';
+  /** For `entity stores`: the entity declarations matched, with their evidence and stores. */
+  readonly entities?: readonly EntityInfo[];
 }
 
 const instanceName = (w: FootprintWrite): string => w.instance.slice(w.instance.lastIndexOf(':') + 1).replace(/^this\./, '').replace(/\[\*\]$/, '');
 const chainOf = (w: FootprintWrite): string[] => [...w.via, w.sink];
 
+const findRoot = (ix: ComprehendIndex, name: string): ComprehendIndex['facts']['roots'][number] | undefined =>
+  ix.facts.roots.find((x) => x.name === name) ?? ix.facts.roots.find((x) => x.name.toLowerCase() === name.toLowerCase());
+const unknownAggregate = (ix: ComprehendIndex, name: string): ToolInputError => {
+  const ents = [...new Set(ix.entities.map((e) => e.name))];
+  return new ToolInputError(`unknown aggregate "${name}"; known aggregate roots: ${ix.facts.roots.map((x) => x.name).join(', ') || '(none)'}`
+    + (ents.length > 0 ? `; inferred entities: ${ents.slice(0, 20).join(', ')}${ents.length > 20 ? `, … (${ents.length})` : ''}` : ''));
+};
+
 export function resolveAggregate(ix: ComprehendIndex, name: string): ComprehendIndex['facts']['roots'][number] {
-  const r = ix.facts.roots.find((x) => x.name === name) ?? ix.facts.roots.find((x) => x.name.toLowerCase() === name.toLowerCase());
-  if (r === undefined) throw new ToolInputError(`unknown aggregate "${name}"; known aggregate roots: ${ix.facts.roots.map((x) => x.name).join(', ') || '(none)'}`);
+  const r = findRoot(ix, name);
+  if (r === undefined) throw unknownAggregate(ix, name);
   return r;
 }
 
+/** Entities inferred from the code whose name matches (exactly, else ignoring case). */
+export function matchEntities(ix: ComprehendIndex, name: string): EntityInfo[] {
+  const exact = ix.entities.filter((e) => e.name === name);
+  return exact.length > 0 ? exact : ix.entities.filter((e) => e.name.toLowerCase() === name.toLowerCase());
+}
+
+// ── Type relations (GRAPH-SCALE (c)) ────────────────────────────────────────────────────────────────────────────────
+
+interface Relations { readonly children: Map<string, string[]> }
+const relCache = new WeakMap<ComprehendIndex, Relations>();
+const relations = (ix: ComprehendIndex): Relations => {
+  let r = relCache.get(ix);
+  if (!r) {
+    const children = new Map<string, string[]>();
+    for (const t of ix.types.values()) for (const b of [...t.bases, ...t.implements]) children.set(b, [...(children.get(b) ?? []), t.key]);
+    r = { children };
+    relCache.set(ix, r);
+  }
+  return r;
+};
+/** Every type that extends or implements `key`, transitively (not `key` itself). */
+export function subtypesOf(ix: ComprehendIndex, key: string): Set<string> {
+  const { children } = relations(ix);
+  const out = new Set<string>();
+  const q = [key];
+  while (q.length > 0) for (const c of children.get(q.pop()!) ?? []) if (!out.has(c) && c !== key) { out.add(c); q.push(c); }
+  return out;
+}
+/** Every type `key` extends, transitively (classes: base classes; interfaces: base interfaces). */
+export function ancestorsOf(ix: ComprehendIndex, key: string): Set<string> {
+  const out = new Set<string>();
+  const q = [key];
+  while (q.length > 0) for (const b of ix.types.get(q.pop()!)?.bases ?? []) if (!out.has(b) && b !== key) { out.add(b); q.push(b); }
+  return out;
+}
+const memberName = (mc: MemberCall): string => mc.member.slice(mc.member.indexOf('.') + 1);
+const sigIn = (ix: ComprehendIndex, owner: string, name: string): MemberSig | undefined => ix.types.get(owner)?.members.find((m) => m.name === name);
+/** Member names of a type, its own and inherited. */
+const allMembers = (ix: ComprehendIndex, key: string): Set<string> => {
+  const out = new Set<string>();
+  for (const k of [key, ...ancestorsOf(ix, key)]) for (const m of ix.types.get(k)?.members ?? []) out.add(m.name);
+  return out;
+};
+
+/** Units that call a write member of an inferred entity's stores (uncapped). */
+export function entityWriteSites(ix: ComprehendIndex, ents: readonly EntityInfo[]): { unit: string; file: string; line: number; member: string; storeAt: string; store: string; how: string }[] {
+  const out: { unit: string; file: string; line: number; member: string; storeAt: string; store: string; how: string }[] = [];
+  const seen = new Set<string>();
+  for (const e of ents) {
+    const forms = entityNameForms(e.name);
+    for (const s of e.stores) {
+      const st = ix.types.get(s.key);
+      if (!st) continue;
+      const own = new Set([s.key, ...subtypesOf(ix, s.key)]);
+      const anc = ancestorsOf(ix, s.key);
+      const names = allMembers(ix, s.key);
+      const writes = (m: MemberSig | undefined): boolean => {
+        if (!m) return false;
+        if (s.how === 'member named after it') { const v = WRITE_VERB.exec(m.name); return v !== null && forms.includes(m.name.slice(v[0].length)); }
+        return isWriteMember(m);
+      };
+      for (const mc of ix.memberCalls) {
+        const n = memberName(mc);
+        let ok = false;
+        if (mc.owner === s.key) ok = writes(sigIn(ix, mc.owner, n));
+        else if (own.has(mc.owner)) ok = names.has(n) && writes(sigIn(ix, mc.owner, n));
+        else if (anc.has(mc.owner)) ok = mc.receiver !== undefined && own.has(mc.receiver) && writes(sigIn(ix, mc.owner, n));
+        if (!ok) continue;
+        const k = `${mc.unit}|${mc.file}:${mc.line}|${mc.member}`;
+        if (seen.has(k)) continue; seen.add(k);
+        const sig = sigIn(ix, mc.owner, n);
+        out.push({ unit: mc.unit, file: mc.file, line: mc.line, member: mc.member, storeAt: `${ix.types.get(mc.owner)?.file ?? '?'}:${sig?.line ?? '?'}`, store: st.name, how: s.how });
+      }
+    }
+  }
+  return out.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
+}
+
+function whoWritesEntities(ix: ComprehendIndex, ents: EntityInfo[], declaredRoot: boolean): WhoWrites {
+  const sites = entityWriteSites(ix, ents);
+  const ctx = ix.spec.contextOf(ents[0]!.file);
+  const byUnit = new Map<string, WriterRow>();
+  for (const x of sites) {
+    const u = ix.units.get(x.unit);
+    const prev = byUnit.get(x.unit);
+    const w: WriteRow = { at: `${x.file}:${x.line}`, store: x.member, storeDeclaredAt: x.storeAt, instance: '', several: false, chain: [u?.name ?? x.unit, x.member] };
+    if (prev) { byUnit.set(x.unit, { ...prev, writes: [...prev.writes, w] }); continue; }
+    const c = ix.spec.contextOf(x.file);
+    byUnit.set(x.unit, {
+      command: u?.name ?? x.unit, id: x.unit, file: x.file, line: u?.line ?? x.line, context: c, entry: 'direct write', eventHandler: false,
+      crossContext: c !== null && ctx !== null && c !== ctx, writes: [w],
+    });
+  }
+  const rows = [...byUnit.values()].sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
+  const source = ents.some((e) => e.source === 'declared') ? 'declared' : 'inferred';
+  const notes: string[] = [];
+  notes.push(`${ents[0]!.name} is ${source === 'declared' ? 'named in the spec, but its declaration was found by inference' : 'an inferred entity (not declared in the spec)'}: ${ents.flatMap((e) => e.evidence.map((v) => `${v.kind}, ${v.detail}`)).slice(0, 4).join('; ')}.`);
+  if (declaredRoot) notes.push('The DETECT-02 write footprints of the commands found no write of it, so the writers below are the units that call a write member of its stores.');
+  notes.push(`Stores: ${ents.flatMap((e) => e.stores.map((s) => `${s.key.split('#')[1]} (${s.how})`)).slice(0, 8).join(', ') || 'none found'}. A store member writes when its name starts with a mutation verb or it returns nothing and takes an argument; inherited members count only when the receiver is the store.`);
+  notes.push('Writers are the units that make the store call (one level); the commands that reach them are found with impact or callers.');
+  return { aggregate: ents[0]!.name, owner: ctx, source, writers: cap(rows), notes, basis: 'entity stores', entities: ents };
+}
+
 export function whoWrites(ix: ComprehendIndex, aggregate: string): WhoWrites {
-  const r = resolveAggregate(ix, aggregate);
+  const found = findRoot(ix, aggregate);
+  const ents = matchEntities(ix, aggregate);
+  if (found === undefined) {
+    if (ents.length === 0) throw unknownAggregate(ix, aggregate);
+    return whoWritesEntities(ix, ents, false);
+  }
+  const r = found;
   const rows: WriterRow[] = [];
   for (const c of ix.facts.commands) {
     const ws = c.writes.filter((w) => w.root === r.name);
@@ -117,7 +241,89 @@ export function whoWrites(ix: ComprehendIndex, aggregate: string): WhoWrites {
   if (rows.some((x) => x.eventHandler)) notes.push('eventHandler = the command takes a domain event: it runs when the event is delivered, after the command that recorded it.');
   if (!ix.facts.roots.find((x) => x.name === r.name)?.declared) notes.push(`${r.name} is an inferred aggregate root (not declared in the spec).`);
   notes.push(`Writes are followed through up to 4 levels of calls, through ports to their in-tree implementations; a write reached deeper or through an untyped call is not seen.`);
-  return { aggregate: r.name, owner: r.context, source: r.declared ? 'declared' : 'inferred', writers: cap(rows), notes };
+  // GRAPH-SCALE (d): a declared or inferred root whose footprints find no writer falls back to the entity's stores.
+  const sameEnts = ents.filter((e) => e.name === r.name);
+  if (rows.length === 0 && sameEnts.length > 0) return whoWritesEntities(ix, sameEnts, true);
+  return { aggregate: r.name, owner: r.context, source: r.declared ? 'declared' : 'inferred', writers: cap(rows), notes, basis: 'footprint' };
+}
+
+// ── callers (GRAPH-SCALE (c)) ───────────────────────────────────────────────────────────────────────────────────────
+
+export interface CallerSite { readonly at: string; readonly member: string; readonly how: 'port' | 'implementation' | 'inherited'; readonly receiver?: string }
+export interface CallerRow { readonly unit: string; readonly id: string; readonly file: string; readonly line: number; readonly context: string | null; readonly role: string; readonly sites: readonly CallerSite[] }
+export interface Callers {
+  readonly target: string; readonly type: string; readonly file: string; readonly line: number; readonly kind: 'class' | 'interface';
+  readonly member: string | null;
+  /** In-tree types that implement or extend the target (`file#Name`). */
+  readonly implementations: Capped<string>;
+  readonly sites: number; readonly files: number;
+  readonly callers: Capped<CallerRow>;
+  readonly notes: readonly string[];
+}
+
+export function resolveType(ix: ComprehendIndex, ref: string): { type: TypeInfo; member: string | null } {
+  const r = ref.trim().replace(/^\.\//, '');
+  const [file, rest] = r.includes('#') ? [r.slice(0, r.indexOf('#')), r.slice(r.indexOf('#') + 1)] : [null, r];
+  const dot = rest.indexOf('.');
+  const tname = dot >= 0 ? rest.slice(0, dot) : rest;
+  const member = dot >= 0 ? rest.slice(dot + 1) : null;
+  const hits = [...ix.types.values()].filter((t) => t.name === tname && (file === null || t.file === file));
+  if (hits.length === 0) throw new ToolInputError(`unknown type "${tname}"${file !== null ? ` in ${file}` : ''}; give an interface or class declared in the project (Type, Type.method, file#Type or file#Type.method)`);
+  if (hits.length > 1) throw new ToolInputError(`"${tname}" is ambiguous: ${hits.slice(0, 8).map((t) => t.key).join(', ')}; give file#${tname}`);
+  const type = hits[0]!;
+  if (member !== null && !allMembers(ix, type.key).has(member)) throw new ToolInputError(`${type.name} has no member "${member}"; members: ${[...allMembers(ix, type.key)].slice(0, 30).join(', ')}`);
+  return { type, member };
+}
+
+/**
+ * Every call site of a port's members (uncapped): calls resolved to the type's own members (`port`), to a member of a
+ * type that implements or extends it, for a member the port has (`implementation`), and to a member it inherits from
+ * a base type when the receiver is the port or one of its subtypes (`inherited`).
+ */
+export function callerSites(ix: ComprehendIndex, ref: string): { type: TypeInfo; member: string | null; sites: (CallerSite & { unit: string; file: string; line: number })[]; implementations: string[] } {
+  const { type, member } = resolveType(ix, ref);
+  const subs = subtypesOf(ix, type.key);
+  const anc = ancestorsOf(ix, type.key);
+  const names = allMembers(ix, type.key);
+  const want = (n: string): boolean => (member === null ? names.has(n) : n === member);
+  const own = new Set([type.key, ...subs]);
+  const sites: (CallerSite & { unit: string; file: string; line: number })[] = [];
+  const seen = new Set<string>();
+  for (const mc of ix.memberCalls) {
+    const n = memberName(mc);
+    if (!want(n)) continue;
+    let how: CallerSite['how'] | null = null;
+    if (mc.owner === type.key) how = 'port';
+    else if (subs.has(mc.owner)) how = 'implementation';
+    else if (anc.has(mc.owner) && mc.receiver !== undefined && own.has(mc.receiver)) how = 'inherited';
+    if (how === null) continue;
+    const k = `${mc.file}:${mc.line}:${n}`;
+    if (seen.has(k)) continue; seen.add(k);
+    sites.push({ unit: mc.unit, file: mc.file, line: mc.line, at: `${mc.file}:${mc.line}`, member: mc.member, how, ...(mc.receiver !== undefined && mc.receiver !== mc.owner ? { receiver: mc.receiver } : {}) });
+  }
+  sites.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
+  return { type, member, sites, implementations: [...subs].sort() };
+}
+
+export function callers(ix: ComprehendIndex, ref: string): Callers {
+  const { type, member, sites, implementations } = callerSites(ix, ref);
+  const byUnit = new Map<string, CallerRow>();
+  for (const s of sites) {
+    const u = ix.units.get(s.unit);
+    const site: CallerSite = { at: s.at, member: s.member, how: s.how, ...(s.receiver !== undefined ? { receiver: s.receiver } : {}) };
+    const prev = byUnit.get(s.unit);
+    if (prev) { byUnit.set(s.unit, { ...prev, sites: [...prev.sites, site] }); continue; }
+    byUnit.set(s.unit, { unit: u?.name ?? s.unit, id: s.unit, file: s.file, line: u?.line ?? s.line, context: ix.spec.contextOf(s.file), role: u?.role ?? ix.spec.roleOf(s.file), sites: [site] });
+  }
+  const rows = [...byUnit.values()].sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
+  const notes = [
+    'Callers are the units (methods, functions, factory callbacks) whose body calls the member: through the port, through a class that implements or extends it, or through a member it inherits when the receiver is typed by it.',
+    'Calls through an untyped receiver (`any`, a string-keyed container) have no resolved member and are not listed.',
+  ];
+  return {
+    target: ref.trim(), type: type.name, file: type.file, line: type.line, kind: type.kind, member,
+    implementations: cap(implementations), sites: sites.length, files: new Set(sites.map((s) => s.file)).size, callers: cap(rows), notes,
+  };
 }
 
 // ── trace ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -410,8 +616,18 @@ export function contextMapText(m: ContextMap): string {
   return [...out, ...m.notes.map((n) => `Note: ${n}`)].join('\n');
 }
 
+export function callersText(c: Callers): string {
+  const out = [`callers ${c.type}${c.member !== null ? `.${c.member}` : ''} (${c.kind} at ${c.file}:${c.line}): ${c.callers.total} unit(s)${more(c.callers)}, ${c.sites} call site(s) in ${c.files} file(s).`];
+  out.push(`Implemented or extended by ${c.implementations.total}${more(c.implementations)}: ${c.implementations.shown.join(', ') || 'none in the tree'}`);
+  for (const r of c.callers.shown) {
+    out.push(`- ${r.unit} (${r.file}:${r.line}) [${r.role}] context ${r.context ?? '-'}`);
+    for (const s of r.sites) out.push(`    ${s.at} ${s.member} [${s.how}${s.receiver !== undefined ? `, receiver ${s.receiver.split('#')[1]}` : ''}]`);
+  }
+  return [...out, ...c.notes.map((n) => `Note: ${n}`)].join('\n');
+}
+
 export function whoWritesText(w: WhoWrites): string {
-  const out = [`who_writes ${w.aggregate} (owned by ${w.owner ?? 'no context'}, ${w.source}): ${w.writers.total} command(s)${more(w.writers)}.`];
+  const out = [`who_writes ${w.aggregate} (owned by ${w.owner ?? 'no context'}, ${w.source}): ${w.writers.total} ${w.basis === 'entity stores' ? 'unit(s) writing it through its stores' : 'command(s)'}${more(w.writers)}.`];
   for (const c of w.writers.shown) {
     out.push(`- ${c.command} (${c.file}:${c.line}) context ${c.context ?? '-'}${c.crossContext ? ' [CROSS-CONTEXT]' : ''}${c.eventHandler ? ' [event handler]' : ''}${c.entry === 'published interface' ? ' [published interface]' : ''}`);
     for (const x of c.writes) out.push(`    write ${x.instance}${x.several ? ' (several)' : ''} at ${x.at} ${x.store} (declared ${x.storeDeclaredAt}) via ${x.chain.join(' → ')}`);

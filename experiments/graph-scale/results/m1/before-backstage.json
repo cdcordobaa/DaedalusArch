@@ -1,0 +1,563 @@
+{
+ "tree": "backstage",
+ "modelCalls": 0,
+ "truthFiles": 2229,
+ "truthLoadMs": 2901,
+ "index": {
+  "files": 2229,
+  "units": 5929,
+  "callEdges": 12798,
+  "unresolved": 2581,
+  "memberCalls": null,
+  "entities": null,
+  "importTypeEdges": null,
+  "roots": 0,
+  "rootSource": "none",
+  "commands": 501,
+  "buildMs": 75299,
+  "rssMB": 4899
+ },
+ "questions": [
+  {
+   "id": "BS-W1",
+   "kind": "writers",
+   "question": "Which units write processed catalog entities through the catalog processing port ProcessingDatabase (its write members updateProcessedEntity, updateEntityCache, updateProcessedEntityErrors)?",
+   "truth": {
+    "sites": 4,
+    "units": 1,
+    "files": 1,
+    "typeRefFiles": 2,
+    "implementations": [
+     "plugins/catalog-backend/src/database/DefaultProcessingDatabase.ts#DefaultProcessingDatabase"
+    ],
+    "members": [
+     "updateProcessedEntity",
+     "updateEntityCache",
+     "updateProcessedEntityErrors"
+    ],
+    "ms": 1547
+   },
+   "index": {
+    "sites": {
+     "truth": 4,
+     "graph": 4,
+     "both": 4,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 1,
+     "graph": 1,
+     "both": 1,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 1,
+     "graph": 1,
+     "both": 1,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "edge via port": 4
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "impact": {
+    "targets": [
+     {
+      "target": "plugins/catalog-backend/src/database/types.ts#ProcessingDatabase",
+      "references": 2,
+      "importers": 6,
+      "commands": 0,
+      "ms": 55503
+     },
+     {
+      "target": "plugins/catalog-backend/src/database/DefaultProcessingDatabase.ts#DefaultProcessingDatabase",
+      "references": 1,
+      "importers": 1,
+      "commands": 7,
+      "ms": 54
+     }
+    ],
+    "referenceFiles": {
+     "truth": 2,
+     "graph": 3,
+     "both": 2,
+     "recall": 1,
+     "precision": 0.6666666666666666
+    },
+    "callerFilesByReferences": {
+     "truth": 1,
+     "graph": 3,
+     "both": 1,
+     "recall": 1,
+     "precision": 0.3333333333333333
+    },
+    "commandUnits": {
+     "truth": 1,
+     "graph": 7,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandFiles": {
+     "truth": 1,
+     "graph": 2,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    }
+   },
+   "trace": {
+    "command": "plugins/catalog-backend/src/processing/DefaultCatalogProcessingEngine.ts#DefaultCatalogProcessingEngine.start",
+    "nodes": 60,
+    "adapters": 66,
+    "writes": 0
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "BS-C1",
+   "kind": "callers",
+   "question": "Which units call the catalog's published CatalogService (any member), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 39,
+    "units": 31,
+    "files": 29,
+    "typeRefFiles": 40,
+    "implementations": [
+     "plugins/catalog-node/src/catalogService.ts#DefaultCatalogService",
+     "plugins/catalog-node/src/testUtils/types.ts#CatalogServiceMock"
+    ],
+    "members": [
+     "getEntities",
+     "getEntitiesByRefs",
+     "queryEntities",
+     "getEntityAncestors",
+     "getEntityByRef",
+     "removeEntityByUid",
+     "refreshEntity",
+     "getEntityFacets",
+     "getLocations",
+     "queryLocations",
+     "streamLocations",
+     "getLocationById",
+     "getLocationByRef",
+     "addLocation",
+     "removeLocationById",
+     "updateLocation",
+     "getLocationByEntity",
+     "validateEntity",
+     "analyzeLocation",
+     "streamEntities"
+    ],
+    "ms": 461
+   },
+   "index": {
+    "sites": {
+     "truth": 39,
+     "graph": 39,
+     "both": 39,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 31,
+     "graph": 31,
+     "both": 31,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 29,
+     "graph": 29,
+     "both": 29,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "edge via port": 39
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "impact": {
+    "targets": [
+     {
+      "target": "plugins/catalog-node/src/catalogService.ts#CatalogService",
+      "references": 40,
+      "importers": 1,
+      "commands": 0,
+      "ms": 135
+     }
+    ],
+    "referenceFiles": {
+     "truth": 40,
+     "graph": 40,
+     "both": 40,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 29,
+     "graph": 40,
+     "both": 29,
+     "recall": 1,
+     "precision": 0.725
+    },
+    "commandUnits": {
+     "truth": 31,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 29,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "BS-X1",
+   "kind": "crossCalls",
+   "question": "Which calls do the scaffolder backend packages make into catalog code (catalog plugins or the catalog model package)?",
+   "truth": {
+    "sites": 19,
+    "units": 6,
+    "files": 5,
+    "members": [],
+    "ms": 1431
+   },
+   "index": {
+    "sites": {
+     "truth": 19,
+     "graph": 360,
+     "both": 19,
+     "recall": 1,
+     "precision": 0.05277777777777778
+    },
+    "units": {
+     "truth": 6,
+     "graph": 116,
+     "both": 6,
+     "recall": 1,
+     "precision": 0.05172413793103448
+    },
+    "files": {
+     "truth": 5,
+     "graph": 70,
+     "both": 5,
+     "recall": 1,
+     "precision": 0.07142857142857142
+    },
+    "how": {
+     "edge direct": 10,
+     "edge interface": 8,
+     "unresolved (callee unknown)": 352
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "BS-C2",
+   "kind": "callers",
+   "question": "Which units call the core SchedulerService (any member), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 32,
+    "units": 31,
+    "files": 29,
+    "typeRefFiles": 30,
+    "implementations": [
+     "packages/backend-defaults/src/entrypoints/scheduler/lib/PluginTaskSchedulerImpl.ts#PluginTaskSchedulerImpl",
+     "packages/backend-plugin-api/src/services/definitions/coreServices.ts#SchedulerService",
+     "packages/backend-test-utils/src/services/MockSchedulerService.ts#MockSchedulerService"
+    ],
+    "members": [
+     "triggerTask",
+     "cancelTask",
+     "scheduleTask",
+     "createScheduledTaskRunner",
+     "getScheduledTasks"
+    ],
+    "ms": 414
+   },
+   "index": {
+    "sites": {
+     "truth": 32,
+     "graph": 32,
+     "both": 32,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 31,
+     "graph": 31,
+     "both": 31,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 29,
+     "graph": 29,
+     "both": 29,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "edge via port": 54,
+     "edge direct": 5
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/backend-plugin-api/src/services/definitions/SchedulerService.ts#SchedulerService",
+      "references": 30,
+      "importers": 1,
+      "commands": 0,
+      "ms": 99
+     }
+    ],
+    "referenceFiles": {
+     "truth": 36,
+     "graph": 30,
+     "both": 30,
+     "recall": 0.8333333333333334,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 29,
+     "graph": 30,
+     "both": 23,
+     "recall": 0.7931034482758621,
+     "precision": 0.7666666666666667
+    },
+    "commandUnits": {
+     "truth": 31,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 29,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "BS-C3",
+   "kind": "callers",
+   "question": "Which units call the core PermissionsService (any member, including those it inherits from PermissionEvaluator)?",
+   "truth": {
+    "sites": 35,
+    "units": 31,
+    "files": 16,
+    "typeRefFiles": 23,
+    "implementations": [
+     "packages/backend-plugin-api/src/services/definitions/coreServices.ts#PermissionsService",
+     "packages/backend-test-utils/src/services/MockPermissionsService.ts#MockPermissionsService",
+     "plugins/permission-node/src/ServerPermissionClient.ts#ServerPermissionClient"
+    ],
+    "members": [
+     "authorize",
+     "authorizeConditional",
+     "authorize",
+     "authorizeConditional"
+    ],
+    "ms": 264
+   },
+   "index": {
+    "sites": {
+     "truth": 35,
+     "graph": 33,
+     "both": 33,
+     "recall": 0.9428571428571428,
+     "precision": 1
+    },
+    "units": {
+     "truth": 31,
+     "graph": 29,
+     "both": 28,
+     "recall": 0.9032258064516129,
+     "precision": 0.9655172413793104
+    },
+    "files": {
+     "truth": 16,
+     "graph": 15,
+     "both": 15,
+     "recall": 0.9375,
+     "precision": 1
+    },
+    "how": {
+     "edge via port": 66
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/backend-plugin-api/src/services/definitions/PermissionsService.ts#PermissionsService",
+      "references": 23,
+      "importers": 1,
+      "commands": 0,
+      "ms": 84
+     }
+    ],
+    "referenceFiles": {
+     "truth": 23,
+     "graph": 23,
+     "both": 23,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 16,
+     "graph": 23,
+     "both": 16,
+     "recall": 1,
+     "precision": 0.6956521739130435
+    },
+    "commandUnits": {
+     "truth": 31,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 16,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": [
+    {
+     "unit": "plugins/permission-node/src/ServerPermissionClient.ts#ServerPermissionClient.authorizeConditional",
+     "file": "plugins/permission-node/src/ServerPermissionClient.ts",
+     "line": 88,
+     "callee": "PermissionsService.authorizeConditional",
+     "indexNamed": true
+    },
+    {
+     "unit": "plugins/permission-node/src/ServerPermissionClient.ts#ServerPermissionClient.authorize",
+     "file": "plugins/permission-node/src/ServerPermissionClient.ts",
+     "line": 105,
+     "callee": "PermissionsService.authorize",
+     "indexNamed": true
+    }
+   ]
+  },
+  {
+   "id": "BS-W2",
+   "kind": "writers",
+   "question": "Which units write scaffolder tasks through the scaffolder TaskStore (create, cancel, retry, recover, claim, complete, heartbeat, save state, shut down, emit log)?",
+   "truth": {
+    "sites": 14,
+    "units": 13,
+    "files": 3,
+    "typeRefFiles": 3,
+    "implementations": [
+     "plugins/scaffolder-backend/src/scaffolder/tasks/DatabaseTaskStore.ts#DatabaseTaskStore"
+    ],
+    "members": [
+     "cancelTask",
+     "createTask",
+     "retryTask",
+     "recoverTasks",
+     "claimTask",
+     "completeTask",
+     "heartbeatTask",
+     "emitLogEvent",
+     "saveTaskState",
+     "shutdownTask"
+    ],
+    "ms": 242
+   },
+   "index": {
+    "sites": {
+     "truth": 14,
+     "graph": 14,
+     "both": 14,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 13,
+     "graph": 13,
+     "both": 13,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 3,
+     "graph": 3,
+     "both": 3,
+     "recall": 1,
+     "precision": 1
+    },
+    "how": {
+     "edge direct": 3,
+     "edge via port": 11
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "who_writes": {
+    "error": "unknown aggregate \"SerializedTask\"; known aggregate roots: (none)"
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "plugins/scaffolder-backend/src/scaffolder/tasks/types.ts#TaskStore",
+      "references": 3,
+      "importers": 6,
+      "commands": 0,
+      "ms": 70
+     }
+    ],
+    "referenceFiles": {
+     "truth": 4,
+     "graph": 3,
+     "both": 3,
+     "recall": 0.75,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 3,
+     "graph": 3,
+     "both": 2,
+     "recall": 0.6666666666666666,
+     "precision": 0.6666666666666666
+    },
+    "commandUnits": {
+     "truth": 13,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 3,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": []
+  }
+ ]
+}

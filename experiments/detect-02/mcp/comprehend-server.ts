@@ -8,6 +8,10 @@
  * `--tsconfig`, `--confine` and `--call-log`. The tools always answer about the configured project; they take no
  * project or spec argument, and under `--confine` an argument naming another project or spec is refused. Call-log
  * lines use `seq` from 2,000,001, so they never collide with the frozen tools' or `check_consistency`'s.
+ *
+ * GRAPH-SCALE (2026-10-23) adds a fifth tool, `callers` (every caller of a port or of one of its members, through its
+ * implementations), served with `withCallers` (`--with-callers`). Without it the server is the COMPREHEND-01 arm's,
+ * four tools, so that pilot stays reproducible.
  */
 import * as path from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -18,13 +22,15 @@ import { withCallLog } from '../../../src/mcp-server/call-log.js';
 import type { ServerContext } from '../../../src/mcp-server/tools.js';
 import { cachedIndex } from './comprehend/index.js';
 import type { ComprehendIndex } from './comprehend/index.js';
-import { contextMap, contextMapText, impact, impactText, ToolInputError, trace, traceText, whoWrites, whoWritesText } from './comprehend/tools.js';
+import { callers, callersText, contextMap, contextMapText, impact, impactText, ToolInputError, trace, traceText, whoWrites, whoWritesText } from './comprehend/tools.js';
 import { createDetectServer } from './server.js';
 
 export const COMPREHEND_SERVER_NAME = 'daedalus-graph';
 export const COMPREHEND_SERVER_VERSION = '0.1.0-exp';
 export const COMPREHEND_TOOLS = ['context_map', 'who_writes', 'trace', 'impact'] as const;
-export type ComprehendTool = (typeof COMPREHEND_TOOLS)[number];
+/** GRAPH-SCALE: the four plus `callers`. */
+export const GRAPH_SCALE_TOOLS = [...COMPREHEND_TOOLS, 'callers'] as const;
+export type ComprehendTool = (typeof GRAPH_SCALE_TOOLS)[number];
 
 const scope = {
   project: z.string().optional().describe('Ignored unless it names the configured project; the tools always answer about the configured project.'),
@@ -60,6 +66,13 @@ export const TOOL_SPECS: Readonly<Record<ComprehendTool, { title: string; descri
       + 'and which importers already break the allowed layer dependencies.',
     shape: { target: z.string().min(1).describe('A project-relative file (src/…/X.ts) or a symbol (src/…/X.ts#Name).'), ...scope },
   },
+  callers: {
+    title: 'Every caller of a port or method',
+    description: 'For an interface or class (a port), or one of its members, lists every unit that calls it with file:line per call site: '
+      + 'calls through the port itself, through the classes that implement or extend it, and through members it inherits when the receiver is typed by it. '
+      + 'Also lists the implementations. Use it to find everything a change to a port affects.',
+    shape: { port_or_method: z.string().min(1).describe('Type, Type.member, file#Type or file#Type.member (paths relative to the project root).'), ...scope },
+  },
 };
 
 const fail = (text: string): CallToolResult => ({ isError: true, content: [{ type: 'text', text }] });
@@ -87,6 +100,7 @@ export async function runComprehendTool(ctx: ServerContext, tool: ComprehendTool
       case 'who_writes': { const r = whoWrites(ix, String(a.aggregate)); text = whoWritesText(r); data = r; break; }
       case 'trace': { const r = trace(ix, String(a.command), { full: a.full === true }); text = traceText(r); data = r; break; }
       case 'impact': { const r = await impact(ix, String(a.target), tsconfig); text = impactText(r); data = r; break; }
+      case 'callers': { const r = callers(ix, String(a.port_or_method)); text = callersText(r); data = r; break; }
     }
     const ms = Date.now() - t0;
     return { content: [{ type: 'text', text }], structuredContent: { tool, ms, indexCached: cached, result: data } as Record<string, unknown> };
@@ -96,13 +110,13 @@ export async function runComprehendTool(ctx: ServerContext, tool: ComprehendTool
   }
 }
 
-export interface ComprehendServerOptions { readonly withFrozen?: boolean }
+export interface ComprehendServerOptions { readonly withFrozen?: boolean; readonly withCallers?: boolean }
 
 export function createComprehendServer(ctx: ServerContext, opts: ComprehendServerOptions = {}): McpServer {
   const server = opts.withFrozen === true ? createDetectServer(ctx) : new McpServer({ name: COMPREHEND_SERVER_NAME, version: COMPREHEND_SERVER_VERSION });
   const register = server.registerTool.bind(server) as unknown as (name: string, config: Record<string, unknown>, h: (args: unknown) => Promise<CallToolResult>) => unknown;
   let seq = 2_000_000;
-  for (const tool of COMPREHEND_TOOLS) {
+  for (const tool of opts.withCallers === true ? GRAPH_SCALE_TOOLS : COMPREHEND_TOOLS) {
     let handler = async (args: unknown): Promise<CallToolResult> => runComprehendTool(ctx, tool, args);
     if (ctx.confine === true) {
       const inner = handler;
