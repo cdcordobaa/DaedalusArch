@@ -1,0 +1,13 @@
+[
+ {"id":"BS-C2","kind":"callers","question":"Which units call the core SchedulerService (any member), i.e. are affected by a change to that port?",
+  "file":"packages/backend-plugin-api/src/services/definitions/SchedulerService.ts","type":"SchedulerService",
+  "impact":["packages/backend-plugin-api/src/services/definitions/SchedulerService.ts#SchedulerService"]},
+ {"id":"BS-C3","kind":"callers","question":"Which units call the core PermissionsService (any member, including those it inherits from PermissionEvaluator)?",
+  "file":"packages/backend-plugin-api/src/services/definitions/PermissionsService.ts","type":"PermissionsService",
+  "impact":["packages/backend-plugin-api/src/services/definitions/PermissionsService.ts#PermissionsService"]},
+ {"id":"BS-W2","kind":"writers","question":"Which units write scaffolder tasks through the scaffolder TaskStore (create, cancel, retry, recover, claim, complete, heartbeat, save state, shut down, emit log)?",
+  "file":"plugins/scaffolder-backend/src/scaffolder/tasks/types.ts","type":"TaskStore",
+  "memberPattern":"^(createTask|cancelTask|retryTask|recoverTasks|claimTask|completeTask|heartbeatTask|saveTaskState|shutdownTask|emitLogEvent)$",
+  "aggregate":"SerializedTask",
+  "impact":["plugins/scaffolder-backend/src/scaffolder/tasks/types.ts#TaskStore"]}
+]

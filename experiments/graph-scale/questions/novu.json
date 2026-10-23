@@ -1,0 +1,15 @@
+[
+ {"id":"NV-C2","kind":"callers","question":"Which units call the cache port ICacheService (any member), i.e. are affected by a change to that port?",
+  "file":"libs/application-generic/src/services/cache/cache.service.ts","type":"ICacheService",
+  "impact":["libs/application-generic/src/services/cache/cache.service.ts#ICacheService"]},
+ {"id":"NV-W2","kind":"writers","question":"Which units write integrations through the integration repository (create, insert, update, upsert, delete or bulk writes)?",
+  "file":"libs/dal/src/repositories/integration/integration.repository.ts","type":"IntegrationRepository",
+  "memberPattern":"^(create|insertMany|update|updateOne|upsert|upsertMany|delete|deleteMany|findOneAndUpdate|findOneAndDelete|bulkWrite)$",
+  "graphOwners":["IntegrationRepository","BaseRepository"],"aggregate":"IntegrationEntity",
+  "impact":["libs/dal/src/repositories/integration/integration.repository.ts#IntegrationRepository"]},
+ {"id":"NV-W3","kind":"writers","question":"Which units write messages through the message repository (create, insert, update, upsert, delete or bulk writes)?",
+  "file":"libs/dal/src/repositories/message/message.repository.ts","type":"MessageRepository",
+  "memberPattern":"^(create|insertMany|update|updateOne|upsert|upsertMany|delete|deleteMany|findOneAndUpdate|findOneAndDelete|bulkWrite)$",
+  "graphOwners":["MessageRepository","BaseRepository"],"aggregate":"MessageEntity",
+  "impact":["libs/dal/src/repositories/message/message.repository.ts#MessageRepository"]}
+]

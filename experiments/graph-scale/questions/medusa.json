@@ -1,0 +1,13 @@
+[
+ {"id":"MD-C2","kind":"callers","question":"Which units call the Pricing Module's published service (any member of IPricingModuleService), i.e. are affected by a change to that port?",
+  "file":"packages/core/types/src/pricing/service.ts","type":"IPricingModuleService",
+  "impact":["packages/core/types/src/pricing/service.ts#IPricingModuleService"]},
+ {"id":"MD-W2","kind":"writers","question":"Which units write orders through the Order Module's published service (create, update, upsert, delete, soft-delete or restore of orders)?",
+  "file":"packages/core/types/src/order/service.ts","type":"IOrderModuleService",
+  "memberPattern":"^(create|update|upsert|delete|softDelete|restore)Orders$","aggregate":"Order",
+  "impact":["packages/core/types/src/order/service.ts#IOrderModuleService"]},
+ {"id":"MD-W3","kind":"writers","question":"Which units write customers through the Customer Module's published service (create, update, upsert, delete, soft-delete or restore of customers)?",
+  "file":"packages/core/types/src/customer/service.ts","type":"ICustomerModuleService",
+  "memberPattern":"^(create|update|upsert|delete|softDelete|restore)Customers$","aggregate":"Customer",
+  "impact":["packages/core/types/src/customer/service.ts#ICustomerModuleService"]}
+]

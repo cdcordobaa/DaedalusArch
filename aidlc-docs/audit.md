@@ -3120,3 +3120,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: REPO-SCOUT (exploratory, v1.5-exp, DEV); zero model calls; no frozen path changed
 
 ---
+
+## v1.5 CONSTRUCTION — U1 groundwork GRAPH-SCALE: code-generation plan (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-23T04:30:00Z
+**User Input**: Intent (paraphrased): make the DETECT-02 graph facts complete and precise on large real codebases, measured against compiler truth: factory and callback units, receiver-aware call edges, a callers-of-port fact and tool, a populated who_writes on code without declared aggregates (inferred roots labelled), inline import types for coverage; no regression on the DETECT-02 material; measure before and after on Backstage, Novu and Medusa at the scout's pins on the scout's 3 questions plus 3 new ones per repository; report, research-log entry, state update, PR merged normally on green Build & Test. Zero model calls.
+**AI Response**: Plan written at aidlc-docs/construction/v1.5/u1-graph-scale-plan.md (10 steps). Approved at gate level under the author's standing delegation. Baseline taken on the unchanged code before any fix (dev set identical to the committed results apart from timings; precision 0 false-positive legit runs, 12/12 positives; tool tests 15/15). The 9 new questions were committed in experiments/graph-scale/questions/ before any fix was written or measured.
+**Context**: v1.5 CONSTRUCTION, U1 groundwork (exploratory, DEV material); code stays in experiments/
+
+---
