@@ -17,6 +17,13 @@
  *   - `trace`      (questions with `trace`): the size of the call tree (no truth).
  * Unit ids are compared without the index's `@line` suffix for duplicate names (both runs alike).
  *
+ * Truth revision R1 (2026-10-23, after the first after-measurement, harness only; `r1` in the output, beside the
+ * unchanged scout truth): find-all-references on a member a class *overrides* (`IntegrationRepository.create`) also
+ * returns every call of the base member (`feedRepository.create`), and the scout's receiver check covers inherited
+ * members only. R1 keeps a site of a class question only when a call of that member on that line has a receiver typed
+ * by the class or a subclass (the scout's own `receiverIs`, the compiler's type of the receiver). Questions on
+ * interfaces are unchanged.
+ *
  * Usage: npx tsx experiments/graph-scale/compare.ts --tree <dir> --tsconfig <file> --spec <yaml>
  *          --questions <json>[,<json>…] --out <json> [--skip-impact]
  */
@@ -26,6 +33,7 @@ import picomatch from 'picomatch';
 import { buildIndex } from '../detect-02/mcp/comprehend/index.js';
 import type { ComprehendIndex } from '../detect-02/mcp/comprehend/index.js';
 import * as tools from '../detect-02/mcp/comprehend/tools.js';
+import { Node } from 'ts-morph';
 import { TruthProject } from '../repo-scout/truth.js';
 import type { Question, Truth } from '../repo-scout/truth.js';
 
@@ -100,6 +108,26 @@ async function main(): Promise<void> {
   const tp = new TruthProject(tree, tsconfig);
   const truthLoadMs = Date.now() - t0;
   const truths = questions.map((q) => tp.answer(q));
+  /** Truth R1: sites of a class question kept only when the receiver is the class or a subclass. */
+  const truthR1 = (q: GraphQuestion, tr: Truth): Truth => {
+    if (q.kind === 'crossCalls') return tr;
+    const decl = tp.project.getSourceFile(path.join(tp.root, q.file))?.getClass(q.type);
+    if (!decl) return tr;
+    const keep = tr.sites.filter((st) => {
+      const sf = tp.project.getSourceFile(path.join(tp.root, st.file));
+      const m = st.callee.slice(st.callee.indexOf('.') + 1);
+      let ok = false;
+      sf?.forEachDescendant((n, trav) => {
+        if (ok) { trav.stop(); return; }
+        if (!Node.isCallExpression(n) || n.getStartLineNumber() !== st.line) return;
+        const e = n.getExpression();
+        if ((Node.isPropertyAccessExpression(e) && e.getName() === m) && tp.receiverIs(e.getExpression(), q.type)) ok = true;
+      });
+      return ok;
+    });
+    return { ...tr, sites: keep, units: [...new Set(keep.map((x) => x.unit))].sort(), files: [...new Set(keep.map((x) => x.file))].sort() };
+  };
+  const truthsR1 = questions.map((q, i) => truthR1(q, truths[i]!));
   process.stdout.write(`truth: ${tp.sources.length} files, load ${truthLoadMs} ms; ${truths.map((x) => `${x.id} ${x.sites.length}/${x.units.length}/${x.files.length}`).join('; ')}\n`);
 
   const ix = buildIndex(tree, { spec, tsconfig });
@@ -111,6 +139,8 @@ async function main(): Promise<void> {
   const rows: Record<string, unknown>[] = [];
   for (const [i, q] of questions.entries()) {
     const tr = truths[i]!;
+    const tr1 = truthsR1[i]!;
+    let selRows: Row[] | undefined; let wwRows: Row[] | undefined;
     const idx = q.kind === 'crossCalls' ? indexCrossSites(ix, q) : indexCallerSites(ix, q, tr);
     const row: Record<string, unknown> = {
       id: q.id, kind: q.kind, question: q.question,
@@ -124,6 +154,7 @@ async function main(): Promise<void> {
           const cs = (t.callerSites as typeof tools.callerSites)(ix, `${q.file}#${q.type}`);
           const want = new Set(tr.members);
           const sel: Row[] = cs.sites.filter((s) => want.has(s.member.slice(s.member.indexOf('.') + 1))).map((s) => ({ site: s.at, unit: s.unit, file: s.file, how: s.how }));
+          selRows = sel;
           row.callers = { ...grains(tr, sel), how: Object.fromEntries([...new Set(sel.map((x) => x.how))].map((h) => [h, sel.filter((x) => x.how === h).length])), implementations: cs.implementations.length, ms: Date.now() - s0 };
           row.callersMissed = tr.sites.filter((s) => !sel.some((x) => x.site === `${s.file}:${s.line}`)).slice(0, 12);
           row.callersExtra = sel.filter((x) => !tr.sites.some((s) => `${s.file}:${s.line}` === x.site)).slice(0, 12);
@@ -137,6 +168,7 @@ async function main(): Promise<void> {
         const all = (w as { basis?: string }).basis === 'entity stores' && typeof t.entityWriteSites === 'function'
           ? (t.entityWriteSites as typeof tools.entityWriteSites)(ix, (w as { entities?: Parameters<typeof tools.entityWriteSites>[1] }).entities ?? []).map((x) => ({ site: `${x.file}:${x.line}`, unit: x.unit, file: x.file, how: 'entity store' }))
           : w.writers.shown.flatMap((r) => r.writes.map((x) => ({ site: x.at, unit: r.id, file: r.file, how: 'footprint' })));
+        wwRows = all;
         row.who_writes = {
           total: w.writers.total, capped: w.writers.truncated, basis: (w as { basis?: string }).basis ?? 'footprint', source: w.source,
           ...grains(tr, all), commands: agree(tr.units, w.writers.shown.map((r) => unitKey(r.id))), notes: w.notes,
@@ -160,6 +192,12 @@ async function main(): Promise<void> {
     }
     if (q.trace !== undefined) {
       try { const x = tools.trace(ix, q.trace, { full: true }); row.trace = { command: q.trace, nodes: x.nodes, adapters: x.adapters.length, writes: x.writes.length }; } catch (e) { row.trace = { error: (e as Error).message }; }
+    }
+    if (tr1 !== tr) {
+      row.r1 = {
+        truth: { sites: tr1.sites.length, units: tr1.units.length, files: tr1.files.length, removed: tr.sites.length - tr1.sites.length },
+        index: grains(tr1, idx), ...(selRows ? { callers: grains(tr1, selRows) } : {}), ...(wwRows ? { who_writes: grains(tr1, wwRows) } : {}),
+      };
     }
     row.indexMissed = tr.sites.filter((s) => !idx.some((x) => x.site === `${s.file}:${s.line}`)).slice(0, 12);
     rows.push(row);
