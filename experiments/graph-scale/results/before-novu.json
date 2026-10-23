@@ -1,0 +1,1039 @@
+{
+ "tree": "novu",
+ "modelCalls": 0,
+ "truthFiles": 3231,
+ "truthLoadMs": 3896,
+ "index": {
+  "files": 3231,
+  "units": 7889,
+  "callEdges": 14206,
+  "unresolved": 1456,
+  "memberCalls": null,
+  "entities": null,
+  "importTypeEdges": null,
+  "roots": 1,
+  "rootSource": "spec",
+  "commands": 982,
+  "buildMs": 94383,
+  "rssMB": 4581
+ },
+ "questions": [
+  {
+   "id": "NV-W1",
+   "kind": "writers",
+   "question": "Which units write subscribers through the subscriber repository (create, insert, update, upsert, delete or bulk writes)?",
+   "truth": {
+    "sites": 20,
+    "units": 20,
+    "files": 18,
+    "typeRefFiles": 94,
+    "implementations": [
+     "libs/dal/src/repositories/subscriber/subscriber.repository.ts#SubscriberRepository"
+    ],
+    "members": [
+     "bulkCreateSubscribers",
+     "findOneAndUpdate",
+     "delete",
+     "findOneAndDelete",
+     "create",
+     "insertMany",
+     "update",
+     "updateOne",
+     "upsertMany",
+     "upsert",
+     "bulkWrite"
+    ],
+    "ms": 2807
+   },
+   "index": {
+    "sites": {
+     "truth": 20,
+     "graph": 231,
+     "both": 20,
+     "recall": 1,
+     "precision": 0.08658008658008658
+    },
+    "units": {
+     "truth": 20,
+     "graph": 191,
+     "both": 20,
+     "recall": 1,
+     "precision": 0.10471204188481675
+    },
+    "files": {
+     "truth": 18,
+     "graph": 130,
+     "both": 18,
+     "recall": 1,
+     "precision": 0.13846153846153847
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 20,
+      "graph": 231,
+      "both": 20,
+      "recall": 1,
+      "precision": 0.08658008658008658
+     },
+     "units": {
+      "truth": 20,
+      "graph": 191,
+      "both": 20,
+      "recall": 1,
+      "precision": 0.10471204188481675
+     },
+     "files": {
+      "truth": 18,
+      "graph": 130,
+      "both": 18,
+      "recall": 1,
+      "precision": 0.13846153846153847
+     }
+    },
+    "how": {
+     "edge direct": 231
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "who_writes": {
+    "total": 0,
+    "capped": false,
+    "basis": "footprint",
+    "source": "declared",
+    "sites": {
+     "truth": 20,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "units": {
+     "truth": 20,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "files": {
+     "truth": 18,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commands": {
+     "truth": 20,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "notes": [
+     "Writes are followed through up to 4 levels of calls, through ports to their in-tree implementations; a write reached deeper or through an untyped call is not seen."
+    ],
+    "entities": []
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "libs/dal/src/repositories/subscriber/subscriber.repository.ts#SubscriberRepository",
+      "references": 94,
+      "importers": 1,
+      "commands": 80,
+      "ms": 107311
+     }
+    ],
+    "referenceFiles": {
+     "truth": 95,
+     "graph": 94,
+     "both": 94,
+     "recall": 0.9894736842105263,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 18,
+     "graph": 94,
+     "both": 17,
+     "recall": 0.9444444444444444,
+     "precision": 0.18085106382978725
+    },
+    "commandUnits": {
+     "truth": 20,
+     "graph": 25,
+     "both": 1,
+     "recall": 0.05,
+     "precision": 0.04
+    },
+    "commandFiles": {
+     "truth": 18,
+     "graph": 23,
+     "both": 3,
+     "recall": 0.16666666666666666,
+     "precision": 0.13043478260869565
+    }
+   },
+   "trace": {
+    "command": "apps/api/src/app/subscribers-v2/usecases/patch-subscriber/patch-subscriber.usecase.ts#PatchSubscriber.execute",
+    "nodes": 60,
+    "adapters": 2,
+    "writes": 0
+   },
+   "r1": {
+    "truth": {
+     "sites": 20,
+     "units": 20,
+     "files": 18,
+     "removed": 0
+    },
+    "index": {
+     "sites": {
+      "truth": 20,
+      "graph": 231,
+      "both": 20,
+      "recall": 1,
+      "precision": 0.08658008658008658
+     },
+     "units": {
+      "truth": 20,
+      "graph": 191,
+      "both": 20,
+      "recall": 1,
+      "precision": 0.10471204188481675
+     },
+     "files": {
+      "truth": 18,
+      "graph": 130,
+      "both": 18,
+      "recall": 1,
+      "precision": 0.13846153846153847
+     }
+    },
+    "indexEdgesOnly": {
+     "sites": {
+      "truth": 20,
+      "graph": 231,
+      "both": 20,
+      "recall": 1,
+      "precision": 0.08658008658008658
+     },
+     "units": {
+      "truth": 20,
+      "graph": 191,
+      "both": 20,
+      "recall": 1,
+      "precision": 0.10471204188481675
+     },
+     "files": {
+      "truth": 18,
+      "graph": 130,
+      "both": 18,
+      "recall": 1,
+      "precision": 0.13846153846153847
+     }
+    },
+    "who_writes": {
+     "sites": {
+      "truth": 20,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     },
+     "units": {
+      "truth": 20,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     },
+     "files": {
+      "truth": 18,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     }
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "NV-C1",
+   "kind": "callers",
+   "question": "Which units call the authentication port IAuthService (any member), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 31,
+    "units": 30,
+    "files": 17,
+    "typeRefFiles": 2,
+    "implementations": [
+     "apps/api/src/app/auth/services/auth.service.ts#AuthService",
+     "apps/api/src/app/auth/services/community.auth.service.ts#CommunityAuthService"
+    ],
+    "members": [
+     "authenticate",
+     "refreshToken",
+     "isAuthenticatedForOrganization",
+     "getUserByApiKey",
+     "getSubscriberWidgetToken",
+     "generateUserToken",
+     "getSignedToken",
+     "validateUser",
+     "validateSubscriber",
+     "isRootEnvironment"
+    ],
+    "ms": 351
+   },
+   "index": {
+    "sites": {
+     "truth": 31,
+     "graph": 31,
+     "both": 31,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 30,
+     "graph": 30,
+     "both": 30,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 17,
+     "graph": 17,
+     "both": 17,
+     "recall": 1,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 31,
+      "graph": 31,
+      "both": 31,
+      "recall": 1,
+      "precision": 1
+     },
+     "units": {
+      "truth": 30,
+      "graph": 30,
+      "both": 30,
+      "recall": 1,
+      "precision": 1
+     },
+     "files": {
+      "truth": 17,
+      "graph": 17,
+      "both": 17,
+      "recall": 1,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 21,
+     "edge via port": 10
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "impact": {
+    "targets": [
+     {
+      "target": "libs/application-generic/src/services/auth/auth.service.interface.ts#IAuthService",
+      "references": 2,
+      "importers": 1,
+      "commands": 0,
+      "ms": 116
+     },
+     {
+      "target": "apps/api/src/app/auth/services/community.auth.service.ts#CommunityAuthService",
+      "references": 1,
+      "importers": 1,
+      "commands": 32,
+      "ms": 83
+     }
+    ],
+    "referenceFiles": {
+     "truth": 17,
+     "graph": 3,
+     "both": 2,
+     "recall": 0.11764705882352941,
+     "precision": 0.6666666666666666
+    },
+    "callerFilesByReferences": {
+     "truth": 17,
+     "graph": 3,
+     "both": 2,
+     "recall": 0.11764705882352941,
+     "precision": 0.6666666666666666
+    },
+    "commandUnits": {
+     "truth": 30,
+     "graph": 25,
+     "both": 18,
+     "recall": 0.6,
+     "precision": 0.72
+    },
+    "commandFiles": {
+     "truth": 17,
+     "graph": 7,
+     "both": 7,
+     "recall": 0.4117647058823529,
+     "precision": 1
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "NV-X1",
+   "kind": "crossCalls",
+   "question": "Which calls does the subscribers-v2 API module make into code of another API module under apps/api/src/app?",
+   "truth": {
+    "sites": 108,
+    "units": 40,
+    "files": 9,
+    "members": [],
+    "ms": 137
+   },
+   "index": {
+    "sites": {
+     "truth": 108,
+     "graph": 97,
+     "both": 94,
+     "recall": 0.8703703703703703,
+     "precision": 0.9690721649484536
+    },
+    "units": {
+     "truth": 40,
+     "graph": 33,
+     "both": 30,
+     "recall": 0.75,
+     "precision": 0.9090909090909091
+    },
+    "files": {
+     "truth": 9,
+     "graph": 5,
+     "both": 3,
+     "recall": 0.3333333333333333,
+     "precision": 0.6
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 108,
+      "graph": 94,
+      "both": 94,
+      "recall": 0.8703703703703703,
+      "precision": 1
+     },
+     "units": {
+      "truth": 40,
+      "graph": 30,
+      "both": 30,
+      "recall": 0.75,
+      "precision": 1
+     },
+     "files": {
+      "truth": 9,
+      "graph": 3,
+      "both": 3,
+      "recall": 0.3333333333333333,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 94,
+     "unresolved (callee unknown)": 3
+    }
+   },
+   "indexMissed": [
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-count-query.dto.ts#SubscriberNotificationsFilter.tags",
+     "file": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-count-query.dto.ts",
+     "line": 12,
+     "callee": "apps/api/src/app/inbox/validators/is-tags-filter.validator.ts#IsTagsFilter",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-count-query.dto.ts#SubscriberNotificationsFilter.severity",
+     "file": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-count-query.dto.ts",
+     "line": 32,
+     "callee": "apps/api/src/app/shared/validators/is-enum-or-array.ts#IsEnumOrArray",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-query.dto.ts#<module>",
+     "file": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-query.dto.ts",
+     "line": 17,
+     "callee": "apps/api/src/app/shared/dtos/cursor-pagination-request.ts#CursorPaginationRequestDto",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-query.dto.ts#GetSubscriberNotificationsQueryDto.tags",
+     "file": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-query.dto.ts",
+     "line": 21,
+     "callee": "apps/api/src/app/inbox/utils/parse-tags-query.ts#parseTagsQueryValue",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-query.dto.ts#GetSubscriberNotificationsQueryDto.tags",
+     "file": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-query.dto.ts",
+     "line": 22,
+     "callee": "apps/api/src/app/inbox/validators/is-tags-filter.validator.ts#IsTagsFilter",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-query.dto.ts#GetSubscriberNotificationsQueryDto.severity",
+     "file": "apps/api/src/app/subscribers-v2/dtos/get-subscriber-notifications-query.dto.ts",
+     "line": 73,
+     "callee": "apps/api/src/app/shared/validators/is-enum-or-array.ts#IsEnumOrArray",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/list-subscribers-response.dto.ts#<module>",
+     "file": "apps/api/src/app/subscribers-v2/dtos/list-subscribers-response.dto.ts",
+     "line": 4,
+     "callee": "apps/api/src/app/shared/dtos/cursor-paginated-response.ts#withCursorPagination",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/mark-subscriber-notifications-as-seen.dto.ts#MarkSubscriberNotificationsAsSeenDto.tags",
+     "file": "apps/api/src/app/subscribers-v2/dtos/mark-subscriber-notifications-as-seen.dto.ts",
+     "line": 17,
+     "callee": "apps/api/src/app/inbox/validators/is-tags-filter.validator.ts#IsTagsFilter",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/dtos/update-all-subscriber-notifications.dto.ts#UpdateAllSubscriberNotificationsDto.tags",
+     "file": "apps/api/src/app/subscribers-v2/dtos/update-all-subscriber-notifications.dto.ts",
+     "line": 8,
+     "callee": "apps/api/src/app/inbox/validators/is-tags-filter.validator.ts#IsTagsFilter",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/subscribers.controller.ts#<module>",
+     "file": "apps/api/src/app/subscribers-v2/subscribers.controller.ts",
+     "line": 106,
+     "callee": "apps/api/src/app/rate-limiting/guards/throttler.decorator.ts#ThrottlerCategory",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/subscribers.controller.ts#<module>",
+     "file": "apps/api/src/app/subscribers-v2/subscribers.controller.ts",
+     "line": 110,
+     "callee": "apps/api/src/app/shared/framework/swagger/sdk.decorators.ts#SdkGroupName",
+     "indexNamed": false
+    },
+    {
+     "unit": "apps/api/src/app/subscribers-v2/subscribers.controller.ts#<module>",
+     "file": "apps/api/src/app/subscribers-v2/subscribers.controller.ts",
+     "line": 111,
+     "callee": "apps/api/src/app/auth/framework/auth.decorator.ts#RequireAuthentication",
+     "indexNamed": false
+    }
+   ]
+  },
+  {
+   "id": "NV-C2",
+   "kind": "callers",
+   "question": "Which units call the cache port ICacheService (any member), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 118,
+    "units": 74,
+    "files": 28,
+    "typeRefFiles": 1,
+    "implementations": [
+     "libs/application-generic/src/services/cache/cache-service.mock.ts#{",
+     "libs/application-generic/src/services/cache/cache.service.ts#CacheService"
+    ],
+    "members": [
+     "set",
+     "get",
+     "del",
+     "incrIfExistsAtomic",
+     "delByPattern",
+     "keys",
+     "getStatus",
+     "cacheEnabled",
+     "sadd",
+     "eval",
+     "incr"
+    ],
+    "ms": 645
+   },
+   "index": {
+    "sites": {
+     "truth": 118,
+     "graph": 118,
+     "both": 118,
+     "recall": 1,
+     "precision": 1
+    },
+    "units": {
+     "truth": 74,
+     "graph": 74,
+     "both": 74,
+     "recall": 1,
+     "precision": 1
+    },
+    "files": {
+     "truth": 28,
+     "graph": 28,
+     "both": 28,
+     "recall": 1,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 118,
+      "graph": 118,
+      "both": 118,
+      "recall": 1,
+      "precision": 1
+     },
+     "units": {
+      "truth": 74,
+      "graph": 74,
+      "both": 74,
+      "recall": 1,
+      "precision": 1
+     },
+     "files": {
+      "truth": 28,
+      "graph": 28,
+      "both": 28,
+      "recall": 1,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 118
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "impact": {
+    "targets": [
+     {
+      "target": "libs/application-generic/src/services/cache/cache.service.ts#ICacheService",
+      "references": 1,
+      "importers": 6,
+      "commands": 0,
+      "ms": 101
+     }
+    ],
+    "referenceFiles": {
+     "truth": 29,
+     "graph": 1,
+     "both": 1,
+     "recall": 0.034482758620689655,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 28,
+     "graph": 1,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandUnits": {
+     "truth": 74,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 28,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": []
+  },
+  {
+   "id": "NV-W2",
+   "kind": "writers",
+   "question": "Which units write integrations through the integration repository (create, insert, update, upsert, delete or bulk writes)?",
+   "truth": {
+    "sites": 136,
+    "units": 105,
+    "files": 90,
+    "typeRefFiles": 117,
+    "implementations": [
+     "libs/dal/src/repositories/integration/integration.repository.ts#IntegrationRepository"
+    ],
+    "members": [
+     "create",
+     "delete",
+     "deleteMany",
+     "findOneAndUpdate",
+     "findOneAndDelete",
+     "insertMany",
+     "update",
+     "updateOne",
+     "upsertMany",
+     "upsert",
+     "bulkWrite"
+    ],
+    "ms": 391
+   },
+   "index": {
+    "sites": {
+     "truth": 136,
+     "graph": 242,
+     "both": 131,
+     "recall": 0.9632352941176471,
+     "precision": 0.5413223140495868
+    },
+    "units": {
+     "truth": 105,
+     "graph": 197,
+     "both": 103,
+     "recall": 0.9809523809523809,
+     "precision": 0.5228426395939086
+    },
+    "files": {
+     "truth": 90,
+     "graph": 134,
+     "both": 88,
+     "recall": 0.9777777777777777,
+     "precision": 0.6567164179104478
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 136,
+      "graph": 242,
+      "both": 131,
+      "recall": 0.9632352941176471,
+      "precision": 0.5413223140495868
+     },
+     "units": {
+      "truth": 105,
+      "graph": 197,
+      "both": 103,
+      "recall": 0.9809523809523809,
+      "precision": 0.5228426395939086
+     },
+     "files": {
+      "truth": 90,
+      "graph": 134,
+      "both": 88,
+      "recall": 0.9777777777777777,
+      "precision": 0.6567164179104478
+     }
+    },
+    "how": {
+     "edge direct": 242
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "who_writes": {
+    "error": "unknown aggregate \"IntegrationEntity\"; known aggregate roots: SubscriberEntity"
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "libs/dal/src/repositories/integration/integration.repository.ts#IntegrationRepository",
+      "references": 117,
+      "importers": 1,
+      "commands": 87,
+      "ms": 235
+     }
+    ],
+    "referenceFiles": {
+     "truth": 177,
+     "graph": 117,
+     "both": 117,
+     "recall": 0.6610169491525424,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 90,
+     "graph": 117,
+     "both": 30,
+     "recall": 0.3333333333333333,
+     "precision": 0.2564102564102564
+    },
+    "commandUnits": {
+     "truth": 105,
+     "graph": 25,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandFiles": {
+     "truth": 90,
+     "graph": 13,
+     "both": 1,
+     "recall": 0.011111111111111112,
+     "precision": 0.07692307692307693
+    }
+   },
+   "r1": {
+    "truth": {
+     "sites": 36,
+     "units": 30,
+     "files": 24,
+     "removed": 100
+    },
+    "index": {
+     "sites": {
+      "truth": 36,
+      "graph": 242,
+      "both": 36,
+      "recall": 1,
+      "precision": 0.1487603305785124
+     },
+     "units": {
+      "truth": 30,
+      "graph": 197,
+      "both": 30,
+      "recall": 1,
+      "precision": 0.15228426395939088
+     },
+     "files": {
+      "truth": 24,
+      "graph": 134,
+      "both": 24,
+      "recall": 1,
+      "precision": 0.1791044776119403
+     }
+    },
+    "indexEdgesOnly": {
+     "sites": {
+      "truth": 36,
+      "graph": 242,
+      "both": 36,
+      "recall": 1,
+      "precision": 0.1487603305785124
+     },
+     "units": {
+      "truth": 30,
+      "graph": 197,
+      "both": 30,
+      "recall": 1,
+      "precision": 0.15228426395939088
+     },
+     "files": {
+      "truth": 24,
+      "graph": 134,
+      "both": 24,
+      "recall": 1,
+      "precision": 0.1791044776119403
+     }
+    }
+   },
+   "indexMissed": [
+    {
+     "unit": "apps/api/src/app/change/usecases/promote-feed-change/promote-feed-change.ts#PromoteFeedChange.execute",
+     "file": "apps/api/src/app/change/usecases/promote-feed-change/promote-feed-change.ts",
+     "line": 32,
+     "callee": "IntegrationRepository.delete",
+     "indexNamed": true
+    },
+    {
+     "unit": "apps/api/src/app/change/usecases/promote-message-template-change/promote-message-template-change.ts#PromoteMessageTemplateChange.execute",
+     "file": "apps/api/src/app/change/usecases/promote-message-template-change/promote-message-template-change.ts",
+     "line": 70,
+     "callee": "IntegrationRepository.delete",
+     "indexNamed": true
+    },
+    {
+     "unit": "apps/api/src/app/change/usecases/promote-notification-template-change/promote-notification-template-change.usecase.ts#PromoteNotificationTemplateChange.execute",
+     "file": "apps/api/src/app/change/usecases/promote-notification-template-change/promote-notification-template-change.usecase.ts",
+     "line": 210,
+     "callee": "IntegrationRepository.delete",
+     "indexNamed": true
+    },
+    {
+     "unit": "apps/api/src/app/feeds/usecases/delete-feed/delete-feed.usecase.ts#DeleteFeed.execute",
+     "file": "apps/api/src/app/feeds/usecases/delete-feed/delete-feed.usecase.ts",
+     "line": 17,
+     "callee": "IntegrationRepository.delete",
+     "indexNamed": true
+    },
+    {
+     "unit": "apps/api/src/app/workflows-v1/usecases/delete-workflow/delete-workflow.usecase.ts#deleteOps",
+     "file": "apps/api/src/app/workflows-v1/usecases/delete-workflow/delete-workflow.usecase.ts",
+     "line": 110,
+     "callee": "IntegrationRepository.delete",
+     "indexNamed": true
+    }
+   ]
+  },
+  {
+   "id": "NV-W3",
+   "kind": "writers",
+   "question": "Which units write messages through the message repository (create, insert, update, upsert, delete or bulk writes)?",
+   "truth": {
+    "sites": 19,
+    "units": 17,
+    "files": 9,
+    "typeRefFiles": 37,
+    "implementations": [
+     "libs/dal/src/repositories/message/message.repository.ts#MessageRepository"
+    ],
+    "members": [
+     "findOneAndUpdate",
+     "delete",
+     "findOneAndDelete",
+     "create",
+     "insertMany",
+     "update",
+     "updateOne",
+     "upsertMany",
+     "upsert",
+     "bulkWrite"
+    ],
+    "ms": 278
+   },
+   "index": {
+    "sites": {
+     "truth": 19,
+     "graph": 230,
+     "both": 19,
+     "recall": 1,
+     "precision": 0.08260869565217391
+    },
+    "units": {
+     "truth": 17,
+     "graph": 190,
+     "both": 17,
+     "recall": 1,
+     "precision": 0.08947368421052632
+    },
+    "files": {
+     "truth": 9,
+     "graph": 129,
+     "both": 9,
+     "recall": 1,
+     "precision": 0.06976744186046512
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 19,
+      "graph": 230,
+      "both": 19,
+      "recall": 1,
+      "precision": 0.08260869565217391
+     },
+     "units": {
+      "truth": 17,
+      "graph": 190,
+      "both": 17,
+      "recall": 1,
+      "precision": 0.08947368421052632
+     },
+     "files": {
+      "truth": 9,
+      "graph": 129,
+      "both": 9,
+      "recall": 1,
+      "precision": 0.06976744186046512
+     }
+    },
+    "how": {
+     "edge direct": 230
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "who_writes": {
+    "error": "unknown aggregate \"MessageEntity\"; known aggregate roots: SubscriberEntity"
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "libs/dal/src/repositories/message/message.repository.ts#MessageRepository",
+      "references": 37,
+      "importers": 1,
+      "commands": 45,
+      "ms": 124
+     }
+    ],
+    "referenceFiles": {
+     "truth": 38,
+     "graph": 37,
+     "both": 37,
+     "recall": 0.9736842105263158,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 9,
+     "graph": 37,
+     "both": 8,
+     "recall": 0.8888888888888888,
+     "precision": 0.21621621621621623
+    },
+    "commandUnits": {
+     "truth": 17,
+     "graph": 25,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandFiles": {
+     "truth": 9,
+     "graph": 22,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    }
+   },
+   "r1": {
+    "truth": {
+     "sites": 19,
+     "units": 17,
+     "files": 9,
+     "removed": 0
+    },
+    "index": {
+     "sites": {
+      "truth": 19,
+      "graph": 230,
+      "both": 19,
+      "recall": 1,
+      "precision": 0.08260869565217391
+     },
+     "units": {
+      "truth": 17,
+      "graph": 190,
+      "both": 17,
+      "recall": 1,
+      "precision": 0.08947368421052632
+     },
+     "files": {
+      "truth": 9,
+      "graph": 129,
+      "both": 9,
+      "recall": 1,
+      "precision": 0.06976744186046512
+     }
+    },
+    "indexEdgesOnly": {
+     "sites": {
+      "truth": 19,
+      "graph": 230,
+      "both": 19,
+      "recall": 1,
+      "precision": 0.08260869565217391
+     },
+     "units": {
+      "truth": 17,
+      "graph": 190,
+      "both": 17,
+      "recall": 1,
+      "precision": 0.08947368421052632
+     },
+     "files": {
+      "truth": 9,
+      "graph": 129,
+      "both": 9,
+      "recall": 1,
+      "precision": 0.06976744186046512
+     }
+    }
+   },
+   "indexMissed": []
+  }
+ ]
+}

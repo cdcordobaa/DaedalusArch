@@ -3128,3 +3128,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 CONSTRUCTION, U1 groundwork (exploratory, DEV material); code stays in experiments/
 
 ---
+
+## v1.5 CONSTRUCTION — U1 groundwork GRAPH-SCALE: generation, measurement and records (exploratory, v1.5-exp)
+**Timestamp**: 2026-10-23T07:40:00Z
+**User Input**: (same brief as the plan entry above; no new input)
+**AI Response**: Fixes (a)–(e) in experiments/detect-02/ (comprehension index and tools; the rules' facts.ts unchanged), with 18 new unit tests and 16 existing; committed and pushed (143f77a0) before the first after-measurement. Regression: dev set (91 trees) and precision fixtures identical to the baseline. Before run reproduced the scout's 9 numbers exactly (Medusa installed and built as the scout did). Measured 18 questions on Backstage, Novu and Medusa before and after. One dated harness revision after the first measurement (truth R1: receiver check for overridden members; NV-W2 136 → 36 truth sites), re-measured; the fixes were not changed after measuring. Report Docs/DiagnosticRuns/graph-scale-2026-10-23.md; research-log entry 21; plan ticked; aidlc-state updated. Gate-level calls under the author's standing delegation.
+**Context**: v1.5 CONSTRUCTION, U1 groundwork (exploratory, DEV); zero model calls; no frozen path changed
+
+---

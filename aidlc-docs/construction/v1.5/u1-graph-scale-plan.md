@@ -32,31 +32,37 @@ groundwork only. **Status:** exploratory, **v1.5-exp**, development material. **
   15/15.
 - [x] **Step 2. Pre-register the new questions.** Three per repository (callers of a port; writers of an entity) in
   `experiments/graph-scale/questions/`, committed with this plan before any fix is written or measured.
-- [ ] **Step 3. (a) Factory and callback units.** A module-level declaration whose initializer is a call taking a
+- [x] **Step 3. (a) Factory and callback units.** A module-level declaration whose initializer is a call taking a
   function literal (`const x = createStep(name, async () => …)`, a registry or DI-provider factory) becomes the unit
   `x`; calls to `x(…)` resolve to it. Unit tests on a small committed fixture.
-- [ ] **Step 4. (b) Receiver-aware call edges.** Every call to an in-tree member records the receiver's static class
+- [x] **Step 4. (b) Receiver-aware call edges.** Every call to an in-tree member records the receiver's static class
   (by the type checker) when the member is declared on a base class; calls to overloaded methods resolve to the
   implementation. Unit tests (inherited base-repository writes, overloads).
-- [ ] **Step 5. (c) `callers(port_or_method)` fact and tool.** Every call site of a port's members, through its
+- [x] **Step 5. (c) `callers(port_or_method)` fact and tool.** Every call site of a port's members, through its
   implementations and subclasses (inherited members only when the receiver is the type), grouped by unit; in the MCP
   comprehension server. Unit tests, plus the server's tool list.
-- [ ] **Step 6. (d) Inferred entities and a populated `who_writes`.** Without declared aggregates: entity-like types
+- [x] **Step 6. (d) Inferred entities and a populated `who_writes`.** Without declared aggregates: entity-like types
   from ORM decorators (`@Entity`), schema definitions (`model.define("X", …)`, `new Schema<X>`), generic base
   repositories (`extends BaseRepository<_, XEntity>`) and stores that load a type by identity; writes are the write
   members of their stores. Every inferred root is labelled `inferred`, with its evidence. Unit tests.
-- [ ] **Step 7. (e) Inline `import('./X').X` types.** Import-type edges in the index's import graph and an
+- [x] **Step 7. (e) Inline `import('./X').X` types.** Import-type edges in the index's import graph and an
   extraction add-on for coverage (`experiments/detect-02/lib/import-types.ts`); coverage against tsc measured with
   the frozen fidelity library. Unit tests.
-- [ ] **Step 8. Regression.** Dev set, precision fixtures, tool tests: same hits, same 0 false positives.
-- [ ] **Step 9. Measure.** On the three trees at the scout's pins: the scout's 3 questions plus the 3 new ones each,
+- [x] **Step 8. Regression.** Dev set, precision fixtures, tool tests: same hits, same 0 false positives.
+- [x] **Step 9. Measure.** On the three trees at the scout's pins: the scout's 3 questions plus the 3 new ones each,
   every tool and fact against compiler truth (recall and precision at sites, units and files), before (the unchanged
   code, from a worktree of the base commit) and after, and extraction / index time. No tuning after the first
   after-measurement; any later change is a dated revision with re-measurement.
-- [ ] **Step 10. Records.** `Docs/DiagnosticRuns/graph-scale-2026-10-23.md`, a research-log entry, the v1.5 state in
+- [x] **Step 10. Records.** `Docs/DiagnosticRuns/graph-scale-2026-10-23.md`, a research-log entry, the v1.5 state in
   `aidlc-docs/aidlc-state.md`, the audit entry; PR, merged normally once Build & Test is green.
 
 ## NFR check (NFR-1 to NFR-5)
 
 NFR-1 protection: no frozen path changes (checked with `git diff --stat` before the PR). Zero model calls. No personal
 absolute paths in any record. No third-party source committed.
+
+## Outcome (2026-10-23)
+
+All steps done; report `Docs/DiagnosticRuns/graph-scale-2026-10-23.md`. Regression clean (dev set and precision
+fixtures identical). One dated harness revision after the first measurement (truth R1, receiver check for overridden
+members), re-measured. Code stays in `experiments/` until promotion into `src/` in U1 proper.

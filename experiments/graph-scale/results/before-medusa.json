@@ -1,0 +1,1243 @@
+{
+ "tree": "medusa",
+ "modelCalls": 0,
+ "truthFiles": 2815,
+ "truthLoadMs": 7083,
+ "index": {
+  "files": 2815,
+  "units": 3499,
+  "callEdges": 6618,
+  "unresolved": 1301,
+  "memberCalls": null,
+  "entities": null,
+  "importTypeEdges": null,
+  "roots": 0,
+  "rootSource": "spec",
+  "commands": 672,
+  "buildMs": 113741,
+  "rssMB": 5870
+ },
+ "questions": [
+  {
+   "id": "MD-W1",
+   "kind": "writers",
+   "question": "Which units write products through the Product Module's published service (create, update, upsert, delete, soft-delete or restore of products)?",
+   "truth": {
+    "sites": 10,
+    "units": 5,
+    "files": 5,
+    "typeRefFiles": 37,
+    "implementations": [
+     "packages/modules/product/src/services/index.ts#default",
+     "packages/modules/product/src/services/product-module-service.ts#ProductModuleService"
+    ],
+    "members": [
+     "createProducts",
+     "createProducts",
+     "upsertProducts",
+     "upsertProducts",
+     "updateProducts",
+     "updateProducts",
+     "deleteProducts",
+     "softDeleteProducts",
+     "restoreProducts"
+    ],
+    "ms": 4129
+   },
+   "index": {
+    "sites": {
+     "truth": 10,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "units": {
+     "truth": 5,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "files": {
+     "truth": 5,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 10,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     },
+     "units": {
+      "truth": 5,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     },
+     "files": {
+      "truth": 5,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     }
+    },
+    "how": {}
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "who_writes": {
+    "error": "unknown aggregate \"Product\"; known aggregate roots: (none)"
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/product/service.ts#IProductModuleService",
+      "references": 37,
+      "importers": 1,
+      "commands": 0,
+      "ms": 75426
+     },
+     {
+      "target": "packages/modules/product/src/services/product-module-service.ts#ProductModuleService",
+      "references": 1,
+      "importers": 1,
+      "commands": 47,
+      "ms": 296
+     }
+    ],
+    "referenceFiles": {
+     "truth": 37,
+     "graph": 38,
+     "both": 37,
+     "recall": 1,
+     "precision": 0.9736842105263158
+    },
+    "callerFilesByReferences": {
+     "truth": 5,
+     "graph": 38,
+     "both": 5,
+     "recall": 1,
+     "precision": 0.13157894736842105
+    },
+    "commandUnits": {
+     "truth": 5,
+     "graph": 25,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandFiles": {
+     "truth": 5,
+     "graph": 1,
+     "both": 1,
+     "recall": 0.2,
+     "precision": 1
+    }
+   },
+   "trace": {
+    "command": "ProductModuleService.updateProducts",
+    "nodes": 60,
+    "adapters": 0,
+    "writes": 0
+   },
+   "indexMissed": [
+    {
+     "unit": "packages/core/core-flows/src/product/steps/batch-link-products-in-category.ts#batchLinkProductsToCategoryStep",
+     "file": "packages/core/core-flows/src/product/steps/batch-link-products-in-category.ts",
+     "line": 57,
+     "callee": "IProductModuleService.upsertProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/product/steps/batch-link-products-in-category.ts#batchLinkProductsToCategoryStep",
+     "file": "packages/core/core-flows/src/product/steps/batch-link-products-in-category.ts",
+     "line": 98,
+     "callee": "IProductModuleService.upsertProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/product/steps/create-products.ts#createProductsStep",
+     "file": "packages/core/core-flows/src/product/steps/create-products.ts",
+     "line": 36,
+     "callee": "IProductModuleService.createProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/product/steps/create-products.ts#createProductsStep",
+     "file": "packages/core/core-flows/src/product/steps/create-products.ts",
+     "line": 49,
+     "callee": "IProductModuleService.deleteProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/product/steps/delete-products.ts#deleteProductsStep",
+     "file": "packages/core/core-flows/src/product/steps/delete-products.ts",
+     "line": 19,
+     "callee": "IProductModuleService.softDeleteProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/product/steps/delete-products.ts#deleteProductsStep",
+     "file": "packages/core/core-flows/src/product/steps/delete-products.ts",
+     "line": 29,
+     "callee": "IProductModuleService.restoreProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/product/steps/update-products.ts#updateProductsStep",
+     "file": "packages/core/core-flows/src/product/steps/update-products.ts",
+     "line": 101,
+     "callee": "IProductModuleService.upsertProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/product/steps/update-products.ts#updateProductsStep",
+     "file": "packages/core/core-flows/src/product/steps/update-products.ts",
+     "line": 124,
+     "callee": "IProductModuleService.updateProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/product/steps/update-products.ts#updateProductsStep",
+     "file": "packages/core/core-flows/src/product/steps/update-products.ts",
+     "line": 143,
+     "callee": "IProductModuleService.upsertProducts",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/modules/product/src/services/product-module-service.ts#ProductModuleService.upsertProducts",
+     "file": "packages/modules/product/src/services/product-module-service.ts",
+     "line": 2863,
+     "callee": "IProductModuleService.createProducts",
+     "indexNamed": true
+    }
+   ]
+  },
+  {
+   "id": "MD-C1",
+   "kind": "callers",
+   "question": "Which units call the Inventory Module's published service (any member of IInventoryService), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 33,
+    "units": 15,
+    "files": 15,
+    "typeRefFiles": 11,
+    "implementations": [
+     "packages/modules/inventory/src/services/index.ts#default",
+     "packages/modules/inventory/src/services/inventory-module.ts#InventoryModuleService"
+    ],
+    "members": [
+     "listInventoryItems",
+     "listAndCountInventoryItems",
+     "listReservationItems",
+     "listAndCountReservationItems",
+     "listInventoryLevels",
+     "listAndCountInventoryLevels",
+     "retrieveInventoryItem",
+     "retrieveInventoryLevelByItemAndLocation",
+     "retrieveInventoryLevel",
+     "retrieveReservationItem",
+     "createReservationItems",
+     "createReservationItems",
+     "createInventoryItems",
+     "createInventoryItems",
+     "createInventoryLevels",
+     "createInventoryLevels",
+     "updateInventoryLevels",
+     "updateInventoryLevels",
+     "updateInventoryItems",
+     "updateInventoryItems",
+     "updateReservationItems",
+     "updateReservationItems",
+     "deleteReservationItemsByLineItem",
+     "restoreReservationItemsByLineItem",
+     "deleteReservationItems",
+     "softDeleteReservationItems",
+     "restoreReservationItems",
+     "deleteInventoryItems",
+     "softDeleteInventoryItems",
+     "restoreInventoryItems",
+     "deleteInventoryItemLevelByLocationId",
+     "deleteReservationItemByLocationId",
+     "deleteInventoryLevel",
+     "deleteInventoryLevels",
+     "softDeleteInventoryLevels",
+     "restoreInventoryLevels",
+     "adjustInventory",
+     "adjustInventory",
+     "confirmInventory",
+     "retrieveAvailableQuantity",
+     "retrieveStockedQuantity",
+     "retrieveReservedQuantity",
+     "__joinerConfig",
+     "__hooks"
+    ],
+    "ms": 1413
+   },
+   "index": {
+    "sites": {
+     "truth": 33,
+     "graph": 1,
+     "both": 1,
+     "recall": 0.030303030303030304,
+     "precision": 1
+    },
+    "units": {
+     "truth": 15,
+     "graph": 1,
+     "both": 1,
+     "recall": 0.06666666666666667,
+     "precision": 1
+    },
+    "files": {
+     "truth": 15,
+     "graph": 1,
+     "both": 1,
+     "recall": 0.06666666666666667,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 33,
+      "graph": 1,
+      "both": 1,
+      "recall": 0.030303030303030304,
+      "precision": 1
+     },
+     "units": {
+      "truth": 15,
+      "graph": 1,
+      "both": 1,
+      "recall": 0.06666666666666667,
+      "precision": 1
+     },
+     "files": {
+      "truth": 15,
+      "graph": 1,
+      "both": 1,
+      "recall": 0.06666666666666667,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 1
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/inventory/service.ts#IInventoryService",
+      "references": 11,
+      "importers": 1,
+      "commands": 0,
+      "ms": 151
+     },
+     {
+      "target": "packages/modules/inventory/src/services/inventory-module.ts#InventoryModuleService",
+      "references": 2,
+      "importers": 2,
+      "commands": 28,
+      "ms": 112
+     }
+    ],
+    "referenceFiles": {
+     "truth": 15,
+     "graph": 13,
+     "both": 11,
+     "recall": 0.7333333333333333,
+     "precision": 0.8461538461538461
+    },
+    "callerFilesByReferences": {
+     "truth": 15,
+     "graph": 13,
+     "both": 11,
+     "recall": 0.7333333333333333,
+     "precision": 0.8461538461538461
+    },
+    "commandUnits": {
+     "truth": 15,
+     "graph": 25,
+     "both": 0,
+     "recall": 0,
+     "precision": 0
+    },
+    "commandFiles": {
+     "truth": 15,
+     "graph": 1,
+     "both": 1,
+     "recall": 0.06666666666666667,
+     "precision": 1
+    }
+   },
+   "indexMissed": [
+    {
+     "unit": "packages/core/core-flows/src/cart/steps/confirm-inventory.ts#confirmInventoryStep",
+     "file": "packages/core/core-flows/src/cart/steps/confirm-inventory.ts",
+     "line": 82,
+     "callee": "IInventoryService.confirmInventory",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/cart/steps/reserve-inventory.ts#reserveInventoryStep",
+     "file": "packages/core/core-flows/src/cart/steps/reserve-inventory.ts",
+     "line": 91,
+     "callee": "IInventoryService.createReservationItems",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/cart/steps/reserve-inventory.ts#reserveInventoryStep",
+     "file": "packages/core/core-flows/src/cart/steps/reserve-inventory.ts",
+     "line": 111,
+     "callee": "IInventoryService.deleteReservationItems",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/adjust-inventory-levels.ts#adjustInventoryLevelsStep",
+     "file": "packages/core/core-flows/src/inventory/steps/adjust-inventory-levels.ts",
+     "line": 38,
+     "callee": "IInventoryService.adjustInventory",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/adjust-inventory-levels.ts#adjustInventoryLevelsStep",
+     "file": "packages/core/core-flows/src/inventory/steps/adjust-inventory-levels.ts",
+     "line": 79,
+     "callee": "IInventoryService.adjustInventory",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/create-inventory-items.ts#createInventoryItemsStep",
+     "file": "packages/core/core-flows/src/inventory/steps/create-inventory-items.ts",
+     "line": 27,
+     "callee": "IInventoryService.createInventoryItems",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/create-inventory-items.ts#createInventoryItemsStep",
+     "file": "packages/core/core-flows/src/inventory/steps/create-inventory-items.ts",
+     "line": 41,
+     "callee": "IInventoryService.deleteInventoryItems",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/create-inventory-levels.ts#createInventoryLevelsStep",
+     "file": "packages/core/core-flows/src/inventory/steps/create-inventory-levels.ts",
+     "line": 23,
+     "callee": "IInventoryService.createInventoryLevels",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/create-inventory-levels.ts#createInventoryLevelsStep",
+     "file": "packages/core/core-flows/src/inventory/steps/create-inventory-levels.ts",
+     "line": 36,
+     "callee": "IInventoryService.deleteInventoryLevels",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/delete-inventory-items.ts#deleteInventoryItemStep",
+     "file": "packages/core/core-flows/src/inventory/steps/delete-inventory-items.ts",
+     "line": 43,
+     "callee": "IInventoryService.softDeleteInventoryItems",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/delete-inventory-items.ts#deleteInventoryItemStep",
+     "file": "packages/core/core-flows/src/inventory/steps/delete-inventory-items.ts",
+     "line": 54,
+     "callee": "IInventoryService.restoreInventoryItems",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/inventory/steps/delete-inventory-levels.ts#deleteInventoryLevelsStep",
+     "file": "packages/core/core-flows/src/inventory/steps/delete-inventory-levels.ts",
+     "line": 20,
+     "callee": "IInventoryService.softDeleteInventoryLevels",
+     "indexNamed": false
+    }
+   ]
+  },
+  {
+   "id": "MD-X1",
+   "kind": "crossCalls",
+   "question": "Which calls do the order workflows (core-flows/src/order) make into another domain's steps or workflows in core-flows (the order flows' cross-module calls)?",
+   "truth": {
+    "sites": 323,
+    "units": 94,
+    "files": 93,
+    "members": [],
+    "ms": 4309
+   },
+   "index": {
+    "sites": {
+     "truth": 323,
+     "graph": 5,
+     "both": 2,
+     "recall": 0.006191950464396285,
+     "precision": 0.4
+    },
+    "units": {
+     "truth": 94,
+     "graph": 4,
+     "both": 2,
+     "recall": 0.02127659574468085,
+     "precision": 0.5
+    },
+    "files": {
+     "truth": 93,
+     "graph": 3,
+     "both": 2,
+     "recall": 0.021505376344086023,
+     "precision": 0.6666666666666666
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 323,
+      "graph": 2,
+      "both": 2,
+      "recall": 0.006191950464396285,
+      "precision": 1
+     },
+     "units": {
+      "truth": 94,
+      "graph": 2,
+      "both": 2,
+      "recall": 0.02127659574468085,
+      "precision": 1
+     },
+     "files": {
+      "truth": 93,
+      "graph": 2,
+      "both": 2,
+      "recall": 0.021505376344086023,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 2,
+     "unresolved (callee unknown)": 3
+    }
+   },
+   "indexMissed": [
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/add-line-items.ts#addOrderLineItemsWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/add-line-items.ts",
+     "line": 110,
+     "callee": "packages/core/core-flows/src/common/steps/use-query-graph.ts#useQueryGraphStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/add-line-items.ts#addOrderLineItemsWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/add-line-items.ts",
+     "line": 134,
+     "callee": "packages/core/core-flows/src/cart/steps/find-sales-channel.ts#findSalesChannelStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/add-line-items.ts#addOrderLineItemsWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/add-line-items.ts",
+     "line": 137,
+     "callee": "packages/core/core-flows/src/cart/steps/find-one-or-any-region.ts#findOneOrAnyRegionStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/add-line-items.ts#addOrderLineItemsWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/add-line-items.ts",
+     "line": 140,
+     "callee": "packages/core/core-flows/src/cart/steps/find-or-create-customer.ts#findOrCreateCustomerStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/add-line-items.ts#addOrderLineItemsWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/add-line-items.ts",
+     "line": 185,
+     "callee": "packages/core/core-flows/src/common/steps/get-translated-line-items.ts#getTranslatedLineItemsStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/archive-orders.ts#archiveOrderWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/archive-orders.ts",
+     "line": 55,
+     "callee": "packages/core/core-flows/src/common/steps/emit-event.ts#emitEventStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts#cancelOrderFulfillmentWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts",
+     "line": 320,
+     "callee": "packages/core/core-flows/src/common/steps/use-query-graph.ts#useQueryGraphStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts#cancelOrderFulfillmentWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts",
+     "line": 354,
+     "callee": "packages/core/core-flows/src/common/steps/use-remote-query.ts#useRemoteQueryStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts#cancelOrderFulfillmentWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts",
+     "line": 380,
+     "callee": "packages/core/core-flows/src/inventory/steps/adjust-inventory-levels.ts#adjustInventoryLevelsStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts#cancelOrderFulfillmentWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts",
+     "line": 392,
+     "callee": "packages/core/core-flows/src/reservation/steps/create-reservations.ts#createReservationsStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts#cancelOrderFulfillmentWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts",
+     "line": 393,
+     "callee": "packages/core/core-flows/src/reservation/steps/update-reservations.ts#updateReservationsStep",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts#cancelOrderFulfillmentWorkflow",
+     "file": "packages/core/core-flows/src/order/workflows/cancel-order-fulfillment.ts",
+     "line": 394,
+     "callee": "packages/core/core-flows/src/common/steps/emit-event.ts#emitEventStep",
+     "indexNamed": false
+    }
+   ]
+  },
+  {
+   "id": "MD-C2",
+   "kind": "callers",
+   "question": "Which units call the Pricing Module's published service (any member of IPricingModuleService), i.e. are affected by a change to that port?",
+   "truth": {
+    "sites": 46,
+    "units": 24,
+    "files": 18,
+    "typeRefFiles": 18,
+    "implementations": [
+     "packages/modules/pricing/src/services/index.ts#default",
+     "packages/modules/pricing/src/services/pricing-module.ts#PricingModuleService"
+    ],
+    "members": [
+     "calculatePrices",
+     "retrievePriceSet",
+     "listPriceSets",
+     "listAndCountPriceSets",
+     "createPriceSets",
+     "createPriceSets",
+     "upsertPriceSets",
+     "upsertPriceSets",
+     "updatePriceSets",
+     "updatePriceSets",
+     "deletePriceSets",
+     "addPrices",
+     "addPrices",
+     "listPrices",
+     "softDeletePrices",
+     "restorePrices",
+     "listAndCountPrices",
+     "retrievePriceRule",
+     "listPriceRules",
+     "listAndCountPriceRules",
+     "createPriceRules",
+     "updatePriceRules",
+     "deletePriceRules",
+     "retrievePriceList",
+     "listPriceLists",
+     "listAndCountPriceLists",
+     "createPriceLists",
+     "updatePriceLists",
+     "deletePriceLists",
+     "softDeletePriceLists",
+     "restorePriceLists",
+     "retrievePriceListRule",
+     "listPriceListRules",
+     "listAndCountPriceListRules",
+     "deletePriceListRules",
+     "addPriceListPrices",
+     "updatePriceListPrices",
+     "setPriceListRules",
+     "removePriceListRules",
+     "removePrices",
+     "retrievePricePreference",
+     "listPricePreferences",
+     "createPricePreferences",
+     "createPricePreferences",
+     "upsertPricePreferences",
+     "upsertPricePreferences",
+     "updatePricePreferences",
+     "updatePricePreferences",
+     "softDeletePricePreferences",
+     "restorePricePreferences",
+     "deletePricePreferences",
+     "__joinerConfig",
+     "__hooks"
+    ],
+    "ms": 1171
+   },
+   "index": {
+    "sites": {
+     "truth": 46,
+     "graph": 8,
+     "both": 8,
+     "recall": 0.17391304347826086,
+     "precision": 1
+    },
+    "units": {
+     "truth": 24,
+     "graph": 8,
+     "both": 8,
+     "recall": 0.3333333333333333,
+     "precision": 1
+    },
+    "files": {
+     "truth": 18,
+     "graph": 3,
+     "both": 3,
+     "recall": 0.16666666666666666,
+     "precision": 1
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 46,
+      "graph": 7,
+      "both": 7,
+      "recall": 0.15217391304347827,
+      "precision": 1
+     },
+     "units": {
+      "truth": 24,
+      "graph": 7,
+      "both": 7,
+      "recall": 0.2916666666666667,
+      "precision": 1
+     },
+     "files": {
+      "truth": 18,
+      "graph": 2,
+      "both": 2,
+      "recall": 0.1111111111111111,
+      "precision": 1
+     }
+    },
+    "how": {
+     "edge direct": 6,
+     "edge via port": 1,
+     "unresolved": 1
+    }
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/pricing/service.ts#IPricingModuleService",
+      "references": 18,
+      "importers": 1,
+      "commands": 0,
+      "ms": 187
+     }
+    ],
+    "referenceFiles": {
+     "truth": 18,
+     "graph": 18,
+     "both": 18,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 18,
+     "graph": 18,
+     "both": 18,
+     "recall": 1,
+     "precision": 1
+    },
+    "commandUnits": {
+     "truth": 24,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 18,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": [
+    {
+     "unit": "packages/core/core-flows/src/fulfillment/steps/add-shipping-options-prices.ts#createShippingOptionsPriceSetsStep",
+     "file": "packages/core/core-flows/src/fulfillment/steps/add-shipping-options-prices.ts",
+     "line": 179,
+     "callee": "IPricingModuleService.createPriceSets",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/fulfillment/steps/add-shipping-options-prices.ts#createShippingOptionsPriceSetsStep",
+     "file": "packages/core/core-flows/src/fulfillment/steps/add-shipping-options-prices.ts",
+     "line": 202,
+     "callee": "IPricingModuleService.deletePriceSets",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/fulfillment/steps/set-shipping-options-prices.ts#setShippingOptionsPricesStep",
+     "file": "packages/core/core-flows/src/fulfillment/steps/set-shipping-options-prices.ts",
+     "line": 225,
+     "callee": "IPricingModuleService.updatePriceSets",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/fulfillment/steps/set-shipping-options-prices.ts#setShippingOptionsPricesStep",
+     "file": "packages/core/core-flows/src/fulfillment/steps/set-shipping-options-prices.ts",
+     "line": 246,
+     "callee": "IPricingModuleService.updatePriceSets",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/price-list/steps/create-price-list-prices.ts#createPriceListPricesStep",
+     "file": "packages/core/core-flows/src/price-list/steps/create-price-list-prices.ts",
+     "line": 66,
+     "callee": "IPricingModuleService.addPriceListPrices",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/price-list/steps/create-price-list-prices.ts#createPriceListPricesStep",
+     "file": "packages/core/core-flows/src/price-list/steps/create-price-list-prices.ts",
+     "line": 85,
+     "callee": "IPricingModuleService.removePrices",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/price-list/steps/create-price-lists.ts#createPriceListsStep",
+     "file": "packages/core/core-flows/src/price-list/steps/create-price-lists.ts",
+     "line": 60,
+     "callee": "IPricingModuleService.createPriceLists",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/price-list/steps/create-price-lists.ts#createPriceListsStep",
+     "file": "packages/core/core-flows/src/price-list/steps/create-price-lists.ts",
+     "line": 76,
+     "callee": "IPricingModuleService.deletePriceLists",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/price-list/steps/delete-price-lists.ts#deletePriceListsStep",
+     "file": "packages/core/core-flows/src/price-list/steps/delete-price-lists.ts",
+     "line": 21,
+     "callee": "IPricingModuleService.softDeletePriceLists",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/price-list/steps/delete-price-lists.ts#deletePriceListsStep",
+     "file": "packages/core/core-flows/src/price-list/steps/delete-price-lists.ts",
+     "line": 34,
+     "callee": "IPricingModuleService.restorePriceLists",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/price-list/steps/get-existing-price-lists-price-ids.ts#getExistingPriceListsPriceIdsStep",
+     "file": "packages/core/core-flows/src/price-list/steps/get-existing-price-lists-price-ids.ts",
+     "line": 35,
+     "callee": "IPricingModuleService.listPrices",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/price-list/steps/remove-price-list-prices.ts#removePriceListPricesStep",
+     "file": "packages/core/core-flows/src/price-list/steps/remove-price-list-prices.ts",
+     "line": 25,
+     "callee": "IPricingModuleService.listPrices",
+     "indexNamed": false
+    }
+   ]
+  },
+  {
+   "id": "MD-W2",
+   "kind": "writers",
+   "question": "Which units write orders through the Order Module's published service (create, update, upsert, delete, soft-delete or restore of orders)?",
+   "truth": {
+    "sites": 12,
+    "units": 8,
+    "files": 8,
+    "typeRefFiles": 55,
+    "implementations": [
+     "packages/modules/order/src/services/index.ts#default",
+     "packages/modules/order/src/services/order-module-service.ts#OrderModuleService"
+    ],
+    "members": [
+     "createOrders",
+     "createOrders",
+     "updateOrders",
+     "updateOrders",
+     "updateOrders",
+     "deleteOrders",
+     "deleteOrders",
+     "softDeleteOrders",
+     "restoreOrders"
+    ],
+    "ms": 461
+   },
+   "index": {
+    "sites": {
+     "truth": 12,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "units": {
+     "truth": 8,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "files": {
+     "truth": 8,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 12,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     },
+     "units": {
+      "truth": 8,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     },
+     "files": {
+      "truth": 8,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     }
+    },
+    "how": {}
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "who_writes": {
+    "error": "unknown aggregate \"Order\"; known aggregate roots: (none)"
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/order/service.ts#IOrderModuleService",
+      "references": 55,
+      "importers": 1,
+      "commands": 0,
+      "ms": 254
+     }
+    ],
+    "referenceFiles": {
+     "truth": 55,
+     "graph": 55,
+     "both": 55,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 8,
+     "graph": 55,
+     "both": 8,
+     "recall": 1,
+     "precision": 0.14545454545454545
+    },
+    "commandUnits": {
+     "truth": 8,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 8,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": [
+    {
+     "unit": "packages/core/core-flows/src/draft-order/steps/delete-draft-order.ts#deleteDraftOrdersStep",
+     "file": "packages/core/core-flows/src/draft-order/steps/delete-draft-order.ts",
+     "line": 24,
+     "callee": "IOrderModuleService.deleteOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/draft-order/workflows/convert-draft-order.ts#convertDraftOrderStep",
+     "file": "packages/core/core-flows/src/draft-order/workflows/convert-draft-order.ts",
+     "line": 63,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/draft-order/workflows/convert-draft-order.ts#convertDraftOrderStep",
+     "file": "packages/core/core-flows/src/draft-order/workflows/convert-draft-order.ts",
+     "line": 84,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/draft-order/workflows/update-draft-order.ts#updateDraftOrderStep",
+     "file": "packages/core/core-flows/src/draft-order/workflows/update-draft-order.ts",
+     "line": 118,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/draft-order/workflows/update-draft-order.ts#updateDraftOrderStep",
+     "file": "packages/core/core-flows/src/draft-order/workflows/update-draft-order.ts",
+     "line": 136,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/steps/archive-orders.ts#archiveOrdersStep",
+     "file": "packages/core/core-flows/src/order/steps/archive-orders.ts",
+     "line": 42,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/steps/cancel-orders.ts#cancelOrdersStep",
+     "file": "packages/core/core-flows/src/order/steps/cancel-orders.ts",
+     "line": 58,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/steps/complete-orders.ts#completeOrdersStep",
+     "file": "packages/core/core-flows/src/order/steps/complete-orders.ts",
+     "line": 52,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/steps/create-orders.ts#createOrdersStep",
+     "file": "packages/core/core-flows/src/order/steps/create-orders.ts",
+     "line": 36,
+     "callee": "IOrderModuleService.createOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/steps/create-orders.ts#createOrdersStep",
+     "file": "packages/core/core-flows/src/order/steps/create-orders.ts",
+     "line": 49,
+     "callee": "IOrderModuleService.deleteOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/steps/update-orders.ts#updateOrdersStep",
+     "file": "packages/core/core-flows/src/order/steps/update-orders.ts",
+     "line": 54,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/order/steps/update-orders.ts#updateOrdersStep",
+     "file": "packages/core/core-flows/src/order/steps/update-orders.ts",
+     "line": 65,
+     "callee": "IOrderModuleService.updateOrders",
+     "indexNamed": false
+    }
+   ]
+  },
+  {
+   "id": "MD-W3",
+   "kind": "writers",
+   "question": "Which units write customers through the Customer Module's published service (create, update, upsert, delete, soft-delete or restore of customers)?",
+   "truth": {
+    "sites": 8,
+    "units": 4,
+    "files": 4,
+    "typeRefFiles": 18,
+    "implementations": [
+     "packages/modules/customer/src/services/customer-module.ts#CustomerModuleService",
+     "packages/modules/customer/src/services/index.ts#default"
+    ],
+    "members": [
+     "createCustomers",
+     "createCustomers",
+     "updateCustomers",
+     "updateCustomers",
+     "updateCustomers",
+     "deleteCustomers",
+     "deleteCustomers",
+     "deleteCustomers",
+     "softDeleteCustomers",
+     "restoreCustomers"
+    ],
+    "ms": 436
+   },
+   "index": {
+    "sites": {
+     "truth": 8,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "units": {
+     "truth": 4,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "files": {
+     "truth": 4,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "edgesOnly": {
+     "sites": {
+      "truth": 8,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     },
+     "units": {
+      "truth": 4,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     },
+     "files": {
+      "truth": 4,
+      "graph": 0,
+      "both": 0,
+      "recall": 0,
+      "precision": null
+     }
+    },
+    "how": {}
+   },
+   "callers": "n/a (no callers tool in this checkout)",
+   "who_writes": {
+    "error": "unknown aggregate \"Customer\"; known aggregate roots: (none)"
+   },
+   "impact": {
+    "targets": [
+     {
+      "target": "packages/core/types/src/customer/service.ts#ICustomerModuleService",
+      "references": 18,
+      "importers": 1,
+      "commands": 0,
+      "ms": 113
+     }
+    ],
+    "referenceFiles": {
+     "truth": 18,
+     "graph": 18,
+     "both": 18,
+     "recall": 1,
+     "precision": 1
+    },
+    "callerFilesByReferences": {
+     "truth": 4,
+     "graph": 18,
+     "both": 4,
+     "recall": 1,
+     "precision": 0.2222222222222222
+    },
+    "commandUnits": {
+     "truth": 4,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    },
+    "commandFiles": {
+     "truth": 4,
+     "graph": 0,
+     "both": 0,
+     "recall": 0,
+     "precision": null
+    }
+   },
+   "indexMissed": [
+    {
+     "unit": "packages/core/core-flows/src/cart/steps/find-or-create-customer.ts#findOrCreateCustomerStep",
+     "file": "packages/core/core-flows/src/cart/steps/find-or-create-customer.ts",
+     "line": 150,
+     "callee": "ICustomerModuleService.createCustomers",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/cart/steps/find-or-create-customer.ts#findOrCreateCustomerStep",
+     "file": "packages/core/core-flows/src/cart/steps/find-or-create-customer.ts",
+     "line": 174,
+     "callee": "ICustomerModuleService.deleteCustomers",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/customer/steps/create-customers.ts#createCustomersStep",
+     "file": "packages/core/core-flows/src/customer/steps/create-customers.ts",
+     "line": 31,
+     "callee": "ICustomerModuleService.createCustomers",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/customer/steps/create-customers.ts#createCustomersStep",
+     "file": "packages/core/core-flows/src/customer/steps/create-customers.ts",
+     "line": 45,
+     "callee": "ICustomerModuleService.deleteCustomers",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/customer/steps/delete-customers.ts#deleteCustomersStep",
+     "file": "packages/core/core-flows/src/customer/steps/delete-customers.ts",
+     "line": 19,
+     "callee": "ICustomerModuleService.softDeleteCustomers",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/customer/steps/delete-customers.ts#deleteCustomersStep",
+     "file": "packages/core/core-flows/src/customer/steps/delete-customers.ts",
+     "line": 30,
+     "callee": "ICustomerModuleService.restoreCustomers",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/customer/steps/update-customers.ts#updateCustomersStep",
+     "file": "packages/core/core-flows/src/customer/steps/update-customers.ts",
+     "line": 54,
+     "callee": "ICustomerModuleService.updateCustomers",
+     "indexNamed": false
+    },
+    {
+     "unit": "packages/core/core-flows/src/customer/steps/update-customers.ts#updateCustomersStep",
+     "file": "packages/core/core-flows/src/customer/steps/update-customers.ts",
+     "line": 67,
+     "callee": "ICustomerModuleService.updateCustomers",
+     "indexNamed": false
+    }
+   ]
+  }
+ ]
+}

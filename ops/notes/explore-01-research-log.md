@@ -357,6 +357,24 @@ Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Do
   Medusa (the Gw control). No graft is needed for declared boundaries; a graft for a distant-writer trap is sketched
   only.
 
+### 21. GRAPH-SCALE: the graph facts complete and precise at scale (2026-10-23)
+`Docs/DiagnosticRuns/graph-scale-2026-10-23.md`, fixes in `experiments/detect-02/`, measurement in
+`experiments/graph-scale/`. v1.5 U1 groundwork, zero model calls:
+- **Fixes (comprehension index and tools only; the rules' `facts.ts` unchanged):** factory callback units, receiver-aware
+  member calls and overloads resolved to the implementation, a `callers(port_or_method)` tool, entities inferred from
+  ORM decorators, schema definitions, generic base repositories and identity loads (labelled `inferred`) behind
+  `who_writes`, and inline `import('…')` type edges. Unit tests 18 new, 16 existing.
+- **Regression:** dev set (91 trees) and precision fixtures identical to the baseline; 0 of 20 legit runs flagged.
+- **Measured** on Backstage, Novu and Medusa at the scout's pins: the scout's 9 questions (reproduced exactly before
+  the fixes) plus 9 new ones committed before any fix. Medusa: `callers` and `who_writes` 100% / 100% on all five
+  caller and writer questions (index before 0–17%); MD-X1 index 1% → 100%. Novu writes: `callers` 100% / 100% (index
+  9%), `who_writes` 100% at 63–95%. Backstage: `callers` 94–100% at 100%, `who_writes` on tasks 86% / 100%. tsc
+  coverage on Backstage 0.995 → 1.000.
+- **One dated revision, harness only (R1):** the scout's truth over-counts calls of an overridden member (NV-W2: 100
+  of 136 sites are other repositories' base calls). Re-measured; reported beside the unchanged truth.
+- **Reading (dev):** the Gw labels for Medusa and Novu's writers no longer hold on this test. The inferred write facts
+  are heuristics that over-include a repository's own extra writes and miss verbless ones (`claimTask`).
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
@@ -369,11 +387,13 @@ Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Do
 - [x] Author: read the COMPREHEND-01 design note; decide D1–D4 and approve or change the pilot (62 sessions, cap 66) (entry 10). Approved as written, with a cap of 64; run in entry 16.
 - [ ] Author: COMPREHEND-01 key decision on P2-P1 (sales-side handler), whether a ×3 variance run is worth it, and graph revisions 1–2 (entry 16).
 - [ ] Author: decide whether an unowned set invariant (the lock form) is D5 and whether a pre-existing copy counts. This decides S2's next step (entry 17).
+- [ ] Author: GRAPH-SCALE (entry 21): whether `callers` should count base-interface members on base-typed receivers (BS-C3), and whether R1 becomes the truth for class ports in COMPREHEND-02.
 - [ ] Author: choose the COMPREHEND-02 trees (recommended Backstage, Novu, Medusa as the Gw control) and decide which graph changes come first: a caller query, receiver typing, units for factory callbacks, and edges for overloaded methods and inline import types (entry 20).
 - [ ] Author: hand read of the PUZZLE-04 cases (`results/v1.4-puzzle-04/oracle-verdicts-to-read.md`; new categories P1-SG1-c and P2-SG1-e decide P1 and P2 for the gate) (entry 18).
 - [ ] Author: hand-read the 4 new DRIFT-01 identities and the inherited `RecordPayment` pair (entry 19).
 
 ## Changelog
+- 2026-10-23: entry 21 (GRAPH-SCALE, U1 groundwork).
 - 2026-10-22: entry 20 (REPO-SCOUT for COMPREHEND-02).
 - 2026-10-22: entry 19 (DRIFT-01).
 - 2026-10-22: entry 18 (PUZZLE-04).
