@@ -84,7 +84,7 @@ A draft design note, zero-call, covering:
 - more than 4 tasks, so the result can generalise over tasks, which 2b could not;
 - the delivery mode the pilots pick;
 - D_sem registered properly;
-- a second vendor (Gemini's quota resets about Oct 25);
+- a second vendor (Gemini's quota resets about Oct 25); a second-vendor arm requires the scripted confinement check (decision CONFINE, `ops/decisions.md`, 2026-10-23);
 - possibly a brownfield arm in which the tool infers the spec itself (§6).
 
 ## 8. Releasing v1.5
