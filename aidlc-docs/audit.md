@@ -3152,3 +3152,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 CONSTRUCTION, U1 groundwork; append-only correction
 
 ---
+
+## Timestamp correction — GRAPH-SCALE entries
+**Timestamp**: 2026-10-23T05:03:00Z
+**User Input**: (none)
+**AI Response**: The three GRAPH-SCALE entries above carry estimated times. The real times, from the commits: plan and pre-registered questions 2026-10-23T04:24:48Z (entry stamped 04:30:00Z); generation, measurement and records 2026-10-23T05:01:08Z (stamped 07:40:00Z); merge note 2026-10-23T05:01:38Z (stamped 07:50:00Z).
+**Context**: v1.5 CONSTRUCTION, U1 groundwork; append-only correction
+
+---

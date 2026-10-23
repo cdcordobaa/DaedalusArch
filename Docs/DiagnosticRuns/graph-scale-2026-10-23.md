@@ -1,6 +1,6 @@
 # GRAPH-SCALE: the DETECT-02 graph facts complete and precise at scale (U1 groundwork)
 
-**Run:** 2026-10-23 (UTC), about 04:00–07:30, in a cloud sandbox.
+**Run:** 2026-10-23 (UTC), about 03:50–05:00, in a cloud sandbox.
 **Status:** exploratory, **v1.5-exp**, development material. **Zero model calls.**
 **Unit:** v1.5 U1 groundwork (FR-1), plan `aidlc-docs/construction/v1.5/u1-graph-scale-plan.md`, under the author's
 standing delegation for gate-level calls.
