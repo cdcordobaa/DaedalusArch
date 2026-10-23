@@ -230,3 +230,15 @@ So "graph at the start" cannot be what fixes them. What remains is delivery at t
 3. **Graph revisions 1 and 2** (§4), as a DETECT-02 development change, before any further FG run. Re-run the graph
    cross-check after them, at zero calls.
 4. **Delivery:** PR6 points the v1.5 delivery track at the edit gate, rather than at structure given before acting.
+
+## Scope note (2026-10-23)
+
+The pilot's codebases were small enough to fit in context, so files-only accuracy was at ceiling (0.933 on all 30
+items). The finding is therefore limited to this: on small codebases the graph tools cut cost (mean processed tokens
+-16%, mean wall time -25% from 13.3 s to 10.0 s, tool calls -44% from 3.43 to 1.93 per question) at equal accuracy.
+Whether the graph improves completeness on large codebases is untested here. Other cost figures above are the geo-mean
+ratios of the report.
+
+The repository scout (`Docs/DiagnosticRuns/repo-scout-comprehend-02-2026-10-23.md`) found the v1.5 facts incomplete at
+scale: `who_writes` was empty on Backstage, Novu and Medusa, and call-site recall on Medusa was 0-3%. The GRAPH-SCALE
+work, which addresses those gaps, is in progress. All of this is exploratory development evidence.

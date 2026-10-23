@@ -3120,3 +3120,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: REPO-SCOUT (exploratory, v1.5-exp, DEV); zero model calls; no frozen path changed
 
 ---
+
+## v1.5 exploratory synthesis, COMPREHEND-01 scope note, confinement decision, v1.5 results-folder guard
+**Timestamp**: 2026-10-22T23:59:00Z
+**User Input**: "(coordinator brief) Zero-call documentation pass: add a scope note to the COMPREHEND-01 report and research log; record the confinement-testing decision; allow results/v1.5-<name>/ folders in the results guard; write a one-page synthesis of research-log entries 8-20; notify the thesis build desk."
+**AI Response**: "Scope note added (small codebases, files-only at ceiling; large-codebase completeness untested; repo scout and GRAPH-SCALE pointed to). Decision CONFINE recorded in ops/decisions.md and v15-plan section 7. V13_RESULTS_DIR_PATTERN extended to v1.5-<name>; guards test extended (6/6 pass with jest --maxWorkers=2), typecheck clean. Synthesis written at Docs/DiagnosticRuns/v1.5-exploratory-synthesis-2026-10-23.md. No src/, presets/, scripts/lib/, scripts/v1.3/ or registered artefact touched."
+**Context**: Documentation (exploratory, v1.5-exp); zero model calls
+
+---

@@ -357,6 +357,9 @@ Design: `ops/notes/drift-01-design.md` (committed before any call). Reports: `Do
   Medusa (the Gw control). No graft is needed for declared boundaries; a graft for a distant-writer trap is sketched
   only.
 
+### 21. COMPREHEND-01 scope note (2026-10-23)
+The pilot's codebases fit in context, so files-only accuracy was at ceiling (0.933). The finding is limited to: on small codebases the graph cuts cost (tokens -16%, time -25%, tool calls -44%) at equal accuracy. Whether it improves completeness on large codebases is untested. The repo scout (entry 20, `Docs/DiagnosticRuns/repo-scout-comprehend-02-2026-10-23.md`) found the facts incomplete at scale (`who_writes` empty on Backstage, Novu and Medusa; Medusa recall 0-3%). The GRAPH-SCALE work is in progress. A dated scope note was added to the entry 16 report. Synthesis of entries 8-20: `Docs/DiagnosticRuns/v1.5-exploratory-synthesis-2026-10-23.md`.
+
 ## Open items
 - [x] Author spot-check of two hand-read rows: agreed (entry 6).
 - [ ] HEXDDD-01 §5.2 allows one revision after a FAIL (a real-repo seed). That decision belongs to the author.
