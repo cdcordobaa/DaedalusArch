@@ -23,9 +23,9 @@ describe('audit gate (NFR-06)', () => {
     expect(() => blockingAdvisories({})).toThrow(/npm audit/);
   });
 
-  it('the committed allow-list is well formed and covers braces only', () => {
+  it('the committed allow-list is well formed and covers braces and zod (2026-10-24 triage)', () => {
     const allow = loadAllowlist(ROOT);
-    expect(allow.map((e) => e.id)).toEqual(['GHSA-vfj7-8cjw-p6xm']);
+    expect(allow.map((e) => e.id)).toEqual(['GHSA-vfj7-8cjw-p6xm', 'GHSA-mrhx-c7xc-m3w5']);
     expect(untriaged(blockingAdvisories(AUDIT), allow).map((a) => a.id)).toEqual(['GHSA-crit-0000-0000']);
   });
 
