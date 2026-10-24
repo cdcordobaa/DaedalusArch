@@ -161,6 +161,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-10-23, 04:32 | **Study 2b per-task mean D** (addendum, zero calls, post hoc): community-radio 5.0 to 0.7 (none@L2 to mcp@L2), parking-permits 2.9 and 2.9; closes build desk Q-20261023-1. | PR #374 |
 | 2026-10-23, 05:29 | **GRAPH-SCALE** (v1.5 U1 groundwork, zero model calls): five fixes to the comprehension graph; on Medusa `callers` and `who_writes` 100% / 100% (index before 0–17%), Novu `callers` 100% / 100%, Backstage tsc coverage 0.995 → 1.000; DETECT-02 dev set and precision fixtures unchanged; one post-hoc truth revision (R1, NV-W2). | PR #375; chronology row 68 |
 | 2026-10-23, 11:10 | Second daily thesis sync of the day: 76 claims from PRs #373–#375 (C10131–C10206, part `v14-v`): GRAPH-SCALE, the Study 2b per-task mean D addendum, the sources-ledger counts; 7 citations re-anchored; C9151–C9153 superseded (read in full 15 → 19); conflict K296; nulls M251–M256; chronology row 68; open items §10 (incl. merge-conflict markers left in `aidlc-docs/audit.md`). The private thesis gains the Kap8 ledger ids for the per-task means and a GRAPH-SCALE paragraph in Kap9 slot E1; it compiles, changes no claim, and was merged. | [PR #376](https://github.com/cdcordobaa/DaedalusArch/pull/376); private thesis PR #34 |
+| 2026-10-24 | Daily thesis sync: no new evidence since the 2026-10-23 second sync (no PR merged into `main` after #376; nothing changed under `Docs/DiagnosticRuns/`, `Docs/v1.3/` or `papers/`). | — |
 
 ## What the timeline shows for the thesis
 
