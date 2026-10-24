@@ -7,6 +7,12 @@
       "package": "braces",
       "decision": "accepted-residual",
       "reason": "No fixed braces release exists (<=3.0.3 affected, 3.0.3 is the latest). Runtime path ts-morph -> @ts-morph/common -> fast-glob -> micromatch -> braces expands glob patterns from the evaluated project's tsconfig include/exclude and the local CLI; worst case a crafted pattern crashes the local evaluation (stack exhaustion, DoS), no data exposure. The dev path (jest -> micromatch) runs only on this repository's own config. Removal needs ts-morph 28 and jest 30 (semver-major), outside Build and Test."
+    },
+    {
+      "id": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "decision": "accepted-residual",
+      "reason": "Fixed only in zod 4.6.6+ (semver-major from the pinned 3.x line, also pulled by @modelcontextprotocol/sdk and openai). zod validates tool-call arguments in the local stdio MCP server (src/mcp-server) and a v1.3 facts server; inputs come from the local agent session under evaluation, not a network peer. Worst case an oversized constrained collection exhausts memory and crashes the local server (DoS), no data exposure. Migrating to zod 4 changes the frozen instrument and is deferred to a dated instrument revision. Triaged 2026-10-24."
     }
   ]
 }
