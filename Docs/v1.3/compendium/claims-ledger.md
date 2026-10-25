@@ -58,11 +58,12 @@
 | [2026-10-23 sync: COMPREHEND-01 pilot, the COMPREHEND-02 repository scout, the v1.5 exploratory synthesis and the CONFINE decision](claims-ledger/v14-t-comprehension-scout.md) | C9641–C9839 | 199 | 68 | 18 | 105 | 8 |
 | [2026-10-23 sync: DRIFT-01 pilot and re-scores, and the v1.5 U4 facts confirmation (S2, S3)](claims-ledger/v14-u-drift01-u4.md) | C9941–C10124 | 184 | 38 | 22 | 124 | 0 |
 | [2026-10-23 second sync: GRAPH-SCALE (v1.5 U1 groundwork), the Study 2b per-task mean D addendum and the sources-ledger counts](claims-ledger/v14-v-graph-scale-2b-means.md) | C10131–C10206 | 76 | 24 | 0 | 51 | 1 |
-| **total** | C0001–C10206 | **9,932** | 5,319 | 1,066 | 3,164 | 383 |
+| [2026-10-25 sync: the synthesis objective relabel and the bt audit triage](claims-ledger/v14-w-objective-relabel-audit.md) | C10207–C10209 | 3 | 3 | 0 | 0 | 0 |
+| **total** | C0001–C10209 | **9,935** | 5,322 | 1,066 | 3,164 | 383 |
 
-By evidence type (recounted 2026-10-23 over all parts): descriptive 2,779, criterion 1,721, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,011, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
+By evidence type (recounted 2026-10-23 over all parts; +3 descriptive on 2026-10-25): descriptive 2,782, criterion 1,721, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,011, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
 
-By set (recounted 2026-10-23): development 5,342, external 1,507, none 1,401, wild 701, synthetic 638, sealed-2b 166, hold-out 101. (From part `v14-g` on, some `external` rows cover the 60 repositories of the Tier-A waves 1–3, not only the 15 of #133/#181/#232; the row says so.)
+By set (recounted 2026-10-23; +2 none and +1 sealed-2b on 2026-10-25): development 5,342, external 1,507, none 1,403, wild 701, synthetic 638, sealed-2b 167, hold-out 101. (From part `v14-g` on, some `external` rows cover the 60 repositories of the Tier-A waves 1–3, not only the 15 of #133/#181/#232; the row says so.)
 
 A claim keeps its status in its own context. For example, `established` on a development-set row means established **as a development-set figure**. No row is a held-out estimate: the hold-out has not been scored. The `sealed-2b` rows are the one confirmatory result in the ledger, and each is scoped as its notes say (one style, one generator, four tasks, FF-S03 only).
 

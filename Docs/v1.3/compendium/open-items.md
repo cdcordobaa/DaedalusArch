@@ -144,7 +144,7 @@ The defensibility register (`ops/02-defensibility-conditions.md`, 2026-10-18) ta
 | Placebo pull arm (instruction with a tool that returns nothing), proposed by PUZZLE-02 and PUZZLE-04, not run; needs its own approval | author | `Docs/DiagnosticRuns/puzzle-04-2026-10-23.md:270` |
 | Fix the P5 step-3 functional test (under-specified) and the P3r/P5 request revisions before any further puzzle run | coordinator | `Docs/DiagnosticRuns/puzzle-04-2026-10-23.md:37`, `:258` |
 | Graph facts at scale (GRAPH-SCALE): a caller query, `who_writes` on repositories without declared roots, functional composition (Medusa); before any COMPREHEND-02 run | coordinator | `Docs/DiagnosticRuns/repo-scout-comprehend-02-2026-10-23.md:39` |
-| Gates before any v1.5 study: v1.5 code into `src/`; at least 7 tasks per style with behaviour tests; the final-study decisions (incl. the scripted confinement check for any second-vendor arm, CONFINE); the hold-out; meaning labels | author; coordinator | `Docs/DiagnosticRuns/v1.5-exploratory-synthesis-2026-10-23.md:61`–`:69` |
+| Gates before any v1.5 study: v1.5 code into `src/`; at least 7 tasks per style with behaviour tests; the final-study decisions (incl. the scripted confinement check for any second-vendor arm, CONFINE); the hold-out; meaning labels | author; coordinator | `Docs/DiagnosticRuns/v1.5-exploratory-synthesis-2026-10-23.md:64`–`:71` |
 | Correct the lines found by this sync: conflicts K284–K295 (v1.5 synthesis P2 0/5, "0 of 12 trap failures", "n = 3 to 5", the open "12 false hits"; COMPREHEND-01 "-16%"; repo-scout file and LOC ranges and "66"; PUZZLE-04 plan "19 of 19" and the per-puzzle latency; U4 "111 trees") | coordinator | `claims-ledger.md` conflicts (2026-10-23 block) |
 | Thesis: the per-task mean D sentence for Study 2b (build desk Q-20261023-1) has no source line to cite: the exploratory analyses report gives sums (ΣD) only. A line stating the means is needed in the report before the ledger can carry them | coordinator | `Docs/DiagnosticRuns/v1.4-study2b-exploratory-analyses-2026-10-22.md:19`–`:22` |
 
@@ -160,3 +160,12 @@ The defensibility register (`ops/02-defensibility-conditions.md`, 2026-10-18) ta
 | Correct K296: the GRAPH-SCALE summary gives `who_writes` precision on Novu as 95–100%; its table gives 63–95% | coordinator | `Docs/DiagnosticRuns/graph-scale-2026-10-23.md:20` |
 | `aidlc-docs/audit.md` on `main` carries unresolved merge-conflict markers from the GRAPH-SCALE merge (both sides' entries are present; only the `<<<<<<<`, `=======` and `>>>>>>>` lines need removing, as an append-only correction note) | coordinator | `aidlc-docs/audit.md:3124`, `:3138`, `:3144` |
 | Tech-talk material: the banner "100% test coverage. Zero architectural compliance." beside the ImpossibleBench citation is not a figure from that paper; drop the attribution before the deck is reused | author | `Docs/sources/sources-ledger.md:481` |
+
+## 11. State on 2026-10-25 (refresh after PRs #377–#378)
+
+The readiness dashboard (`Docs/v1.3/study2-readiness-dashboard.md`) did not change in this window; §1–§10 stand. One item is added and one is confirmed still open.
+
+| Item | Owner | Source |
+|---|---|---|
+| zod GHSA-mrhx-c7xc-m3w5 accepted as a residual risk: migrating to zod 4 is deferred to a dated instrument revision; decide whether that revision happens before any v1.5 study or the artifact deposit | author | `Docs/DiagnosticRuns/bt-audit-triage.md:5`; `scripts/lib/audit-allowlist.json` |
+| `aidlc-docs/audit.md` merge-conflict markers (§10): still present on `main` at `07da8fdb` (3 marker lines) | coordinator | `aidlc-docs/audit.md:3124`, `:3138`, `:3144` |
