@@ -164,7 +164,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-10-24 | Daily thesis sync: no new evidence since the 2026-10-23 second sync (no PR merged into `main` after #376; nothing changed under `Docs/DiagnosticRuns/`, `Docs/v1.3/` or `papers/`). | — |
 | 2026-10-24, 11:05Z | Daily thesis sync of 2026-10-24 merged (no new evidence). | PR #377 |
 | 2026-10-24, 17:47Z | **v1.5 synthesis §4 relabelled to the Kap3 objective numbering** (Study 2b now listed under SO5; the first table is superseded) and the **bt audit gate**: body-parser advisory fixed (2.3.0 → 2.4.0), zod advisory accepted as a residual risk because its fix changes the frozen instrument. | PR #378; chronology row 69 |
-| 2026-10-25 | Daily thesis sync: 3 claims from PR #378 (C10207–C10209, part `v14-w`); 1 open-items citation re-anchored (synthesis §5 moved by two lines); nulls M257–M258; chronology row 69; open items §11 (the `aidlc-docs/audit.md` conflict markers are still on `main`). Private thesis: one paragraph in Kap9 "Other open items" (zod advisory), no claim changes; left open because no TeX engine was available to compile. | compendium PR and thesis PR: see `.sync-state.json` |
+| 2026-10-25 | Daily thesis sync: 3 claims from PR #378 (C10207–C10209, part `v14-w`); 1 open-items citation re-anchored (synthesis §5 moved by two lines); nulls M257–M258; chronology row 69; open items §11 (the `aidlc-docs/audit.md` conflict markers are still on `main`). Private thesis: one paragraph in Kap9 "Other open items" (zod advisory), no claim changes; left open because no TeX engine was available to compile. | PR #380; thesis PR #36 (private, open) |
 
 ## What the timeline shows for the thesis
 
