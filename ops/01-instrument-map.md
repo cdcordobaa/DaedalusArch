@@ -1,314 +1,263 @@
-# The instrument map: its parts, how they connect, and the work left
+# The instrument map: its parts, their state, and the work left
 
-**Status:** draft v3, 2026-10-18. This is a conceptual refactor, not a code change. It comes from the author's decomposition, the adversarial review REV-01 ([`notes/rev-01-instrument-map-fable.md`](notes/rev-01-instrument-map-fable.md)), the examiner review REV-02 ([`notes/rev-02-examiner-fable.md`](notes/rev-02-examiner-fable.md)) and the conditions register ([`02-defensibility-conditions.md`](02-defensibility-conditions.md)). Nothing new has been run for it. Every figure cites its source. Comment inline with `> AUTHOR:`.
+**Revised 2026-10-26: replaces the earlier version; reflects Study 2b closure and the v1.5 exploratory results.**
 
-**What changed in v3, after REV-02:**
-- **New part C3m, meaning:** is a correct finding architecturally meaningful? REV-02 found it had dropped out of the map. It is now the **weakest link**, ahead of C2r.
-- **C2r corrected:** the κ 0.21 comes from two Claude sessions. That makes it an upper bound on agreement between humans, not an estimate of it.
-- **§1:** the claim is now the contribution statement (F1–F3) plus Study 2. "Tacit knowledge" becomes an interpretation, with what would refute it.
-- **New:** a table mapping SO1–SO5 to the parts (§7b), and a four-week path with a cut list, replacing the old work list (§8).
+This page is the working surface for the instrument. Drive the remaining work from §5. Comment inline with `> AUTHOR:`.
+
+**How to read it**
+- Objective numbering follows the thesis objectives table (Kap3, `tab:fw-objectives`): **SO1** spec format, **SO2** APG pipeline, **SO3** gate and bounded model role, **SO4** validation, **SO5** spec effect on agent-built architecture. The earlier version of this page used an older numbering; that numbering is superseded.
+- Ledger ids: `C…` rows are in `Docs/v1.3/compendium/claims-ledger/`; `N…`, `L…` and `M…` rows are in `Docs/v1.3/compendium/nulls-and-limits.md`. Where no id exists, the report path is given.
+- Everything labelled v1.5 is development evidence: n = 3 to 5 per cell, one generator (`claude-sonnet-5-5`), code in `experiments/`, nothing pre-registered (`Docs/DiagnosticRuns/v1.5-exploratory-synthesis-2026-10-23.md`).
+- The v1.4 freeze tag `v1.4-freeze-2026-10-20` and the registered Study 2b artefacts stay as they are.
 
 **Contents**
-1. The claim we would defend
-2. The map: four planes, ten parts, six artifacts
-3. The contracts between the parts
-4. Each part evaluated on its own
-5. The chain of trust: what each claim inherits
-6. Risks not yet in view
-7. Studies, placed on the map
-8. The work left, in order
-9. Questions for you
-
-**What changed from v1, after REV-01:**
-- Drift no longer redesigns Study 2. Study 2 stays as declared. Drift becomes a separately registered exploratory study (REV-01 findings 1 and 2).
-- Time and identity become their own part, C1e (finding 6).
-- Exceptions live only in C2. C4 proposes them, and a human accepts them (finding 6).
-- The status figures are corrected (finding 5), with two notes:
-  - **Parity.** 72,388 statements over 81 projects *is* now on main, in `Docs/v1.3/cypher-interpreter.md:20`, after #151. The claims ledger still calls it unmerged (`Docs/v1.3/compendium/claims-ledger.md:274`). That ledger line is stale, so REV-01 was half right here.
-  - **MCP tool counts (corrected 2026-10-18, `ops/notes/g07-ledger-and-tool-counts.md`).** The 11 tools are the 9 spec tools that Study 2's arm allow-lists, plus `evaluate_project` and `propose_spec`. The neural tools `review_unit` and `explain_and_fix` come only with `--neural`, which makes 13. Study 2 excludes them (`Docs/v1.3/study2-outline-v2.md:43` and §3). The earlier "9 + 2 neural" was wrong.
-- New: a norm-reliability part (C2r), the chain of trust (§5), and the risks (§6).
+1. What changed since the 2026-10-18 version
+2. The map: planes and parts
+3. Component table
+4. Status by objective, SO1–SO5
+5. Drive from here
+6. Open author decisions that touch the instrument
+7. Chain of trust and conditions for a confirmatory claim
+8. Risks
+9. Changelog
 
 ---
 
-## 1. The claim we would defend (draft, yours to change)
+## 1. What changed since the 2026-10-18 version
 
-**v3, after REV-02: the claim is the contribution statement plus Study 2.** The contribution statement is `Docs/v1.3/contribution-statement.md:30-32`:
-- **F1:** the spec level affects the score, in the reverse direction.
-- **F2:** detection is accurate. Registered held-out recall is 0.893 [0.787, 0.974], and 283/283 blocking findings are correct on human code.
-- **F3:** the judge has a bounded, complementary role.
-
-Study 2 adds whether an agent in the loop changes what it builds. The text below, on tacit knowledge, moves to the **discussion** as an interpretation, together with what would refute it. Two pieces of evidence already count against it:
-- Study 1: `none` scored best (N141).
-- Agents gave zero blocking findings on Clean and Hexagonal, which suggests they *do* hold those standards.
-
-The rival reading predicts the same nulls (N128) and is simpler: "the encoded standard isn't what practitioners mean by architecture". Only C3m, meaning, can tell the two readings apart.
-
-*Interpretation (v2 text, kept for the discussion):*
-
-> Architectural standards are mostly **tacit**. Human teams carry them in their heads and enforce them in review. Coding agents don't have them. DaedalusArch makes these standards **explicit**, as declarative rules over a graph that matches the compiler, so that an agent or a CI gate can check code against them. The thesis shows four things:
-> 1. the graph and the rule engine are correct (P1, C3);
-> 2. where the norms come from limits everything downstream (P2);
-> 3. a model helps where rules can't express the knowledge, by **supplying facts, not verdicts** (C1d, C4);
-> 4. whether putting the instrument in an agent's loop changes the architecture the agent builds (C6, Study 2).
-
-**Why this framing helps.** All three tests based on developer behaviour are null (N128): maintainers don't remove flagged code faster, and good repos don't score better. Under the old framing that is a hole. Under this one it is motivation: humans manage without the tool because they hold the standard tacitly, and agents need it written down.
+- **Study 2b is closed.** It ran once under the OSF pre-registration (osf.io/wctnh). H1 and H2 are supported, H3 is not rejected, and equivalence fails (C8039–C8053). The old four-week path to "Study 2, once" is done and removed.
+- **The hold-out was attempted, not scored.** Three attempts on 2026-10-20 aborted on the spec format. The hold-out is not spent (C7592–C7619, L177, L178). It now needs a spec-format addendum.
+- **v1.5 added prototype parts.** New graph facts, new rules, an edit gate (push delivery), a C4 severity rubric and model-grounded aggregate roots. All live in `experiments/` and are development evidence only.
+- **The LLM judge is dropped.** C4 and C1d replace it (judge catch 0.76, N63; 0/65 verdicts changed, N85).
+- **The objective numbering changed** to the Kap3 table. The old §7b table is replaced by §4.
+- **The old work list (§8, four weeks) is replaced** by the ordered steps in §5.
 
 ---
 
-## 2. The map: four planes, ten parts, six artifacts
+## 2. The map: planes and parts
+
+The four planes from the earlier version still hold. v1.5 adds parts inside them; it adds no plane.
 
 ```
                 code at commits t0 ... tn
                           |
                           v
-+----------------------------------------------------------+
-| P1 REPRESENTATION                                        |
-|   C1a extract    C1b fidelity    C1c query               |
-|   C1d enrich (N1)                C1e time and identity   |
-+----------------------------------------------------------+
-        | A1 graph G(t)         | A2 facts file
-        v                       v
-+----------------------------------------------------------+
-| P2 NORMS                                                 |  <-- docs, ADRs,
-|   C2 norm set: declared | mined | proposed (N2)          |      reviews,
-|      + exceptions, each with a justification             |      style library
-|   C2r reliability: do two norm authors agree?            |
-+----------------------------------------------------------+
-        | A3 norm set, accepted by a human
++-----------------------------------------------------------+
+| P1 REPRESENTATION                                         |
+|   APG extract + graph (C1a-C1c)   v1.5 graph facts        |
+|   C1d semantic facts (N1)         S3 aggregate roots      |
+|   violation identity (C1e)                                |
++-----------------------------------------------------------+
+        | A1 graph G(t)          | A2 facts file
+        v                        v
++-----------------------------------------------------------+
+| P2 NORMS                                                  |
+|   spec format + 5 style libraries (C2 declared)           |
+|   rule mining / spec proposal (C2 mined)                  |
++-----------------------------------------------------------+
+        | A3 norm set
         v
-+----------------------------------------------------------+
-| P3 JUDGEMENT                                             |
-|   C3 detect: G(t) x norms               -> A4 findings   |
-|   C4 interpret (N3): exception? severity? -> A5 verdicts |
-|   C3m meaning: does a correct finding matter? (human)    |
-+----------------------------------------------------------+
++-----------------------------------------------------------+
+| P3 JUDGEMENT                                              |
+|   rules (C3)   v1.5 rules   C4 interpretation (N3)        |
+|   S2 confirmation   C3m meaning (human labels)            |
++-----------------------------------------------------------+
         | A4 findings, A5 verdicts
         v
-+----------------------------------------------------------+
-| P4 USE                                                   |
-|   C5 drift: findings across t0 ... tn (descriptive)      |
-|   C6 control: MCP in the agent loop, CI at the PR        |
-+----------------------------------------------------------+
++-----------------------------------------------------------+
+| P4 USE                                                    |
+|   MCP server (pull)   edit gate (push)   CI gate          |
+|   drift metrics D, D-dagger   loop harness                |
++-----------------------------------------------------------+
         |              A6 run record (per study)
         +----> next commit (back to P1)
 ```
 
-```mermaid
-flowchart TD
-  CODE["Code at commits t0..tn"] --> P1
-  subgraph P1["P1 Representation"]
-    C1a["C1a Extract"] --> G[("A1 Graph G(t)")]
-    C1b["C1b Fidelity vs compiler"] -.-> G
-    C1e["C1e Time and identity"] -.-> G
-    C1d["C1d Enrich (N1)"] --> F[("A2 Facts file")]
-    G --> C1c["C1c Query: Cypher, MCP"]
-    F --> C1c
-  end
-  SRC["Docs, ADRs, reviews, style library"] --> P2
-  subgraph P2["P2 Norms"]
-    C2["C2 Norm set: declared, mined, proposed (N2), exceptions"]
-    C2r["C2r Reliability: two authors agree?"] -.-> C2
-  end
-  C1c --> C2
-  C2 -->|"A3 accepted norm set"| P3
-  subgraph P3["P3 Judgement"]
-    C3["C3 Detect"] -->|"A4 findings"| C4["C4 Interpret (N3)"]
-    C3 --> C3m["C3m Meaning: does it matter? (human labels)"]
-  end
-  C1c --> C3
-  C1c --> C4
-  C4 -->|"A5 verdicts"| P4
-  C4 -.->|"proposed exceptions"| C2
-  subgraph P4["P4 Use"]
-    C5["C5 Drift, descriptive"]
-    C6["C6 Control: MCP loop, CI gate"]
-  end
-  C6 -->|"next commit"| CODE
-```
+Text alternative: code is turned into a graph and a facts file (P1). The spec and style libraries give the norms (P2). Rules and the semantic layer judge the graph against the norms (P3). The findings reach the agent through MCP, the edit gate or CI, and the drift metrics score what the agent builds (P4).
 
-**The four planes in one line each:**
-- **P1, Representation:** can we trust the graph as a stand-in for the code?
-- **P2, Norms:** what counts as a rule, and who says so?
-- **P3, Judgement:** given the graph and the norms, what is wrong, and does it matter?
-- **P4, Use:** what happens when this runs over time, or inside the loop?
+**Design rules that still hold**
+- A part reads another part's artifact, never its internals. Rules do not care whether a fact came from the parser or a model.
+- The model reads code and docs, then uses the graph to check and quantify (`ops/notes/ns-03-graph-complements-reading.md`).
+- The model supplies facts and interpretations. It cannot overturn a rule verdict (C4 design, `ops/notes/c4-01-interpretation-design.md`).
+- The semantic configuration (model and route for N1 and N3) is a named run parameter, recorded in every A2 and A5 record (DELEG11, `ops/decisions.md`).
 
-**The neural layer isn't a part of its own.** It plays three roles:
-- **N1** writes facts into A2.
-- **N2** proposes norms into C2.
-- **N3** interprets findings in C4.
+**Artifacts A1–A6, current state**
 
-**The semantic configuration is a declared, swappable parameter (author, 2026-10-20; DELEG11).** Which model and route fill N1 (C1d) and N3 (C4) is a named parameter of a run, recorded in every A2 and A5 record. The primary configuration is the Claude CLI judge route; other configurations (Gemini via agy or API, others later) are dated swap arms that re-run the same component on the same stored artifacts, and report agreement between configurations (raw and κ, not accuracy) and whether the downstream readings hold. The point is to measure how behaviour changes when a component's parameters change.
-
-~~In all three it reads the code only through C1c, the query layer.~~ **Corrected 2026-10-19, after the brownfield pilot (`ops/notes/ns-03-graph-complements-reading.md`): in every role the model reads the code and the docs, then uses the graph (C1c) to check and quantify what it found. The graph complements reading; it never replaces it.** Every output cites both kinds of evidence. Results are scored against two references, declared intent and code reality, and the gap between them is a measure of drift. This remains the operational form of NS-01's Claim B: the model supplies facts, and the rules reason over them.
-
-**One engine, two sources of rules.** "Violates a rule" and "doesn't fit the rest of the graph" are the same mechanism. A deviation is a norm *mined* from G, such as "47 of 50 use cases go through a repository", which C3 then checks like any other rule. **One caveat (REV-01 §6):** this holds only for K0 and K1 knowledge. A mined majority rule needs a count-and-threshold query shape that the sealed templates don't have. K2m and K3 rules also need facts from A2. So for the higher knowledge levels, some of C3's variety leaks into C1d.
-
----
-
-## 3. The contracts between the parts
-
-Every arrow in §2 is a saved, versioned file. This is what makes each part testable on its own (§4) and the neural parts reproducible (§6, risk 5).
-
-| Artifact | Produced by | Holds | Exists today? |
-|---|---|---|---|
-| **A1 graph G(t)** | C1a | nodes and edges for one commit, with the commit id | yes |
-| **A2 facts file** | C1d (N1) | per fact: subject, predicate, value, source (`parser` or `model`), model id, prompt hash, date, confidence | **no**, it is new |
-| **A3 norm set** | C2 | rules as YAML + Cypher; per rule: origin (`declared`, `mined` or `proposed`), the evidence cited, accepted by whom and when; exceptions with their justifications | partly: specs and presets exist, but the per-rule origin and acceptance tags are new |
-| **A4 findings** | C3 | rule, location, the edge or edges involved | yes (`schemas/report.schema.json`) |
-| **A5 verdicts** | C4 (N3) | per finding: exception or problem, severity, the evidence read, model id and prompt hash | partly: judge outputs exist, but the contract is not written |
-| **A6 run record** | each study | inputs (A1–A3 versions), arm, model, seed, outputs | yes for Study 1, designed for Study 2 |
-
-**Rule:** a part never reads another part's internals, only its artifact. So rules don't care whether a fact came from the parser or from a model. That is the IRIS framing, and it gives us ablations for free: run C3 with and without A2.
-
----
-
-## 4. Each part evaluated on its own
-
-Each part is tested with a **correct input handed in from upstream** (an oracle input), so that an error can be traced to the part that made it.
-
-| Part | Question | Fed with | Truth | Evidence now | Status | Work left |
-|---|---|---|---|---|---|---|
-| **C1a / C1b** | does G match the code? | real repos | tsc | import edges 1.000 on 15 external repos. The DDD blocking rules use class facts that tsc doesn't check; optional constructor parameters are invisible (N38); one external verdict was computed on half its graph (N33) | **GREEN** for imports, **AMBER** for the DDD class-fact rules | D6: register as matched to the compiler, and state the DDD limit |
-| **C1c** | do the engines agree? | the same Cypher on both engines | Neo4j | 72,388 statements, 81 projects, 0 content differences (`cypher-interpreter.md:20`) | **GREEN** | refresh the stale ledger line 274 |
-| **C1c, efficiency** | does a model answer better or more cheaply through the graph than through raw files? | 10 written questions, 2 repos of stated size, fixed tool sets and caps | answers written first | none. Track 1 lists this as RED | **RED** | a sanity check, after the NS thread (REV-01 §8) |
-| **C1d** | are N1's facts right? | hand-written K2m/K3 cases with twins | answers committed first | never run on a real model | **RED** | **the current thread:** the 2-case pilot |
-| **C1e** | can one violation be followed across commits? | fix-mining histories | rename, delete and bot taxonomy | 8,319 snapshot evaluations over 36 histories (`v1.3-validity-fixes-mined-2026-10-16.md:34`) | **AMBER** | write down a formal identity for a violation |
-| **C2, declared** | are the style libraries a fair reading of each style? | — | the cited literature | sealed, not expert-reviewed | **AMBER** | D1 |
-| **C2, mined** | does mining recover the declared norms? | the code | the hand-written specs | 24/52 vs 50/52; DDD 1/12 (N07, dev) | **AMBER** | rerun as recall of the declared rules on the 15 external specs |
-| **C2r** | do two independent norm authors agree? | the same repo, two blind authors | each other | verdict κ 0.21; same verdict on 10/15 repos (N02). **Both authors were Claude sessions**, so this is an upper bound on agreement between humans (`v1.3-spec-author-reliability.md:99-100`) | **RED**, second-weakest link | report as a limit this month. A human measurement is future work (REV-02) |
-| **C3** | given correct norms, are the findings right? | the gold norm set | the norms, and the hold-out | correctness 283/283 external; clustered at the repo level, 11/11 repos, Wilson [0.741, 1]. Blind recall 0.78 [0.67, 0.86], with four styles below 0.90 (N105). Hold-out not run. **Tool baseline:** parity with dependency-cruiser on the rules both express (N61); 4 blocking rules in 7 style rows that no compared tool can express (`v1.3-validity-convergent-2026-10-16.md`) | **GREEN** for correctness, **AMBER** for recall | R1: the U6 recall fixes and the V4 ADR, then the hold-out. *(2026-10-19: F23 is done; V4 is bound by recall, not by F23, `notes/rev-04-gaps-and-promises-2026-10-19.md:32-35`.)* **Blocker:** Layered is likely "characterised"; the route is named in advance in `Docs/v1.4/adr-v4-holdout-bar.md` (proposed) |
-| **C3m** | is a correct finding architecturally meaningful? | about 60 external blocking findings, stratified by rule | one free human rater against the author, with κ ≥ 0.60 under a definition dated before the first label (V6) | 0 labels (N114); registered real-code precision 0.328 [0.132, 0.609] (N115); 51/60 human style-claiming repos fail (N116) | **RED, the weakest link** | board L4 (the definition) and D3 (the rater labels meaning) |
-| **C4** | given correct findings, does N3 tell an exception from a problem? | gold findings plus intent cases | answers written first | catch rate 16/21 = 0.76 vs a target of 0.80; v1 false-fails 16/48 clean units (`study2-outline-v2.md`) | **AMBER / RED** | the NS thread, after C1d |
-| **C5** | how do findings evolve in human histories? | fix-mining snapshots | the t0 norm set | survival 0.76 vs 0.75 for unflagged edges (N123); fix commits name architecture in 5/14 (N123) | **null so far** | a zero-call descriptive now, and a registered exploratory brownfield study after Study 2 |
-| **C6** | does the instrument in the loop lower violations? | Study 2 as declared | the declared norms | Study 1 ran the "wrong" way; floor at N144–N150; Study 2 not run | **RED** | Study 2, unchanged, once |
-
----
-
-## 5. The chain of trust: what each claim inherits
-
-```
-C6 "the gate helps"
-  <- needs C3m "a finding means an architectural problem"
-       <- needs C3 "the findings are right"
-            <- needs A3 "the norms are right"
-                 <- needs C2r "independent authors agree on the norms"
-                 <- needs C1 "the graph is the code"
-```
-
-A downstream claim is only as strong as its weakest upstream link. **v3: that link is C3m, meaning.** Without it, "fewer violations" in Study 2 means fewer rule hits, not better architecture. Today it has 0 labels (N114) and a registered real-code precision of 0.328 (N115). It is also the link we can close this month: about 60 labels from the one free rater. **C2r is second.** Its κ 0.21 comes from two Claude sessions (N02), so it is reported as a limit, and a human measurement is future work.
-
-*(v2 text, kept for the record:)* the weakest link was C2r: on the external set, two blind spec authors agree on the verdict at κ 0.21 (N02). Every external figure inherits this. That is why external results are AMBER even when C3 is perfect.
-
-**What follows for the design:**
-- **Greenfield claims can be confirmatory.** In greenfield, the norms are *declared* (the spec and the style library), so C2r shrinks to "is the style library a fair reading of the style", which is a sourcing question (SO1). Study 2 lives here.
-- **Brownfield claims stay exploratory until C2r improves.** On an existing repo, someone has to *recover* the norms, and recovered norms disagree. Norm recovery, drift on human histories and review-history truth all sit here.
-- **The free rater (v3, reversed after REV-02):** they label the **meaningfulness** of about 60 findings (C3m), plus the K3 cases. Writing specs blind for 3–4 repos can't give a κ with a usable interval: 15 repos gave Bland–Altman limits of −28 to +33 (N02). Labelling meaning also matches what gate V5 asks of an independent labeller.
-
----
-
-## 6. Risks not yet in view
-
-| # | Risk | It hits | Mitigation | When |
-|---|---|---|---|---|
-| 1 | **C2 dominates.** Correct detection against a contested spec means little | every external claim | §5: confirmatory claims in greenfield only; the rater on C2r | now, as a framing decision |
-| 2 | **"So what?"** All criteria based on developer behaviour are null (N128) | the defence, SO4 | the tacit-knowledge claim (§1). Report the nulls as they are | now, in the framing |
-| 3 | **Gaming.** The MCP arm lowers its count by dodging rules (moving code to unchecked places, wrapping or inlining calls), not by respecting the architecture | Study 2 (C6) | an evasion check, pre-registered: acceptance tests pass, a sample of passing diffs is read for code that was only moved, and findings outside any rule's scope are counted | **before pre-registration** |
-| 4 | **Same model family.** Generator, judge and semantic layer are all Claude, so their blind spots correlate (gate V10) | C1d, C4, Study 2 | a cross-family check through one adapter (the Gemini key now; Codex about Nov 9). Plan it, don't just allow it | at the C1d pilot |
-| 5 | **Reproducibility.** Model versions change before the defence | A2, A5 | saved artifacts with model id, prompt hash and date. Results are **replayed**, not regenerated | the A2 contract, at the pilot |
-| 6 | **Contamination.** The external repos are public, and their rule baselines are from 2026 and the AI era (40/42 depcruise baselines, track 2). Models may have seen them | C1d, C2 mined, C4 | hand-written cases as the clean control; state it in the threats to validity | in writing |
-| 7 | **Deviation count.** Study 2 already has a declared deviation. Each further change after the seal reads as hunting for a design that works | the examiner's view of SO5 | a freeze date; anything new becomes a separate exploratory study, never a change to Study 2 | now |
-
----
-
-## 7. Studies, placed on the map
-
-| Study | Parts it tests | Norms come from | Kind | State |
-|---|---|---|---|---|
-| Study 1 (v1.2E) | C6 | declared | registered, done | GREEN as registered. It ran the "wrong" way |
-| Hold-out (R1) | C3 | declared | confirmatory | not run; F23 done 2026-10-19; U6 and the V4 ADR come first |
-| NS thread (R3) | C1d, then C4 | declared, plus hand-written intent | pilot, then confirmatory on its own set | **current thread** |
-| Meaning labels (new R2, v3) | C3m | declared | measurement, κ ≥ 0.60 | week 2; needs board L4 and D3 |
-| Norm reliability | C2r, C2 mined | blind authors | limit this month | future work (REV-02) |
-| Study 2 | C6 | declared | confirmatory, runs once | designed; readiness 1/42 (Oct 16) |
-| Drift (exploratory) | C5, C1e | recovered (brownfield) | exploratory, registered separately | after Study 2; `floor-escape-design-2026-10-16.md` row 4 already says "not for Study 2" |
-| Efficiency check | C1c | — | sanity check | later |
-
----
-
-## 7b. The objectives, placed on the parts
-
-The proposal's own research questions are **not in the repo**. Its compliance register is Notion-only, cited in `Docs/v1.3/research/distinction-readiness.md` as K7. The table below therefore uses SO1–SO5 and K7's recorded status. Before the director meeting, check it against the proposal itself.
-
-| Objective | Parts | K7 status, and what that means for us |
+| Artifact | Producer | State |
 |---|---|---|
-| SO1 specs and style libraries | C2 declared | The promise of "30+ rules over 7 symbolic dimensions" was not reached. Argue it as a declared deviation |
-| SO2 graph and tooling | C1a–C1e, C3 | strongest objective (F2) |
-| SO3 neuro-symbolic gate | C1d, C4 | "Partial"; judge κ against human labels unmeasured. This month: **design plus the 2-case pilot**, stated as such |
-| SO4 validity | C3 (hold-out), **C3m** (meaning) | SO4-7 independent labelling "Not met". The C3m labels deliver it in part |
-| SO5 agent study | C6 | Study 1 as registered. Study 2 once, as declared, most likely **Layered** in practice (§8) |
+| A1 graph G(t) | APG extract | exists; v1.5 adds facts in `experiments/detect-02/` |
+| A2 facts file | C1d, S3 | exists; 692 replayable cassettes from Study 2a (C8009–C8021) |
+| A3 norm set | spec parser | exists; per-rule origin and acceptance tags not added |
+| A4 findings | rules | exists (`schemas/report.schema.json`) |
+| A5 verdicts | C4 | exists for 2b secondary and U3 (C8445–C8466, C9024–C9061) |
+| A6 run record | each study | exists for Study 1, 2a, 2b and the v1.5 runs |
 
 ---
 
-## 8. The work left: a four-week path (v3, from REV-02)
+## 3. Component table
 
-The working mode still holds: a note before any call, 2-case pilots, and the director at the design stage. "One thread at a time" applies to **your attention**. Zero-call agent work runs alongside it.
+Maturity: **validated** (passed a registered or external test), **prototype** (built and run on development material), **dev** (in `src/` or scripts, evidence on development material only), **spec-only** (designed, not run), **dropped**.
 
-**Week 1 (Oct 19–25), zero calls**
-- F23. The B2 and T1 re-scores.
-- **The count of expected blocking findings per Study 2 style**, then the V4 ADR if a style falls short.
-- Confirm the decision sheet.
-- The meaningfulness codebook (board L4), with one κ definition dated before the first label.
-- The six K3/K2m cases, with answers committed.
-- Three rows in the threat register: contamination, evasion, role overlap.
-- The Codex contingency decided.
+| Component (old part) | Obj. | Maturity | Code | Evidence (ledger ids, reports) | Next action |
+|---|---|---|---|---|---|
+| Spec format + 5 style libraries, levels L1–L4, spec parser (C2 declared) | SO1 | validated as sealed artefacts; sources not expert-reviewed | `src/spec-parser/`, `src/fitness-compiler/` | 35 rule ids vs the promised 30+ over 7 dimensions, declared deviation (`ops/notes/g13-so1-rule-count-deviation.md`); construct answers accepted, gate V1 green (ADR-V13-03); mapping κ 0.77 on 4/15 repos (N01); blind-author verdict κ 0.21, both authors Claude (N02); rule defects N14, N17 (fixed by ADR-V14-01), N18, N20 | hold-out spec-format addendum (§5 step 2) |
+| APG extraction + property graph, Neo4j and in-process Cypher (C1a–C1c) | SO2 | validated for imports; dev for DDD class facts; FLOWS_TO dev | `src/apg-extractor/`, `src/neo4j-ingestion/`, `src/cypher-interp/` | imports = tsc 1.000 on 15 external repos; 72,388 statements identical over 81 projects (`Docs/v1.3/cypher-interpreter.md:20`); 2b D8 parity 30/30 (`Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md`); alias gaps N32, N33; FF-S02 timeouts N45; FLOWS_TO 0 edges on real code (N40); edge rows not human-adjudicated (L29) | calls through ports and the DA1 mismatch (§5 step 1) |
+| v1.5 graph facts: write footprint, context ownership, `callers`, `who_writes`, receiver typing | SO2 | prototype | `experiments/detect-02/` | Medusa `callers` and `who_writes` 100%/100% (was 0–17%); Backstage `callers` 94–100% (C10131–C10180); inferred write facts are heuristics | promote to `src/` with the FR-1 fidelity test (§5 step 1) |
+| Fitness functions / Cypher rules, blocking and advisory tiers (C3) | SO2, validity SO4 | validated for precision; dev for recall | `src/fitness-compiler/`, `src/evaluation-engine/` | 283/283 correct on 15 external repos, repo-level Wilson [0.741, 1] (C1522–C2491); blind recall 50/64 = 0.78, four styles below 0.90 (N105); convergent κ 0.913–1.000 (N130); HEXDDD-01 hand read: 0/9 violations caught (C8641–C8665) | score the hold-out (§5 step 2) |
+| v1.5 rules: DETECT-01 (7 rules), DETECT-02 R-D4, R-XCTX, `check_consistency` | SO2, SO3 | prototype, partly fitted on dev | `experiments/detect-01/`, `experiments/detect-02/` | 19/19 trap trees flagged, 0 FP on dev (C9068–C9081); DDD fixtures 0/20 FP after 3 logged revisions; 12 false hits on human DDD repos with inferred roots (C9082–C9091); DETECT-01 6/9 misses reachable (C8703–C8751) | DETECT-02 sealed held-out check once, then promote (§5 step 1) |
+| MCP server, 11 tools, `--confine`, `--neural` (pull delivery; C6) | SO3 delivery, SO5 treatment | validated for Claude on Layered | `src/mcp-server/` | used in 160/160 mcp@L2 steps in 2b (C8022–C8131); S4 confinement Claude 9/9, Gemini failed; fast path disagrees on 7/71 variants (N54); missed feedback twice in replay (N51) | fix DA1 (the MCP check flags files the scorer exempts) (§5 step 1) |
+| Edit gate: hooks + root-side hub (push delivery) | SO3 | prototype | `experiments/edit-gate/` | 12/12, then 20/20 unit tests; 0 canaries leaked; hub p95 171–451 ms; 0 fail-open (C8993–C9021, C9301–C9308) | delivery choice (§5 step 4) |
+| CI gate | SO3 | dev | `src/ci-gate/` | exact on 197/203 with Neo4j (N57); lexical version 50.9% (N56); the repo's own firewall CI check is a known failure | none before the final study |
+| C1d semantic facts N1 (SEM-MISPLACED, SEM-DUP, SEM-FRAG) | SO3 | dev | `src/apg-enrich/ontology/` | 2-case pilot: Gemini clean, Claude 1 FP on the twin (C6888–C6895); 2a hit the 700-call cap (C8009–C8021); accuracy against a key unmeasured | register in the final study (§5 step 3) |
+| C4 interpretation N3 (exception, severity; cannot overturn a verdict) | SO3 | dev | `src/apg-enrich/ontology/c4-runner.ts`, `scripts/v1.4/c4-run.ts`; U3 rubric in `experiments/v15-u3/` | 2b six-case set 5/6, so D_sem not run (C8445–C8466); U3 rubric 24/24 on a designed set, same-session author (C9024–C9061, C9108–C9120) | promote the U3 rubric; register D_sem (§5 step 3) |
+| S3 aggregate-root facts, S2 finding confirmation | SO3 | prototype | `experiments/v15-u4/` | S3 pass: 22/23 declared roots, 0 wrong; S2 fail: D5 recall 11/16, 4 added FP (C10041–C10109) | D5 construct decision (§6) |
+| LLM judge v1/v2.2 (`llm-critic`) | SO3 | dropped (frozen) | `src/llm-critic/` | catch 16/21 = 0.76 vs a 0.80 target (N63); 0/65 verdicts changed (N85); panel n = 0 (N81) | none; report as a null |
+| Drift metrics D, D-dagger, Y; violation identity and rename tracking (C1e, C5) | SO4, SO5 | validated (Study 2b) | `scripts/lib/drift/` | basis of the 2b outcome (C8022–C8131); D_v15 (frozen + R-D4 + R-XCTX) in DRIFT-01 is exploratory (C9941–C10017) | define D_v15 for the final study after step 1 |
+| Loop harness, pinned CLI, S4 probes, acceptance runner, analysis, power sim, hash gates, claims ledger | SO4, SO5 method | validated | `scripts/`, `experiments/study2b/`, `ops/osf-deposit-2b/` | 2b: 520 turns, 0 failures, 0 redraws (C8022–C8131); the hold-out runner has never scored (C7592–C7619) | scripted confinement check for a second vendor (§5 step 5) |
+| Rule mining / spec proposal (C2 mined) | SO1, SO2 | dev | `src/rule-mining/` | 24/52 plants, DDD 1/12 (N07); brownfield baseline recall 0.41, precision 0.86 (C6137–C6219); `propose_spec` mislabels DDD repos (N11) | future work |
+| C3m meaning labels | SO4 | spec-only (0 labels) | no code; `ops/notes/mean-01-codebook-and-sample.md` | 0 labels (N114); registered real-code precision 0.328 [0.132, 0.609] (N115); 51/60 style-claiming human repos fail (N116) | 60 rater labels, target 2026-11-30 (§6) |
 
-**Week 2 (Oct 26–Nov 1)**
-- The validation pilot: Layered and DDD base rates, 24 turns, counted first.
-- Re-run the power simulation.
-- **The rater's 2–3 hours: about 60 meaningfulness labels plus the K3 cases.**
-- Instrument freeze.
-- The hold-out, run once on Neo4j.
+---
 
-**Week 3 (Nov 2–8)**
-- The C1d 2-case pilot (10–20 calls).
-- The evasion protocol.
-- The pre-registration, hashed.
-- The dress rehearsal.
+## 4. Status by objective, SO1–SO5
 
-**Week 4 (Nov 9–17)**
-- The Codex pin and S4 probe.
-- The readiness gate.
-- **Study 2, once (Nov 18–22).**
-- In parallel: the limitations chapter, written from `nulls-and-limits.md`.
+Confirmatory means registered before the data, or an external test chosen before the results. Everything else is exploratory.
 
-**Cut to future work:** a human C2r measurement, the drift study, the efficiency check, mined-norm recall, the review-comment count, Q26, the DDD cycle rule, judge v2.x, NS1–NS3 at scale, and the cross-family C1d arm.
+### SO1 spec format
 
-**Conditions for calling a result confirmatory** (REV-02; registered thresholds are cited in [`02-defensibility-conditions.md`](02-defensibility-conditions.md)):
+- **Established.** Five sealed style libraries and the spec format, used unchanged in Study 2b. Construct answers accepted (gate V1, ADR-V13-03). Study 1 found a spec-level effect in the reverse direction: `none` 0.951 best, Holm p = 0.0003 (N141); no model effect, p = 0.438 (N142).
+- **Exploratory only.** Brownfield norm derivation (BF-01, C6137–C6219). No SO1 change in the v1.5 cycle.
+- **Missing.** Expert review of the style libraries. A human spec author (spec-author agreement is κ 0.21 between two Claude sessions, N02). The 30+ rules over 7 dimensions promise, now a declared deviation (`ops/notes/g13-so1-rule-count-deviation.md`). The hold-out spec format (§5 step 2). A comparison with the Ford/Richards ADL.
 
-| Result | Condition |
+### SO2 APG pipeline
+
+- **Established.** Import graph = tsc at 1.000 on 15 external repos. Engine parity on 72,388 statements over 81 projects (`Docs/v1.3/cypher-interpreter.md:20`). Blocking findings 283/283 correct on 15 external repos, repo-level Wilson [0.741, 1] (C1522–C2491). The frozen instrument scored Study 2b.
+- **Exploratory only.** GRAPH-SCALE facts on Medusa, Novu and Backstage (C10131–C10180). DETECT-02 facts (C9068–C9091). COMPREHEND-01: files plus graph tools were not more accurate (0.900 vs 0.933) but were cheaper, token ratio 0.835 (C8941–C8983). Repo scout: 82 repos, 3 qualifying trees (C9733–C9808).
+- **Missing.** The v1.5 facts in `src/`. Calls through ports linked in the extractor. Data-flow edges (FLOWS_TO has 0 edges on real code, N40). Human adjudication of edge rows (L29). A written deviation for the dropped Neo4j GDS metrics.
+
+### SO3 gate and bounded model role
+
+- **Established.** The MCP tool as the 2b treatment: used in 160/160 mcp@L2 steps (C8022–C8131). The model role is bounded by design: C4 cannot overturn a verdict. The registered semantic secondary D_sem was not run because its precondition failed, 5/6 (C8445–C8466). The judge null is reported (N63, N85).
+- **Exploratory only.** U3 severity rubric 24/24 on a designed set (C9024–C9061). S3 roots 22/23, S2 fail (C10041–C10109). Edit gate built and used in PUZZLE-04 and DRIFT-01 (C8993–C9021, C9456–C9528). DETECT-01 semantic twin discrimination 9/11 (C9285–C9289). C1d 2-case pilot (C6888–C6895).
+- **Missing.** Semantic accuracy against an independent key. A test that rules plus facts beat rules alone and the model alone (not started). A second vendor for any model role. A delivery-mode choice (pull vs push).
+
+### SO4 validation
+
+- **Established.** External correctness, 283/283, with the repo-level interval (C1522–C2491). Convergent agreement with three tools, κ 0.913–1.000 (N130). The developer-behaviour criteria are null and reported as null (N118, N120, N125, N128).
+- **Exploratory only.** Blind recall 0.78 on the development set (N105). DETECT-02 precision fixtures (C9082–C9091). Puzzle hand reads: 17/17 oracle FAILs were traps in PUZZLE-03 (C9399–C9454). HEXDDD-01: 0/9 hand-read violations caught (C8641–C8665).
+- **Missing.** The hold-out score (C7592–C7619; the set is not independent, L178). Meaning labels, 0 of 60 (N114). Human FP/FN root-cause review, which waits for the hold-out.
+
+### SO5 spec effect on agent-built architecture
+
+- **Established.** Study 1 as registered (N141, N142; 0/65 cells with a blocking finding, N144). Study 2b: mean D 2.75 / 1.70 / 1.32 for none@L2, none@L3, mcp@L2. H1 p = 0.0132, RR 0.62 [0.38, 0.86]; H2 p = 0.0001, RR 0.48 [0.32, 0.65]; H3 p = 0.4257; equivalence fails (C8039–C8053). Scope: 100% of counted identities are FF-S03 (C8051, C8053, M175); one generator, Layered, 4 tasks (C8042–C8044); the effect shrinks over run order (M180); the same rules gave feedback and the score (M186).
+- **Exploratory only.** Puzzle pull and gate arms: P1 0/5 to 4/5 (pull), P6 0/5 to 5/5 (both arms) (C9341–C9389, C9456–C9528). DRIFT-01: sum of D_v15 on DDD 6 for `none`, 0 for pull and gate; D_frozen 0 everywhere; the gate removed inherited cross-context writes in 3/3 blocks, pull in 0/3 (C9941–C10017).
+- **Missing.** A second style and a second generator in a registered study. The final study is a draft, not registered (`ops/notes/v15-final-study-draft.md`). Evidence that fewer rule hits means better architecture (C3m). An open-coding failure taxonomy.
+
+---
+
+## 5. Drive from here
+
+Do the steps in this order. Steps 2 and 5 can start in parallel with step 1. The final study (task authoring, power, registration) follows these steps and is tracked in `ops/notes/v15-final-study-draft.md` §8.
+
+### Step 1. Freeze v1.5
+
+Sub-steps:
+- **1a.** Fix the answer keys for P2 and P5 and the P5 test. P2 has a key dispute and over-rejection categories (P2-SG2-a, P1-SG1-c, P2-SG1-e; synthesis §3, `ops/notes/explore-01-research-log.md` entries 15, 16 and 18). The P5 step-3 test is under-specified: every P5 run fails only that step (`Docs/DiagnosticRuns/puzzle-04-2026-10-23.md`). Reported results stay as reported; the fix applies to later runs, with a changelog line.
+- **1b.** Finish calls through ports in the extractor, and fix the composition-root mismatch DA1 (`ops/notes/v15-plan.md` rows 21–22).
+- **1c.** Run the DETECT-02 sealed held-out check once (zero calls). The coordinator does not open the sealed set before the run.
+- **1d.** Move the v1.5 code (`experiments/detect-01/`, `experiments/detect-02/`, `experiments/edit-gate/`, `experiments/v15-u3/`, `experiments/v15-u4/`) into `src/`. Then tag v1.5 with a changelog.
+
+- **Depends on:** 1a and 1b have none. 1c needs the DETECT-02 precision work to be final. 1d needs 1a–1c.
+- **Blocker:** human labels: the author's hand read of the P2 over-rejection categories (for 1a). The rest is engineering.
+- **Done when:** keys and the P5 test are committed with a changelog; port calls link to adapters, and the FR-1 fidelity test passes; DA1 is fixed with a test; the DETECT-02 held-out result is recorded once; the dev regression on the 91 dev trees is identical (as in `Docs/DiagnosticRuns/graph-scale-2026-10-23.md`); the v1.5 tag exists; `v1.4-freeze-2026-10-20` and the 2b artefacts are unchanged.
+
+### Step 2. Hold-out spec-format addendum, then score once
+
+- **What.** Write an addendum that fixes the hold-out spec format only, register it before any scoring, then score the 207-case hold-out once on Neo4j (`Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md`).
+- **Depends on:** nothing in step 1. The runner is the one at the freeze tag, as in the prespec, unless the addendum states otherwise.
+- **Blocker:** author decision: whether a further attempt is made, and approval of the addendum. The V4 ADR applies: below about 35 expected blocking findings per style the lower bound cannot pass (`Docs/v1.4/adr-v4-holdout-bar.md`).
+- **Done when:** the addendum is committed and hashed before the run; one scoring run is recorded; per-style recall and precision are reported with Wilson intervals against the prespec claim levels; any style below 0.90 is reported as characterised; no second scoring.
+
+### Step 3. Register the semantic layer and D_sem in the final study
+
+- **What.** Name D_sem's role in the final study from the start: the C4 prompt version (U3 rubric), the C1d and S3 fact roles, the semantic configuration parameter, and the precondition that must pass before D_sem runs.
+- **Depends on:** step 1 (U3 rubric and S3 in `src/`); the D5 construct decision.
+- **Blocker:** author decisions: the D5 set-invariant construct question (S2 failed, C10041–C10109), and whether D_sem is secondary or co-primary (`ops/notes/v15-final-study-draft.md` §8).
+- **Done when:** the final-study draft names D_sem's role, its precondition bar and its pinned prompt and model; the precondition is tested on a case set whose answers were written first and that the rubric author did not write.
+
+### Step 4. Choose the delivery mode: edit gate (push) or MCP (pull)
+
+- **What.** Choose one delivery mode, or both as arms, for the final study.
+- **Depends on:** step 1 (gate and `check_consistency` in `src/`); the PUZZLE-04 and DRIFT-01 hand reads.
+- **Blocker:** human labels: the author's hand read of PUZZLE-04 and of the 4 DRIFT-01 identities. Then an author decision on the mode.
+- **Evidence so far (dev, n = 3–5):** the gate removed inherited debt in 3/3 DRIFT-01 blocks, pull in 0/3 (C9941–C10017); pull did better on P1 (4/5 vs gate 2/5) (C9341–C9389, C9456–C9528); no placebo arm, and tool and instruction are confounded.
+- **Done when:** the choice is recorded in `ops/decisions.md` with the evidence rows; every blocking rule has an actionable message; the chosen mode has passed one pilot on the `src/` code.
+
+### Step 5. Second-vendor arm, pending a design note
+
+- **What.** A design note for a 2-run non-Claude pilot, with a scripted confinement check. No escape or tamper prompts are sent to any model.
+- **Depends on:** nothing for the note. The pilot itself needs step 1.
+- **Blocker:** author decisions: the go-ahead for the note, and the route (Gemini API, OpenRouter, Grok, or free models only).
+- **Done when:** the note is committed; the scripted confinement check passes for the chosen vendor; the 2-run pilot result is recorded; or the arm is declared out of scope, with a deviation line for SO5.
+
+**After steps 1–5** (from `ops/notes/v15-final-study-draft.md` and synthesis §5): at least 7 sealed tasks per style with behaviour tests; task-level power; the final-study decisions; MEAN-01 labels or a stated absence; registration; S4 and a dress rehearsal; then one run.
+
+---
+
+## 6. Open author decisions that touch the instrument
+
+1. The D5 set-invariant construct question (U4 S2 failed). Blocks step 3.
+2. Whether a further hold-out attempt is made under a spec-format addendum. Blocks step 2.
+3. The delivery mode: gate, pull, or both. Needs the PUZZLE-04 and DRIFT-01 hand reads first. Blocks step 4.
+4. The second-vendor route and the go-ahead for its design note. Blocks step 5.
+5. The final-study choices: option A, B or C; DDD confirmatory or exploratory; start state; D_sem secondary or co-primary; brownfield arm; task author (`ops/notes/v15-final-study-draft.md` §8).
+6. Booking the MEAN-01 rater. Target for labels: 2026-11-30 (`ops/notes/mean-01-codebook-and-sample.md`).
+7. The one allowed HEXDDD-01 revision (real-repo seed).
+8. EFF-01: run it, or move it to future work (COMPREHEND-01 partly covers it).
+
+---
+
+## 7. Chain of trust and conditions for a confirmatory claim
+
+```
+SO5 "spec or tool changes what the agent builds"
+  <- C3m "a finding means an architectural problem"     (0 labels, N114)
+       <- C3 "the findings are right"                   (283/283; hold-out not scored)
+            <- A3 "the norms are right"
+                 <- C2r "independent authors agree"     (κ 0.21, both Claude, N02)
+                 <- C1 "the graph is the code"          (imports 1.000 vs tsc)
+```
+
+The weakest link is still C3m, then C2r. Study 2b adds one more: the same rules gave the MCP feedback and the score (M186). A downstream claim is as strong as its weakest upstream link. Greenfield claims can be confirmatory, because the norms are declared. Brownfield claims stay exploratory while C2r is red.
+
+| Result | Condition for calling it confirmatory |
 |---|---|
-| Hold-out | pooled blocking recall ≥ 0.90 with Wilson lower bound ≥ 0.80; 0 incorrect blocking findings. Per style, report the point and the interval; any style below 0.90 is "characterised" |
-| External correctness | quote 283/283 together with the repo-level interval [0.741, 1] |
-| Meaning (C3m) | n ≥ 60; author–rater κ ≥ 0.60 under the dated definition; meaningful precision reported with its interval. Otherwise report the construct as unlabelled |
-| Study 2 | all of the following, or it is reported as descriptive: pre-registered before the first call; pilot mean Y ≥ 1.5 at step 4; power ≥ 0.80 at RR 0.25 for H1 and H2; both generators; Holm correction; tool use in ≥ 80 % of MCP steps, otherwise "no mechanism"; MCP-arm acceptance within 10 points of `none`; 10 passing diffs read, with 0 that only moved code |
-| SO3 (C1d) | design plus pilot. The confirmatory bar is ≥ 6 cases with twins, ≥ 5/6 correct, 0 twin false positives and two vendors. It isn't reachable this month, and we say so now |
-
-**Writing:** the chapters follow the planes. Ch. 4 covers P1 and P2. The evaluation chapters go through §4 part by part, then §5, then the studies.
+| Hold-out | pooled blocking recall ≥ 0.90 with Wilson lower bound ≥ 0.80; 0 incorrect blocking findings; per style, point and interval; any style below 0.90 is characterised (`ops/02-defensibility-conditions.md`) |
+| External correctness | quote 283/283 with the repo-level interval [0.741, 1] |
+| Meaning (C3m) | n ≥ 60; author–rater κ ≥ 0.60 under the dated definition; otherwise report the construct as unlabelled |
+| Semantic layer (SO3) | a registered D_sem with a precondition passed on cases the rubric author did not write; ≥ 6 cases with twins, ≥ 5/6 correct, 0 twin false positives |
+| Final study (SO5) | the 2b conditions carry over (pre-registered, power, Holm, tool use, acceptance, evasion read), plus ≥ 7 tasks per style and the five gates in synthesis §5 |
 
 ---
 
-## 9. Questions for you
+## 8. Risks
 
-1. Do the four planes (P1–P4) and ten parts fit the way you think about the instrument?
-2. Is §1 the thesis you want to defend?
-3. Should confirmatory claims stay in greenfield, with brownfield exploratory (§5)?
-4. (v3) Should the free rater label meaningfulness (C3m, about 60 findings) plus the K3 cases? This reverses v2's suggestion of writing norms blind (REV-02).
-5. Should N3 run before detection, as facts in N1, or after it, as triage? NS-01 leans to before.
-6. Should the efficiency test (C1c) be a sanity check, or a thesis result? REV-01 recommends a sanity check.
+| Risk | It hits | Mitigation |
+|---|---|---|
+| Fitted prototypes. v1.5 rules were revised on the same dev cases (C9082–C9091) | final study, SO2 | step 1c sealed check; no rule change after the freeze tag |
+| Rule circularity. The same rules give feedback and score (M186) | SO5 | report it; if feasible, a held-out rule set in the final study |
+| Scope. 2b counts only FF-S03 (M175) | SO5 claims | quote the scope every time; final study adds a style |
+| Same model family for generator and semantic roles | SO3, SO5 | step 5, or a declared limit |
+| CLI drift. Hooks and pins depend on the Claude CLI version | edit gate, harness | pin the CLI per arm; record the version in A6 |
+| Deviation count after registration | examiner view | anything new is a separate exploratory study |
 
-## Changelog
-- 2026-10-19 (evening): C3 and hold-out rows no longer lead with F23 (done); they point to U6 and the V4 ADR (REV-04 §6 item 15).
+---
+
+## 9. Changelog
+
+- 2026-10-26: full revision. Study 2b closed and the hold-out attempts recorded. v1.5 prototype parts added. Objectives renumbered to Kap3. New component table (§3), status by objective (§4), ordered steps (§5) and decision list (§6). Removed the four-week path, the old SO table and the question list.
+- 2026-10-19 (evening): C3 and hold-out rows no longer lead with F23 (done); they point to U6 and the V4 ADR.
 - 2026-10-19: corrected the neural-layer rule. The graph complements reading (NS-03).
-- 2026-10-18 v3: after REV-02 and the conditions register. New part C3m (meaning) is the weakest link. C2r corrected to two Claude sessions. §1 claim is now F1–F3 plus Study 2. New §7b, SO-to-parts. §8 is now a four-week path with a cut list and confirmatory conditions. C1 split into imports vs DDD class facts. C3 gains the tool baseline and the clustered bound.
-- 2026-10-18 v2: four planes, C1e, C2r, artifacts A1–A6, per-part evaluation, chain of trust, risks, studies on the map, ordered work. Drift moved out of Study 2. Figures corrected after REV-01.
+- 2026-10-18 v3: after REV-02 and the conditions register. New part C3m (meaning). C2r corrected to two Claude sessions.
+- 2026-10-18 v2: four planes, C1e, C2r, artifacts A1–A6, per-part evaluation, chain of trust, risks. Drift moved out of Study 2.
 - 2026-10-18 v1: first draft, from the author's decomposition.
