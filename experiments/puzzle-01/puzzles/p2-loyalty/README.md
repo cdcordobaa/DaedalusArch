@@ -44,3 +44,8 @@ the seed's (only the planted debt).
 - **SG1:** no sales import of membership internals (planted file excepted, exactly its seed imports); sales never
   compares points and never asks a `Member` for its tier.
 - **SG2:** no function outside the domains makes two store writes; sales never calls a membership write.
+- **Revision R5 (v1.5 Stage 0, 2026-10-26).** SG2's second clause is judged at run time, as P5's oracle is: a member
+  change during `placeOrder` passes only when the event relay delivered it after the command returned, so the
+  sales-side handler (P2-SG2-a, accepted) passes and a write inside the command still fails. A plain points name
+  compared with 0 (P2-SG1-b, accepted) no longer fails SG1. The proposed P2-SG1-e is not encoded. Re-score:
+  `Docs/DiagnosticRuns/v15-stage0-rescore-2026-10-26.md`.

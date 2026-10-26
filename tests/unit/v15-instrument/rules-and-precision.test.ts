@@ -1,0 +1,77 @@
+/**
+ * v1.5 instrument (Stage 0): the promoted RULES-V15 and APG-V15 graph build reproduce the prototype's development
+ * evidence. Zero model calls, no Neo4j.
+ * - The Cypher rules in `src/v15-instrument/rules/` are byte-identical to `experiments/detect-02/rules/`.
+ * - The DETECT-02 precision fixtures (10 patterns; legit and positive twins; declared and inferred roots) give exactly
+ *   the rows recorded in `experiments/detect-02/results/precision.json` (0 false-positive runs of 20, 12 of 12
+ *   positives flagged).
+ * - The frozen v1.4 instrument stays the default.
+ */
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import YAML from 'yaml';
+import { INSTRUMENTS, loadRules, rulesDir, runTree, selectedInstrument } from '../../../src/v15-instrument/index.js';
+
+const REPO = path.resolve(__dirname, '..', '..', '..');
+const FX = path.join(REPO, 'experiments', 'detect-02', 'fixtures', 'precision');
+
+interface Row { fixture: string; variant: string; condition: string; pass: boolean; rootSource: string; roots: string[]; violations: unknown[]; allowed: unknown[]; info: number }
+interface Meta { pattern: string; legit: string; positive: string | null; expectLegit?: 'allowed'; expectPositive?: string[] }
+
+describe('v1.5 instrument: rules', () => {
+  it('loads the seven RULES-V15 Cypher rules, byte-identical to the prototype', () => {
+    const rules = loadRules();
+    expect(rules.map((r) => r.id).sort()).toEqual(['R-D4', 'R-D5', 'R-D9', 'R-H5', 'R-INJ', 'R-RTX', 'R-XCTX']);
+    for (const r of rules) {
+      expect(r.text).toBe(fs.readFileSync(path.join(REPO, 'experiments', 'detect-02', 'rules', r.file), 'utf8'));
+    }
+    expect(path.relative(REPO, rulesDir())).toBe(path.join('src', 'v15-instrument', 'rules'));
+  });
+
+  it('keeps the frozen v1.4 instrument as the default; v1.5 only when chosen', () => {
+    expect(INSTRUMENTS['v1.4'].default).toBe(true);
+    expect(INSTRUMENTS['v1.4'].mcpEntry).toBe('src/mcp-server/main.ts');
+    expect(selectedInstrument({})).toBe('v1.4');
+    expect(selectedInstrument({ DAEDALUS_INSTRUMENT: 'v1.3' })).toBe('v1.4');
+    expect(selectedInstrument({ DAEDALUS_INSTRUMENT: 'v1.5' })).toBe('v1.5');
+  });
+});
+
+describe('v1.5 instrument: precision fixtures reproduce the recorded prototype rows', () => {
+  const recorded = (JSON.parse(fs.readFileSync(path.join(REPO, 'experiments', 'detect-02', 'results', 'precision.json'), 'utf8')) as { rows: Row[] }).rows;
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'v15-prec-'));
+  afterAll(() => fs.rmSync(scratch, { recursive: true, force: true }));
+  const rules = loadRules();
+
+  for (const d of fs.readdirSync(FX).sort()) {
+    it(`${d}: every variant and root condition as recorded`, async () => {
+      const meta = JSON.parse(fs.readFileSync(path.join(FX, d, 'fixture.json'), 'utf8')) as Meta;
+      const specPath = path.join(FX, d, 'spec.yaml');
+      const doc = YAML.parse(fs.readFileSync(specPath, 'utf8')) as { architecture: { ddd: Record<string, unknown> } };
+      delete doc.architecture.ddd['aggregates'];
+      const fallback = path.join(scratch, `${d}.fallback.yaml`);
+      fs.writeFileSync(fallback, YAML.stringify(doc));
+      for (const [variant, tree] of [['legit', meta.legit], ['positive', meta.positive]] as const) {
+        if (tree === null) continue;
+        for (const [condition, spec] of [['declared', specPath], ['fallback', fallback]] as const) {
+          const r = await runTree(path.join(FX, d, tree), rules, { spec, scratch });
+          const vio = r.findings.filter((f) => f.status === 'violation');
+          const allowed = r.findings.filter((f) => f.status === 'allowed');
+          const pass = variant === 'legit'
+            ? vio.length === 0 && (meta.expectLegit !== 'allowed' || allowed.length > 0)
+            : (meta.expectPositive ?? []).every((id) => vio.some((f) => f.rule === id));
+          const rec = recorded.find((x) => x.fixture === d && x.variant === variant && x.condition === condition);
+          expect(rec).toBeDefined();
+          expect({
+            pass, rootSource: r.facts.rootSource, roots: r.facts.roots.map((x) => x.name),
+            violations: vio.map((f) => ({ rule: f.rule, file: f.file, line: f.line, subject: f.subject, evidence: f.evidence })),
+            allowed: allowed.map((f) => ({ rule: f.rule, file: f.file, line: f.line, subject: f.subject })),
+            info: r.findings.filter((f) => f.status === 'info').length,
+          }).toEqual({ pass: rec!.pass, rootSource: rec!.rootSource, roots: rec!.roots, violations: rec!.violations, allowed: rec!.allowed, info: rec!.info });
+          expect(pass).toBe(true);
+        }
+      }
+    }, 180_000);
+  }
+});

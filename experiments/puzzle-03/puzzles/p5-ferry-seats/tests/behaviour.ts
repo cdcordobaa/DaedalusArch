@@ -157,7 +157,19 @@ export const cases: TestCase[] = [
       const b3 = a.book('Cy', other, 2);
       a.cancelSailing(s);
       assert.deepEqual([status(a, b1), status(a, b2), status(a, b3)], ['sailing-cancelled', 'cancelled', 'confirmed']);
-      assert.equal(status(a, a.book('Di', s, 1)), 'rejected');
+      // Revision R1 (v1.5 Stage 0, 2026-10-26): the step-3 request says a new booking on a cancelled sailing "is
+      // rejected" without naming the form, so a refusal by a thrown error counts as well as a returned status
+      // 'rejected' (PUZZLE-03 and PUZZLE-04 hand reads). Either way nothing is taken, and the next booking on another
+      // sailing is still confirmed (before R1 a throw stopped the test before that line was checked).
+      const before = left(a, s);
+      let refused: string;
+      try {
+        refused = status(a, a.book('Di', s, 1));
+      } catch {
+        refused = 'rejected';
+      }
+      assert.equal(refused, 'rejected');
+      assert.equal(left(a, s), before);
       assert.equal(status(a, a.book('Ed', other, 1)), 'confirmed');
     },
   },

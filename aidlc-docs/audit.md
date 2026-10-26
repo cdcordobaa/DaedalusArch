@@ -3160,3 +3160,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 CONSTRUCTION, U1 groundwork; append-only correction
 
 ---
+
+## v1.5 Stage 0 — request and plan (CONSTRUCTION, U1 and the U2 build)
+**Timestamp**: 2026-10-26T21:50:22Z
+**User Input**: "(coordinator brief) Stage 0 of the v1.5 readiness note, zero model calls: fix the P2 and P5 answer keys and the P5 test, re-score the existing puzzle runs with them, move the v1.5 prototypes (graph build, rules, S3 ownership facts, edit gate) into src/ with the frozen v1.4 path unchanged and selectable, re-score the DRIFT-01 and PUZZLE-04 outputs through the src/ version as a regression check, open a PR into main without merging, and do not tag v1.5. The author asked to proceed (2026-10-26)."
+**AI Response**: "Plan written: aidlc-docs/construction/plans/v1.5-stage0-src-move-code-generation-plan.md. Branch v15/stage0-src-move from origin/main. Scope excludes the S4 confinement check, the combined delivery mode, the tag and the held-out. Pending author rulings (P1-SG1-c, P2-SG1-e) are not encoded in any key."
+**Context**: v1.5 CONSTRUCTION, Stage 0; code generation planning; approval: author asked to proceed (2026-10-26)
+
+---
