@@ -134,4 +134,18 @@ Scripts: `experiments/v15-stage0/regress-drift01.ts` (`--set pilot|rescore`, `--
 
 ## 6. Full suite
 
-(Filled in after the run.)
+`jest --maxWorkers=2` over the whole repository, in this worktree:
+- **Suites:** 524 pass, 32 fail, 3 skipped.
+- **Tests:** 7,156 pass, 186 fail, 59 skipped.
+
+**The 3 new suites (25 tests) pass.**
+
+**None of the 32 failing suites imports or reads anything this change touches.** Their names are under
+`tests/unit/scripts/mutation/`, `scripts/v1.3/`, `scripts/u5b/`, `scripts/sdd/`, `scripts/generators/`, `cli/`,
+`ddd/`, `post-seal/` and `shared/process/`. Those test files contain no reference to `p2-loyalty`, `p5-ferry`,
+`puzzle-0`, `v15-instrument` or `mcp:v15`.
+
+**The failures look like this worktree's environment.** The sampled ones fail on a missing `node_modules` path. This
+worktree has no local `node_modules`: modules resolve from a parent directory, and type roots do not. That is the same
+cause as the `verify.ts` type-check failure in §1. This is not confirmed by a run on `main` in the same worktree. The
+CI run on the pull request is the check.
