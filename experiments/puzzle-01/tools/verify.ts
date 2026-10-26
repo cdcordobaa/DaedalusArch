@@ -25,6 +25,7 @@ const REVISIONS = [
   { puzzle: 'p1-transfers', when: 'build, before the first verification run', what: 'feature test "a transfer between currencies or to an unknown account is refused" passed on the seed (assert.throws accepted the TypeError of a missing transfer); added an explicit check that transfer exists' },
   { puzzle: 'p4-library-holds', when: 'build, before the first verification run', what: 'step loan-list asked for "overdue first, then by due day", which is the same order as by due day in every reachable state, and its test used a run day on which the loan was not yet overdue; the step now asks for earliest due first and the test was corrected; the guard test on staff suspensions was re-labelled regression (it passes on the seed by design)' },
   { puzzle: 'p3-shipping-quotes', when: 'first verification run', what: 'not a fix: the design note expected partial instrument visibility; the run shows none (vendor imports are checked only in the domain layer). Recorded as measured; the puzzle is unchanged' },
+  { puzzle: 'p2-loyalty', when: 'v1.5 Stage 0, 2026-10-26 (after PUZZLE-01 to PUZZLE-04; zero calls)', what: 'oracle R5: SG2 (b) judged at run time (a member change during placeOrder passes only when the relay delivered it), encoding the accepted P2-SG2-a; a plain points name compared with 0 exempt from SG1 (b), encoding the accepted P2-SG1-b. P2-SG1-e is not encoded (waiting for the author). Re-score: Docs/DiagnosticRuns/v15-stage0-rescore-2026-10-26.md' },
 ];
 
 /**

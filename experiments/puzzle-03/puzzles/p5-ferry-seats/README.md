@@ -45,6 +45,11 @@ booking change during `cancelSailing`) passes only when the relay's `deliverPend
 starting context is a caller of that delivery. **SG1:** `book`. **SG2:** `cancelBooking` and `cancelSailing`. Method
 names do not matter, so a renamed write, a "batch" store call and a fake event handled inside the command are seen.
 
+**Test revision R1 (v1.5 Stage 0, 2026-10-26).** The step-3 test accepts a refusal by a thrown error as well as a
+returned status `rejected` for a new booking on a cancelled sailing (the request names no form); nothing may be taken,
+and the next booking on another sailing is still checked. The oracle is unchanged. Re-score:
+`Docs/DiagnosticRuns/v15-stage0-rescore-2026-10-26.md`.
+
 ## Fixtures beyond clean and trap
 
 - **Gaming (`gaming/sync-event-handler/`):** the booking command builds `BookingRequested` / `BookingCancelled` and

@@ -1,0 +1,316 @@
+{
+ "schema": "v15-stage0-regress-drift01/v1",
+ "engine": "src/v15-instrument",
+ "modelCalls": 0,
+ "summary": {
+  "blocks": 2,
+  "stepsCompared": 12,
+  "mismatches": 0
+ },
+ "mismatches": [],
+ "blocks": [
+  {
+   "block": "hexddd-01/s1-hotel-bookings",
+   "D_v15_only": {
+    "D": 2,
+    "Y1": 0,
+    "Yk": 2
+   },
+   "D_v15_only_seed": {
+    "D": 2,
+    "Y1": 0,
+    "Yk": 2
+   },
+   "recorded": {
+    "D_v15_only": 2,
+    "D_v15_only_seed": 2
+   },
+   "steps": [
+    {
+     "step": 0,
+     "v15Keys": [],
+     "v15Findings": [],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 1,
+     "v15Keys": [],
+     "v15Findings": [],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 2,
+     "v15Keys": [],
+     "v15Findings": [],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 3,
+     "v15Keys": [
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/AuditRecord.ts",
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/Booking.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/application/services/BookRoomService.ts",
+       "line": 29,
+       "subject": "BookRoomService.book",
+       "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+       "status": "violation",
+       "note": "aggregate roots inferred (no DDD block in the spec)"
+      }
+     ],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 4,
+     "v15Keys": [
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/AuditRecord.ts",
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/Booking.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/application/services/BookRoomService.ts",
+       "line": 29,
+       "subject": "BookRoomService.book",
+       "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+       "status": "violation",
+       "note": "aggregate roots inferred (no DDD block in the spec)"
+      }
+     ],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 5,
+     "v15Keys": [
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/AuditRecord.ts",
+      "src/application/services/BookRoomService.ts#BookRoomService.book|src/domain/model/Booking.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/application/services/BookRoomService.ts",
+       "line": 29,
+       "subject": "BookRoomService.book",
+       "evidence": "saves 3 aggregate instances: Booking x1, AuditEntry x2",
+       "status": "violation",
+       "note": "aggregate roots inferred (no DDD block in the spec)"
+      }
+     ],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    }
+   ]
+  },
+  {
+   "block": "hexddd-01/s2-orders-invoices",
+   "D_v15_only": {
+    "D": 2,
+    "Y1": 2,
+    "Yk": 4
+   },
+   "D_v15_only_seed": {
+    "D": 4,
+    "Y1": 0,
+    "Yk": 4
+   },
+   "recorded": {
+    "D_v15_only": 2,
+    "D_v15_only_seed": 4
+   },
+   "steps": [
+    {
+     "step": 0,
+     "v15Keys": [],
+     "v15Findings": [],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 1,
+     "v15Keys": [
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 2,
+     "v15Keys": [
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 3,
+     "v15Keys": [
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 4,
+     "v15Keys": [
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    },
+    {
+     "step": 5,
+     "v15Keys": [
+      "src/billing/application/IssueInvoice.ts#IssueInvoice.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/IssueInvoice.ts#IssueInvoice.execute|src/ordering/domain/order/Order.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/billing/domain/invoice/Invoice.ts",
+      "src/billing/application/RecordPayment.ts#RecordPayment.execute|src/ordering/domain/order/Order.ts"
+     ],
+     "v15Findings": [
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "line": 13,
+       "subject": "IssueInvoice.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-D4",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "saves 2 aggregate instances: Invoice x1, Order x1",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/IssueInvoice.ts",
+       "line": 13,
+       "subject": "IssueInvoice.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      },
+      {
+       "rule": "R-XCTX",
+       "file": "src/billing/application/RecordPayment.ts",
+       "line": 9,
+       "subject": "RecordPayment.execute",
+       "evidence": "context billing writes Order (owned by ordering)",
+       "status": "violation"
+      }
+     ],
+     "matches": {
+      "keys": true,
+      "findings": true
+     }
+    }
+   ]
+  }
+ ]
+}

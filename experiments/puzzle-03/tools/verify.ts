@@ -32,6 +32,7 @@ const REVISIONS = [
   { puzzle: 'p3r-shipping-quotes', when: 'build', what: 'oracle extended for gaming (vendor field names declared in the core, vendor codes and declaration names in strings, core imports of adapters); rules (a) are the PUZZLE-01 P3 oracle unchanged. The PUZZLE-01 oracle passes the gaming fixture, the P3r oracle fails it' },
   { puzzle: 'p5-ferry-seats', when: 'build, before the first verification run', what: 'regression test "a scheduled sailing shows its route and seats" compared the whole sailing view with deepEqual, which would fail any end state that adds a field (the clean and trap lines both add `cancelled`); it now compares the five seed fields' },
   { puzzle: 'p6-workshop-jobs', when: 'build, before the first verification run', what: 'feature test "monthly takings per mechanic" had two mechanics on equal takings (an order the request does not fix); one job\'s labour was raised from 45 to 60 minutes so the order is determined' },
+  { puzzle: 'p5-ferry-seats', when: 'v1.5 Stage 0, 2026-10-26 (after PUZZLE-03 and PUZZLE-04; zero calls)', what: 'test R1: a new booking on a cancelled sailing may be refused by a thrown error as well as by status rejected (the step-3 request names no form); nothing is taken and the next booking on another sailing is still checked. The oracle is unchanged. Re-score: Docs/DiagnosticRuns/v15-stage0-rescore-2026-10-26.md' },
 ];
 
 /** Hand reading of the instrument's view per sub-goal (coordinator, after the mechanical run). */

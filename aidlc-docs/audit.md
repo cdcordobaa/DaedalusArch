@@ -3160,3 +3160,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 CONSTRUCTION, U1 groundwork; append-only correction
 
 ---
+
+## v1.5 Stage 0 — request and plan (CONSTRUCTION, U1 and the U2 build)
+**Timestamp**: 2026-10-26T21:50:22Z
+**User Input**: "(coordinator brief) Stage 0 of the v1.5 readiness note, zero model calls: fix the P2 and P5 answer keys and the P5 test, re-score the existing puzzle runs with them, move the v1.5 prototypes (graph build, rules, S3 ownership facts, edit gate) into src/ with the frozen v1.4 path unchanged and selectable, re-score the DRIFT-01 and PUZZLE-04 outputs through the src/ version as a regression check, open a PR into main without merging, and do not tag v1.5. The author asked to proceed (2026-10-26)."
+**AI Response**: "Plan written: aidlc-docs/construction/plans/v1.5-stage0-src-move-code-generation-plan.md. Branch v15/stage0-src-move from origin/main. Scope excludes the S4 confinement check, the combined delivery mode, the tag and the held-out. Pending author rulings (P1-SG1-c, P2-SG1-e) are not encoded in any key."
+**Context**: v1.5 CONSTRUCTION, Stage 0; code generation planning; approval: author asked to proceed (2026-10-26)
+
+---
+
+## v1.5 Stage 0 — completion (CONSTRUCTION, U1 and the U2 build)
+**Timestamp**: 2026-10-26T22:12:16Z
+**User Input**: (none; the work requested at 2026-10-26T21:50:22Z, which the author asked to proceed with)
+**AI Response**: "P2 oracle R5 (accepted P2-SG2-a, P2-SG1-b) and P5 test R1 done. The existing final trees were re-scored with zero calls; the 'before' run reproduces 30 of 30 recorded verdicts. Clean solves after: PUZZLE-01 P2 1/5, PUZZLE-02 P2 3/5, PUZZLE-03 P5 0/5, PUZZLE-04 gate P2 4/5, gate P5 4/5, pull P5 5/5. No verdict went from pass to fail. src/v15-instrument/ added; the v1.4 path is unchanged and stays the default. 25 new tests pass with jest --maxWorkers=2. Regression through src/ found 0 mismatches on the DRIFT-01 pilot (108 step trees), DRIFT-01 Part A (12), the PUZZLE-04 snapshots (140) and the hub replay (150). Full suite: 32 suites fail; none reads the changed files, and the sampled failures point to the worktree having no local node_modules. Note: Docs/DiagnosticRuns/v15-stage0-rescore-2026-10-26.md. PR #384 opened into main, not merged; v1.5 not tagged. Pending author rulings P1-SG1-c, P2-SG1-e and P5-SG2-a are not encoded. Item 3 (the S4 confinement check) is open. This log already held three merge-conflict marker lines from origin/main; they were left untouched (append-only)."
+**Context**: v1.5 CONSTRUCTION, Stage 0; code generation complete; awaiting review of PR #384
+
+---
