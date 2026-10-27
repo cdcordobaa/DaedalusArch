@@ -63,6 +63,20 @@ P3r, P5 and P6. Rules 3–5 and 7 are Vernon's aggregate rules; rules 1, 2 and 6
 The two remaining cases need a path the study rules do not yet use: K11 needs structure plus runtime, and K12 needs a
 neural tag.
 
+## 6. Hexagonal rows (HCAL-01, development)
+
+| ID | Violation | Imports | Structure | Spec | Neural | Runtime | Rule today | Status (dev) |
+|---|---|---|---|---|---|---|---|---|
+| H01 | domain depends on application, adapters or a framework | ● | ◐ | ● layers, allowed dependencies | — | — | FF-S01, FF-S04, FF-P01 | covered |
+| H02 | use case imports an adapter | ● | ◐ | ● | — | — | FF-S01, R-INJ | covered |
+| H03 | adapter imports another adapter | ● | — | ● adapter layers | — | — | R-AXA | covered (dev) |
+| H04 | vendor, adapter or persistence-handle type in an out-port | ◐ vendor imports | ● | ● ports | — | — | R-H5 | covered (dev) |
+| H05 | use case constructs a concrete adapter | — | ● | ● | — | — | R-INJ | covered |
+| H06 | business rules in an adapter | — | ◐ | — | ● business-rule tag | — | none | gap |
+| H07 | transport concepts (HTTP codes, HTTP/SQL errors) in the core | — | ● | ● layers | ◐ | — | R-TRANSPORT | covered (dev) |
+
+Source: `Docs/DiagnosticRuns/v15-hcal01-2026-10-27.md`.
+
 ## 5. Sources
 
 - `Docs/DiagnosticRuns/drift-01-rescores-2026-10-23.md` (HEXDDD-01 coverage)

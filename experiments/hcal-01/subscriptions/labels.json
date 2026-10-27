@@ -1,0 +1,212 @@
+{
+  "H01-pos1": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/pricing-policy.ts",
+    "note": "Domain pricing policy imports the SubscribeCommand type from the application layer."
+  },
+  "H01-pos2": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/invoice.ts",
+    "note": "Domain invoice imports the typeorm framework package to generate ids."
+  },
+  "H01-twin1": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "Same VIP pricing feature, with the request type defined inside the domain."
+  },
+  "H01-twin2": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "Same factory, with the id and time supplied by the caller instead of a framework package."
+  },
+  "H01-legit": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "Domain policy imports another domain module (ProrationService), which is allowed."
+  },
+  "H02-pos1": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/subscribe-use-case.ts",
+    "note": "Subscribe use case imports and depends on the InMemoryPlanRepository adapter instead of the port."
+  },
+  "H02-pos2": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/generate-invoice-use-case.ts",
+    "note": "Generate-invoice use case imports the ProviderPaymentGateway adapter directly."
+  },
+  "H02-twin1": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "Subscribe use case adds a blank-customer guard and still depends only on ports."
+  },
+  "H02-twin2": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "Generate-invoice use case numbers invoices through the InvoiceRepository port."
+  },
+  "H02-legit": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "Use case imports the port interface (type-only) and retries the charge through it."
+  },
+  "H03-pos1": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/in/http/subscription-controller.ts",
+    "note": "The inbound HTTP controller imports the outbound persistence adapter and queries it directly."
+  },
+  "H03-pos2": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/out/payment/provider-payment-gateway.ts",
+    "note": "The payment gateway adapter imports and constructs the email sender adapter."
+  },
+  "H03-twin1": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "Subscription lookup endpoint reaches persistence through a new in-port and use case, wired in main."
+  },
+  "H03-twin2": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "Gateway reports charges through an injected callback; main connects it to the email sender."
+  },
+  "H03-legit": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "Both adapters are built in main.ts; the gateway only sees the NotificationSender port."
+  },
+  "H04-pos1": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/payment-gateway.ts",
+    "note": "Out-port refund signature takes the vendor SDK Charge type from stripe."
+  },
+  "H04-pos2": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/subscription-repository.ts",
+    "note": "Out-port method exposes a SQL transaction handle in its signature."
+  },
+  "H04-twin1": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "Refund added to the port using only a primitive id and the domain Money type."
+  },
+  "H04-twin2": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "Batch save added to the port with domain types only; transaction handling stays in the adapter."
+  },
+  "H04-legit": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "Port declares its own plain receipt shape with primitives, resembling provider data but importing no vendor type."
+  },
+  "H05-pos1": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/subscribe-use-case.ts",
+    "note": "Subscribe use case constructs SmtpEmailSender itself as a fallback."
+  },
+  "H05-pos2": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/cancel-subscription-use-case.ts",
+    "note": "Cancel use case defaults its repository to a new InMemorySubscriptionRepository."
+  },
+  "H05-twin1": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "Use case uses new only for domain objects (Invoice, ProrationService), never for an adapter."
+  },
+  "H05-twin2": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "Cancel use case only constructs a Date; the repository is injected."
+  },
+  "H05-legit": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "main.ts, the composition root, constructs the adapters with configuration and injects them."
+  },
+  "H06-pos1": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/in/http/subscription-controller.ts",
+    "note": "Controller computes proration, loyalty discount and eligibility itself."
+  },
+  "H06-pos2": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/out/persistence/in-memory-invoice-repository.ts",
+    "note": "Invoice repository adapter applies late-fee and tax rules before persisting."
+  },
+  "H06-twin1": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "Controller validates the quote request and delegates the proration math to the domain service."
+  },
+  "H06-twin2": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "Invoice repository only maps the invoice to a stored row; amounts are untouched."
+  },
+  "H06-legit": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "Controller only checks request format (types, id pattern); no pricing or eligibility logic."
+  },
+  "H07-pos1": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/application/subscribe-use-case.ts",
+    "note": "Subscribe use case throws errors carrying HTTP status codes 404 and 409."
+  },
+  "H07-pos2": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/domain/subscription.ts",
+    "note": "Domain subscription throws an HttpStatusError(409) instead of a domain error."
+  },
+  "H07-twin1": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "Cancel use case signals the conflict with a domain error; no transport concept."
+  },
+  "H07-twin2": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "Domain error gains a business reason code instead of a status code."
+  },
+  "H07-legit": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "Domain errors are mapped to HTTP statuses (402, 403, 422) in the inbound adapter only."
+  }
+}

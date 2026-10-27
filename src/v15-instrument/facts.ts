@@ -48,6 +48,10 @@ export interface LockFact { readonly unit: string; readonly file: string; readon
 export interface CalcFact { readonly unit: string; readonly file: string; readonly line: number; readonly expr: string; readonly root: string }
 /** CN-01: an aggregate root that holds another aggregate root's object instead of its id (K16). */
 export interface RefFact { readonly root: string; readonly file: string; readonly line: number; readonly member: string; readonly target: string }
+/** HCAL-01 (2026-10-27): an adapter that imports another adapter package (H03). */
+export interface AdapterImportFact { readonly file: string; readonly line: number; readonly specifier: string; readonly target: string; readonly fromPkg: string; readonly toPkg: string }
+/** HCAL-01: a transport concept (an HTTP status code, an HTTP or SQL error type) in domain, application or port code (H07). */
+export interface TransportFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'status-code' | 'transport-type'; readonly detail: string }
 export interface ContractFact { readonly contract: string; readonly file: string; readonly line: number; readonly entity: string; readonly entityFile: string; readonly via: string; readonly form: 'type' | 'mirror' }
 export interface PortMechFact { readonly port: string; readonly method: string; readonly file: string; readonly line: number; readonly form: 'vendor-type' | 'adapter-type' | 'scope-callback'; readonly detail: string }
 export interface InjectionFact { readonly cls: string; readonly file: string; readonly line: number; readonly adapter: string; readonly adapterFile: string; readonly form: 'constructor' | 'property' | 'new' }
@@ -62,6 +66,8 @@ export interface Facts {
   readonly locks: readonly LockFact[];
   readonly calcs: readonly CalcFact[];
   readonly refs: readonly RefFact[];
+  readonly adapterImports: readonly AdapterImportFact[];
+  readonly transports: readonly TransportFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
   readonly injections: readonly InjectionFact[];
@@ -73,6 +79,7 @@ type UnitNode = Node;
 interface Unit { readonly id: string; readonly node: UnitNode; readonly name: string; readonly file: string; readonly line: number; readonly params: readonly string[]; readonly owner: string | null }
 
 const MESSAGING_OWNER = /(Outbox|Relay|EventBus|Bus|Publisher|Dispatcher|Queue|Broker|EventStore)$/;
+const DB_HANDLE = /(Transaction|Tx|Connection|Session|QueryRunner|EntityManager|Cursor|Pool)$/;
 const REMOTE_PORT = /(Gateway|Client|Provider|Notifier|Mailer|Sender|Api|Http|Sdk)$/;
 const SCOPE_EXTERNAL = /transaction|^tx$|lock|atomic|unitOfWork|serializable/i;
 
@@ -556,6 +563,31 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
           ? [...m.getParameters().map((p) => ({ t: p.getType(), where: `parameter ${p.getName()}` })), { t: m.getReturnType(), where: 'return type' }]
           : [{ t: m.getType(), where: 'property type' }];
         const seen = new Set<string>();
+        // HCAL-01 H04: a name imported from a third-party package and used in the signature is a vendor type, even when
+        // its declaration cannot be resolved (a shim outside the project, a missing @types package).
+        {
+          const sig = m.getText();
+          for (const imp of i.getSourceFile().getImportDeclarations()) {
+            const spec_ = imp.getModuleSpecifierValue();
+            if (spec_.startsWith('.') || spec_.startsWith('/') || spec_.startsWith('node:')) continue;
+            for (const nm of [...imp.getNamedImports().map((x) => x.getAliasNode()?.getText() ?? x.getName()), imp.getDefaultImport()?.getText() ?? '', imp.getNamespaceImport()?.getText() ?? ''].filter(Boolean)) {
+              if (!new RegExp(`\\b${nm}\\b`).test(sig)) continue;
+              const detail = `signature uses ${nm} from ${spec_}`;
+              if (!portMechanisms.some((x) => x.port === i.getName() && x.method === m.getName() && x.detail.includes(` ${nm} from ${spec_}`))) portMechanisms.push({ port: i.getName(), method: m.getName(), file: fileOf(m), line: m.getStartLineNumber(), form: 'vendor-type', detail });
+            }
+          }
+        }
+        // HCAL-01 H04: a persistence mechanism handle named in the signature (a transaction, connection, session, query
+        // runner or entity manager type that is not a domain type) leaks the adapter's mechanism into the port.
+        for (const { t, where } of ptypes) {
+          const ds0 = new Set<Node>(); deepDecls(t, ds0);
+          for (const d of ds0) {
+            const name = (d as unknown as { getName?: () => string }).getName?.() ?? '';
+            if (!DB_HANDLE.test(name) || !inTree(d) || roleOfNode(d) === 'domain' || roleOfNode(d) === 'shared-kernel') continue;
+            const detail = `${where} uses ${name}, a persistence mechanism handle`;
+            if (!portMechanisms.some((x) => x.port === i.getName() && x.method === m.getName() && x.detail === detail)) portMechanisms.push({ port: i.getName(), method: m.getName(), file: fileOf(m), line: m.getStartLineNumber(), form: 'adapter-type', detail });
+          }
+        }
         for (const { t, where } of ptypes) {
           const ds = new Set<Node>(); deepDecls(t, ds);
           for (const d of ds) {
@@ -1047,8 +1079,51 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   }
   bump('remoteInTx', remoteInTx.length);
 
+  // ── ADAPTER_IMPORTS (HCAL-01 H03) ───────────────────────────────────────────────────────────────────────────────
+  // The adapter package of a file is the folder right under an adapters/in, adapters/out, adapters or infrastructure
+  // folder (`src/adapters/in/http/…` → `src/adapters/in/http`). An adapter file that imports a file of another
+  // adapter package couples two adapters that should only meet through ports, wired in the composition root.
+  const ADAPTER_PKG = /^(.*?(?:adapters\/(?:in|out|inbound|outbound)|adapters|infrastructure)\/[^/]+)\//;
+  const adapterImports: AdapterImportFact[] = [];
+  for (const sf of files) {
+    const f = fileOf(sf);
+    if (spec.roleOf(f) !== 'adapter') continue;
+    const from = ADAPTER_PKG.exec(f)?.[1];
+    if (from === undefined) continue;
+    for (const imp of sf.getImportDeclarations()) {
+      if (imp.isTypeOnly()) continue;
+      const tsf = imp.getModuleSpecifierSourceFile();
+      if (tsf === undefined || !inTree(tsf)) continue;
+      const t = fileOf(tsf);
+      if (spec.roleOf(t) !== 'adapter') continue;
+      const to = ADAPTER_PKG.exec(t)?.[1];
+      if (to === undefined || to === from) continue;
+      adapterImports.push({ file: f, line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), target: t, fromPkg: from, toPkg: to });
+    }
+  }
+  bump('adapterImports', adapterImports.length);
+
+  // ── USES_TRANSPORT (HCAL-01 H07) ────────────────────────────────────────────────────────────────────────────────
+  const STATUS_KEY = /^(status|statusCode|httpStatus|httpCode)$/i;
+  const TRANSPORT_TYPE = /(Http\w*(Error|Exception|Status)|HttpStatus|StatusCode|Sql\w*Error|QueryFailed\w*)$/;
+  const transports: TransportFact[] = [];
+  const isHttpCode = (n: Node): boolean => Node.isNumericLiteral(n) && Number(n.getText()) >= 100 && Number(n.getText()) <= 599 && Number.isInteger(Number(n.getText()));
+  for (const sf of files) {
+    const f = fileOf(sf);
+    const role = spec.roleOf(f);
+    if (role !== 'domain' && role !== 'application' && role !== 'port') continue;
+    const seen = new Set<string>();
+    const add = (line: number, form: TransportFact['form'], detail: string): void => { const k = `${String(line)}|${detail}`; if (!seen.has(k)) { seen.add(k); transports.push({ file: f, line, role, form, detail }); } };
+    sf.forEachDescendant((n) => {
+      if (Node.isPropertyAssignment(n) && STATUS_KEY.test(n.getName()) && n.getInitializer() !== undefined && isHttpCode(n.getInitializer()!)) add(n.getStartLineNumber(), 'status-code', `${n.getName()}: ${n.getInitializer()!.getText()}`);
+      if (Node.isNewExpression(n) && TRANSPORT_TYPE.test(n.getExpression().getText())) add(n.getStartLineNumber(), 'transport-type', `new ${n.getExpression().getText()}(…)`);
+      if (Node.isClassDeclaration(n) && TRANSPORT_TYPE.test(n.getName() ?? '')) add(n.getStartLineNumber(), 'transport-type', `class ${n.getName() ?? ''}`);
+    });
+  }
+  bump('transports', transports.length);
+
   return {
-    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, contracts, portMechanisms, injections,
+    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, contracts, portMechanisms, injections,
     remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
