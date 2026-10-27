@@ -141,6 +141,7 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 **Post-seal changes now pending: M3, D5, N3 (and V4 if the count triggers it).** Each one is a declared deviation. The examiner review flags the count of deviations as a risk in its own right. I'll write them up together as one dated list, so the director sees all of them at once.
 
 ## Changelog
+- 2026-10-27: C1 outcome. R-D5S on the 16 sealed unseen cases: recall 4/6, false positives 2/10, so the gate fails. DDD is exploratory in the final study; Hexagonal is the confirmatory style (`Docs/DiagnosticRuns/v15-d5s-unseen-2026-10-26.md`). C8 outcome: the combined-mode disclosure passes the hint audit (0 FAIL in 8 audits) and is kept.
 - 2026-10-26: the v1.5 final-study register recorded (A1–E3). C11, D3 and E2 corrected the same day: C11 and D3 now state the existing v1.5 rule coverage on HEXDDD-01, and E2 follows the venue call (no abstract deadline) and the one-slice-per-venue plan.
 - 2026-10-23: CONFINE recorded (scripted confinement checks replace model-driven probes for third-party generators).
 - 2026-10-21: status reconciled, no new decision. "Still open": the 9 adjudication rows marked done (signing desk 61/61, DELEG). The two hold-out changelog entries of 2026-10-20 now point to the entries that settled them (DELEG-H4: not spent; DELEG5: F-RF). Fixes conflicts 5 and 6 of `06-open-tracks-and-capabilities.md`.

@@ -3189,3 +3189,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Stage 0 follow-up; zero model calls; recorded as one post-hoc deviation.
 
 ---
+
+## Construction: v1.5 C1 declared invariants (R-D5S) and its unseen-case check
+**Timestamp**: 2026-10-27T02:40:00Z
+**User Input**: "Continue the work of the decision register (C1)."
+**AI Response**: "Wrote the design note before any build, added the optional DDD `invariants` field, INVARIANT_SITE facts and rule R-D5S (v1.5 only; regression 0 mismatches over 260 steps). A separate session built 16 unseen cases from the construct alone; they were sealed by hash before scoring. Result: recall 4/6, false positives 2/10; the gate fails and the fallback applies (DDD exploratory, Hexagonal confirmatory). The rule was not changed after the run."
+**Context**: CONSTRUCTION, v1.5 exploratory; zero model calls for scoring; PR 387.
+
+---
+
+## Construction: v1.5 combined delivery, steps 2–4, and the C8 hint audit
+**Timestamp**: 2026-10-27T02:45:00Z
+**User Input**: "Continue the work of the decision register (combined delivery, C8)."
+**AI Response**: "Built the shared finding ledger, the delivery hub (hook and MCP sockets, one ledger, tree-digest cache) and the numbered messages, with 14 tests. The hint audit of the combined frame gave 0 FAIL in 8 audits, so the disclosure sentence is kept. Steps 5–10 need the generator sandbox."
+**Context**: CONSTRUCTION, v1.5 exploratory; zero model calls; PR 389.
+
+---
