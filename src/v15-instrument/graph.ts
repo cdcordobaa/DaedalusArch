@@ -162,6 +162,16 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const a = roots.get(x.root); const b = roots.get(x.target);
     if (a && b) rel('REFERENCES_ROOT', a, b, { member: x.member, line: x.line, file: x.file });
   }
+  for (const x of facts.adapterImports) {
+    const a = node(['AdapterFile'], { file: x.file, pkg: x.fromPkg });
+    const b = node(['AdapterFile'], { file: x.target, pkg: x.toPkg });
+    rel('ADAPTER_IMPORTS', a, b, { line: x.line, specifier: x.specifier });
+  }
+  for (const x of facts.transports) {
+    const u = node(['CoreFile'], { file: x.file, role: x.role });
+    const t = node(['TransportConcept'], { form: x.form, detail: x.detail });
+    rel('USES_TRANSPORT', u, t, { line: x.line });
+  }
   for (const c of facts.contracts) {
     const a = node(['ContractType'], { name: c.contract, file: c.file, line: c.line });
     const b = node(['EntityType'], { name: c.entity, file: c.entityFile });
@@ -196,6 +206,7 @@ export async function runTree(tree: string, rules: readonly Rule[], opts: BuildO
   const findings: Finding[] = [];
   for (const r of rules) {
     if (r.id === 'R-INJ' && spec.style === 'layered') continue; // Layered services may depend on concrete persistence
+    if (r.id === 'R-D9' && spec.style === 'hexagonal') continue; // HCAL-01: a use case may return domain objects through its in-port
     const out = executeQuery(parseCypher(r.text), graph, new Map());
     for (const row of out.rows) {
       const o: Record<string, unknown> = {};
