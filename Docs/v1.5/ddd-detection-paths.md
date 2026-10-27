@@ -63,6 +63,13 @@ P3r, P5 and P6. Rules 3–5 and 7 are Vernon's aggregate rules; rules 1, 2 and 6
 The two remaining cases need a path the study rules do not yet use: K11 needs structure plus runtime, and K12 needs a
 neural tag.
 
+## 5b. CAL-02 admission (sealed, scored once, 2026-10-27)
+
+Admitted to the DDD confirmatory family (4/4 recall, 0/6 FP): **K01, K03, K05, K07, K14, K15, K16** (pooled 28/28,
+Wilson LB ≈ 0.88). Not admitted (exploratory): K02 3/4, K04 0/4 (location mismatch), K06 0/4, K08 2/4, K09–K13 0/4.
+Rows marked "covered (dev)" above that were not admitted were fitted to CAL-01 and did not carry to fresh cases.
+Source: `Docs/DiagnosticRuns/v15-cal02-admission-2026-10-27.md`.
+
 ## 6. Hexagonal rows (HCAL-01, development)
 
 | ID | Violation | Imports | Structure | Spec | Neural | Runtime | Rule today | Status (dev) |
