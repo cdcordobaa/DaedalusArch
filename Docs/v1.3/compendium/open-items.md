@@ -169,3 +169,21 @@ The readiness dashboard (`Docs/v1.3/study2-readiness-dashboard.md`) did not chan
 |---|---|---|
 | zod GHSA-mrhx-c7xc-m3w5 accepted as a residual risk: migrating to zod 4 is deferred to a dated instrument revision; decide whether that revision happens before any v1.5 study or the artifact deposit | author | `Docs/DiagnosticRuns/bt-audit-triage.md:5`; `scripts/lib/audit-allowlist.json` |
 | `aidlc-docs/audit.md` merge-conflict markers (§10): still present on `main` at `07da8fdb` (3 marker lines) | coordinator | `aidlc-docs/audit.md:3124`, `:3138`, `:3144` |
+
+## 12. State on 2026-10-27 (refresh after PRs #381–#398)
+
+The readiness dashboard (`Docs/v1.3/study2-readiness-dashboard.md`) did not change in this window. The design in force moved: the v1.5 final-study register (`ops/decisions.md:12`) and the admission results of 2026-10-27 define a Hexagonal + DDD study that is not yet registered. §1–§11 stand for the v1.3 gate items. New or changed items:
+
+| Item | Owner | Source |
+|---|---|---|
+| Confirmatory families fixed by admission: DDD on 7 of 16 rows (CAL-02), Hexagonal on H01, H02, H04, H05 (HCAL-02); everything else is exploratory. Check that the thesis states which rows are confirmatory | agent / author | `Docs/DiagnosticRuns/v15-cal02-admission-2026-10-27.md:40`; `v15-hcal02-admission-2026-10-27.md:36` |
+| The nine non-admitted DDD rows need a fresh sealed set (CAL-03) before any can be admitted; no CAL-03 is planned in the repository | author | `v15-cal02-admission-2026-10-27.md:59` |
+| H06 (business rules in an adapter) and K12 (calculation outside the aggregate) have no working rule: neural-path candidates and Kap9 roadmap items | author | `v15-hcal01-2026-10-27.md:44` |
+| R-D5S (declared-invariant rule) stays exploratory; changes need a new unseen set and are a Kap9 item | author | `v15-d5s-unseen-2026-10-26.md:46` |
+| Stage 1 pilot (week of 2026-11-02), freeze and registration by 2026-11-09, run 2026-11-09 to 2026-11-20, scored by 2026-11-27. The chain slips if the sealed tasks are not ready by 2026-11-06 | author / agent | `ops/decisions.md:34` (C12) |
+| The 24-task study set (12 DDD, 12 Hexagonal) is committed (`experiments/trap-families/study-set.json`) without a report; the C7 deviation (blind-built trap-family tasks instead of author briefs) is recorded | author | `ops/decisions.md:144` |
+| Stage 0 item 3 (scripted S4 confinement check on the edit gate) is open; v1.5 is not tagged | agent | `Docs/DiagnosticRuns/v15-stage0-rescore-2026-10-26.md:129` |
+| Full jest suite: 32 suites failed in the Stage 0 worktree, attributed to the environment and not confirmed on `main`; check CI | coordinator | `v15-stage0-rescore-2026-10-26.md:150` |
+| Hold-out: one more attempt under a dated addendum (D1); rater booking by 2026-11-30 (D2) | author | `ops/decisions.md:35` |
+| `ops/01-instrument-map.md` was rewritten (PR #382); the earlier draft v3 is archived verbatim for the ledger rows that cite it | coordinator | `Docs/v1.3/compendium/archive/instrument-map-v3-2026-10-18.md` |
+

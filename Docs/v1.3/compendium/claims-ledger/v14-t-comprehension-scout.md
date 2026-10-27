@@ -232,8 +232,8 @@ Primaries: `Docs/DiagnosticRuns/comprehend-01-pilot-2026-10-23.md` (PR #366, sco
 
 | id | statement | numbers | source | type | set | status | replication | quantity | verified against | notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| C9835 | / CONFINE / Confinement of third-party generators is tested with scripted tool calls from the harness, not with model prompts that instruct escape or tampering. The model-driven S4 probes for the Gemini/agy route ... are retired. / | `**CONFINE**` | `ops/decisions.md:16` | descriptive | none | established | — | decision CONFINE (settled 2026-10-23) | self (decision board) | decision, not a measurement; retires the 2026-10-19 agy S4 probes; creates a scripted confinement check for any second-vendor arm |
-| C9836 | - 2026-10-23: CONFINE recorded (scripted confinement checks replace model-driven probes for third-party generators). | `CONFINE recorded` | `ops/decisions.md:113` | descriptive | none | established | — | decision changelog | ops/decisions.md:16 | — |
+| C9835 | / CONFINE / Confinement of third-party generators is tested with scripted tool calls from the harness, not with model prompts that instruct escape or tampering. The model-driven S4 probes for the Gemini/agy route ... are retired. / | `**CONFINE**` | `ops/decisions.md:47` | descriptive | none | established | — | decision CONFINE (settled 2026-10-23) | self (decision board) | decision, not a measurement; retires the 2026-10-19 agy S4 probes; creates a scripted confinement check for any second-vendor arm |
+| C9836 | - 2026-10-23: CONFINE recorded (scripted confinement checks replace model-driven probes for third-party generators). | `CONFINE recorded` | `ops/decisions.md:147` | descriptive | none | established | — | decision changelog | ops/decisions.md:16 | — |
 
 ### `ops/notes/comprehend-01-design.md` (lines added)
 
