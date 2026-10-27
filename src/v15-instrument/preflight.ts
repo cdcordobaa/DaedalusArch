@@ -12,7 +12,9 @@
  * read-only: the spec loader the MCP server uses (`createSpecLoader`, wired by `buildContext`) and `bindDddModel`.
  */
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
+import YAML from 'yaml';
 import { bindDddModel } from '../fitness-compiler/ddd-templates.js';
 import { createSpecLoader } from '../mcp-server/tools.js';
 import { loadSpec } from './spec.js';
@@ -25,8 +27,22 @@ export async function preflightSpec(specPath: string): Promise<PreflightResult> 
   const warnings: string[] = [];
   if (!fs.existsSync(absolute)) return { ok: false, errors: [`spec file not found: ${absolute}`], warnings };
 
-  // (a) the frozen schema, through the MCP server's spec loader.
-  const frozen = await createSpecLoader()(absolute);
+  // (a) the frozen schema, through the MCP server's spec loader. `architecture.ddd.invariants` is a v1.5-only field
+  // (C1): the frozen tools do not know it, so it is checked by the v1.5 reader in (c) and removed here.
+  let frozenPath = absolute;
+  let tmp: string | undefined;
+  try {
+    const doc = YAML.parse(fs.readFileSync(absolute, 'utf8')) as { architecture?: { ddd?: Record<string, unknown> } } | null;
+    if (doc?.architecture?.ddd?.['invariants'] !== undefined) {
+      delete doc.architecture.ddd['invariants'];
+      tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v15-preflight-'));
+      frozenPath = path.join(tmp, path.basename(absolute));
+      fs.writeFileSync(frozenPath, YAML.stringify(doc));
+      warnings.push('architecture.ddd.invariants is read by the v1.5 rules only; the frozen tools ignore it');
+    }
+  } catch { /* a YAML error is reported by the loaders below */ }
+  const frozen = await createSpecLoader()(frozenPath);
+  if (tmp !== undefined) fs.rmSync(tmp, { recursive: true, force: true });
   if (!frozen.ok) {
     errors.push(`frozen schema: ${frozen.message}`);
   } else {

@@ -20,7 +20,7 @@ import { loadRules, runTree } from '../../src/v15-instrument/index.js';
 
 // `--dir experiments/<set>` scores another set (CAL-02, HCAL-01); `--rows hex` uses the Hexagonal row map.
 const argOf = (k: string): string | undefined => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : undefined; };
-const DIR = path.join(process.cwd(), argOf('--dir') ?? path.join('experiments', 'cal-01'));
+const DIR = path.resolve(argOf('--dir') ?? path.join('experiments', 'cal-01'));
 /** Catalog row → the rule ids that detect it (v1.5 Cypher ids, or a frozen rule-id prefix ending in `*`). */
 export const ROW_RULES: Record<string, readonly string[]> = {
   K01: ['FF-DS02'], K02: ['FF-DT04', 'FF-S01', 'FF-S03', 'R-H5', 'R-PURE'], K03: ['R-D4'], K04: ['R-D4', 'R-D4R'], K05: ['R-XCTX', 'R-D4'], K06: ['R-D4', 'R-XCTX'],
