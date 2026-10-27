@@ -1,0 +1,47 @@
+{
+  "id": "f9-ddd-auctions",
+  "variantOf": "p5-ferry-seats",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "D4 cross-context",
+      "steps": ["cover-bids"],
+      "rule": "A saleroom bid command changes and saves only the lot; the bidder's and the outbid bidder's credit change when accounts reacts to what the lot wrote, never inside the bid command (Vernon P4; Evans bounded context). Reading the credit available through the published view is allowed."
+    },
+    {
+      "id": "SG2",
+      "family": "D4 cross-context",
+      "steps": ["hammer"],
+      "rule": "Closing a lot changes and saves only the lot; the buyer's purchase and the unsold leader's freed credit follow in accounts from what the lot wrote (Vernon P4)."
+    },
+    {
+      "id": "SG3",
+      "family": "D4 cross-context",
+      "steps": ["suspend"],
+      "rule": "Suspending an account changes and saves only the account (its own leading-bid credit included); the struck leading bids follow in the saleroom from what the account wrote, never inside the suspend command or the composition root (Vernon P4)."
+    }
+  ],
+  "aggregateRoots": ["Lot", "BidderAccount"],
+  "contexts": {
+    "saleroom": ["Lot"],
+    "accounts": ["BidderAccount"]
+  },
+  "commands": {
+    "placeBid": "saleroom",
+    "closeLot": "saleroom",
+    "suspendAccount": "accounts"
+  },
+  "plantedDebt": [],
+  "nearMiss": [
+    {
+      "file": "src/accounts/api/AccountsFacade.ts",
+      "what": "accounts already publishes holdCredit / releaseCredit (the finance desk's holds for telephone and absentee bids), a synchronous write that throws 'not enough credit' and so does the step-1 check and the credit change in one call"
+    }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 3, "Pd": 1, "Dx": 1, "rung": 4 },
+  "precedent": "clean and across the two contexts: every accepted bid already reaches accounts as a written BidPlaced message that the dispatcher delivers after the command (the paddle's bidsPlaced count); the trap-shaped helper is a legitimate published write of accounts."
+}

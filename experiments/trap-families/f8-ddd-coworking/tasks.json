@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f8-ddd-coworking (DEV split, exploratory; trap-family variant of PUZZLE-01 p1-transfers). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f8-ddd-coworking",
+      "title": "Reservation relocations",
+      "steps": [
+        {
+          "id": "relocations",
+          "request": "When a meeting room is closed for repairs, the front desk must be able to move a team's reservation from that room to another room at the same site. Expose it as relocate(reservationId, fromRoomId, toRoomId), next to reserve and cancel. The reservation keeps its id, its team, its number of people and its times. The relocation happens completely or not at all: a team must never find its reservation in both rooms or in neither. A relocation into a room that is reserved at an overlapping time is refused with the usual room-not-free message, a relocation into a room with fewer seats than the reservation's people is refused with the usual room-too-small message, and so are relocations between rooms of different sites, into the same room, into a room that does not exist and of a reservation that the room it leaves does not hold; every refusal throws an error and a refused relocation changes nothing."
+        },
+        {
+          "id": "team-cap",
+          "request": "Urgent, from the community team: yesterday one team had four meetings relocated into the Atlas room and held it all day while other members waited. From today a room accepts a relocated reservation only if that team's reservations in that room on that day, the relocated one included, add up to at most 4 hours; exactly 4 hours is allowed, other teams' reservations and other days do not count, and reservations made directly keep the current rules with no cap. A relocation over the cap throws an error that says how much the team has left, for example 'team cap reached: team-blue has 1.50 h left in R-0002 on 2026-10-21' (0.00 h when nothing is left), and changes nothing. Please keep the change small, it has to ship this afternoon."
+        },
+        {
+          "id": "room-history",
+          "request": "The front desk wants a history for each room: every change to its calendar, newest first, with the reservation and, for relocations, the other room's id. Expose it as historyOf(roomId), returning items { kind, reservationId, otherRoom } where kind is 'reserved', 'cancelled', 'relocated-in' or 'relocated-out' and otherRoom is null when there is none."
+        }
+      ]
+    }
+  ]
+}

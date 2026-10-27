@@ -1,0 +1,239 @@
+# TRAP-FAMILIES f7-ddd-volunteer-shifts (DEV split; variant of PUZZLE-03 p5-ferry-seats): evaluator spec. presets/ddd.yaml at the build commit, verbatim, except the
+# architecture.ddd block, which declares this puzzle tree. presets/ddd.yaml sha256 ce28a78582a92571c5c8ff2c9144eb2161c580e140db3af880d451737b6260f7
+# Architectonic Firewall — Domain-Driven Design Preset (v1.3, FR-V4)
+# Rule definitions, literature sources (Evans 2003, Vernon 2013) and tier reasons: Docs/v1.3-ddd-notes.md.
+#
+# The extractor cannot tell which directory is a bounded context or which file is an aggregate root, so those facts
+# are declared in `architecture.ddd` (read by the ddd style only). The declarations below describe the DDD reference
+# project (tests/fixtures/v1.3-reference/ddd): replace them with your own contexts and aggregates. The layer globs and
+# role globs are conventions (src/<context>/{domain,application,infrastructure,acl,api}/...) and usually carry over.
+#
+# Two kinds of rule:
+#   - DDD rules (FF-DS.., FF-DT..), templates outside the frozen CYPHER_TEMPLATES (src/fitness-compiler/ddd-templates.ts);
+#   - the hexagonal graph layering composed inside each context (FF-S01, FF-S03; allowed_dependencies below).
+# Every function carries `tier` (ddd style only), as sealed in Docs/v1.3/rule-tiers.md before any measurement. Scoring
+# does not read it yet (FR-V6). FR-07 values: FF-DT04 extends the layered forbidden list; FF-DT06 threshold 3 (a priori, notes §1).
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/*/domain/**
+        - src/shared-kernel/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/*/application/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/*/infrastructure/**
+        - src/*/acl/**
+      roles:
+        - repository
+        - anti-corruption-layer
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/*/api/**
+      roles:
+        - controller
+
+    # Composition root, outside every context. kind application is only a placeholder for the kind resolver.
+    - name: composition
+      kind: application
+      directories:
+        - src/main.ts
+      roles:
+        - composition-root
+
+  # Layering inside each context (`from` may import each layer in `to`); cross-context imports are FF-DS02's.
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: shifts
+        root: src/shifts/
+        public_api: [src/shifts/index.ts, src/shifts/contracts/**]
+        acl: []
+      - name: signups
+        root: src/signups/
+        public_api: [src/signups/index.ts, src/signups/contracts/**]
+        acl: [src/signups/acl/**]
+    outside_contexts: [src/shared-kernel/**, src/messaging/**, src/main.ts]
+    aggregates:
+      - name: Shift
+        context: shifts
+        module: src/shifts/domain/shift/**
+        root: src/shifts/domain/shift/Shift.ts
+        inner_entities: []
+      - name: SignUp
+        context: signups
+        module: src/signups/domain/signup/**
+        root: src/signups/domain/signup/SignUp.ts
+        inner_entities: []
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/*/application/*.ts"]
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

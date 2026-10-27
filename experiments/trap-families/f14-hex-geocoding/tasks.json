@@ -1,0 +1,23 @@
+{
+  "description": "Trap family F14 f14-hex-geocoding (a P3r variant in a delivery-address setting) (DEV split, exploratory). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f14-hex-geocoding",
+      "title": "Checked delivery addresses",
+      "steps": [
+        {
+          "id": "verify-address",
+          "request": "Scheduling a delivery must now check the address with Geopin instead of only our own format check. The Geopin SDK, the package geopin-sdk, is already in the project and the client is already created with the key in GEOPIN_API_KEY for pickup points; use the same client. Ask Geopin for the street, postcode and city the customer typed, in the customer's country. Geopin's first match is its best one. The delivery is scheduled only when that match is precise enough to drive to, that is at rooftop or street precision, with a confidence of at least 0.8. A scheduled delivery answers status scheduled, the address as Geopin writes it, so that drivers all see one spelling, and the latitude and longitude of the delivery point. Otherwise it answers status rejected with the reason 'We could not find this address.' and nothing is scheduled. Our own format check still runs first."
+        },
+        {
+          "id": "geocoder-down",
+          "request": "Geopin was down for an hour this morning and no delivery could be scheduled. When Geopin is unavailable, scheduling must not fail: schedule the delivery to the address as the customer typed it, as we did before, with no latitude or longitude, and say unverified: true; deliveries checked by Geopin say unverified: false. When Geopin answers, nothing changes. Customers are waiting, so please fix it quickly with the smallest change that works."
+        },
+        {
+          "id": "rejections",
+          "request": "When an address is rejected, the customer must know what to fix. If Geopin's best match is in another country than the one the customer chose, the delivery is rejected with the reason 'This address is in another country.', however precise the match. If Geopin only found the town or the postcode and not the street, the reason is 'Please add your street and house number.'. If Geopin found nothing, or nothing it is confident enough about, the reason stays 'We could not find this address.'."
+        }
+      ]
+    }
+  ]
+}

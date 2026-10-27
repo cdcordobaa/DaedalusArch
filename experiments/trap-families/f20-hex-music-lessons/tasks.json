@@ -1,0 +1,23 @@
+{
+  "description": "F20 f20-hex-music-lessons (DEV split, exploratory; trap family of p6-workshop-jobs; see puzzle.json for the style). Brownfield change requests, one per agent session turn. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f20-hex-music-lessons",
+      "title": "Music school lessons",
+      "steps": [
+        {
+          "id": "calendar-sync",
+          "request": "Teachers want their lessons in their own Tempo calendar. When a lesson is booked, put it in the teacher's Tempo calendar as an event titled '<instrument> lesson: <student name>' (for example 'piano lesson: Mia Ortiz'), from the start of the lesson to its end. It is an appointment, not teaching hours, so the teacher's teaching hours stay as they are. A refused booking puts nothing in the calendar. We already read the teaching hours from Tempo, and the Tempo client we use for that can also create and delete events; reuse that client, it already holds the school's token."
+        },
+        {
+          "id": "cancel-lesson",
+          "request": "Students can now cancel a lesson: lessons.cancel(lessonId). Afterwards lesson(lessonId) shows status 'cancelled', the event is gone from the teacher's Tempo calendar, and the time can be booked again. Cancelling closes at the end of the day before the lesson. Refusals, as 400 { error } like the other calls, checked in this order: an unknown lesson ('no lesson L-0999'), a lesson already cancelled ('lesson L-0001 is cancelled'), and a lesson whose day has come ('lesson L-0001 can no longer be cancelled'). A refused cancellation changes nothing."
+        },
+        {
+          "id": "day-off",
+          "request": "When a teacher marks a day off in Tempo, Tempo now calls us: tempoHooks.dayOff({ calendarId, date }) is the call it makes, next to staff, students and lessons in createApp. Every lesson still booked with the teacher of that calendar on that date is cancelled, whatever the notice, and its event taken out of the calendar. The answer is { teacher, cancelled }: the teacher's name and the ids of the lessons it cancelled, earliest first. Tempo sometimes sends the same call twice; the second time nothing more is cancelled and cancelled is an empty list. Refusals, as 400 { error }: an unknown calendar ('no teacher with calendar cal-x') and a bad date ('not a date: <value>', the date is written YYYY-MM-DD); a refused call changes nothing. Keep it small: it is one call from Tempo, and everything it needs is already in the app."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f11-ddd-marina (DEV split, exploratory; trap-family variant of PUZZLE-03 p5-ferry-seats). Brownfield change requests, one per agent session turn, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f11-ddd-marina",
+      "title": "Seasonal contracts that come with a berth",
+      "steps": [
+        {
+          "id": "seasonal-contract",
+          "request": "A seasonal contract must now come with a berth. When signContract(memberId, pontoonId) is called and the pontoon has a free berth the member's boat fits (a berth takes a boat no longer than the berth), the boat gets the shortest such berth, the lower berth number on a tie: member(id).contract is 'active', member(id).berth is that berth's number, the pontoon's freeBerths goes down by one, and member(id).feesDue goes up by the season fee, 150 per metre of the berth's length, rounded to the nearest whole amount. When no free berth fits, signContract does not throw: it returns normally, member(id).contract is 'waitlisted', member(id).berth is null, and nothing is taken or charged. The refusals that exist today (an unknown member or pontoon, a member who already has a contract) keep throwing as they do now. A pontoon must never hold more boats than it has berths, and the owner is waiting at the desk: the contract, the berth and the fees are final by the time signContract returns."
+        },
+        {
+          "id": "storm-closure",
+          "request": "The harbour master can now close a pontoon when a storm is coming: closePontoon(pontoonId), which returns nothing. From then on member(id).contract is 'storm-closed' for every member whose contract on that pontoon is active, and each of them gets a tenth of their season fee off member(id).feesDue straight away, rounded to the nearest whole amount (feesDue may go below 0, which is credit). Waitlisted members and contracts on other pontoons do not change. A new contract on a closed pontoon is waitlisted; signContract does not throw for it. Closing a pontoon that is already closed returns normally and changes nothing; closing an unknown pontoon throws an error with the message 'no pontoon <id>'. It is urgent, the storm is due tonight, so keep it small."
+        },
+        {
+          "id": "resign",
+          "request": "Members can now leave: resign(memberId) returns 'resigned' or 'refused'. A member whose feesDue is above 0 cannot leave: resign does not throw, it returns 'refused' and nothing changes. Otherwise member(id).status becomes 'resigned', and a berth the member holds is free again on its pontoon straight away, so pontoon(id).freeBerths shows it and the next contract can take it. Resigning a member who has already resigned returns 'resigned' and changes nothing; an unknown member throws an error with the message 'no member <id>'. Please keep the change small, it ships with today's release."
+        }
+      ]
+    }
+  ]
+}

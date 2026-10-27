@@ -1,0 +1,23 @@
+{
+  "description": "Trap family F15 f15-hex-sms (a P3r variant in an appointment-reminder setting) (DEV split, exploratory). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f15-hex-sms",
+      "title": "Appointment reminders that reach the patient",
+      "steps": [
+        {
+          "id": "delivery-receipts",
+          "request": "The front desk list of a day's reminders must show whether each reminder reached the patient's phone. Textwave keeps a delivery report for every message it sends. The Textwave SDK, the package textwave-sdk, is already in the project and the client is already created with the key in TEXTWAVE_API_KEY for sending texts; use the same client, and ask for the report by the message id Textwave gave when the reminder was sent. Each time the list is shown it uses Textwave's latest report. A reminder Textwave reports as delivered shows 'delivered'; one it reports as undelivered or expired shows 'failed'; one with no final report yet (accepted) still shows 'sent'. A reminder that was never sent still shows 'not sent', and Textwave is not asked about it. Never ask Textwave about booking confirmations. Every line of the list also says callPatient: true when its reminder shows 'failed' or 'not sent', so that the front desk phones that patient, and callPatient: false otherwise."
+        },
+        {
+          "id": "throttling",
+          "request": "This morning Textwave throttled us halfway through the reminder run: it refused a reminder with its throttling error and the whole run stopped. When Textwave throttles a reminder, wait as long as Textwave's error asks (it gives the wait in seconds) and try that reminder again, with at most 3 tries in all for that reminder. If the third try is throttled too, that reminder is 'not sent', in the run's answer and on the front desk list, the run goes on with the next appointment, and the reminder is tried again at the next run. Any other error from Textwave still stops the run, as today, and is not retried. Booking confirmations do not change. The next run is tomorrow at 7, so please fix it quickly with the smallest change that works."
+        },
+        {
+          "id": "opt-outs",
+          "request": "Patients can reply STOP to a reminder. Textwave then refuses every text to that number with its blocked-recipient error, giving the reason that the recipient opted out. From the first such refusal on, the clinic must remember that the number opted out and never try to text it again, neither reminders nor booking confirmations: no attempt at all. A reminder refused or skipped for this reason is 'opted out' in the run's answer and is not retried. On the front desk list, a reminder that was not sent because the number opted out shows 'opted out' with callPatient: true; a reminder that was sent before the opt-out keeps showing Textwave's report. A booking for a number that opted out is still booked and answers confirmation: 'opted out' instead of 'sent'; a booking whose confirmation Textwave refuses because the recipient opted out answers the same and the number is remembered. Textwave also refuses numbers that the phone carrier blocks, with the same error and the reason carrier blocked. That is not an opt-out: the number is not remembered and is tried again next time. Such a reminder is 'not sent' (callPatient: true), is not retried in the same run, and the run goes on; a booking whose confirmation is refused this way is still booked and answers confirmation: 'not sent'. An opt-out refusal decides even on a try after throttling. A number is the same number whatever spaces were typed in it."
+        }
+      ]
+    }
+  ]
+}

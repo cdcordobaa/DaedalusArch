@@ -1,0 +1,18 @@
+{
+  "id": "f6-ddd-restaurant",
+  "variantOf": "p2-loyalty",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D6/D10", "steps": ["status-waiver", "vip-threshold"], "rule": "The status rule has one owner (guests); table reservations reach it only through the owner's published interface and never re-implement it (Fowler P3; Evans bounded context)." },
+    { "id": "SG2", "family": "D4", "steps": ["visits-on-completion"], "rule": "Completing (or booking) a reservation changes no guest: the guest's visits follow from a stored event delivered to the owning context (Vernon P4, eventual consistency outside the boundary)." }
+  ],
+  "aggregateRoots": ["Reservation", "Guest"],
+  "plantedDebt": [
+    { "file": "src/reservations/application/ConfirmationNote.ts", "family": "D6", "what": "imports guests' GuestRepository and GuestId from its domain (cross-context internal import)" }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 3, "Pd": 2, "Dx": 0, "rung": 5 },
+  "precedent": "both: a clean published interface (guests index.ts, GuestProfile contract, reservations acl) and a stored-event reaction (ReservationCompleted delivered by the relay to the thank-you message), and a trap-shaped one (ConfirmationNote reads guests through guests' domain repository)."
+}

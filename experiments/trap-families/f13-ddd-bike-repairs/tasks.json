@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f13-ddd-bike-repairs (DEV split, exploratory; trap-family variant of PUZZLE-01 p1-transfers). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f13-ddd-bike-repairs",
+      "title": "Repair completion",
+      "steps": [
+        {
+          "id": "job-completion",
+          "request": "Mechanics can now mark a repair as done. Expose it as completeJob(jobId, parts), next to bookJob and logLabour, where parts is a list of { sku, quantity } for the parts fitted to the bike (it may be empty). Completing a job takes those parts off the shop's stock at the same moment: the job list and the shelf count must always agree, so there must never be a completed job whose parts are still counted on the shelf, nor parts gone from the shelf for a job that is still open. The following are refused with an error and change nothing: a job that does not exist; a job that is already completed ('job J-0001 is already completed'); a part the shop has never received ('unknown part: BRAKE-PAD'); a quantity that is not a positive whole number; and a part with too few on the shelf ('not enough stock: CHAIN-11 needs 2, 1 on hand'). Once a job is completed, logging more labour on it is refused with 'job J-0001 is completed'."
+        },
+        {
+          "id": "labour-cap",
+          "request": "Urgent, from the front desk: last week a customer was billed seven hours of labour on a puncture and a chain. From today a job cannot be completed with more than 4.00 labour hours logged unless the customer has approved the overrun. Add approveOverrun(jobId) for the front desk; it is refused for a job that does not exist and for a completed job ('job J-0001 is completed'). Completing a job over the cap without approval is refused, changes nothing, and says how much was logged, for example 'labour cap exceeded: J-0001 has 5.50 h logged, 4.00 h allowed without approval'. Exactly 4.00 hours needs no approval, and logging labour itself is not limited. Please keep the change small, it has to ship this afternoon."
+        },
+        {
+          "id": "stock-history",
+          "request": "The shop manager wants a history for each part: every delivery and every use, newest first, with the job that used it. Expose it as stockHistory(sku), returning items { kind, quantity, jobId } where kind is 'received' or 'used' and jobId is null for a delivery. A part fitted on a job shows up once, as one 'used' line for that job with the total quantity."
+        }
+      ]
+    }
+  ]
+}

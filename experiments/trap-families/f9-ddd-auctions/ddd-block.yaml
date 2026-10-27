@@ -1,0 +1,27 @@
+  ddd:
+    source_root: src/
+    contexts:
+      - name: saleroom
+        root: src/saleroom/
+        public_api: [src/saleroom/api/**, src/saleroom/contracts/**]
+        acl: [src/saleroom/acl/**]
+      - name: accounts
+        root: src/accounts/
+        public_api: [src/accounts/api/**, src/accounts/contracts/**]
+        acl: [src/accounts/acl/**]
+    outside_contexts: [src/shared-kernel/**, src/plumbing/**, src/main.ts]
+    aggregates:
+      - name: Lot
+        context: saleroom
+        module: src/saleroom/domain/**
+        root: src/saleroom/domain/Lot.ts
+        inner_entities: []
+      - name: BidderAccount
+        context: accounts
+        module: src/accounts/domain/**
+        root: src/accounts/domain/BidderAccount.ts
+        inner_entities: []
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Store.ts", "src/*/infrastructure/**/*Store.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/*/application/*.ts"]

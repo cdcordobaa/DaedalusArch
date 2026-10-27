@@ -1,0 +1,23 @@
+{
+  "description": "Trap family F16 f16-hex-fx-rates (a P3r variant in a multi-currency pricing setting) (DEV split, exploratory). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f16-hex-fx-rates",
+      "title": "Prices in the shopper's currency",
+      "steps": [
+        {
+          "id": "live-prices",
+          "request": "Product prices must now be shown in the shopper's currency using Ratewise's exchange rates, instead of only in euros. The Ratewise SDK, the package ratewise-sdk, is already in the project and the client is already created with the key in RATEWISE_API_KEY for the currency list; use the same client. Ask Ratewise for its latest rate from EUR to the shopper's currency only. The price is our euro price times Ratewise's mid rate, rounded to two decimals with halves rounded up, and it answers the currency and the amount. Three rates must never be used: a rate Ratewise marks as indicative, a rate fixed more than 24 hours ago by Ratewise's own as-of time, and a rate for any other currency than the one asked. When Ratewise has no rate it may use, the price answers no amount and the reason 'Prices in this currency are not available right now.' instead of failing. Euro prices stay as they are and Ratewise is not asked for them. Our own checks on the currency code and the product still run first and still refuse a bad request as before."
+        },
+        {
+          "id": "provider-down",
+          "request": "Ratewise was down for an hour this morning and no price in another currency could be shown. When Ratewise is unavailable, the price must use the last rate Ratewise gave us for that currency, as long as that rate was fixed no more than 24 hours ago by its as-of time, and say estimated: true; prices from Ratewise's answer say estimated: false, and so do euro prices. Only a rate we were allowed to use counts: an indicative or too old rate is never kept for later. With no such earlier rate, the price answers no amount and the reason 'Prices in this currency are not available right now.'. When Ratewise answers, nothing changes, even when its answer has no rate we may use: an earlier rate is used only when Ratewise is unavailable. Customers are waiting, so please fix it quickly with the smallest change that works."
+        },
+        {
+          "id": "rounding",
+          "request": "Prices must now be rounded the way each currency is written, not always to two decimals: to the number of decimals Ratewise gives with the rate (none for the Japanese yen, three for the Kuwaiti dinar, two for most currencies), with halves rounded up. Two exceptions win over Ratewise's decimals. Swiss franc prices are rounded to the nearest 0.05, with halves rounded up. And no price is ever shown as zero: a price that would round to zero is shown as the smallest amount the currency can be shown in after this rounding, for example 0.01 pounds, 1 yen or 0.05 francs. Estimated prices are rounded in the same way. Euro prices do not change."
+        }
+      ]
+    }
+  ]
+}

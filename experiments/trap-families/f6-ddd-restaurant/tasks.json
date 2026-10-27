@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f6-ddd-restaurant (DEV split, exploratory; trap-family variant of PUZZLE-01 p2-loyalty). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f6-ddd-restaurant",
+      "title": "Guest status, deposit waivers and visits",
+      "steps": [
+        {
+          "id": "status-waiver",
+          "request": "Guests with a profile now have their table deposit waived according to their status, the same status their guest profile shows: VIP guests pay no deposit, regulars pay half, new guests pay the full deposit. Bookings without a guest profile pay the full deposit. The booking result reports the waived amount next to the deposit, as waived. Nothing that is refused today changes."
+        },
+        {
+          "id": "vip-threshold",
+          "request": "The restaurant group has lowered the bar for VIP: from today a guest is VIP from 10 visits (it was 15). Last month guests complained that their profile showed one status and the booking asked for another deposit, so the profile and the deposit must always agree. Please keep it a small change, it goes out with tonight's release."
+        },
+        {
+          "id": "visits-on-completion",
+          "request": "Completing a reservation now counts as a visit: every completed reservation adds one visit to the guest's profile. Booking a table adds nothing. The visit is on the profile as soon as the reservation is marked completed, and it counts for the guest's status from the next booking on. A completed reservation and the visit it adds must never get out of step. Reservations without a guest profile count for no one, and a completion that is refused (an unknown reservation, or one already completed) adds no visit."
+        }
+      ]
+    }
+  ]
+}

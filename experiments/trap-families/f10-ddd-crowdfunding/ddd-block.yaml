@@ -1,0 +1,27 @@
+  ddd:
+    source_root: src/
+    contexts:
+      - name: backers
+        root: src/backers/
+        public_api: [src/backers/index.ts, src/backers/contracts/**]
+        acl: []
+      - name: campaigns
+        root: src/campaigns/
+        public_api: [src/campaigns/index.ts, src/campaigns/contracts/**]
+        acl: [src/campaigns/acl/**]
+    outside_contexts: [src/shared-kernel/**, src/main.ts]
+    aggregates:
+      - name: Backer
+        context: backers
+        module: src/backers/domain/backer/**
+        root: src/backers/domain/backer/Backer.ts
+        inner_entities: []
+      - name: Campaign
+        context: campaigns
+        module: src/campaigns/domain/campaign/**
+        root: src/campaigns/domain/campaign/Campaign.ts
+        inner_entities: [src/campaigns/domain/campaign/Pledge.ts]
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/*/application/*.ts"]

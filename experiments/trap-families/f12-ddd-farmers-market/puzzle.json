@@ -1,0 +1,18 @@
+{
+  "id": "f12-ddd-farmers-market",
+  "variantOf": "p2-loyalty",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D6/D10", "steps": ["pitch-licences", "full-licence-score"], "rule": "The licence status has one owner (licensing); the market reaches it only through the owner's published interface and never re-decides it from the vendor's record (Fowler P3; Evans bounded context). Which status a kind of pitch admits is a market rule." },
+    { "id": "SG2", "family": "D4", "steps": ["no-show-strikes"], "rule": "Reporting a no-show changes no vendor: the strike follows from the stored NoShowReported fact delivered to the owning context (Vernon P4, eventual consistency outside the boundary)." }
+  ],
+  "aggregateRoots": ["MarketDay", "Vendor"],
+  "plantedDebt": [
+    { "file": "src/market/application/PitchPlan.ts", "family": "D6", "what": "imports licensing's VendorRepository and VendorId from its domain (cross-context internal import) to print trading names" }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 3, "Pd": 2, "Dx": 0, "rung": 5 },
+  "precedent": "both: a clean published interface (licensing index.ts LicensingDesk, LicenceSheet contract, market acl LicensingGateway) and a stored-fact reaction by the owner (licensing's vendorTraded subscribed to the stored VendorCheckedIn in the composition root, which keeps the licence's last trading date); and a trap-shaped one (PitchPlan reads vendors through licensing's domain repository)."
+}

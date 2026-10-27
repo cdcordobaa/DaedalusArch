@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f7-ddd-volunteer-shifts (DEV split, exploratory; trap-family variant of PUZZLE-03 p5-ferry-seats). Brownfield change requests, one per agent session turn, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f7-ddd-volunteer-shifts",
+      "title": "Sign-ups that hold their places",
+      "steps": [
+        {
+          "id": "hold-places",
+          "request": "A sign-up must now take its places on the shift. When signUp is called and the shift has enough places free, the places are taken and signUpRecord(id).status is 'confirmed'. When it has not, signUp does not throw: it returns the new sign-up's id as usual, nothing is taken, and the status is 'rejected'. The refusals that exist today (an unknown shift, a bad number of places) keep throwing as they do now. A shift must never give out more places than it has, and volunteers must know at once whether they are on the shift: the status is final by the time signUp returns."
+        },
+        {
+          "id": "withdraw-sign-up",
+          "request": "Volunteers can now withdraw: withdraw(signUpId). The sign-up's status becomes 'withdrawn' and its places are free again on the shift straight away, so shift(id).placesFree shows them. Withdrawing a sign-up that is already withdrawn, or that was rejected, returns normally without an error and changes nothing. Withdrawing an id that does not exist throws an error with the message 'no sign-up <id>'. Please keep the change small, it ships with today's release."
+        },
+        {
+          "id": "shift-cancelled",
+          "request": "The programme manager can now cancel a shift, for example when bad weather is forecast: cancelShift(shiftId). From then on signUpRecord(id).status is 'shift-cancelled' for every confirmed sign-up on that shift. A new sign-up for it is refused the same way as one without enough places: signUp does not throw, it returns the id, nothing is taken and the status is 'rejected'. Cancelling a shift that does not exist throws an error with the message 'no shift <id>'. It is urgent, so keep it small."
+        }
+      ]
+    }
+  ]
+}

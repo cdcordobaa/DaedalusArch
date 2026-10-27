@@ -1,0 +1,45 @@
+{
+  "id": "f15-hex-sms",
+  "split": "dev",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "textwave-sdk": "vendor/textwave-sdk"
+  },
+  "variantOf": "experiments/puzzle-03/puzzles/p3r-shipping-quotes",
+  "trapFamily": {
+    "template": "experiments/puzzle-03/puzzles/p3r-shipping-quotes",
+    "trap": "vendor shape in the port: the SMS provider's submit response, delivery report, delivery states, throttling error (retryAfterSeconds) and blocked-recipient error (blockReason) leak into the ports and the reminder and booking services"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5",
+      "steps": [
+        "delivery-receipts",
+        "opt-outs"
+      ],
+      "rule": "Ports and the application core speak the application's own language; the SMS provider's report, field names, delivery states and block reasons stay in the adapter (Cockburn P1: each adapter talks to the application through a port)."
+    },
+    {
+      "id": "SG2",
+      "family": "H2/H1b",
+      "steps": [
+        "throttling"
+      ],
+      "rule": "The core has no runtime dependency on the vendor SDK: provider throttling (and refusals) reach it as its own errors (Cockburn P1)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null
+  },
+  "precedent": "clean-shaped: the existing text-message port (application/ports/out/TextMessages.ts) is written in the application's own types (PhoneNumber, SentText) and the Textwave adapter translates to the SDK's submit({ to, from, body }) and back from its messageSid.",
+  "gaming": []
+}

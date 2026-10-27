@@ -1,0 +1,23 @@
+{
+  "description": "F19 f19-hex-school-canteen (DEV split, exploratory; trap family of p6-workshop-jobs translated to hexagonal). Brownfield change requests, one per agent session turn. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f19-hex-school-canteen",
+      "title": "School canteen",
+      "steps": [
+        {
+          "id": "kitchen-tally",
+          "request": "The kitchen needs a quick tally screen for the morning: kitchen.tally(date) lists every dish ordered for that date as { dish, portions, labelled }, where dish is the dish name, portions the number of meals ordered of it for that date, and labelled how many of those meals are for pupils with at least one allergy recorded (those plates get a name label). Most portions first; dishes with the same number of portions in name order. A date nobody ordered for gives an empty list. The date is written YYYY-MM-DD; anything else is refused with 'not a date: <value>'. Refusals answer 400 { error } like the other calls. Keep it quick, the cooks start at seven."
+        },
+        {
+          "id": "cancel-order",
+          "request": "Parents can now cancel a meal: orders.cancelOrder(orderId). The price goes back onto the pupil's balance and order(orderId) then shows status 'cancelled'. Refusals, as 400 { error }: an unknown order ('no order O-0999'), an order already cancelled ('order O-0001 is cancelled'), and a meal whose day has come ('order O-0001 can no longer be cancelled': cancelling closes, like ordering, at the end of the day before the meal). Cancelled meals are not cooked, so they do not count on the kitchen tally."
+        },
+        {
+          "id": "finance-export",
+          "request": "The finance office wants a nightly export of a day's takings; keep it small, it only runs at night. nightly.financeExport(date) writes the file takings-<date>.csv into the finance folder and answers { file, classes }. The file has the header line 'class,meals,amount', then one line per class that had at least one meal that day (cancelled meals do not count), in class name order, then the line 'total,<meals>,<amount>'. amount is what those meals cost, written like 12.40 (pounds and pence, no currency); classes is the number of class lines. Lines end with a newline. Running it again for the same day replaces the file. The finance office reads the folder as app.financeFolder: financeFolder.read(name) gives the file text (null when there is no such file) and financeFolder.names() the file names in name order. A bad date is refused with 'not a date: <value>' as 400 { error }, and no file is written."
+        }
+      ]
+    }
+  ]
+}

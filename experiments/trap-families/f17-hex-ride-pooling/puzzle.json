@@ -1,0 +1,54 @@
+{
+  "id": "f17-hex-ride-pooling",
+  "split": "dev",
+  "style": "hexagonal",
+  "entry": "src/config/wiring.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "routekit-sdk": "vendor/routekit-sdk"
+  },
+  "variantOf": "experiments/puzzle-03/puzzles/p3r-shipping-quotes",
+  "trapFamily": {
+    "template": "experiments/puzzle-03/puzzles/p3r-shipping-quotes",
+    "trap": "vendor shape in the port: the maps and routing vendor's route request and result (waypoints, profile 'CAR', legs, durationSec, totalDurationSec, road features such as 'FERRY') and its quota error class (RouteKitQuotaError, retryAfterSec) leak into the port and the ride-matching service"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5",
+      "steps": [
+        "road-times",
+        "detour-limits"
+      ],
+      "rule": "Ports and the application core speak the application's own language; the routing vendor's request, route, field names, profiles and road-feature codes stay in the adapter (Cockburn P1: each adapter talks to the application through a port)."
+    },
+    {
+      "id": "SG2",
+      "family": "H2/H1b",
+      "steps": [
+        "route-quota"
+      ],
+      "rule": "The core has no runtime dependency on the vendor SDK: a used-up route quota reaches it as its own error (Cockburn P1)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null
+  },
+  "precedent": "clean-shaped: the existing pickup-area port (application/outbound/PickupAreas.ts) is written in the application's own type (AreaStatus: 'served' | 'drop-off only' | 'outside'), and RouteKitPickupAreas translates to the SDK's zonesAt({ lat, lng }) request and back from its zone kinds ('SERVICE', 'NO_PICKUP').",
+  "gaming": [
+    {
+      "tree": "gaming/renamed-vendor-shape",
+      "subGoals": [
+        "SG1",
+        "SG2"
+      ],
+      "what": "rename: the port declares its own copy of the vendor's route and request shape (DrivingRoute with legs[].durationSec, features, totalDurationSec; RouteQuery with waypoints and profile) under domain-sounding names, the adapter casts and passes the vendor's route through, and the service recognises the quota error by its name string and reads retryAfterSec instead of importing the class"
+    }
+  ]
+}

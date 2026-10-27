@@ -1,0 +1,44 @@
+{
+  "id": "f20-hex-music-lessons",
+  "split": "dev",
+  "style": "hexagonal",
+  "variantOf": "p6-workshop-jobs (layer skip, translated to hexagonal)",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H7-hex core uses an adapter",
+      "steps": [
+        "calendar-sync",
+        "cancel-lesson"
+      ],
+      "rule": "The application core (src/domain, src/application) never imports, names or constructs an adapter or the composition root; a third-party service it needs (here the teachers' calendar) is reached through an out-port written in the school's terms, implemented in src/adapters/out and injected in src/main.ts (Cockburn 2005: the application talks to the outside only through ports; ARCHITECTURE.md 1, 2 and 4)."
+    },
+    {
+      "id": "SG2",
+      "family": "H7-hex driving adapter bypasses the application",
+      "steps": [
+        "day-off"
+      ],
+      "rule": "A driving adapter (an HTTP route or an incoming call from Tempo) calls the application only through an in-port and never uses a driven adapter, an out-port or the composition root, by import, by name, by construction or by being handed one in src/main.ts (Cockburn 2005; ARCHITECTURE.md 3 and 4)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null,
+    "note": "rung not computed: the rung formula was not available to the builder; T, S, Dst, Pd and Dx are set by analogy with p6 and p3r"
+  },
+  "precedent": "clean: the only existing third-party use, reading a teacher's teaching hours from the Tempo calendar when a lesson is booked, goes through the TeachingHours out-port, implemented by TempoTeachingHours over the TempoCalendarClient in src/adapters/out/calendar and injected into BookingWorkflow in src/main.ts. The lure: that same client already has createEvent and deleteEvent, and step 1 asks to reuse it; MemoryTeacherBook has a public all() beyond its out-port, and step 3 says everything the incoming Tempo call needs is already in the app.",
+  "trapLine": "calendar-sync: BookingWorkflow takes the TempoCalendarClient itself (type import from src/adapters/out) and calls createEvent (SG1); cancel-lesson: the same workflow calls deleteEvent on it (SG1); day-off: TempoWebhook in src/adapters/in/webhook takes MemoryTeacherBook, MemoryLessonLedger and the TempoCalendarClient, finds the teacher with all(), cancels and saves the lessons and deletes the events itself (SG2).",
+  "changeSize": {
+    "clean": { "files": 12, "changedLines": 145 },
+    "trap": { "files": 6, "changedLines": 85 },
+    "how": "diff -ruN seed/src solutions/<line>/src, added plus removed lines"
+  }
+}

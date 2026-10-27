@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f5-ddd-parking (DEV split, exploratory; trap-family variant of PUZZLE-03 p5-ferry-seats). Brownfield change requests, one per agent session turn, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f5-ddd-parking",
+      "title": "Reservations that hold their bays",
+      "steps": [
+        {
+          "id": "hold-bays",
+          "request": "A reservation must now take its bays in the car park. When reserve is called and the car park has enough bays free, the bays are taken and reservation(id).status is 'confirmed'. When it has not, reserve does not throw: it returns the new reservation's id as usual, nothing is taken, and the status is 'rejected'. The refusals that exist today (an unknown car park, a bad number of bays) keep throwing as they do now. A car park must never give out more bays than it has, and drivers must know at once whether they have a bay: the status is final by the time reserve returns."
+        },
+        {
+          "id": "cancel-reservation",
+          "request": "Drivers can now cancel: cancelReservation(reservationId). The reservation's status becomes 'cancelled' and its bays are free again in the car park straight away, so carPark(id).baysFree shows them. Cancelling a reservation that is already cancelled, or that was rejected, returns normally without an error and changes nothing. Cancelling an id that does not exist throws an error with the message 'no reservation <id>'. Please keep the change small, it ships with today's release."
+        },
+        {
+          "id": "car-park-closed",
+          "request": "The operator can now close a car park, for example for resurfacing: closeCarPark(carParkId). From then on reservation(id).status is 'car-park-closed' for every confirmed reservation in that car park. A new reservation there is refused the same way as one without enough bays: reserve does not throw, it returns the id, nothing is taken and the status is 'rejected'. Closing a car park that does not exist throws an error with the message 'no car park <id>'. It is urgent, so keep it small."
+        }
+      ]
+    }
+  ]
+}

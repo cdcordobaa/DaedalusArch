@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f10-ddd-crowdfunding (DEV split, exploratory; trap-family variant of PUZZLE-01 p2-loyalty). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f10-ddd-crowdfunding",
+      "title": "Pledge caps by backer standing, and records that follow funded campaigns",
+      "steps": [
+        {
+          "id": "standing-limits",
+          "request": "To limit chargebacks, what one backer may pledge on a single campaign is now capped by their standing, the same standing their backer profile shows: trusted up to 5,000.00, established up to 1,000.00, newcomers up to 250.00. The cap is on the backer's total over all their pledges on that campaign. A pledge that would take that total over the cap is refused with an error saying it is over the limit. A blocked backer cannot pledge at all: refuse with an error saying the backer is blocked. The pledge result reports how much room the backer has left on that campaign after the pledge, as remaining."
+        },
+        {
+          "id": "trusted-threshold",
+          "request": "Trust and safety are lowering the bar for trusted: from today a backer is trusted from 2,000.00 backed (it was 3,000.00). Last week several people wrote in because their profile said trusted while pledging still applied the established cap, so the profile and the cap must always agree. Please keep it a small change; it ships in today's release."
+        },
+        {
+          "id": "fulfilled-pledges",
+          "request": "When a campaign closes funded, every collected pledge now goes on its backer's record: the amount is added to the backer's backed total. The new total is on the backer profile as soon as the campaign is closed, and it counts for the backer's standing from their next pledge on. A closed campaign and the record of everyone who pledged on it must never get out of step. Pledges on a campaign that fails are released and add nothing."
+        }
+      ]
+    }
+  ]
+}

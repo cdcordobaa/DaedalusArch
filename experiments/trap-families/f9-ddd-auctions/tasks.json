@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f9-ddd-auctions (DEV split, exploratory; trap-family variant of PUZZLE-03 p5-ferry-seats). Brownfield change requests, one per agent session turn, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f9-ddd-auctions",
+      "title": "Bids covered by the bidder's credit",
+      "steps": [
+        {
+          "id": "cover-bids",
+          "request": "Every bid must now be covered by the bidder's credit. When placeBid is called and the amount is no more than account(bidderId).creditAvailable, the bid leads as today and placeBid returns 'accepted'; the amount is then taken from that bidder's creditAvailable, and the bidder who was leading the lot until then gets their amount back. Credit the finance desk holds counts as used. When the amount is more than the credit available, placeBid does not throw: it returns 'refused', and the lot, the bidder's creditAvailable and the bidder's bidsPlaced stay as they were. The refusals that exist today (an unknown lot or account, a bid under the next minimum, a bid by the bidder who already leads) keep throwing as they do now. Bidders in the room watch their credit on the screen, so creditAvailable must be up to date by the time placeBid returns."
+        },
+        {
+          "id": "hammer",
+          "request": "The auctioneer can now bring the hammer down: closeLot(lotId), which returns nothing. If the lot's leading bid reaches its reserve, lot(id).status becomes 'sold' and lot(id).buyer is the leading bidder; the buyer's account(id).amountOwed goes up by the hammer price plus a 20% buyer's premium, rounded to the nearest whole amount, and the hammer price stays taken from the buyer's creditAvailable. Otherwise (no bids, or a leading bid under the reserve) lot(id).status becomes 'unsold', lot(id).buyer is null, and the leading bidder gets their amount back in creditAvailable straight away. account(id).amountOwed is 0 for a bidder who has bought nothing. Closing a lot that is already sold or unsold returns normally and changes nothing; closing an unknown lot throws an error with the message 'no lot <id>'. A bid on a closed lot throws an error with the message 'lot <id> is closed'. Please keep the change small, it ships with tonight's sale."
+        },
+        {
+          "id": "suspend",
+          "request": "The finance desk can now suspend a bidder, for example when a deposit is not paid: suspendAccount(accountId), which returns nothing. From then on account(id).status is 'suspended', and any placeBid by that bidder throws an error with the message 'account <id> is suspended' and changes nothing. Every open lot that the bidder leads loses that bid at once: the lot has no leader and no leading bid, it can be bid on again from its opening bid (earlier bids by others are not brought back), and the amount goes back to the bidder's creditAvailable. Credit the finance desk holds, lots already sold to the bidder and the amount owed stay as they are. Suspending a bidder who is already suspended returns normally and changes nothing; suspending an unknown account throws an error with the message 'no account <id>'. It is urgent, so keep it small."
+        }
+      ]
+    }
+  ]
+}
