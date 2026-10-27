@@ -30,14 +30,14 @@ Taken on the private decision register (22 items). Context, options and the draw
 | **C8** | The combined-mode disclosure sentence gets a hint audit; the tested pull sentence is the fallback | Hint audit (zero calls) |
 | **C9** | No brownfield arm; brownfield moves to future work | — |
 | **C10** | Claude-only confirmatory study, plus a 2-run exploratory pilot on OpenRouter after its design note. Grok may be added later as an extension arm; not committed | OpenRouter design note |
-| **C11** | Before the freeze, add port-call resolution for `CALLS`, a `PERSISTS` edge and the D4 multi-aggregate rule, scored on unseen cases. The other compile-time patterns go to Kap9 | Extractor change, D4 rule, unseen-case check |
+| **C11** | No new extractor. v1.5 already derives command write footprints and carries R-D4, R-XCTX, R-D5, R-D9 and R-H5. On the 9 HEXDDD-01 cases the frozen rules catch 0, the D_v15 rules 3 and all DETECT-02 rules 7 (both figures fitted: the rules were written on those trees, `Docs/DiagnosticRuns/drift-01-rescores-2026-10-23.md`). Their accuracy comes only from the sealed DETECT-02 held-out, scored once in the final study. The two uncovered cases (an in-process lock standing in for a consistency boundary; a revenue rule in an application service) go to Kap9 with the meaning-tag roadmap | Kap9 roadmap section |
 | **C12** | Target timeline: Stage 1 pilot week of 2026-11-02; freeze and register by 2026-11-09; run 2026-11-09 to 2026-11-20; scored by 2026-11-27. If the sealed tasks are not ready by 2026-11-06 the whole chain slips; the hint audit is not shortened | — |
 | **D1** | One more hold-out attempt under a dated spec-format addendum committed before scoring, then one scoring | Addendum; one scoring run (zero model calls) |
 | **D2** | Book one unpaid MEAN-01 rater for labels by 2026-11-30; registering with C3m unlabelled is the written fallback | Rater booking (author) |
-| **D3** | HEXDDD-01 closes as a reported limit; its 9 cases become the Kap9 roadmap. D4 alone is re-scored on unseen cases under C11 | — |
+| **D3** | HEXDDD-01 closes as a reported limit. Its 9 cases are reported with the three coverage figures of C11, and the two uncovered cases feed the Kap9 roadmap. The one allowed revision is not used | — |
 | **D4** | EFF-01 moves to future work; turns and calls per run are reported descriptively from the final study | — |
 | **E1** | Kap8 keeps claims and decision tables; run-by-run detail moves to an appendix | Kap8 cut |
-| **E2** | AGENTVERIFY abstract on Study 2b (due 2026-11-01); LLM4Code paper on 2b plus the puzzle and edit-gate findings, labelled exploratory (due 2026-11-13) | Two drafts |
+| **E2** | One slice per venue, as planned on 2026-10-22: AGENTVERIFY (ICSE 2027 workshop; full papers due 2026-11-13; no separate abstract deadline in its call) takes the edit gate as agent infrastructure; LLM4Code (due 2026-11-13) takes the Study 2b result. Exploratory findings are labelled as such | Two drafts |
 | **E3** | The session handoff and work plan stay local | — |
 
 ## Settled on 2026-10-23
@@ -141,7 +141,7 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 **Post-seal changes now pending: M3, D5, N3 (and V4 if the count triggers it).** Each one is a declared deviation. The examiner review flags the count of deviations as a risk in its own right. I'll write them up together as one dated list, so the director sees all of them at once.
 
 ## Changelog
-- 2026-10-26: the v1.5 final-study register recorded (A1–E3).
+- 2026-10-26: the v1.5 final-study register recorded (A1–E3). C11, D3 and E2 corrected the same day: C11 and D3 now state the existing v1.5 rule coverage on HEXDDD-01, and E2 follows the venue call (no abstract deadline) and the one-slice-per-venue plan.
 - 2026-10-23: CONFINE recorded (scripted confinement checks replace model-driven probes for third-party generators).
 - 2026-10-21: status reconciled, no new decision. "Still open": the 9 adjudication rows marked done (signing desk 61/61, DELEG). The two hold-out changelog entries of 2026-10-20 now point to the entries that settled them (DELEG-H4: not spent; DELEG5: F-RF). Fixes conflicts 5 and 6 of `06-open-tracks-and-capabilities.md`.
 - 2026-10-20 (about 18:55Z): GO-2B-RUN recorded, the author's go for the Study 2b run after the gate verdict.
