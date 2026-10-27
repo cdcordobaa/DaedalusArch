@@ -1,0 +1,212 @@
+{
+  "H01-legit": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "The domain imports another domain module through a ../domain path."
+  },
+  "H01-pos1": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/job-opening.ts",
+    "note": "The JobOpening entity imports the application out-port to reload itself."
+  },
+  "H01-pos2": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/scoring-service.ts",
+    "note": "The domain scoring service imports the @nestjs/common framework package."
+  },
+  "H01-twin1": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "Hydration from a primitive record lives in the entity with no outward import."
+  },
+  "H01-twin2": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "Logging is an injected function, so the domain imports nothing outward."
+  },
+  "H02-legit": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "The use case imports the port interface, merely aliased with the word Adapter."
+  },
+  "H02-pos1": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/apply-to-opening.use-case.ts",
+    "note": "The apply use case depends on the in-memory persistence adapter class instead of the port."
+  },
+  "H02-pos2": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/schedule-interview.use-case.ts",
+    "note": "The schedule use case imports the email adapter class directly."
+  },
+  "H02-twin1": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "A new use case reads interviews through the InterviewRepository port."
+  },
+  "H02-twin2": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "A new withdraw use case depends only on the repository and notifier ports."
+  },
+  "H03-legit": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "Outbound and inbound adapters from several packages are combined only in the composition root."
+  },
+  "H03-pos1": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/in/http/opening-controller.ts",
+    "note": "The inbound HTTP controller imports the outbound persistence adapter."
+  },
+  "H03-pos2": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/out/notification/email-notifier.ts",
+    "note": "The email notifier imports the background-check adapter package."
+  },
+  "H03-twin1": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "A new screening controller reaches the use case through the inbound port."
+  },
+  "H03-twin2": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "A new SMS notifier implements the Notifier port and imports no other adapter."
+  },
+  "H04-legit": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "The port defines SQL-sounding filter types itself, built only from domain and primitive types."
+  },
+  "H04-pos1": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/background-check-gateway.ts",
+    "note": "The BackgroundCheckGateway out-port returns the vendor SDK type CheckrReport."
+  },
+  "H04-pos2": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/interview-repository.ts",
+    "note": "The InterviewRepository out-port takes the adapter's DbTransaction handle in a method signature."
+  },
+  "H04-twin1": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "The port exposes a primitive score while the vendor type stays inside the adapter."
+  },
+  "H04-twin2": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "The port adds a count method using only primitives."
+  },
+  "H05-legit": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "The composition root constructs the adapter and injects it into the use case."
+  },
+  "H05-pos1": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/apply-to-opening.use-case.ts",
+    "note": "The apply use case constructs an InMemoryApplicationRepository itself."
+  },
+  "H05-pos2": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/screen-application.use-case.ts",
+    "note": "The screen use case builds a BackgroundCheckClient inline instead of using the injected gateway."
+  },
+  "H05-twin1": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "The use case only constructs a built-in Map and keeps using the injected gateway."
+  },
+  "H05-twin2": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "The use case receives an injected clock and constructs no adapter."
+  },
+  "H06-legit": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "The controller only validates and maps the request format."
+  },
+  "H06-pos1": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/in/http/opening-controller.ts",
+    "note": "The HTTP controller enforces the minimum-experience eligibility rule."
+  },
+  "H06-pos2": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/out/persistence/in-memory-repositories.ts",
+    "note": "The persistence adapter auto-rejects applications below a score threshold."
+  },
+  "H06-twin1": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "The minimum-experience rule is a domain service method used by the use case."
+  },
+  "H06-twin2": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "The screening threshold decision is applied in the use case through the domain service."
+  },
+  "H07-legit": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "HTTP status numbers and mapping helpers live only in the inbound adapter."
+  },
+  "H07-pos1": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/application/apply-to-opening.use-case.ts",
+    "note": "The use case throws an error object carrying HTTP status 409."
+  },
+  "H07-pos2": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/domain/errors.ts",
+    "note": "Domain errors carry HTTP status codes in the DomainError base class."
+  },
+  "H07-twin1": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "A new domain error is thrown by the use case and mapped to a status in the inbound adapter."
+  },
+  "H07-twin2": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "The domain service throws a transport-free NotEligibleError that the HTTP adapter maps."
+  }
+}

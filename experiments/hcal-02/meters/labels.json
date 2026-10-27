@@ -1,0 +1,212 @@
+{
+  "H01-pos1": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/billing-estimator.ts",
+    "note": "The domain estimator imports the use-case result type from the application layer."
+  },
+  "H01-pos2": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/tariff.ts",
+    "note": "The Tariff entity imports the NestJS Logger framework class."
+  },
+  "H01-twin1": {
+    "rule": "H01",
+    "label": "clean",
+    "file": "src/domain/billing-estimator.ts",
+    "note": "The estimator exposes a summary using a type declared in the domain itself."
+  },
+  "H01-twin2": {
+    "rule": "H01",
+    "label": "clean",
+    "file": "src/domain/tariff.ts",
+    "note": "The Tariff entity reports an empty tier list through a callback instead of a framework logger."
+  },
+  "H01-legit": {
+    "rule": "H01",
+    "label": "clean",
+    "file": "src/domain/meter.ts",
+    "note": "The Meter entity imports the Tariff and Money modules from the same domain layer."
+  },
+  "H02-pos1": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/submit-reading.use-case.ts",
+    "note": "SubmitReadingUseCase depends on the in-memory repository adapter class instead of the repository port."
+  },
+  "H02-pos2": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/estimate-bill.use-case.ts",
+    "note": "EstimateBillUseCase imports the EmailNotifier adapter instead of the notifier port."
+  },
+  "H02-twin1": {
+    "rule": "H02",
+    "label": "clean",
+    "file": "src/application/submit-reading.use-case.ts",
+    "note": "The use case extracts a meter loader that still goes through the repository port and a domain type."
+  },
+  "H02-twin2": {
+    "rule": "H02",
+    "label": "clean",
+    "file": "src/application/estimate-bill.use-case.ts",
+    "note": "The use case extracts a tariff loader that uses the tariff port and a domain type."
+  },
+  "H02-legit": {
+    "rule": "H02",
+    "label": "clean",
+    "file": "src/application/estimate-bill.use-case.ts",
+    "note": "The use case names its port parameter after the email adapter but imports only the port interface."
+  },
+  "H03-pos1": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/in/http/bill.controller.ts",
+    "note": "The BillController (inbound adapter) imports and uses the persistence adapter directly."
+  },
+  "H03-pos2": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/out/notifier/email.notifier.ts",
+    "note": "The EmailNotifier outbound adapter imports and calls the GridOperatorClient outbound adapter."
+  },
+  "H03-twin1": {
+    "rule": "H03",
+    "label": "clean",
+    "file": "src/adapters/in/http/bill.controller.ts",
+    "note": "The controller reaches tariffs through a new inbound port and use case instead of the persistence adapter."
+  },
+  "H03-twin2": {
+    "rule": "H03",
+    "label": "clean",
+    "file": "src/adapters/out/notifier/email.notifier.ts",
+    "note": "The notifier formats its message with a domain value object, an allowed outbound-to-domain import."
+  },
+  "H03-legit": {
+    "rule": "H03",
+    "label": "clean",
+    "file": "src/main.ts",
+    "note": "Inbound and outbound adapters are only brought together in the composition root."
+  },
+  "H04-pos1": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/grid-operator.port.ts",
+    "note": "The grid-operator out-port exposes the vendor SDK type GridcoResponse in a method signature."
+  },
+  "H04-pos2": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/meter-repository.port.ts",
+    "note": "The meter-repository out-port takes a database transaction handle in saveWithin."
+  },
+  "H04-twin1": {
+    "rule": "H04",
+    "label": "clean",
+    "file": "src/application/ports/out/grid-operator.port.ts",
+    "note": "The grid-operator out-port adds a batch lookup using only primitives and standard collections."
+  },
+  "H04-twin2": {
+    "rule": "H04",
+    "label": "clean",
+    "file": "src/application/ports/out/meter-repository.port.ts",
+    "note": "The meter-repository out-port adds a bulk save typed with the domain Meter only."
+  },
+  "H04-legit": {
+    "rule": "H04",
+    "label": "clean",
+    "file": "src/application/ports/out/notifier.port.ts",
+    "note": "The notifier out-port adds a method whose signature uses only a domain value object and primitives."
+  },
+  "H05-pos1": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/submit-reading.use-case.ts",
+    "note": "SubmitReadingUseCase falls back to constructing a GridOperatorClient itself."
+  },
+  "H05-pos2": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/estimate-bill.use-case.ts",
+    "note": "EstimateBillUseCase instantiates EmailNotifier inline to send the alert."
+  },
+  "H05-twin1": {
+    "rule": "H05",
+    "label": "clean",
+    "file": "src/application/estimate-bill.use-case.ts",
+    "note": "The estimator domain service becomes an injectable constructor parameter with a domain default."
+  },
+  "H05-twin2": {
+    "rule": "H05",
+    "label": "clean",
+    "file": "src/application/submit-reading.use-case.ts",
+    "note": "The use case adds a future-date check that only constructs a domain error."
+  },
+  "H05-legit": {
+    "rule": "H05",
+    "label": "clean",
+    "file": "src/main.ts",
+    "note": "The composition root constructs the concrete adapter with options and injects it into the use case."
+  },
+  "H06-pos1": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/in/http/bill.controller.ts",
+    "note": "The BillController adds a high-usage surcharge and a level threshold on top of the use case result."
+  },
+  "H06-pos2": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/out/persistence/in-memory-tariff.repository.ts",
+    "note": "The persistence adapter applies a winter price uplift to tariff tiers when loading them."
+  },
+  "H06-twin1": {
+    "rule": "H06",
+    "label": "clean",
+    "file": "src/domain/billing-estimator.ts",
+    "note": "The high-usage surcharge is applied inside the domain BillingEstimator."
+  },
+  "H06-twin2": {
+    "rule": "H06",
+    "label": "clean",
+    "file": "src/domain/tariff.ts",
+    "note": "The winter price uplift is a parameter of the domain Tariff.costOf."
+  },
+  "H06-legit": {
+    "rule": "H06",
+    "label": "clean",
+    "file": "src/adapters/in/http/reading.controller.ts",
+    "note": "The controller only validates the format of the request fields before calling the port."
+  },
+  "H07-pos1": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/domain/errors.ts",
+    "note": "Domain errors carry an httpStatus field with HTTP codes set in the domain."
+  },
+  "H07-pos2": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/application/estimate-bill.use-case.ts",
+    "note": "The use case throws the http-errors NotFound class for a missing tariff."
+  },
+  "H07-twin1": {
+    "rule": "H07",
+    "label": "clean",
+    "file": "src/domain/meter.ts",
+    "note": "A new domain error carries only a code and the inbound adapter maps it to HTTP 409."
+  },
+  "H07-twin2": {
+    "rule": "H07",
+    "label": "clean",
+    "file": "src/application/estimate-bill.use-case.ts",
+    "note": "The use case rejects a bad period with a code-only domain error mapped to HTTP 422 in the adapter."
+  },
+  "H07-legit": {
+    "rule": "H07",
+    "label": "clean",
+    "file": "src/adapters/in/http/http-errors.ts",
+    "note": "The inbound adapter maps domain error codes to HTTP statuses through a lookup table."
+  }
+}
