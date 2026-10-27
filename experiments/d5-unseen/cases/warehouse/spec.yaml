@@ -1,0 +1,24 @@
+# D5 unseen-case spec
+spec_version: "1.0.0"
+architecture:
+  style: ddd
+  layers:
+    - { name: domain, kind: domain, directories: ["src/*/domain/**"] }
+    - { name: application, kind: application, directories: ["src/*/application/**"] }
+    - { name: infrastructure, kind: infrastructure, directories: ["src/*/infrastructure/**"] }
+    - { name: composition, kind: application, directories: ["src/main.ts"], roles: [composition-root] }
+  ddd:
+    source_root: src/
+    contexts:
+      - { name: storage, root: src/storage/, public_api: [], acl: [] }
+    outside_contexts: [src/main.ts]
+    aggregates:
+      - { name: Bin, context: storage, module: "src/storage/domain/bin/**", root: src/storage/domain/bin/Bin.ts, inner_entities: [] }
+      - { name: Pallet, context: storage, module: "src/storage/domain/pallet/**", root: src/storage/domain/pallet/Pallet.ts, inner_entities: [] }
+      - { name: Sku, context: storage, module: "src/storage/domain/sku/**", root: src/storage/domain/sku/Sku.ts, inner_entities: [] }
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    invariants:
+      - { id: bin-capacity, kind: set, owner: Bin, over: [StockLot], terms: [binId, quantity, capacity], statement: "stock in a bin never exceeds its capacity" }
+      - { id: pallet-weight-limit, kind: single, owner: Pallet, over: [Pallet], terms: [weightKg, maxWeightKg], statement: "a pallet never carries more than its maximum weight" }
+      - { id: sku-code-unique, kind: uniqueness, over: [Sku], terms: [skuCode], enforced_by: store }
