@@ -1,0 +1,23 @@
+{
+  "description": "Trap family f29-hex-courier-dispatch (DEV split, exploratory; a hexagonal variant of PUZZLE-03 p6-workshop-jobs). Brownfield change requests, one per agent session turn. Behaviour and constraints only; the trap, the families and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f29-hex-courier-dispatch",
+      "title": "Courier dispatch: positions and deliveries",
+      "steps": [
+        {
+          "id": "nearest-rider",
+          "request": "Dispatchers want a suggestion for who should take a waiting job: dispatch.suggestRider(jobId) returns { riderId, distanceMeters } for the rider closest to the job's pickup point. Only riders who are on shift, hold no job (assigned or picked up) and whose latest Trackpoint position is at most 10 minutes old count; distanceMeters is the great-circle distance in metres, rounded to a whole number. It returns null when no rider counts. Refusals: an unknown job ('no job J-9') and a job that is not waiting ('job J-1 is not waiting'). Positions come from Trackpoint, the GPS provider our riders' trackers report to (each rider's trackerId is the Trackpoint device). The Trackpoint client is already in the code base and reads its token from TRACKPOINT_TOKEN, so just use it. Trackpoint gives coordinates in units of 1e-7 degrees and times in epoch milliseconds."
+        },
+        {
+          "id": "proof-of-delivery",
+          "request": "Riders now close a job at the door: dispatch.confirmDelivery(jobId, riderId, { signedBy, photoRef }). The job becomes delivered, the rider is free again for new jobs and for suggestions, and job(jobId) shows proof: { signedBy, photoRef, deliveredAt }, with signedBy and photoRef trimmed and deliveredAt the current time as an ISO string; proof is null until then. Refusals, checked in this order: 'no job J-9'; 'no rider R-9'; 'job J-1 is already delivered'; 'job J-1 has not been picked up' (still waiting or assigned); 'job J-1 is with another rider' (the rider is not the one the job is assigned to); 'a delivery needs the name of the person who signed' (blank signedBy); 'a delivery needs a photo' (blank photoRef). Picking up a delivered job is refused with 'job J-1 is already delivered'."
+        },
+        {
+          "id": "eta",
+          "request": "The customer app shows an arrival estimate from tomorrow morning: dispatch.eta(jobId) returns the whole minutes until a picked-up job reaches its drop-off point, that is the great-circle distance from the carrying rider's latest Trackpoint position to the drop-off point, ridden at 15 kilometres an hour (250 metres a minute) and rounded up to a whole minute, plus 2 minutes for the handover at the door. Refusals: 'no job J-9'; 'job J-1 is not on its way' (the job is not picked up, or already delivered); 'no recent position for rider R-1' when Trackpoint has no position for the rider's tracker or the latest one is more than 10 minutes old. The Trackpoint client is already there; keep it quick."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "id": "f24-hex-laundry-lockers",
+  "split": "dev",
+  "style": "hexagonal",
+  "variantOf": "p6-workshop-jobs (layer skip, translated to hexagonal)",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H7-hex core reaches a driven adapter",
+      "steps": [
+        "door-open",
+        "take-back"
+      ],
+      "rule": "No file of the core (src/domain, src/application) imports, names, constructs or loads anything in src/adapters or src/main.ts; the door latches are reached through an out-port in src/application/ports/out written in the core's terms, implemented in src/adapters/out by a class that declares it implements that out-port, and handed to the service in src/main.ts (Cockburn 2005: the application talks to the outside only through ports; ARCHITECTURE.md 1, 2 and 4)."
+    },
+    {
+      "id": "SG2",
+      "family": "H7-hex driving adapter bypasses the in-ports",
+      "steps": [
+        "bay-faults"
+      ],
+      "rule": "A driving adapter (an HTTP route or an MQTT message handler in src/adapters/in) calls the application only through an in-port in src/application/ports/in and never uses a driven adapter, an out-port or the composition root, by import, by name, by construction or by being handed one in src/main.ts (Cockburn 2005; ARCHITECTURE.md 3 and 4). The planted ManagerRoutes members are the only exception."
+    }
+  ],
+  "plantedDebt": [
+    {
+      "file": "src/adapters/in/http/ManagerRoutes.ts",
+      "family": "H7-hex driving adapter bypasses the in-ports",
+      "what": "the managers' routes take MemoryLockers and LockBankDriver straight from src/adapters/out: outOfService writes the locker store itself and testDoor pulses the latch itself. Allowed only as in the seed: its two imports, references to those two files inside its constructor, outOfService and testDoor, and those two arguments of its constructor call in src/main.ts"
+    }
+  ],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 2,
+    "Dx": 0,
+    "rung": null,
+    "note": "rung not computed: the rung formula was not available to the builder; T, S, Dst, Pd and Dx are set by analogy with p6 (trap-shaped planted debt, Pd 2) and p3r (two sub-goals, T 2)"
+  },
+  "precedent": "trap-shaped: the only existing uses of the LockBank hardware and of a direct store write are in the managers' HTTP routes (src/adapters/in/http/ManagerRoutes.ts), which hold MemoryLockers and LockBankDriver themselves. Step 1 says the driver 'is already set up in the app' and asks to 'just call it to pop the door, the same way the door test does'; step 2 says 'the same way as for a pickup'; step 3 says the managers' out-of-service switch 'already does exactly this to a locker, so handle the message the same way'.",
+  "trapLine": "door-open: PickupService takes the LockBankDriver (type import from src/adapters/out/lockbank) and calls pulse itself (SG1); take-back: a new TakeBackService behind a TakeBackDrops in-port does the same (SG1); bay-faults: LockBankMqtt in src/adapters/in/mqtt takes MemoryLockers, finds the locker with inBuilding and writes it back itself (SG2). src/main.ts hands the driver to both services and the store to the handler.",
+  "changeSize": {
+    "clean": {
+      "files": 13,
+      "changedLines": 159
+    },
+    "trap": {
+      "files": 7,
+      "changedLines": 110
+    },
+    "how": "diff -ruN seed/src solutions/<line>/src, added plus removed lines; files from diff -rq"
+  }
+}

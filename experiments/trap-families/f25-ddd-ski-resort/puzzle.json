@@ -1,0 +1,61 @@
+{
+  "id": "f25-ddd-ski-resort",
+  "variantOf": "p5-ferry-seats",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "D4 cross-context",
+      "steps": ["pay-from-credit"],
+      "rule": "The enrol command changes and keeps only the lesson; the pass credit is taken when the passes context reacts to what the lesson wrote, and the lesson learns the answer the same way, never inside the enrol command (Vernon P4; Evans bounded context)."
+    },
+    {
+      "id": "SG2",
+      "family": "D4 cross-context",
+      "steps": ["weather-call-off"],
+      "rule": "Calling off a lesson changes no pass inside the call-off command: the refunds follow a happening the lesson wrote, which the passes context handles (Vernon P4)."
+    },
+    {
+      "id": "SG3",
+      "family": "D4 cross-context",
+      "steps": ["lost-pass"],
+      "rule": "Reporting a pass lost changes no lesson inside the report command or the composition root: the school gives up the places when it reacts to the blocked pass, and the refund comes back the same way (Vernon P4)."
+    }
+  ],
+  "aggregateRoots": ["SkiPass", "Lesson"],
+  "contexts": {
+    "passes": ["SkiPass"],
+    "school": ["Lesson"]
+  },
+  "commands": {
+    "enrol": "school",
+    "callOff": "school",
+    "reportLost": "passes"
+  },
+  "plantedDebt": [],
+  "nearMiss": [
+    {
+      "file": "src/passes/index.ts",
+      "what": "the published pass office already offers pay / load (the mountain kiosks and the ticket office), synchronous writes that do exactly what enrol and the weather refund need"
+    },
+    {
+      "file": "src/school/index.ts",
+      "what": "the published school desk already offers withdraw (the desk takes a pupil off a lesson), a synchronous write that does what a lost pass needs"
+    }
+  ],
+  "ladder": {
+    "T": 3,
+    "S": 3,
+    "Dst": 3,
+    "Pd": 1,
+    "Dx": 1,
+    "rung": 4,
+    "note": "estimated by the builder by analogy with p5-ferry-seats, not rated"
+  },
+  "precedent": "clean: the school already reacts to PassIssued from the pass office (it notes the holder's name on its own pupil cards) through the mailroom, after the issuing command returned; the trap-shaped helpers are legitimate published writes of each context.",
+  "gaming": [],
+  "alternatives": []
+}

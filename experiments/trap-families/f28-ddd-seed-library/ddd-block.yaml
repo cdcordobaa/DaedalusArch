@@ -1,0 +1,18 @@
+  ddd:
+    source_root: src/
+    contexts:
+      - name: seedbank
+        root: src/seedbank/
+        public_api: [src/seedbank/index.ts, src/seedbank/contracts/**]
+        acl: []
+    outside_contexts: [src/shared-kernel/**, src/main.ts]
+    aggregates:
+      - name: SeedLot
+        context: seedbank
+        module: src/seedbank/domain/lot/**
+        root: src/seedbank/domain/lot/SeedLot.ts
+        inner_entities: []
+    value_objects: ["src/**/values/**", "src/shared-kernel/Day.ts"]
+    repositories: ["src/*/domain/**/*Shelf.ts", "src/*/infrastructure/**/*Shelf.ts"]
+    domain_event_types: [LibraryEvent]
+    application_services: ["src/*/application/*.ts"]

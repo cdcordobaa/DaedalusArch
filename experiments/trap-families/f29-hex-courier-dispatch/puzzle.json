@@ -1,0 +1,40 @@
+{
+  "id": "f29-hex-courier-dispatch",
+  "split": "dev",
+  "style": "hexagonal",
+  "variantOf": "p6-workshop-jobs (layer skip, translated to hexagonal)",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H-port bypass: the application imports an outbound adapter",
+      "steps": [
+        "nearest-rider",
+        "eta"
+      ],
+      "rule": "No file of the core (src/domain, src/application) imports, re-exports, loads or refers to a module or symbol of src/adapters or src/main.ts, type-only included; a use case reaches the GPS provider through an out-port written in core types (ARCHITECTURE.md 1 and 2; Cockburn 2005, ports and adapters)."
+    },
+    {
+      "id": "SG2",
+      "family": "H-composition bypass: the application constructs a concrete adapter",
+      "steps": [
+        "nearest-rider",
+        "eta"
+      ],
+      "rule": "No core file constructs (new, Reflect.construct) a class declared in src/adapters or src/main.ts; adapters are built in src/main.ts and handed to the use cases (ARCHITECTURE.md 3)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null,
+    "rungNote": "not computed: the rung formula was outside what this build could read"
+  },
+  "precedent": "clean: AssignRiderCase (and the other seed use cases) receive the job ledger, the rider roster and the clock as out-ports through their constructors, wired in src/main.ts. The lure is elsewhere: the GPS provider's client (src/adapters/out/gps/TrackpointClient.ts) already exists, reads its own token and has no out-port yet, and two of the three requests say to just use it and to keep it quick.",
+  "gaming": []
+}
