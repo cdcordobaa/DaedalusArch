@@ -1,0 +1,23 @@
+  ddd:
+    source_root: src/
+    contexts:
+      - name: cellar
+        root: src/cellar/
+        public_api: [src/cellar/index.ts, src/cellar/contracts/**]
+        acl: []
+    outside_contexts: [src/main.ts]
+    aggregates:
+      - name: IngredientLot
+        context: cellar
+        module: src/cellar/domain/lot/**
+        root: src/cellar/domain/lot/ingredientLot.ts
+        inner_entities: []
+      - name: BrewBatch
+        context: cellar
+        module: src/cellar/domain/batch/**
+        root: src/cellar/domain/batch/brewBatch.ts
+        inner_entities: []
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Store.ts", "src/*/infrastructure/**/*Store.ts"]
+    domain_event_types: [CellarEvent]
+    application_services: ["src/*/application/*.ts"]

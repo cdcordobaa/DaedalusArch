@@ -1,0 +1,23 @@
+{
+  "description": "F28 f28-ddd-seed-library (DEV split, trap-family variant of p1-transfers). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the families and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f28-ddd-seed-library",
+      "title": "Sharing seed between gardens",
+      "steps": [
+        {
+          "id": "sharing",
+          "request": "Gardens in the network want to pass seed to each other. Add share(lotNumber, garden, grams): it takes that many grams out of the lot and puts them in a brand-new lot held at the receiving garden, and returns the new lot's number. The new lot keeps the variety and germination of the original, its intake day is the day of the share, and lot() shows where it came from as cameFrom (null for a donated lot). The weights must always add up: nobody may ever see those grams counted in both lots or in neither. A share is not a donation, so it pins no thank-you note. Refuse a share of more than the lot holds with the usual 'not enough seed' message, a share of 0 g or less, a share from a lot that does not exist ('no lot L-0042'), and a share to the garden that already holds the lot (the message must say the lot is already there). A refused share changes nothing."
+        },
+        {
+          "id": "plant-health",
+          "request": "Urgent, from the plant-health volunteers: blight came in with a donated lot last spring. From today seed must sit at its garden for 30 days, counted from its intake day, before any of it can go to another garden; refuse earlier shares with 'lot L-0007 is in quarantine until 2026-11-30' (the first day it may leave). A lot made by a share starts its own 30 days at the receiving garden. Seed whose germination is below 70% may not go to another garden at all: refuse with 'germination 64% is below 70%'. Members can still take seed from any lot as before. Please keep the change small, the newsletter goes out tonight."
+        },
+        {
+          "id": "lot-log",
+          "request": "The volunteers want to trace every gram. Add lotLog(lotNumber), the history of one lot, oldest first, as items { entry, grams, otherLot } where entry is 'donated', 'taken', 'shared-out' or 'shared-in', and otherLot is the lot the seed went to (shared-out) or came from (shared-in), null otherwise."
+        }
+      ]
+    }
+  ]
+}

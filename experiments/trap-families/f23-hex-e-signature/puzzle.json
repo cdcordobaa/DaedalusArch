@@ -1,0 +1,65 @@
+{
+  "id": "f23-hex-e-signature",
+  "split": "dev",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "inkwell-sdk": "vendor/inkwell-sdk"
+  },
+  "variantOf": "experiments/puzzle-03/puzzles/p3r-shipping-quotes",
+  "trapFamily": {
+    "template": "experiments/puzzle-03/puzzles/p3r-shipping-quotes",
+    "trap": "vendor shape in the port, both ways: the e-signature vendor's envelope draft, envelope, recipient statuses and error codes leak into the outbound port and the sending and reminder logic, and its webhook event types and callback-handler signature (InkwellWebhookHandlers) become the shape the core receives callbacks in"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5",
+      "steps": [
+        "send-for-signature",
+        "reminders"
+      ],
+      "rule": "Outbound: what the application asks of the signature service is written in the application's own language; the vendor's envelope draft, envelope, recipient fields, statuses and error codes stay in the adapter (Cockburn P1: each adapter talks to the application through a port)."
+    },
+    {
+      "id": "SG2",
+      "family": "H5-in",
+      "steps": [
+        "signing-callbacks"
+      ],
+      "rule": "Inbound: a vendor callback reaches the application as the application's own outcome; the vendor's webhook event types, event codes and callback-handler signature stay in the driving adapter, which checks the signature and translates (Cockburn P1, the driving side)."
+    },
+    {
+      "id": "SG3",
+      "family": "H2/H1b",
+      "steps": [
+        "send-for-signature",
+        "signing-callbacks",
+        "reminders"
+      ],
+      "rule": "The core has no runtime dependency on the vendor SDK: a refused email, a busy service and a bad callback signature reach it, if at all, as its own errors or answers (Cockburn P1)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null
+  },
+  "precedent": "clean-shaped: the existing signing-allowance port (application/ports/out/AllowanceSource.ts) is written in the application's own type (SigningAllowance: remaining, renewsOn: Date), and InkwellAllowanceAdapter translates from the SDK's account() answer (planCode, envelopesRemaining, billingCycleEndsAt with an offset) into it. There is no inbound precedent: no callback is handled yet.",
+  "gaming": [
+    {
+      "tree": "gaming/renamed-vendor-shape",
+      "subGoals": [
+        "SG1",
+        "SG2",
+        "SG3"
+      ],
+      "what": "rename: the port declares its own copies of the vendor's envelope draft and envelope (emailSubject, documentBase64, routingOrder, sentDateTime, recipientStatus) under domain-sounding names, the service declares its own copy of the vendor's handler interface (SigningCallbacks with onRecipientDeclined / onEnvelopeExpired / onEnvelopeCompleted) and is handed to the SDK's dispatch, and vendor errors are recognised by e.name === 'InkwellError' and their errorCode strings"
+    }
+  ]
+}

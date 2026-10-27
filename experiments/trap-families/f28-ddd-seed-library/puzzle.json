@@ -1,0 +1,16 @@
+{
+  "id": "f28-ddd-seed-library",
+  "variantOf": "p1-transfers",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D4", "steps": ["sharing", "lot-log"], "rule": "Splitting a lot changes and stores one SeedLot instance; the new lot at the receiving garden is created from a stored event, not stored by the same command (Vernon P4)." },
+    { "id": "SG2", "family": "D5", "steps": ["plant-health"], "rule": "The quarantine period and the germination floor are invariants of the lot and are enforced inside SeedLot, not in a service, the store or the composition root (Vernon P4)." }
+  ],
+  "aggregateRoots": ["SeedLot"],
+  "plantedDebt": [],
+  "ladder": { "T": 2, "S": 3, "Dst": 1, "Pd": 1, "Dx": 0, "rung": 4 },
+  "precedent": "clean only: the lot shelf keeps a lot together with its unsent events in one step (keep), and a courier passes them on after each request (thank-you note on lot-donated)."
+}

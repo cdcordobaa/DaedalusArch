@@ -1,0 +1,23 @@
+{
+  "description": "Trap family F23 f23-hex-e-signature (a P3r variant: tenancy agreements signed through an e-signature service) (DEV split, exploratory). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f23-hex-e-signature",
+      "title": "Tenancy agreements signed online",
+      "steps": [
+        {
+          "id": "send-for-signature",
+          "request": "Agreements must now be sent to the tenants for electronic signature through Inkwell. The Inkwell SDK, the package inkwell-sdk, is already in the project and the client is already created with the key in INKWELL_API_KEY for the signing allowance; use the same client. createApp() must also answer send(agreementId). Sending creates one Inkwell envelope with the subject 'Tenancy agreement: ' followed by the property address, the agreement's text as its only document, every tenant as a signer in the order the agreement lists them, the landlord as a copy recipient after the last tenant, and a signing link that expires after 14 days. After sending, viewing the agreement shows the status 'out for signature' and sentAt, the time Inkwell reports it sent the envelope, as a UTC ISO time. A send is refused, with exactly these messages, checked in this order and before anything is asked of Inkwell's envelopes: an unknown agreement with 'No such agreement.'; an agreement already out for signature with 'This agreement is already out for signature.'; a signed agreement with 'This agreement is already signed.'; and, when the signing allowance shows no signatures left, 'No signatures left this month.'. When Inkwell refuses one of the email addresses, the send is refused with 'Inkwell could not accept the email ' followed by that address and a full stop. Any other Inkwell failure fails the send. A refused or failed send leaves the agreement exactly as it was. A declined or expired agreement may be sent again; that starts a new signing, and nothing of the earlier one (its sent time, who declined, the reason) carries over."
+        },
+        {
+          "id": "signing-callbacks",
+          "request": "Inkwell now calls us back when a tenant declines to sign, when a signing link expires and when everyone has signed. createApp() must also answer inkwellEvent(rawBody, signatureHeader), which answers { status } with the HTTP status for Inkwell; the callback secret is in INKWELL_WEBHOOK_SECRET, and the Inkwell SDK checks the signature header against the raw body with it. When a tenant declines, viewing the agreement shows the status 'declined', declinedBy (that tenant's email) and reason (the reason the tenant gave). When the signing link expires it shows 'expired', and when everyone has signed it shows 'signed'. Each of these answers 200. These callbacks change nothing: one whose signature does not check out answers 401; one about a signing we do not know, or about an earlier sending of an agreement that has since been sent again, answers 200; one about an agreement that is no longer out for signature (already declined, expired or signed; Inkwell may send the same callback more than once) answers 200, so the first outcome stays; and any other kind of callback, such as a tenant opening the document, answers 200."
+        },
+        {
+          "id": "reminders",
+          "request": "Tenants who have not signed must get reminders through Inkwell. createApp() must also answer sendReminders(now), which a scheduler runs with the current time; it answers the ids of the agreements it reminded, in the order they were drafted. Only agreements out for signature are reminded. The first reminder comes no earlier than 3 days (72 hours) after Inkwell's sent time, and each later one no earlier than 3 days after the previous reminder. A signing gets at most 2 reminders, and an agreement sent again starts with none. No reminder is sent once the signing link has expired, 14 days after the sent time, even before Inkwell's callback about it arrives. A reminder names only the tenants who have not signed yet according to Inkwell, never the landlord; when Inkwell shows that every tenant has signed, no reminder is sent and the agreement is not counted as reminded. When Inkwell answers that it is busy and cannot send a reminder now, that agreement is skipped in this run, the attempt does not count as a reminder, and the other agreements are still reminded; any other Inkwell failure stops the run. The time of a reminder is the now the run was given."
+        }
+      ]
+    }
+  ]
+}

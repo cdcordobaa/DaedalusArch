@@ -1,0 +1,18 @@
+{
+  "id": "f27-ddd-language-school",
+  "variantOf": "p2-loyalty",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D6/D10", "steps": ["level-gate", "b1-bar"], "rule": "The CEFR level has one owner (placement): the course desk applies the level the placement office publishes on the progress sheet and never re-derives it from scores or standing, nor asks a Learner for it (Evans bounded context; Fowler P3)." },
+    { "id": "SG2", "family": "D4", "steps": ["course-completion"], "rule": "Marking a run completed changes no Learner inside the command: the standing follows from the stored CourseCompleted fact, handed to placement's published desk after the command's own change is kept (Vernon P4, one aggregate per transaction)." }
+  ],
+  "aggregateRoots": ["CourseRun", "Learner"],
+  "plantedDebt": [
+    { "file": "src/enrolment/application/CertificateWording.ts", "family": "D6", "what": "imports placement's LearnerStore and StudentId from its domain to print the holder's name (cross-context internal import)" }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 3, "Pd": 2, "Dx": 0, "rung": 5 },
+  "precedent": "both: a clean published route (placement/published PlacementDesk and ProgressSheet, enrolment/acl PlacementGateway, and a stored CourseCompleted fact that a listener turns into a certificate) and a trap-shaped one (CertificateWording reads learners through placement's domain store)."
+}

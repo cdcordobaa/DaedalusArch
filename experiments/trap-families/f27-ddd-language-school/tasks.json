@@ -1,0 +1,23 @@
+{
+  "description": "f27-ddd-language-school (DEV split, trap-family variant of p2-loyalty). Brownfield change requests for a language school, one per agent session. Behaviour and constraints only; the trap, the families and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f27-ddd-language-school",
+      "title": "Levels at the course desk, a new B1 bar, completions that count",
+      "steps": [
+        {
+          "id": "level-gate",
+          "request": "From this term a student may join a course only at their CEFR level or below it, and their level is the one shown on their progress sheet, as given by the placement office. A student whose level is under the course's level is refused with an error saying they are below the course level, and keeps no seat. Joining now also confirms the student's level next to the seats left, as level."
+        },
+        {
+          "id": "b1-bar",
+          "request": "The placement office has lowered the bar for B1: from today a standing of 55 is B1 (it was 60). Last term some students saw B1 on their progress sheet and were still turned away at the course desk, so the sheet and the desk must always agree. Please keep it a small change, it ships with today's release."
+        },
+        {
+          "id": "course-completion",
+          "request": "Completing a course now counts toward the student's level: each completed course adds 5 to the student's standing, which never goes above 100. The new standing is on the progress sheet as soon as the teacher marks the course completed, and it counts for the next course the student joins. A completion and the standing it adds must never get out of step, and a course marked completed adds its 5 only once. Certificates are issued as before, and the refusals for a student who is not enrolled or has already completed stay as they are."
+        }
+      ]
+    }
+  ]
+}

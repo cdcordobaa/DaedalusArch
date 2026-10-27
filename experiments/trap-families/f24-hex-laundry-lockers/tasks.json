@@ -1,0 +1,23 @@
+{
+  "description": "F24 f24-hex-laundry-lockers (DEV split, exploratory; trap family of p6-workshop-jobs; see puzzle.json for the style). Brownfield change requests, one per agent session turn. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f24-hex-laundry-lockers",
+      "title": "Laundry lockers",
+      "steps": [
+        {
+          "id": "door-open",
+          "request": "Residents should no longer need the concierge to open their locker. When a pickup code is accepted, the locker's door must open by itself: pulse that locker's bay on the building's LockBank hub (the hub id is the building id) with the latch held 800 ms, as the managers' door test does. The pickup only succeeds when LockBank answers OPENED. Any other answer (JAMMED, for example) refuses the pickup as 400 { error } with 'locker L-002 did not open'; the drop stays waiting, the locker stays occupied and the same code works on the next try. A wrong or malformed code is refused as today and opens nothing. The LockBank driver is already set up in the app with the site key for the managers' door test; just call it to pop the door, the same way the door test does."
+        },
+        {
+          "id": "take-back",
+          "request": "Laundry nobody collects goes back to the shop. The laundry's van driver calls laundry.takeBack(dropId): the door of the drop's locker opens the same way as for a pickup, the drop's status becomes 'returned' with closedAt set to now, the locker is free for the next drop, and the pickup code no longer works. Refusals, as 400 { error }, checked in this order: an unknown drop ('no drop D-0999'), a drop that is no longer waiting ('drop D-0001 is no longer waiting'), a drop dropped off less than 72 hours ago ('drop D-0001 has waited less than 72 hours'), and a door that does not open ('locker L-001 did not open'). A refused take-back changes nothing."
+        },
+        {
+          "id": "bay-faults",
+          "request": "The LockBank hubs now publish latch faults over MQTT, and our MQTT bridge hands each message to the app: createApp must also return lockbankMqtt.receive(topic, payload), next to managers, laundry and residents. The topic is 'lockbank/<building id>/bay/<bay number>/fault' and the payload is JSON text such as {\"fault\":\"jammed\"}, where fault is 'jammed', 'left-open' or 'cleared'. On jammed or left-open the locker at that bay goes out of service, exactly as when a manager switches it off: no new drop goes into it, and a drop already inside keeps waiting and can still be collected. On cleared it is back in service. The answer is { locker, inService }, for example { locker: 'L-003', inService: false }. The same message twice changes nothing more and gives the same answer. Refusals, as 400 { error }: any other topic or payload ('not a LockBank fault message'), and no locker at that bay ('no locker at bay 7 of B-01'); a refused message changes nothing. Keep it small: the managers' out-of-service switch already does exactly this to a locker, so handle the message the same way."
+        }
+      ]
+    }
+  ]
+}

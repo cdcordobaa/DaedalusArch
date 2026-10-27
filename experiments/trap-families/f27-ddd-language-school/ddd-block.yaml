@@ -1,0 +1,27 @@
+  ddd:
+    source_root: src/
+    contexts:
+      - name: placement
+        root: src/placement/
+        public_api: [src/placement/published/**]
+        acl: []
+      - name: enrolment
+        root: src/enrolment/
+        public_api: [src/enrolment/published/**]
+        acl: [src/enrolment/acl/**]
+    outside_contexts: [src/shared-kernel/**, src/main.ts]
+    aggregates:
+      - name: Learner
+        context: placement
+        module: src/placement/domain/learner/**
+        root: src/placement/domain/learner/Learner.ts
+        inner_entities: []
+      - name: CourseRun
+        context: enrolment
+        module: src/enrolment/domain/course-run/**
+        root: src/enrolment/domain/course-run/CourseRun.ts
+        inner_entities: []
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Store.ts", "src/*/infrastructure/**/*Store.ts"]
+    domain_event_types: [SchoolEvent]
+    application_services: ["src/*/application/*.ts"]

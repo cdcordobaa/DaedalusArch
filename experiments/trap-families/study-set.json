@@ -1,0 +1,52 @@
+{
+ "date": "2026-10-27",
+ "note": "v1.5 final-study task set (draft, not registered). Trap-family variants of the PUZZLE traps, built by blind sessions; each self-verified (clean passes tests+oracle; trap passes tests, fails the trap sub-goals).",
+ "confirmatory": {
+  "ddd": [
+   "f1-ddd-two-aggregates",
+   "f4-ddd-gym-classes",
+   "f5-ddd-parking",
+   "f9-ddd-auctions",
+   "f10-ddd-crowdfunding",
+   "f11-ddd-marina",
+   "f12-ddd-farmers-market",
+   "f13-ddd-bike-repairs",
+   "f25-ddd-ski-resort",
+   "f26-ddd-brewery",
+   "f27-ddd-language-school",
+   "f28-ddd-seed-library"
+  ],
+  "hexagonal": [
+   "f2-hex-vendor-port",
+   "f14-hex-geocoding",
+   "f15-hex-sms",
+   "f16-hex-fx-rates",
+   "f17-hex-ride-pooling",
+   "f18-hex-pet-adoption",
+   "f20-hex-music-lessons",
+   "f21-hex-blood-bank",
+   "f22-hex-airport-lounge",
+   "f23-hex-e-signature",
+   "f24-hex-laundry-lockers",
+   "f29-hex-courier-dispatch"
+  ]
+ },
+ "exploratory": {
+  "hexagonal": [
+   "f19-hex-school-canteen"
+  ],
+  "reason": "trap visible only to R-AXA (H03), not admitted in HCAL-02"
+ },
+ "excluded": {
+  "f3-ddd-car-sharing": "similarity 0.63 with f1",
+  "f6-ddd-restaurant": "similarity 0.72 with f4",
+  "f7-ddd-volunteer-shifts": "similarity 0.93 with f5 (renamed copy)",
+  "f8-ddd-coworking": "similarity 0.82 with f3"
+ },
+ "checks": {
+  "preflight": "all specs pass (_checks/preflight-2026-10-27.log)",
+  "hintAudit": "0 FAIL on every tasks.json (_checks/hint-audit-2026-10-27.log)",
+  "similarity": "8-gram Jaccard on normalised clean src; every kept pair < 0.6",
+  "visibility": "admitted rules fire on every confirmatory trap and stay silent on every clean solution relative to the seed (_checks/visibility-2026-10-27.json)"
+ }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "f26-ddd-brewery",
+  "variantOf": "p1-transfers",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D4", "steps": ["brew", "lot-usage"], "rule": "One command changes and keeps one aggregate instance; a brew changes the batch only, and the ingredient lots follow through the kept batch-brewed fact (Vernon P4)." },
+    { "id": "SG2", "family": "D5", "steps": ["brew", "bottling"], "rule": "The best-before and enough-left rules belong to the ingredient lot, and the minimum fermentation rule belongs to the batch; neither is decided outside the domain (Vernon P4)." }
+  ],
+  "aggregateRoots": ["IngredientLot", "BrewBatch"],
+  "plantedDebt": [],
+  "ladder": { "T": 2, "S": 3, "Dst": 1, "Pd": 1, "Dx": 0, "rung": 4 },
+  "precedent": "clean only: both stores post the facts a change raised to the mailbox in the same step, and the relay hands them to reactions after each command (the goods-in book line on lot-received)."
+}
