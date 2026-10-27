@@ -1,0 +1,24 @@
+# D5 unseen-case spec
+spec_version: "1.0.0"
+architecture:
+  style: ddd
+  layers:
+    - { name: domain, kind: domain, directories: ["src/*/domain/**"] }
+    - { name: application, kind: application, directories: ["src/*/application/**"] }
+    - { name: infrastructure, kind: infrastructure, directories: ["src/*/infrastructure/**"] }
+    - { name: composition, kind: application, directories: ["src/main.ts"], roles: [composition-root] }
+  ddd:
+    source_root: src/
+    contexts:
+      - { name: scheduling, root: src/scheduling/, public_api: [], acl: [] }
+    outside_contexts: [src/main.ts]
+    aggregates:
+      - { name: DoctorDay, context: scheduling, module: "src/scheduling/domain/doctorday/**", root: src/scheduling/domain/doctorday/DoctorDay.ts, inner_entities: [] }
+      - { name: Appointment, context: scheduling, module: "src/scheduling/domain/appointment/**", root: src/scheduling/domain/appointment/Appointment.ts, inner_entities: [] }
+      - { name: Patient, context: scheduling, module: "src/scheduling/domain/patient/**", root: src/scheduling/domain/patient/Patient.ts, inner_entities: [] }
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    invariants:
+      - { id: slot-no-double-book, kind: set, owner: DoctorDay, over: [Appointment], terms: [doctorId, start, end], statement: "a doctor never has two overlapping appointments" }
+      - { id: cancel-notice-window, kind: single, owner: Appointment, over: [Appointment], terms: [start, cancelWindowMs], statement: "an appointment cannot be cancelled inside its notice window" }
+      - { id: patient-record-unique, kind: uniqueness, over: [Patient], terms: [recordNumber], enforced_by: store }

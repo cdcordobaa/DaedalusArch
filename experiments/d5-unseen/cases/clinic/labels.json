@@ -1,0 +1,58 @@
+{
+  "pos-1": {
+    "label": "violation",
+    "invariant": "slot-no-double-book",
+    "file": "src/scheduling/application/ScheduleService.ts",
+    "line": 15,
+    "note": "Service loops over the day and rejects overlaps instead of DoctorDay.book."
+  },
+  "pos-2": {
+    "label": "violation",
+    "invariant": "cancel-notice-window",
+    "file": "src/scheduling/application/ScheduleService.ts",
+    "line": 26,
+    "note": "Service enforces the cancellation notice window; Appointment.cancel does not."
+  },
+  "pos-3": {
+    "label": "violation",
+    "invariant": "slot-no-double-book",
+    "file": "src/scheduling/infrastructure/http/BookingController.ts",
+    "line": 11,
+    "note": "HTTP controller filters existing appointments for overlap before calling the service."
+  },
+  "twin-1": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Overlap loop lives in DoctorDay.book; service only calls it."
+  },
+  "twin-2": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Notice window checked in Appointment.cancel; service only calls it."
+  },
+  "twin-3": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Overlap check in DoctorDay.book; controller just delegates."
+  },
+  "legit-1": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Service checks declared uniqueness via the store, which is legitimate; overlap check is inside DoctorDay."
+  },
+  "legit-2": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Single-instance notice-window check is inside Appointment; service just calls cancel."
+  }
+}

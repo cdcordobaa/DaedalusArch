@@ -1,0 +1,22 @@
+# v1.5 R-D5S development fixture (not the unseen C1 cases): one declared set invariant, one uniqueness invariant.
+spec_version: "1.0.0"
+architecture:
+  style: ddd
+  layers:
+    - { name: domain, kind: domain, directories: ["src/*/domain/**", "src/shared-kernel/**"] }
+    - { name: application, kind: application, directories: ["src/*/application/**"] }
+    - { name: infrastructure, kind: infrastructure, directories: ["src/*/infrastructure/**"] }
+    - { name: composition, kind: application, directories: ["src/main.ts"], roles: [composition-root] }
+  ddd:
+    source_root: src/
+    contexts:
+      - { name: stays, root: src/stays/, public_api: [src/stays/index.ts], acl: [] }
+    outside_contexts: [src/main.ts]
+    aggregates:
+      - { name: RoomSchedule, context: stays, module: "src/stays/domain/schedule/**", root: src/stays/domain/schedule/RoomSchedule.ts, inner_entities: [] }
+      - { name: Booking, context: stays, module: "src/stays/domain/booking/**", root: src/stays/domain/booking/Booking.ts, inner_entities: [] }
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    invariants:
+      - { id: room-no-overlap, kind: set, owner: RoomSchedule, over: [Booking], terms: [roomId, checkIn, checkOut], statement: "two stays in one room never overlap" }
+      - { id: booking-ref-unique, kind: uniqueness, over: [Booking], terms: [reference], enforced_by: store }

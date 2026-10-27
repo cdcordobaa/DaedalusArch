@@ -1,0 +1,221 @@
+{
+  "seal": "dd7fdc2eb9f7d5b58e1a10647e70f8d516545d430da7c2be821d902e03bdb73a",
+  "modelCalls": 0,
+  "summary": {
+    "recall": "4/6",
+    "falsePositives": "2/10",
+    "gate": {
+      "recallMin": "5/6",
+      "fpMax": "0/10"
+    }
+  },
+  "rows": [
+    {
+      "domain": "clinic",
+      "case": "legit-1",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": false,
+      "d5s": [
+        "src/scheduling/domain/doctorday/DoctorDay.ts:13 checks declared invariant cancel-notice-window (an appointment cannot be cancelled inside its notice window) outside its owner Appointment: if (clash)"
+      ],
+      "other": [],
+      "specErrors": []
+    },
+    {
+      "domain": "clinic",
+      "case": "legit-2",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": true,
+      "d5s": [],
+      "other": [],
+      "specErrors": []
+    },
+    {
+      "domain": "clinic",
+      "case": "pos-1",
+      "label": "violation",
+      "invariant": "slot-no-double-book",
+      "labelledFile": "src/scheduling/application/ScheduleService.ts",
+      "pass": true,
+      "d5s": [
+        "src/scheduling/application/ScheduleService.ts:15 checks declared invariant slot-no-double-book (a doctor never has two overlapping appointments) outside its owner DoctorDay: if (existing.start < end && start < existing.end)"
+      ],
+      "other": [
+        "R-D4 src/scheduling/application/ScheduleService.ts:12",
+        "R-D5 src/scheduling/application/ScheduleService.ts:15"
+      ],
+      "specErrors": []
+    },
+    {
+      "domain": "clinic",
+      "case": "pos-2",
+      "label": "violation",
+      "invariant": "cancel-notice-window",
+      "labelledFile": "src/scheduling/application/ScheduleService.ts",
+      "pass": true,
+      "d5s": [
+        "src/scheduling/application/ScheduleService.ts:26 checks declared invariant cancel-notice-window (an appointment cannot be cancelled inside its notice window) outside its owner Appointment: if (appt.start - now < cancelWindowMs)",
+        "src/scheduling/domain/doctorday/DoctorDay.ts:13 checks declared invariant cancel-notice-window (an appointment cannot be cancelled inside its notice window) outside its owner Appointment: if (clash)"
+      ],
+      "other": [
+        "R-D4 src/scheduling/application/ScheduleService.ts:14",
+        "R-D5 src/scheduling/application/ScheduleService.ts:26"
+      ],
+      "specErrors": []
+    },
+    {
+      "domain": "clinic",
+      "case": "pos-3",
+      "label": "violation",
+      "invariant": "slot-no-double-book",
+      "labelledFile": "src/scheduling/infrastructure/http/BookingController.ts",
+      "pass": false,
+      "d5s": [],
+      "other": [
+        "R-D4 src/scheduling/application/ScheduleService.ts:12"
+      ],
+      "specErrors": []
+    },
+    {
+      "domain": "clinic",
+      "case": "twin-1",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": true,
+      "d5s": [],
+      "other": [
+        "R-D4 src/scheduling/application/ScheduleService.ts:12"
+      ],
+      "specErrors": []
+    },
+    {
+      "domain": "clinic",
+      "case": "twin-2",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": false,
+      "d5s": [
+        "src/scheduling/domain/doctorday/DoctorDay.ts:13 checks declared invariant cancel-notice-window (an appointment cannot be cancelled inside its notice window) outside its owner Appointment: if (clash)"
+      ],
+      "other": [
+        "R-D4 src/scheduling/application/ScheduleService.ts:12"
+      ],
+      "specErrors": []
+    },
+    {
+      "domain": "clinic",
+      "case": "twin-3",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": true,
+      "d5s": [],
+      "other": [
+        "R-D4 src/scheduling/application/ScheduleService.ts:12"
+      ],
+      "specErrors": []
+    },
+    {
+      "domain": "warehouse",
+      "case": "legit-1",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": true,
+      "d5s": [],
+      "other": [],
+      "specErrors": []
+    },
+    {
+      "domain": "warehouse",
+      "case": "legit-2",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": true,
+      "d5s": [],
+      "other": [],
+      "specErrors": []
+    },
+    {
+      "domain": "warehouse",
+      "case": "pos-1",
+      "label": "violation",
+      "invariant": "bin-capacity",
+      "labelledFile": "src/storage/application/PutAwayService.ts",
+      "pass": true,
+      "d5s": [
+        "src/storage/application/PutAwayService.ts:14 checks declared invariant bin-capacity (stock in a bin never exceeds its capacity) outside its owner Bin: if (used + quantity > bin.capacity)"
+      ],
+      "other": [
+        "R-D5 src/storage/application/PutAwayService.ts:14"
+      ],
+      "specErrors": []
+    },
+    {
+      "domain": "warehouse",
+      "case": "pos-2",
+      "label": "violation",
+      "invariant": "pallet-weight-limit",
+      "labelledFile": "src/storage/application/PutAwayService.ts",
+      "pass": true,
+      "d5s": [
+        "src/storage/application/PutAwayService.ts:20 checks declared invariant pallet-weight-limit (a pallet never carries more than its maximum weight) outside its owner Pallet: if (pallet.weightKg + crateKg > pallet.maxWeightKg)"
+      ],
+      "other": [
+        "R-D5 src/storage/application/PutAwayService.ts:20"
+      ],
+      "specErrors": []
+    },
+    {
+      "domain": "warehouse",
+      "case": "pos-3",
+      "label": "violation",
+      "invariant": "bin-capacity",
+      "labelledFile": "src/storage/infrastructure/messaging/PutAwayHandler.ts",
+      "pass": false,
+      "d5s": [],
+      "other": [],
+      "specErrors": []
+    },
+    {
+      "domain": "warehouse",
+      "case": "twin-1",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": true,
+      "d5s": [],
+      "other": [],
+      "specErrors": []
+    },
+    {
+      "domain": "warehouse",
+      "case": "twin-2",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": true,
+      "d5s": [],
+      "other": [],
+      "specErrors": []
+    },
+    {
+      "domain": "warehouse",
+      "case": "twin-3",
+      "label": "clean",
+      "invariant": null,
+      "labelledFile": null,
+      "pass": true,
+      "d5s": [],
+      "other": [],
+      "specErrors": []
+    }
+  ]
+}

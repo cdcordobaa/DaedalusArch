@@ -1,0 +1,58 @@
+{
+  "pos-1": {
+    "label": "violation",
+    "invariant": "bin-capacity",
+    "file": "src/storage/application/PutAwayService.ts",
+    "line": 14,
+    "note": "Service sums the bin contents and compares with capacity instead of Bin.put."
+  },
+  "pos-2": {
+    "label": "violation",
+    "invariant": "pallet-weight-limit",
+    "file": "src/storage/application/PutAwayService.ts",
+    "line": 20,
+    "note": "Service compares pallet weight to its limit; Pallet.addCrate does not."
+  },
+  "pos-3": {
+    "label": "violation",
+    "invariant": "bin-capacity",
+    "file": "src/storage/infrastructure/messaging/PutAwayHandler.ts",
+    "line": 16,
+    "note": "Message handler totals the lots and rejects over-capacity put-aways itself."
+  },
+  "twin-1": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Capacity check in Bin.put; service delegates."
+  },
+  "twin-2": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Weight limit checked in Pallet.addCrate; service delegates."
+  },
+  "twin-3": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Capacity check in Bin.put (loop form); handler only delegates."
+  },
+  "legit-1": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Service checks declared SKU-code uniqueness via the store, which is legitimate."
+  },
+  "legit-2": {
+    "label": "clean",
+    "invariant": null,
+    "file": null,
+    "line": null,
+    "note": "Pallet weight limit checked inside Pallet.addCrate; service just calls it."
+  }
+}

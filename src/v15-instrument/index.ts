@@ -2,7 +2,7 @@
  * v1.5 instrument (Stage 0, 2026-10-26), promoted from the exploratory prototypes:
  * - APG-V15 graph build: the frozen APG plus the DETECT-02 / GRAPH-SCALE facts (`graph.ts`, `facts.ts`, `spec.ts`,
  *   `import-types.ts`, `conventions.ts`);
- * - RULES-V15: the Cypher rules in `rules/` (R-D4, R-D5, R-D9, R-H5, R-INJ, R-RTX, R-XCTX), run on `cypher-interp`;
+ * - RULES-V15: the Cypher rules in `rules/` (R-D4, R-D5, R-D5S, R-D9, R-H5, R-INJ, R-RTX, R-XCTX; R-D5S is v1.5-only, C1), run on `cypher-interp`;
  * - `check_consistency` (R-D4, R-XCTX as messages an agent can act on) and the v1.5 MCP server (`mcp/`);
  * - the S3 ownership facts (`s3-ownership.ts`, deterministic part; the caller supplies the reader's answers);
  * - the edit gate (`edit-gate/`: hook settings, relay, hub, de-duplication and messages).
