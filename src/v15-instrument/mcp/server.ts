@@ -18,6 +18,8 @@ import { confineArgs } from '../../mcp-server/confine.js';
 import { withCallLog } from '../../mcp-server/call-log.js';
 import type { ServerContext } from '../../mcp-server/tools.js';
 import { checkConsistency, formatText } from '../consistency.js';
+import { preflightSpec } from '../preflight.js';
+import { findSpec } from '../spec.js';
 
 export const CHECK_CONSISTENCY = 'check_consistency';
 
@@ -39,6 +41,14 @@ export async function consistencyHandler(ctx: ServerContext, args: unknown): Pro
   const root = a.project !== undefined ? path.resolve(ctx.defaultProjectPath ?? process.cwd(), a.project) : ctx.defaultProjectPath;
   if (root === undefined) return { isError: true, content: [{ type: 'text', text: 'no project: start the server with --project or pass project' }] };
   const spec = a.spec ?? ctx.defaultSpecPath;
+  // Pre-flight: refuse a spec the frozen schema, the frozen DDD binder or the v1.5 reader rejects (no silent skip).
+  const specFile = findSpec(root, spec);
+  if (specFile !== undefined) {
+    const pre = await preflightSpec(path.resolve(root, specFile));
+    if (!pre.ok) {
+      return { isError: true, content: [{ type: 'text', text: `check_consistency refused: the spec ${specFile} fails pre-flight:\n${pre.errors.map((e) => `- ${e}`).join('\n')}` }], structuredContent: { preflight: { ...pre } } };
+    }
+  }
   try {
     const res = await checkConsistency({ root, ...(spec !== undefined ? { spec } : {}), ...(a.files !== undefined ? { files: a.files } : {}) });
     return { content: [{ type: 'text', text: formatText(res) }], structuredContent: { ...res, findings: res.findings.map((f) => ({ ...f })) } as Record<string, unknown> };

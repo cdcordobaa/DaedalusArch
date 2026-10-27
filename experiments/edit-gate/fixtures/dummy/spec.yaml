@@ -1,13 +1,15 @@
 # Edit-gate dummy project spec (a copy of the DETECT-02 precision fixture P10 spec; no puzzle material).
 # Used only by the edit-gate unit tests and smoke checks.
+# 2026-10-27: layer roles, scoring and confidence_thresholds added (values of presets/ddd.yaml) so the spec passes the
+# frozen schema; the v1.5 spec pre-flight (src/v15-instrument/preflight.ts) refuses it otherwise.
 spec_version: "1.0.0"
 architecture:
   style: ddd
   layers:
-    - { name: domain, kind: domain, directories: ["src/*/domain/**", "src/shared-kernel/**"] }
-    - { name: application, kind: application, directories: ["src/*/application/**"] }
-    - { name: infrastructure, kind: infrastructure, directories: ["src/*/infrastructure/**", "src/*/acl/**", "src/types/**"] }
-    - { name: api, kind: presentation, directories: ["src/*/api/**"] }
+    - { name: domain, kind: domain, directories: ["src/*/domain/**", "src/shared-kernel/**"], roles: [aggregate, entity, value-object, domain-event, repository-interface] }
+    - { name: application, kind: application, directories: ["src/*/application/**"], roles: [application-service, port] }
+    - { name: infrastructure, kind: infrastructure, directories: ["src/*/infrastructure/**", "src/*/acl/**", "src/types/**"], roles: [repository, anti-corruption-layer] }
+    - { name: api, kind: presentation, directories: ["src/*/api/**"], roles: [controller] }
     - { name: composition, kind: application, directories: ["src/main.ts"], roles: [composition-root] }
   ddd:
     source_root: src/
@@ -21,3 +23,9 @@ architecture:
     value_objects: ["src/**/value-objects/**"]
     repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
     domain_event_types: [DomainEvent]
+
+scoring:
+  weights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05 }
+  thresholds: { pass: 0.80, warning: 0.65, soft_block: 0.50 }
+
+confidence_thresholds: { high: 0.85, medium: 0.60, icc_minimum: 0.70 }
