@@ -22,8 +22,8 @@ interface Meta { pattern: string; legit: string; positive: string | null; expect
 describe('v1.5 instrument: rules', () => {
   it('loads the RULES-V15 Cypher rules: the seven prototype rules byte-identical, plus R-D5S (C1, v1.5 only)', () => {
     const rules = loadRules();
-    expect(rules.map((r) => r.id).sort()).toEqual(['R-AXA', 'R-D3', 'R-D4', 'R-D5', 'R-D5S', 'R-D9', 'R-H5', 'R-INJ', 'R-LOCK', 'R-REF', 'R-RTX', 'R-TRANSPORT', 'R-XCTX']);
-    for (const r of rules.filter((x) => !['R-D5S', 'R-D3', 'R-LOCK', 'R-REF', 'R-AXA', 'R-TRANSPORT'].includes(x.id))) {
+    expect(rules.map((r) => r.id).sort()).toEqual(['R-AXA', 'R-D3', 'R-D4', 'R-D4R', 'R-D5', 'R-D5S', 'R-D9', 'R-H5', 'R-INJ', 'R-LOCK', 'R-PURE', 'R-REF', 'R-RTX', 'R-TRANSPORT', 'R-XCTX']);
+    for (const r of rules.filter((x) => !['R-D5S', 'R-D3', 'R-LOCK', 'R-REF', 'R-AXA', 'R-TRANSPORT', 'R-PURE', 'R-D4R'].includes(x.id))) {
       expect(r.text).toBe(fs.readFileSync(path.join(REPO, 'experiments', 'detect-02', 'rules', r.file), 'utf8'));
     }
     expect(path.relative(REPO, rulesDir())).toBe(path.join('src', 'v15-instrument', 'rules'));
@@ -56,10 +56,13 @@ describe('v1.5 instrument: precision fixtures reproduce the recorded prototype r
         if (tree === null) continue;
         for (const [condition, spec] of [['declared', specPath], ['fallback', fallback]] as const) {
           const r = await runTree(path.join(FX, d, tree), rules, { spec, scratch });
-          const vio = r.findings.filter((f) => f.status === 'violation');
+          // CN-02 rules (2026-10-27) came after the prototype record: the recorded rows are compared on the earlier rules,
+          // and a legit variant must still have no violation from any rule (the `pass` check below uses every finding).
+          const all = r.findings.filter((f) => f.status === 'violation');
+          const vio = all.filter((f) => !['R-D4R', 'R-PURE'].includes(f.rule));
           const allowed = r.findings.filter((f) => f.status === 'allowed');
           const pass = variant === 'legit'
-            ? vio.length === 0 && (meta.expectLegit !== 'allowed' || allowed.length > 0)
+            ? all.length === 0 && (meta.expectLegit !== 'allowed' || allowed.length > 0)
             : (meta.expectPositive ?? []).every((id) => vio.some((f) => f.rule === id));
           const rec = recorded.find((x) => x.fixture === d && x.variant === variant && x.condition === condition);
           expect(rec).toBeDefined();

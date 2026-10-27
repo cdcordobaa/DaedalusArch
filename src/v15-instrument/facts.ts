@@ -17,6 +17,7 @@
 import * as path from 'node:path';
 import { Node, Project, SyntaxKind } from 'ts-morph';
 import type { CallExpression, ClassDeclaration, IfStatement, InterfaceDeclaration, NewExpression, SourceFile, Type } from 'ts-morph';
+import { categoryOfModule } from '../apg-enrich/cheap/behaviour.js';
 import { guardShape, isTrivialParamNullCheck, normaliseCondition } from '../apg-enrich/cheap/guards.js';
 import type { DetectSpec, Role } from './spec.js';
 import { globMatch } from './spec.js';
@@ -51,6 +52,8 @@ export interface RefFact { readonly root: string; readonly file: string; readonl
 /** HCAL-01 (2026-10-27): an adapter that imports another adapter package (H03). */
 export interface AdapterImportFact { readonly file: string; readonly line: number; readonly specifier: string; readonly target: string; readonly fromPkg: string; readonly toPkg: string }
 /** HCAL-01: a transport concept (an HTTP status code, an HTTP or SQL error type) in domain, application or port code (H07). */
+export interface RepoMultiFact { readonly file: string; readonly line: number; readonly repo: string; readonly method: string; readonly root: string; readonly form: 'two-params' | 'collection' }
+export interface DomainTechFact { readonly file: string; readonly line: number; readonly module: string; readonly category: string }
 export interface TransportFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'status-code' | 'transport-type'; readonly detail: string }
 export interface ContractFact { readonly contract: string; readonly file: string; readonly line: number; readonly entity: string; readonly entityFile: string; readonly via: string; readonly form: 'type' | 'mirror' }
 export interface PortMechFact { readonly port: string; readonly method: string; readonly file: string; readonly line: number; readonly form: 'vendor-type' | 'adapter-type' | 'scope-callback'; readonly detail: string }
@@ -68,6 +71,8 @@ export interface Facts {
   readonly refs: readonly RefFact[];
   readonly adapterImports: readonly AdapterImportFact[];
   readonly transports: readonly TransportFact[];
+  readonly domainTech: readonly DomainTechFact[];
+  readonly repoMulti: readonly RepoMultiFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
   readonly injections: readonly InjectionFact[];
@@ -702,33 +707,103 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     }
     return false;
   };
+  // CN-02: an entry point also rejects by returning a value (an error result); a bare `return;` or `return undefined`
+  // is a skip, not a rejection.
+  const rejectsWithValue = (st: IfStatement): boolean => {
+    const t = st.getThenStatement();
+    return (Node.isBlock(t) ? t.getStatements() : [t]).some((x) => {
+      if (!Node.isReturnStatement(x)) return false;
+      const e = x.getExpression();
+      return e !== undefined && !(Node.isIdentifier(e) && e.getText() === 'undefined');
+    });
+  };
+  const decisionGuardsOf = (u: Unit): IfStatement[] => bodyNodes(u).filter((n): n is IfStatement => Node.isIfStatement(n) && (guardShape(n) !== undefined || rejectsWithValue(n)) && !isTrivialParamNullCheck(n));
+  const REPO_NAME = /(Repository|Repo|Store|Dao)$/;
+  const isRepositoryClass = (o: ClassDeclaration | InterfaceDeclaration): boolean => {
+    if (spec.repositories.length > 0 && globMatch(spec.repositories, fileOf(o))) return true;
+    if (REPO_NAME.test(o.getName() ?? '')) return true;
+    return Node.isClassDeclaration(o) && o.getImplements().some((i) => REPO_NAME.test(i.getExpression().getText()));
+  };
+  const isStorageCall = (c: CallExpression): boolean => { const d = declOfCall(c); const o = d ? memberOwner(d) : undefined; return o !== undefined && storageOwner(o); };
+  // CN-02 K08–K10: a member read on an aggregate instance (`policy.isActive()`, `invoice.lineItems().length`,
+  // `property.unitsView().some(…)`), outside the arguments of a storage call (a repository lookup is how a store-enforced
+  // uniqueness is checked) and not the bare instance (an existence check on a loaded root).
+  // A condition over two different aggregate instances (`from.currency !== to.currency`) spans aggregates: it cannot
+  // live inside one of them, so it is not reported.
+  const rootStateRead = (cond: Node): { root: string; text: string } | undefined => {
+    const instances = new Set(cond.getDescendants().filter((x) => Node.isPropertyAccessExpression(x)).map((x) => (x as import('ts-morph').PropertyAccessExpression).getExpression())
+      .filter((b) => Node.isIdentifier(b) && rootsIn(b.getType()).length > 0 && !isCollection(b.getType())).map((b) => b.getText()));
+    if (instances.size > 1) return undefined;
+    for (const x of [cond, ...cond.getDescendants()]) {
+      if (!Node.isPropertyAccessExpression(x)) continue;
+      const base = x.getExpression();
+      if (base.getKind() === SyntaxKind.ThisKeyword) continue;
+      // an element of a set of aggregates (`open.some((o) => o.total…)`) is a check across instances
+      if (Node.isIdentifier(base) && base.getSymbol()?.getDeclarations().some((d) => Node.isParameterDeclaration(d) && (Node.isArrowFunction(d.getParent()) || Node.isFunctionExpression(d.getParent()))) === true) continue;
+      const rs = rootsIn(base.getType());
+      if (rs.length === 0 || isCollection(base.getType())) continue;
+      const inStorageArg = x.getAncestors().some((an) => Node.isCallExpression(an) && isStorageCall(an) && an.getArguments().some((g) => g === x || g.getDescendants().includes(x)));
+      if (inStorageArg) continue;
+      const top = Node.isCallExpression(x.getParent()) && (x.getParent() as CallExpression).getExpression() === x ? x.getParent()! : x;
+      return { root: rs[0]!.name, text: top.getText().replace(/\s+/g, ' ').slice(0, 80) };
+    }
+    return undefined;
+  };
+  // Units whose write footprint reaches an aggregate: calling one hands it the arguments (an adapter calling a command).
+  const writerRoots = (d: Node): string[] => { const w = units.get(d); return w ? [...new Set(footprint(w).map((f) => f.root))] : []; };
+  // Locals and parameters an expression reads, one level through local initialisers (`total` ← `lines.reduce(…)`).
+  const sourcesOf = (x: Node, depth = 0): Set<string> => {
+    const out = new Set<string>();
+    for (const y of [x, ...x.getDescendants()]) {
+      if (!Node.isIdentifier(y)) continue;
+      if (Node.isPropertyAccessExpression(y.getParent()) && (y.getParent() as Node & { getNameNode(): Node }).getNameNode() === y) continue;
+      const d = y.getSymbol()?.getDeclarations()[0];
+      if (d === undefined || d.getSourceFile() !== x.getSourceFile()) continue;
+      if (Node.isParameterDeclaration(d)) out.add(y.getText());
+      else if (Node.isVariableDeclaration(d)) {
+        out.add(y.getText());
+        const init = d.getInitializer();
+        if (init && depth < 2) for (const z of sourcesOf(init, depth + 1)) out.add(z);
+      }
+    }
+    return out;
+  };
   for (const u of units.values()) {
     if (!ruleSitesApply) break;
     const role = spec.roleOf(u.file);
     if (role !== 'application' && role !== 'adapter') continue;
-    // Values this unit hands to the aggregate: arguments of calls whose target is declared in an aggregate module
-    // (a root method, an entity or value object constructor) and is not a storage read.
+    // CN-02: a repository's own check (store-enforced uniqueness on save) is the store's job, not a decision.
+    { const o = memberOwner(u.node); if (o && isRepositoryClass(o)) continue; }
+    // Values this unit hands to the aggregate: identifiers inside the arguments of calls whose target is declared in an
+    // aggregate module (a root method, an entity or value object constructor) and is not a storage read, or is a unit
+    // that writes an aggregate (CN-02). Each is kept with the call target, for the duplicated-rule check.
     const handed = new Map<string, string>(); // identifier → root name
+    const handedTo = new Map<string, Node[]>(); // identifier → aggregate-module callee declarations
     for (const n of bodyNodes(u)) {
       if (!Node.isCallExpression(n) && !Node.isNewExpression(n)) continue;
       if (n.getFirstAncestorByKind(SyntaxKind.ThrowStatement)) continue; // building the error, not handing a value
       const d = declOfCall(n);
       if (d === undefined || !inTree(d) || isErrorClass(d)) continue;
-      const r = inAggregateModule(d) ?? (spec.roleOf(fileOf(d)) === 'domain' ? { name: memberOwner(d)?.getName() ?? 'the domain model' } : undefined);
+      const r = inAggregateModule(d) ?? (spec.roleOf(fileOf(d)) === 'domain' ? { name: memberOwner(d)?.getName() ?? 'the domain model' } : undefined)
+        ?? ((): { name: string } | undefined => { const w = writerRoots(d); return w.length > 0 ? { name: w[0]! } : undefined; })();
       if (r === undefined) continue;
       const o = memberOwner(d);
       if (o && storageOwner(o)) {
         const rt = (Node.isMethodSignature(d) || Node.isMethodDeclaration(d)) ? d.getReturnType().getText() : '';
         if (!/^(void|Promise<void>)$/.test(rt)) continue; // a read
       }
-      for (const a of n.getArguments()) a.forEachDescendantAsArray().concat([a]).forEach((x) => { if (Node.isIdentifier(x)) handed.set(x.getText(), r.name); });
+      for (const a of n.getArguments()) for (const id of sourcesOf(a)) {
+        handed.set(id, r.name);
+        if (inAggregateModule(d) !== undefined || spec.roleOf(fileOf(d)) === 'domain') handedTo.set(id, [...(handedTo.get(id) ?? []), d]);
+      }
     }
-    for (const g of guardsOf(u)) {
+    for (const g of decisionGuardsOf(u)) {
       const cond = g.getExpression();
+      const throws = guardShape(g) !== undefined;
       let reason = ''; let rootName = '';
       const check = (side: Node): void => {
         if (reason) return;
-        if (Node.isPropertyAccessExpression(side) && side.getName() === 'length') return;
+        if (Node.isPropertyAccessExpression(side) && side.getName() === 'length' && rootsIn(side.getExpression().getType()).length === 0 && rootStateRead(side) === undefined) return;
         // (a) a read of an aggregate's state: some sub-expression of the operand is root-typed
         for (const x of [side, ...side.getDescendants()]) {
           if (!Node.isIdentifier(x) && !Node.isPropertyAccessExpression(x) && !Node.isCallExpression(x)) continue;
@@ -736,19 +811,38 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
           const rs = rootsIn(x.getType());
           if (rs.length > 0 && !isCollection(x.getType())) { reason = `compares the state of ${rs[0]!.name} (${side.getText()})`; rootName = rs[0]!.name; return; }
         }
-        // (b) a value the unit hands to the aggregate
-        for (const x of [side, ...side.getDescendants()]) {
-          if (Node.isIdentifier(x) && handed.has(x.getText())) { reason = `decides on ${x.getText()}, which is then passed to ${handed.get(x.getText())}`; rootName = handed.get(x.getText())!; return; }
+        // (b) a value the unit hands to the aggregate (directly, or a local computed from one)
+        for (const id of sourcesOf(side)) {
+          if (handed.has(id)) { reason = `decides on ${side.getText().replace(/\s+/g, ' ').slice(0, 60)}, which is then passed to ${handed.get(id)}`; rootName = handed.get(id)!; return; }
         }
       };
-      cond.forEachDescendant((d) => {
-        if (Node.isBinaryExpression(d) && RELATIONAL.has(d.getOperatorToken().getKind())) { check(d.getLeft()); check(d.getRight()); }
-        if (Node.isCallExpression(d)) {
-          const e = d.getExpression();
-          if (Node.isPropertyAccessExpression(e) && e.getExpression().getText() === 'Number' && NUMBER_TESTS.has(e.getName())) for (const a of d.getArguments()) check(a);
+      if (throws) {
+        cond.forEachDescendant((d) => {
+          if (Node.isBinaryExpression(d) && RELATIONAL.has(d.getOperatorToken().getKind())) { check(d.getLeft()); check(d.getRight()); }
+          if (Node.isCallExpression(d)) {
+            const e = d.getExpression();
+            if (Node.isPropertyAccessExpression(e) && e.getExpression().getText() === 'Number' && NUMBER_TESTS.has(e.getName())) for (const a of d.getArguments()) check(a);
+          }
+        });
+        if (Node.isBinaryExpression(cond) && RELATIONAL.has(cond.getOperatorToken().getKind())) { check(cond.getLeft()); check(cond.getRight()); }
+      }
+      // (c) CN-02: any other read of an aggregate's state decides the outcome (a predicate, a collection test, a
+      // comparison method), thrown or returned as an error result.
+      // Declared roots only, as for R-REF: with inferred roots (a Hexagonal tree) an entity's own query is not a boundary.
+      const declared = rootSource === 'spec';
+      if (!reason && declared) { const r = rootStateRead(cond); if (r) { reason = `decides on the state of ${r.root} (${r.text})`; rootName = r.root; } }
+      // (d) CN-02 check-then-act in an adapter: a relational test of a value it then hands to a command, against a
+      // value it read (`if (cents > view.remainingCents) return error; … reserveCoverage(id, cents)`).
+      if (!reason && declared && role === 'adapter') {
+        for (const b of [cond, ...cond.getDescendants()]) {
+          if (reason || !Node.isBinaryExpression(b) || !RELATIONAL.has(b.getOperatorToken().getKind())) continue;
+          for (const [mine, other] of [[b.getLeft(), b.getRight()], [b.getRight(), b.getLeft()]] as const) {
+            const h = [...sourcesOf(mine)].find((id) => handed.has(id));
+            const read = Node.isPropertyAccessExpression(other) || Node.isCallExpression(other) || [...sourcesOf(other)].some((id) => { const dd = other.getSourceFile().getDescendantsOfKind(SyntaxKind.VariableDeclaration).find((v) => v.getName() === id); return dd?.getInitializer()?.getDescendantsOfKind(SyntaxKind.CallExpression).length !== undefined && (dd?.getInitializer()?.getDescendantsOfKind(SyntaxKind.CallExpression).length ?? 0) > 0 || Node.isCallExpression(dd?.getInitializer() ?? b); });
+            if (h !== undefined && read && !Node.isNumericLiteral(other)) { reason = `checks ${b.getText().replace(/\s+/g, ' ')} before handing ${h} to ${handed.get(h)}`; rootName = handed.get(h)!; break; }
+          }
         }
-      });
-      if (Node.isBinaryExpression(cond) && RELATIONAL.has(cond.getOperatorToken().getKind())) { check(cond.getLeft()); check(cond.getRight()); }
+      }
       let dupLiteral = false;
       if (!reason) {
         // CN-01 K09: an equality on an aggregate's state against a literal that the aggregate's own guard also uses.
@@ -762,6 +856,19 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
           const rs = st ? rootsIn(st.getType()) : [];
           const litText = lit.getText().replace(/^['"]|['"]$/g, '');
           if (rs.length > 0 && domainGuardLiterals.get(rs[0]!.name)?.has(litText) === true) { reason = `repeats ${rs[0]!.name}'s own check (${b.getText()})`; rootName = rs[0]!.name; dupLiteral = true; }
+        }
+      }
+      // (e) CN-02 K09: an input rule repeated: the condition (or one of its && / || operands), with names abstracted,
+      // equals a guard of the aggregate method or constructor this unit hands the same value to.
+      if (!reason && declared) {
+        const parts = [cond, ...cond.getDescendants().filter((x) => Node.isBinaryExpression(x) && [SyntaxKind.AmpersandAmpersandToken, SyntaxKind.BarBarToken].includes(x.getOperatorToken().getKind())).flatMap((x) => [(x as import('ts-morph').BinaryExpression).getLeft(), (x as import('ts-morph').BinaryExpression).getRight()])];
+        for (const part of parts) {
+          if (reason) break;
+          const key = normaliseCondition(part);
+          for (const id of sourcesOf(part)) {
+            const callee = (handedTo.get(id) ?? []).find((d) => (d.getDescendantsOfKind(SyntaxKind.IfStatement)).some((ig) => guardShape(ig) !== undefined && [ig.getExpression(), ...ig.getExpression().getDescendants()].some((c) => normaliseCondition(c) === key)));
+            if (callee) { const o = memberOwner(callee)?.getName() ?? 'the aggregate'; reason = `repeats ${o}'s own check on ${id} (${part.getText().replace(/\s+/g, ' ')})`; rootName = o; dupLiteral = true; break; }
+          }
         }
       }
       if (!reason) continue;
@@ -866,8 +973,15 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   // assignment to a root-typed object's property). A value only formatted or returned is not reported.
   const ARITH = new Set([SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken, SyntaxKind.SlashToken, SyntaxKind.PercentToken]);
   const calcs: CalcFact[] = [];
-  const rootState = (x: Node): RootInfo | undefined => {
+  const rootState = (x: Node, depth = 0): RootInfo | undefined => {
     for (const y of [x, ...x.getDescendants()]) {
+      // CN-02 K12: through a local read from the aggregate (`const current = payout.amount(); … current.cents`)
+      if (Node.isIdentifier(y) && depth < 2) {
+        const d = y.getSymbol()?.getDeclarations()[0];
+        const init = d && Node.isVariableDeclaration(d) && d.getSourceFile() === x.getSourceFile() ? d.getInitializer() : undefined;
+        const r = init ? rootState(init, depth + 1) : undefined;
+        if (r) return r;
+      }
       if (!Node.isPropertyAccessExpression(y) && !Node.isCallExpression(y)) continue;
       const callee = Node.isCallExpression(y) ? y.getExpression() : undefined;
       const base = Node.isPropertyAccessExpression(y) ? y.getExpression() : callee !== undefined && Node.isPropertyAccessExpression(callee) ? callee.getExpression() : undefined;
@@ -886,7 +1000,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     if (spec.roleOf(u.file) !== 'application') continue;
     const body = bodyNodes(u);
     const handedLocals = new Set<string>();
-    for (const n of body) if ((Node.isCallExpression(n) || Node.isNewExpression(n)) && toAggregate(n)) for (const a of n.getArguments()) if (Node.isIdentifier(a)) handedLocals.add(a.getText());
+    // CN-02 K12: a local is handed when it appears anywhere in an aggregate call's arguments (`Money.of(cents)`).
+    for (const n of body) if ((Node.isCallExpression(n) || Node.isNewExpression(n)) && toAggregate(n)) for (const a of n.getArguments()) for (const x of [a, ...a.getDescendants()]) if (Node.isIdentifier(x)) handedLocals.add(x.getText());
     const seen = new Set<number>();
     for (const n of body) {
       const isArith = (Node.isBinaryExpression(n) && ARITH.has(n.getOperatorToken().getKind()))
@@ -896,8 +1011,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       const r = rootState(n);
       if (r === undefined) continue;
       const parent = n.getParent();
-      const anc = n.getFirstAncestor((a) => Node.isCallExpression(a) || Node.isNewExpression(a));
-      const intoCall = anc !== undefined && (Node.isCallExpression(anc) || Node.isNewExpression(anc)) && toAggregate(anc) && anc.getArguments().some((a) => a === n || a.getDescendants().includes(n));
+      // any enclosing call into the aggregate, through wrappers (`claim.apply(Money.of(Math.floor(…)))`)
+      const intoCall = n.getAncestors().some((anc) => (Node.isCallExpression(anc) || Node.isNewExpression(anc)) && toAggregate(anc) && anc.getArguments().some((a) => a === n || a.getDescendants().includes(n)));
       const vd = n.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
       const intoLocal = vd !== undefined && handedLocals.has(vd.getName());
       const asg = parent && Node.isBinaryExpression(parent) && parent.getOperatorToken().getKind() === SyntaxKind.EqualsToken && parent.getRight() === n
@@ -1104,6 +1219,65 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   bump('adapterImports', adapterImports.length);
 
   // ── USES_TRANSPORT (HCAL-01 H07) ────────────────────────────────────────────────────────────────────────────────
+  // ── REPO_PERSISTS_MANY (CN-02 K04) ──────────────────────────────────────────────────────────────────────────────
+  // A repository (class or interface) write method whose signature takes two or more aggregate-root instances, or a
+  // collection of them: one call persists several aggregates. Declared roots only; reads (non-void returns) excluded.
+  const repoMulti: RepoMultiFact[] = [];
+  // A batch the spec declares (an R-D4 allowance on a command) covers the repository methods that command calls.
+  const allowedBatchCalls = new Set<string>();
+  for (const u of units.values()) {
+    const method = u.name.includes('.') ? u.name.slice(u.name.lastIndexOf('.') + 1) : u.name;
+    if (!spec.allow.some((a) => a.rule === 'R-D4' && (a.command === `${u.file}#${method}` || a.command === `${u.file}#*` || a.command === `${u.file}#${u.name}`))) continue;
+    for (const n of bodyNodes(u)) if (Node.isCallExpression(n) && Node.isPropertyAccessExpression(n.getExpression())) allowedBatchCalls.add((n.getExpression() as import('ts-morph').PropertyAccessExpression).getName());
+  }
+  // Repository methods some application, adapter or composition unit calls: a generic, unused saveAll is no violation.
+  const calledRepoMethods = new Set<string>();
+  for (const u of units.values()) {
+    const role = spec.roleOf(u.file);
+    if (role !== 'application' && role !== 'adapter' && role !== 'composition') continue;
+    for (const n of bodyNodes(u)) {
+      if (!Node.isCallExpression(n)) continue;
+      const d = declOfCall(n); const o = d ? memberOwner(d) : undefined;
+      if (o && isRepositoryClass(o) && Node.isPropertyAccessExpression(n.getExpression())) calledRepoMethods.add((n.getExpression() as import('ts-morph').PropertyAccessExpression).getName());
+    }
+  }
+  for (const sf of files) {
+    if (rootSource !== 'spec') break;
+    for (const o of [...sf.getClasses(), ...sf.getInterfaces()]) {
+      if (!isRepositoryClass(o)) continue;
+      for (const m of o.getMethods()) {
+        if (!/^(void|Promise<void>)$/.test(m.getReturnType().getText())) continue;
+        if (allowedBatchCalls.has(m.getName())) continue;
+        const ps = m.getParameters().map((p) => ({ t: p.getType(), many: isCollection(p.getType()), rs: rootsIn(p.getType()) })).filter((p) => p.rs.length > 0);
+        const single = ps.filter((p) => !p.many);
+        const coll = ps.find((p) => p.many);
+        const form = single.length >= 2 ? 'two-params' : coll !== undefined ? 'collection' : undefined;
+        if (form === undefined) continue;
+        // two root parameters (`saveBoth(a, b)`) is the design itself; a collection batch only once a command uses it
+        if (form === 'collection' && !calledRepoMethods.has(m.getName())) continue;
+        repoMulti.push({ file: fileOf(sf), line: m.getStartLineNumber(), repo: o.getName() ?? 'anonymous', method: m.getName(), root: (single[0] ?? coll)!.rs[0]!.name, form });
+      }
+    }
+  }
+  bump('repoMulti', repoMulti.length);
+
+  // ── DOMAIN_IMPORTS_TECH (CN-02 K02) ─────────────────────────────────────────────────────────────────────────────
+  // A domain file (by layer, or inside a declared aggregate module) imports an I/O package: a database driver or ORM,
+  // an HTTP client, mail, file system, messaging or a web framework (the shared I/O classifier of apg-enrich).
+  const domainTech: DomainTechFact[] = [];
+  for (const sf of files) {
+    const f = fileOf(sf);
+    if (spec.roleOf(f) !== 'domain' && inAggregateModule(sf) === undefined) continue;
+    for (const imp of sf.getImportDeclarations()) {
+      if (imp.isTypeOnly()) continue;
+      const mod = imp.getModuleSpecifierValue();
+      if (mod.startsWith('.') || mod.startsWith('/')) continue;
+      const category = categoryOfModule(mod.replace(/^node:/, ''));
+      if (category !== null) domainTech.push({ file: f, line: imp.getStartLineNumber(), module: mod, category });
+    }
+  }
+  bump('domainTech', domainTech.length);
+
   const STATUS_KEY = /^(status|statusCode|httpStatus|httpCode)$/i;
   const TRANSPORT_TYPE = /(Http\w*(Error|Exception|Status)|HttpStatus|StatusCode|Sql\w*Error|QueryFailed\w*)$/;
   const transports: TransportFact[] = [];
@@ -1123,7 +1297,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   bump('transports', transports.length);
 
   return {
-    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, contracts, portMechanisms, injections,
+    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
     remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
