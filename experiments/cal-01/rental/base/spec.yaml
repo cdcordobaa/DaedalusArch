@@ -1,0 +1,26 @@
+# cal-01 rental calibration base: equipment rental, three contexts, shared kernel.
+spec_version: "1.0.0"
+architecture:
+  style: ddd
+  layers:
+    - { name: domain, kind: domain, directories: ["src/*/domain/**", "src/shared-kernel/**"] }
+    - { name: application, kind: application, directories: ["src/*/application/**"] }
+    - { name: infrastructure, kind: infrastructure, directories: ["src/*/infrastructure/**"] }
+    - { name: composition, kind: application, directories: ["src/main.ts"], roles: [composition-root] }
+  ddd:
+    source_root: src/
+    contexts:
+      - { name: catalog, root: src/catalog/, public_api: [src/catalog/index.ts, src/catalog/contracts/**], acl: [] }
+      - { name: rentals, root: src/rentals/, public_api: [src/rentals/index.ts, src/rentals/contracts/**], acl: [src/rentals/infrastructure/CatalogAcl.ts] }
+      - { name: billing, root: src/billing/, public_api: [src/billing/index.ts, src/billing/contracts/**], acl: [] }
+    outside_contexts: [src/main.ts]
+    aggregates:
+      - { name: Equipment, context: catalog, module: "src/catalog/domain/equipment/**", root: src/catalog/domain/equipment/Equipment.ts, inner_entities: [] }
+      - { name: Rental, context: rentals, module: "src/rentals/domain/rental/**", root: src/rentals/domain/rental/Rental.ts, inner_entities: [Extension] }
+      - { name: Charge, context: billing, module: "src/billing/domain/charge/**", root: src/billing/domain/charge/Charge.ts, inner_entities: [] }
+    repositories: ["src/*/application/*Repository.ts", "src/*/infrastructure/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    invariants:
+      - { id: rental-total-days, kind: set, owner: Rental, over: [Extension], terms: [days], statement: "initial days plus all extensions never exceed 30" }
+      - { id: equipment-rent-only-when-available, kind: single, owner: Equipment, over: [Equipment], terms: [status], statement: "equipment can be rented only while available" }
+      - { id: equipment-serial-unique, kind: uniqueness, over: [Equipment], terms: [serial], enforced_by: store }

@@ -1,0 +1,27 @@
+# Calibration base: event ticketing (venues, ticketing, payments). No rule violations.
+spec_version: "1.0.0"
+architecture:
+  style: ddd
+  layers:
+    - { name: domain, kind: domain, directories: ["src/*/domain/**", "src/shared-kernel/**"] }
+    - { name: application, kind: application, directories: ["src/*/application/**"] }
+    - { name: infrastructure, kind: infrastructure, directories: ["src/*/infrastructure/**"] }
+    - { name: composition, kind: application, directories: ["src/main.ts"], roles: [composition-root] }
+  ddd:
+    source_root: src/
+    contexts:
+      - { name: venues, root: src/venues/, public_api: [src/venues/index.ts], acl: [] }
+      - { name: ticketing, root: src/ticketing/, public_api: [src/ticketing/index.ts], acl: [] }
+      - { name: payments, root: src/payments/, public_api: [src/payments/index.ts], acl: [] }
+    outside_contexts: [src/main.ts]
+    aggregates:
+      - { name: Venue, context: venues, module: "src/venues/domain/venue/**", root: src/venues/domain/venue/Venue.ts, inner_entities: [Seat] }
+      - { name: Show, context: ticketing, module: "src/ticketing/domain/show/**", root: src/ticketing/domain/show/Show.ts, inner_entities: [] }
+      - { name: Ticket, context: ticketing, module: "src/ticketing/domain/ticket/**", root: src/ticketing/domain/ticket/Ticket.ts, inner_entities: [] }
+      - { name: Payment, context: payments, module: "src/payments/domain/payment/**", root: src/payments/domain/payment/Payment.ts, inner_entities: [] }
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    invariants:
+      - { id: seat-sold-once, kind: set, owner: Show, over: [Ticket], terms: [showId, seatId], statement: "a seat is sold at most once per show" }
+      - { id: show-capacity, kind: single, owner: Show, over: [Show], terms: [capacity, soldCount], statement: "sold tickets never exceed the show capacity" }
+      - { id: payment-per-ticket-unique, kind: uniqueness, over: [Payment], terms: [ticketCode], enforced_by: store }

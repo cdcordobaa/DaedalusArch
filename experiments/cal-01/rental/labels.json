@@ -1,0 +1,242 @@
+{
+  "k01-pos1": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/billing/application/BillingService.ts",
+    "note": "BillingService imports the Rental aggregate from the rentals context internals."
+  },
+  "k01-pos2": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/catalog/application/CatalogService.ts",
+    "note": "CatalogService imports the rentals application port RentalRepository directly."
+  },
+  "k01-twin1": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Billing builds the charge from the RentalReturned contract imported via the rentals index."
+  },
+  "k01-twin2": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Catalog declares its own local port for open rental counts and imports nothing new from rentals."
+  },
+  "k01-legit": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Billing imports RentalService as a type through the rentals public index and only reads."
+  },
+  "k02-pos1": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/billing/domain/charge/Charge.ts",
+    "note": "Charge aggregate imports the infrastructure FakePaymentGateway and calls it."
+  },
+  "k02-pos2": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/catalog/domain/equipment/Equipment.ts",
+    "note": "Equipment aggregate imports the express Request HTTP type."
+  },
+  "k02-twin1": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Payment collection is orchestrated in the application service; Charge stays infrastructure-free."
+  },
+  "k02-twin2": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Equipment is built from a plain data object, not an HTTP request type."
+  },
+  "k02-legit": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Domain code computes a rate using the shared-kernel Money type."
+  },
+  "k03-pos1": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/rentals/application/RentalService.ts",
+    "note": "giveBackBoth loads and saves two Rental instances in one command."
+  },
+  "k03-pos2": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/catalog/application/CatalogService.ts",
+    "note": "retireAndReplace saves the retired and the replacement Equipment in one command."
+  },
+  "k03-twin1": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "giveBackBoth delegates to the single-save giveBack command twice; no command saves two aggregates directly."
+  },
+  "k03-twin2": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "retireAndReplace delegates to the single-save retire and register commands."
+  },
+  "k03-legit": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "giveBackAndFlag saves one Rental and publishes a flag event for later handling."
+  },
+  "k04-pos1": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/rentals/infrastructure/InMemoryRentalRepository.ts",
+    "note": "RentalRepository.saveBoth persists two Rental aggregates in one call."
+  },
+  "k04-pos2": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/catalog/infrastructure/InMemoryEquipmentRepository.ts",
+    "note": "EquipmentRepository.replace persists the retired and the replacement Equipment together."
+  },
+  "k04-twin1": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "RentalRepository gains a read query; persistence stays one aggregate per save."
+  },
+  "k04-twin2": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "EquipmentRepository gains a lookup by serial; save still persists one aggregate."
+  },
+  "k04-legit": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "The repository saves one Rental together with its inner Extension rows."
+  },
+  "k05-pos1": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/rentals/application/RentalService.ts",
+    "note": "RentalService.open synchronously marks the catalog's Equipment as rented through the ACL."
+  },
+  "k05-pos2": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/billing/application/BillingService.ts",
+    "note": "BillingService.settleEarly calls the rentals giveBack write command directly."
+  },
+  "k05-twin1": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "Cancelling a rental publishes RentalCancelled; the catalog frees the equipment in its own handler."
+  },
+  "k05-twin2": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "Billing publishes EarlySettlementRequested; the rentals context closes its own rental in a handler."
+  },
+  "k05-legit": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "Extending a rental publishes RentalExtended; the catalog updates its own Equipment in a handler."
+  },
+  "k06-pos1": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "Composition root facade opens a rental and then marks the catalog equipment as rented."
+  },
+  "k06-pos2": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "Composition root facade gives back a rental and settles the billing charge in one function."
+  },
+  "k06-twin1": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "Facade startRental only delegates to the rentals command; reactions happen through events."
+  },
+  "k06-twin2": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "Facade closeRental only delegates to the rentals giveBack command."
+  },
+  "k06-legit": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "main.ts only wires dependencies and subscriptions, extracted into a helper."
+  },
+  "k07-pos1": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/billing/application/BillingService.ts",
+    "note": "refund calls the payment gateway inside the transaction callback."
+  },
+  "k07-pos2": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/billing/application/BillingService.ts",
+    "note": "onRentalReturned sends a receipt through the gateway inside the transaction callback."
+  },
+  "k07-twin1": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "refund calls the gateway first and opens the transaction only to persist the result."
+  },
+  "k07-twin2": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "settleAll captures payments outside any transaction and persists inside short transactions."
+  },
+  "k07-legit": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "The receipt is sent only after the transaction has committed."
+  },
+  "k08-pos1": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/rentals/application/RentalService.ts",
+    "note": "The 30-day maximum for opening a rental is checked in the service and dropped from the aggregate."
+  },
+  "k08-pos2": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/rentals/application/RentalService.ts",
+    "note": "The extension total-days limit is checked in the service and dropped from Rental.extend."
+  },
+  "k08-twin1": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The overdue rule lives in Rental; the service only delegates."
+  },
+  "k08-twin2": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The non-blank name rule lives in Equipment.rename; the service only delegates."
+  },
+  "k08-legit": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The service validates only input format (non-blank id, whole number) before delegating to the aggregate."
+  }
+}

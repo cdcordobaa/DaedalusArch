@@ -114,7 +114,10 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
   const sites = (c: Facts['commands'][number]): string => [...new Set(c.writes.map((w) => `${w.file}:${w.line}`))].sort().join('|');
   const byId = new Map(facts.commands.map((c) => [c.id, c] as const));
   for (const c of facts.commands) {
-    const delegating = c.delegatesTo.some((d) => { const t = byId.get(d); return t !== undefined && t.writes.length > 0 && sites(t) === sites(c); });
+    // CN-01 K06: a facade method whose write sites are exactly one ordinary command's reports at that command.
+    const delegating = c.facade
+      ? c.writes.length > 0 && facts.commands.some((t) => t !== c && !t.facade && t.writes.length > 0 && sites(t) === sites(c))
+      : c.delegatesTo.some((d) => { const t = byId.get(d); return t !== undefined && t.writes.length > 0 && sites(t) === sites(c); });
     const g = node(['Command'], { id: c.id, name: c.name, file: c.file, line: c.line, context: c.context ?? '', eventHandler: c.eventHandler, published: c.published, delegating });
     const m = apgMethod.get(`${c.file}#${c.name}`);
     if (m) rel('IS_METHOD', g, m);
@@ -144,6 +147,20 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const u = node(['Unit'], { name: v.unit, file: v.file, role: v.role });
     const i = node(['Invariant'], { id: v.invariant, kind: v.kind, owner: v.owner, statement: v.statement });
     rel('INVARIANT_SITE', u, i, { line: v.line, file: v.file, cond: v.cond, matched: [...v.matched], overCollection: v.overCollection ?? '' });
+  }
+  for (const x of facts.locks) {
+    const u = node(['Unit'], { name: x.unit, file: x.file });
+    const l = node(['LockSite'], { lock: x.lock, line: x.line, file: x.file });
+    rel('LOCK_AROUND_WRITE', u, l, { roots: [...x.roots], line: x.line });
+  }
+  for (const x of facts.calcs) {
+    const u = node(['Unit'], { name: x.unit, file: x.file });
+    const r = roots.get(x.root) ?? node(['Root'], { name: x.root });
+    rel('CALC_OUTSIDE', u, r, { expr: x.expr, line: x.line, file: x.file });
+  }
+  for (const x of facts.refs) {
+    const a = roots.get(x.root); const b = roots.get(x.target);
+    if (a && b) rel('REFERENCES_ROOT', a, b, { member: x.member, line: x.line, file: x.file });
   }
   for (const c of facts.contracts) {
     const a = node(['ContractType'], { name: c.contract, file: c.file, line: c.line });
