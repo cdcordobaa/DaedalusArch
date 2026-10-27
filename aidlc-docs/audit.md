@@ -3176,3 +3176,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 CONSTRUCTION, Stage 0; code generation complete; awaiting review of PR #384
 
 ---
+
+## Decision record: v1.5 final-study register
+**Timestamp**: 2026-10-27T01:58:33Z
+**User Input**: "Rule on the open thesis and v1.5 study decisions from the decision register; accept the recommendation wherever no other choice was made."
+**AI Response**: "Recorded the 22 decisions (A1–E3) in ops/decisions.md, with the work each creates. Two items carry the author's qualifications: A2 (the general objective exists; research questions are added) and C10 (Grok possible later, not committed)."
+**Context**: Planning record for the v1.5 final study; no code change.
+
+---

@@ -9,6 +9,37 @@ The working copy is the decision board, a private claude.ai artifact the author 
 - ~~**The 9 spec–manifest disagreement rows (C3).**~~ *Done 2026-10-19:* all 9 rows (and N1) were ruled `spec` on the decision desk, part of the 61 desk items (56 signed by the author, 5 delegated; DELEG "Signing desk 61/61"; `Docs/v1.3/decision-chronology.md` row 36). **Open now (2026-10-21):** the hold-out choice under DELEG-H4 (a spec-format fix under its own addendum, or report "not scored"); the other items waiting on the author are listed in [`00-overview.md`](00-overview.md), "Waiting on you".
 - ~~**F23.**~~ *Done 2026-10-19:* the author and an examiner compared the domains with the sealed list; two demo tasks were replaced (`Docs/DiagnosticRuns/v1.3-f23-and-v4-count-2026-10-18.md`, Part 3).
 
+## Settled on 2026-10-26 (v1.5 final-study register)
+
+Taken on the private decision register (22 items). Context, options and the drawbacks of each choice are in `ops/notes/v15-final-study-draft.md`, `ops/01-instrument-map.md` §6 and the run reports named below. Hexagonal + DDD and the combined delivery mode were settled earlier the same day.
+
+| Id | Decision | Work it creates |
+|---|---|---|
+| **A1** | Finish path adopted, with publication moved forward to run alongside the evidence steps | Paper drafting starts now on Study 2b |
+| **A2** | Kap3 keeps its general objective and gains thesis-level research questions, each mapped to SO1–SO5, the study RQs and claim ids. The text states that the RQs were made explicit after Study 2b and that 2b's registered hypotheses are unchanged | Kap3 RQ section and traceability table |
+| **B1** | P1-SG1-c accepted as clean (an unused `saveAll` left on the port is not the two-aggregate write) | Encode in the P1 oracle; re-score every arm, baseline included; one dated deviation for B1–B3 |
+| **B2** | P2-SG1-e accepted as clean, on the condition that sales only reads the tier through its own port and makes no points decision with it | Encode in the P2 oracle under that condition; same re-score |
+| **B3** | P5-SG2-a stays a trap (a composition-root facade hides the cross-boundary call) | None; recorded as a documented tool gap |
+| **C1** | D5 becomes declared-only: the spec lists each set invariant and the rule checks only those. DDD is confirmatory only if S2 passes on cases not used in development; otherwise DDD is exploratory and Hexagonal is the confirmatory style | D5 rule and spec-field change; S2 re-run on unseen cases |
+| **C2** | Option B (12 tasks × 3 replicates per style), confirmed after the Stage 1 pilot measures cost per run | Recompute turns for Hexagonal + DDD |
+| **C3** | No gate-only arm; the channel contribution stays exploratory (DRIFT-01) | — |
+| **C4** | Seeded start state (S2) | One seed per task |
+| **C5** | D_sem is a secondary outcome; co-primary only if Stage 1 and the SO3 condition pass on cases the rubric author did not write | — |
+| **C6** | The interaction (RQ4) and any equivalence claim are descriptive, with intervals | — |
+| **C7** | The author writes the task briefs; Claude builds seeds, oracles and tests from them under the sealed workflow | Brief template; sealed workflow for the build step |
+| **C8** | The combined-mode disclosure sentence gets a hint audit; the tested pull sentence is the fallback | Hint audit (zero calls) |
+| **C9** | No brownfield arm; brownfield moves to future work | — |
+| **C10** | Claude-only confirmatory study, plus a 2-run exploratory pilot on OpenRouter after its design note. Grok may be added later as an extension arm; not committed | OpenRouter design note |
+| **C11** | Before the freeze, add port-call resolution for `CALLS`, a `PERSISTS` edge and the D4 multi-aggregate rule, scored on unseen cases. The other compile-time patterns go to Kap9 | Extractor change, D4 rule, unseen-case check |
+| **C12** | Target timeline: Stage 1 pilot week of 2026-11-02; freeze and register by 2026-11-09; run 2026-11-09 to 2026-11-20; scored by 2026-11-27. If the sealed tasks are not ready by 2026-11-06 the whole chain slips; the hint audit is not shortened | — |
+| **D1** | One more hold-out attempt under a dated spec-format addendum committed before scoring, then one scoring | Addendum; one scoring run (zero model calls) |
+| **D2** | Book one unpaid MEAN-01 rater for labels by 2026-11-30; registering with C3m unlabelled is the written fallback | Rater booking (author) |
+| **D3** | HEXDDD-01 closes as a reported limit; its 9 cases become the Kap9 roadmap. D4 alone is re-scored on unseen cases under C11 | — |
+| **D4** | EFF-01 moves to future work; turns and calls per run are reported descriptively from the final study | — |
+| **E1** | Kap8 keeps claims and decision tables; run-by-run detail moves to an appendix | Kap8 cut |
+| **E2** | AGENTVERIFY abstract on Study 2b (due 2026-11-01); LLM4Code paper on 2b plus the puzzle and edit-gate findings, labelled exploratory (due 2026-11-13) | Two drafts |
+| **E3** | The session handoff and work plan stay local | — |
+
 ## Settled on 2026-10-23
 
 | Id | Decision | Work it creates |
@@ -110,6 +141,7 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 **Post-seal changes now pending: M3, D5, N3 (and V4 if the count triggers it).** Each one is a declared deviation. The examiner review flags the count of deviations as a risk in its own right. I'll write them up together as one dated list, so the director sees all of them at once.
 
 ## Changelog
+- 2026-10-26: the v1.5 final-study register recorded (A1–E3).
 - 2026-10-23: CONFINE recorded (scripted confinement checks replace model-driven probes for third-party generators).
 - 2026-10-21: status reconciled, no new decision. "Still open": the 9 adjudication rows marked done (signing desk 61/61, DELEG). The two hold-out changelog entries of 2026-10-20 now point to the entries that settled them (DELEG-H4: not spent; DELEG5: F-RF). Fixes conflicts 5 and 6 of `06-open-tracks-and-capabilities.md`.
 - 2026-10-20 (about 18:55Z): GO-2B-RUN recorded, the author's go for the Study 2b run after the gate verdict.
