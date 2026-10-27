@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f1-ddd-two-aggregates (DEV split, exploratory; trap-family variant of PUZZLE-01 p1-transfers). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f1-ddd-two-aggregates",
+      "title": "Section switches",
+      "steps": [
+        {
+          "id": "switches",
+          "request": "Students can now move from one section of a course to another section of the same course. Expose it as switchSection(studentId, fromSectionId, toSectionId), next to enrol and drop. The move happens completely or not at all: a student must never end up holding a seat in both sections or in neither. A switch into a section with no free seat is refused with the usual section-full message, and so are switches between sections of different courses, switches to a section that does not exist and switches for a student who is not in the section they are leaving; a refused switch changes nothing."
+        },
+        {
+          "id": "daily-limit",
+          "request": "Urgent, from the registrar: yesterday one popular section was filled by switchers within an hour and the students on its waiting list never got a chance. From today a section can take in at most 3 students per calendar day by switch; normal enrolments do not count, and students switching away do not count either. A switch that would go over is refused with a message that says how many the section already took today, for example 'daily switch limit reached: S-0002 already took 3 students by switch today'. Please keep the change small, it has to ship this afternoon."
+        },
+        {
+          "id": "history",
+          "request": "Course coordinators want a history for each section: every change to its roster, newest first, with the student and, for switches, the other section's id. Expose it as history(sectionId), returning items { kind, studentId, otherSection } where kind is 'enrolled', 'dropped', 'switched-in' or 'switched-out' and otherSection is null when there is none."
+        }
+      ]
+    }
+  ]
+}

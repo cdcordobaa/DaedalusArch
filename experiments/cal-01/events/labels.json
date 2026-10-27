@@ -1,0 +1,242 @@
+{
+  "K09-legit": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "The service only asks the aggregate whether a refund is possible; the rule lives in Ticket."
+  },
+  "K09-pos1": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/ticketing/application/TicketingService.ts",
+    "note": "refundBatch re-checks the already-refunded rule that Ticket.refund() enforces."
+  },
+  "K09-pos2": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/ticketing/application/TicketingService.ts",
+    "note": "sellWalkUp repeats the sales-closed rule that Show.sellSeat() already enforces."
+  },
+  "K09-twin1": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "Batch refund delegates the already-refunded rule entirely to Ticket.refund()."
+  },
+  "K09-twin2": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "Walk-up sale leaves the sales-closed rule to Show.sellSeat()."
+  },
+  "K10-legit": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "A declared uniqueness invariant (one payment per ticket) is checked through the store, which is allowed."
+  },
+  "K10-pos1": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/ticketing/application/TicketingService.ts",
+    "note": "The service rejects an already-sold seat itself, outside the owning Show aggregate."
+  },
+  "K10-pos2": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/ticketing/infrastructure/http/TicketController.ts",
+    "note": "The HTTP controller turns a sold seat into a 409 itself, without the Show aggregate deciding."
+  },
+  "K10-twin1": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "Batch sale delegates seat uniqueness to Show.sellSeat()."
+  },
+  "K10-twin2": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "The controller only maps the aggregate's rejection to a 409; the decision stays in Show."
+  },
+  "K11-legit": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "The promise-chain lock only serialises a read-only catalogue cache refresh and writes no aggregate."
+  },
+  "K11-pos1": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/ticketing/application/TicketingService.ts",
+    "note": "Seat sales are serialised per show with an in-process keyed lock instead of relying on Show."
+  },
+  "K11-pos2": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/payments/application/PaymentService.ts",
+    "note": "A Mutex in the payment service makes capture idempotent instead of Payment owning the rule."
+  },
+  "K11-twin1": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "Async sale wrapper relies on Show.sellSeat() for the once-per-seat rule, no lock."
+  },
+  "K11-twin2": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "Async capture lets Payment.capture() reject a second capture, no lock."
+  },
+  "K12-legit": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The service only formats the price for display and writes nothing back."
+  },
+  "K12-pos1": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/ticketing/application/TicketingService.ts",
+    "note": "The service computes the discounted price from Show fields and writes it back with reprice()."
+  },
+  "K12-pos2": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/ticketing/application/TicketingService.ts",
+    "note": "The service derives the 10% service fee from Ticket price and writes it back to the ticket."
+  },
+  "K12-twin1": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The discount is computed inside Show.applyEarlyBirdDiscount()."
+  },
+  "K12-twin2": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The fee is computed inside Ticket.applyServiceFee()."
+  },
+  "K13-legit": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The notifier port uses only a domain type and a primitive."
+  },
+  "K13-pos1": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/payments/application/PaymentGateway.ts",
+    "note": "The PaymentGateway port returns the vendor SDK type Charge from the stripe package."
+  },
+  "K13-pos2": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/ticketing/application/TicketExporter.ts",
+    "note": "The TicketExporter port takes an infrastructure transaction class as a parameter."
+  },
+  "K13-twin1": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The gateway port defines its own receipt type; the adapter hides any vendor type."
+  },
+  "K13-twin2": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The exporter port passes the batch as a primitive id, not a transaction handle."
+  },
+  "K14-legit": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The payments contract defines its own PaymentView DTO."
+  },
+  "K14-pos1": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/ticketing/index.ts",
+    "note": "The ticketing public API re-exports the Show domain class."
+  },
+  "K14-pos2": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/ticketing/contracts/TicketingApi.ts",
+    "note": "The published TicketingApi contract returns the Ticket aggregate itself."
+  },
+  "K14-twin1": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "Show data is published as a ShowView DTO."
+  },
+  "K14-twin2": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The TicketingApi contract returns the TicketView DTO."
+  },
+  "K15-legit": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "The composition root main.ts injects the in-memory adapter into the report service."
+  },
+  "K15-pos1": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/ticketing/application/ShowReportService.ts",
+    "note": "The application service instantiates the InMemoryShowRepository adapter itself."
+  },
+  "K15-pos2": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/payments/application/PaymentReportService.ts",
+    "note": "The application service is injected with the concrete InMemoryPaymentRepository class."
+  },
+  "K15-twin1": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "The report service receives the ShowRepository port by constructor injection."
+  },
+  "K15-twin2": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "The report service depends on the PaymentRepository port only."
+  },
+  "K16-legit": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Show holds its own inner entity PriceTier (declared in the spec), not another aggregate."
+  },
+  "K16-pos1": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/ticketing/domain/ticket/Ticket.ts",
+    "note": "Ticket holds the Show aggregate object in a field instead of its id."
+  },
+  "K16-pos2": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/ticketing/domain/show/Show.ts",
+    "note": "Show keeps a list of Ticket aggregate objects instead of ticket codes."
+  },
+  "K16-twin1": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Ticket keeps a plain-string snapshot of the show title, no Show object."
+  },
+  "K16-twin2": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Show refers to the sold tickets by code (id) only."
+  }
+}

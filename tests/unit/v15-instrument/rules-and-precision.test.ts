@@ -22,8 +22,8 @@ interface Meta { pattern: string; legit: string; positive: string | null; expect
 describe('v1.5 instrument: rules', () => {
   it('loads the RULES-V15 Cypher rules: the seven prototype rules byte-identical, plus R-D5S (C1, v1.5 only)', () => {
     const rules = loadRules();
-    expect(rules.map((r) => r.id).sort()).toEqual(['R-D4', 'R-D5', 'R-D5S', 'R-D9', 'R-H5', 'R-INJ', 'R-RTX', 'R-XCTX']);
-    for (const r of rules.filter((x) => x.id !== 'R-D5S')) {
+    expect(rules.map((r) => r.id).sort()).toEqual(['R-D3', 'R-D4', 'R-D5', 'R-D5S', 'R-D9', 'R-H5', 'R-INJ', 'R-LOCK', 'R-REF', 'R-RTX', 'R-XCTX']);
+    for (const r of rules.filter((x) => !['R-D5S', 'R-D3', 'R-LOCK', 'R-REF'].includes(x.id))) {
       expect(r.text).toBe(fs.readFileSync(path.join(REPO, 'experiments', 'detect-02', 'rules', r.file), 'utf8'));
     }
     expect(path.relative(REPO, rulesDir())).toBe(path.join('src', 'v15-instrument', 'rules'));

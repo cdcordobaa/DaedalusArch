@@ -30,7 +30,7 @@ export interface FootprintWrite {
 }
 export interface CommandFact {
   readonly id: string; readonly name: string; readonly file: string; readonly line: number; readonly context: string | null;
-  readonly eventHandler: boolean; readonly published: boolean; readonly writes: readonly FootprintWrite[]; readonly delegatesTo: readonly string[];
+  readonly eventHandler: boolean; readonly published: boolean; readonly facade: boolean; readonly writes: readonly FootprintWrite[]; readonly delegatesTo: readonly string[];
 }
 export interface GuardFact {
   readonly unit: string; readonly file: string; readonly line: number; readonly cond: string; readonly role: Role;
@@ -42,6 +42,12 @@ export interface InvariantSiteFact {
   readonly unit: string; readonly file: string; readonly line: number; readonly cond: string; readonly role: Role;
   readonly matched: readonly string[]; readonly overCollection: string | null;
 }
+/** CN-01 (2026-10-27): a lock primitive in application or adapter code around aggregate writes (K11). */
+export interface LockFact { readonly unit: string; readonly file: string; readonly line: number; readonly lock: string; readonly roots: readonly string[] }
+/** CN-01: a domain value computed outside the aggregate from its state and handed back to it (K12). */
+export interface CalcFact { readonly unit: string; readonly file: string; readonly line: number; readonly expr: string; readonly root: string }
+/** CN-01: an aggregate root that holds another aggregate root's object instead of its id (K16). */
+export interface RefFact { readonly root: string; readonly file: string; readonly line: number; readonly member: string; readonly target: string }
 export interface ContractFact { readonly contract: string; readonly file: string; readonly line: number; readonly entity: string; readonly entityFile: string; readonly via: string; readonly form: 'type' | 'mirror' }
 export interface PortMechFact { readonly port: string; readonly method: string; readonly file: string; readonly line: number; readonly form: 'vendor-type' | 'adapter-type' | 'scope-callback'; readonly detail: string }
 export interface InjectionFact { readonly cls: string; readonly file: string; readonly line: number; readonly adapter: string; readonly adapterFile: string; readonly form: 'constructor' | 'property' | 'new' }
@@ -53,6 +59,9 @@ export interface Facts {
   readonly commands: readonly CommandFact[];
   readonly guards: readonly GuardFact[];
   readonly invariantSites: readonly InvariantSiteFact[];
+  readonly locks: readonly LockFact[];
+  readonly calcs: readonly CalcFact[];
+  readonly refs: readonly RefFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
   readonly injections: readonly InjectionFact[];
@@ -64,6 +73,7 @@ type UnitNode = Node;
 interface Unit { readonly id: string; readonly node: UnitNode; readonly name: string; readonly file: string; readonly line: number; readonly params: readonly string[]; readonly owner: string | null }
 
 const MESSAGING_OWNER = /(Outbox|Relay|EventBus|Bus|Publisher|Dispatcher|Queue|Broker|EventStore)$/;
+const REMOTE_PORT = /(Gateway|Client|Provider|Notifier|Mailer|Sender|Api|Http|Sdk)$/;
 const SCOPE_EXTERNAL = /transaction|^tx$|lock|atomic|unitOfWork|serializable/i;
 
 const rel = (root: string, abs: string): string => path.relative(root, abs).split(path.sep).join('/');
@@ -147,6 +157,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       } else if (Node.isVariableDeclaration(d)) {
         const init = d.getInitializer();
         if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) addUnit(init, d.getName());
+      } else if (Node.isFunctionDeclaration(d) && d.getParent() !== sf && d.getBody() && !units.has(d)) {
+        addUnit(d, d.getName() ?? 'nested'); // CN-01: a function declared inside another (a facade inside createApp)
       }
     });
   }
@@ -523,6 +535,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   const isPortInterface = (i: InterfaceDeclaration): boolean => {
     const r = roleOfNode(i);
     if (r === 'port') return true;
+    // CN-01 K13: an application interface implemented by an adapter class is a port, wherever it lives.
+    if (r === 'application') { for (const [cls, ifs] of implementedInterfaces) if (ifs.includes(i) && spec.roleOf(fileOf(cls)) === 'adapter') return true; return false; }
     if (r !== 'domain') return false;
     return storageOwner(i);
   };
@@ -582,6 +596,9 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       const hasFn = n.getArguments().some((a) => Node.isArrowFunction(a) || Node.isFunctionExpression(a));
       if (!hasFn) continue;
       if (scopeMethods.has(d)) { scopeCalls.add(n); continue; }
+      // CN-01 K07: an in-tree transaction or lock mechanism (owner named like one) taking a callback is a scope.
+      const ownr = memberOwner(d);
+      if (ownr && inTree(ownr) && /transaction|unitofwork|lock|mutex/i.test(ownr.getName() ?? '')) { scopeCalls.add(n); continue; }
       const nm = (d as unknown as { getName?: () => string }).getName?.() ?? '';
       if (externalModuleOf(d) !== null && SCOPE_EXTERNAL.test(nm)) scopeCalls.add(n);
     }
@@ -598,7 +615,11 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       isCmd = !n.hasModifier(SyntaxKind.PrivateKeyword) && !n.hasModifier(SyntaxKind.ProtectedKeyword) && !n.isStatic();
     }
     const published = role === 'contract' && (Node.isArrowFunction(n) || Node.isFunctionExpression(n) || Node.isMethodDeclaration(n)) && u.name.startsWith('{}.');
-    if (!isCmd && !published) continue;
+    // CN-01 K06: a method of the composition root's app facade (`createApp` returns `{ cancelBooking() { … } }`) is a
+    // command too, so a write moved into the facade is still one command's footprint.
+    const facade = role === 'composition' && (Node.isArrowFunction(n) || Node.isFunctionExpression(n) || Node.isMethodDeclaration(n) || Node.isFunctionDeclaration(n))
+      && (u.name.startsWith('{}.') || (Node.isFunctionDeclaration(n) && n.getParent() !== n.getSourceFile()));
+    if (!isCmd && !published && !facade) continue;
     if (u.owner && MESSAGING_OWNER.test(u.owner)) continue;
     const writes = footprint(u);
     const delegatesTo: string[] = [];
@@ -612,7 +633,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     }
     commands.push({
       id: `${u.file}#${u.name}`, name: u.name, file: u.file, line: u.line, context: spec.contextOf(u.file),
-      eventHandler: isEventHandlerUnit(n), published, writes, delegatesTo,
+      eventHandler: isEventHandlerUnit(n), published, facade, writes, delegatesTo,
     });
   }
   bump('commands', commands.length);
@@ -620,13 +641,26 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   // ── RULE_SITE ───────────────────────────────────────────────────────────────────────────────────────────────────
   const guards: GuardFact[] = [];
   const domainGuardKeys = new Set<string>();
+  const EQUALITY = new Set([SyntaxKind.EqualsEqualsEqualsToken, SyntaxKind.EqualsEqualsToken, SyntaxKind.ExclamationEqualsEqualsToken, SyntaxKind.ExclamationEqualsToken]);
   const RELATIONAL = new Set([SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken]);
   const NUMBER_TESTS = new Set(['isInteger', 'isFinite', 'isNaN', 'isSafeInteger']);
   const guardsOf = (u: Unit): IfStatement[] => bodyNodes(u).filter((n): n is IfStatement => Node.isIfStatement(n) && guardShape(n) !== undefined && !isTrivialParamNullCheck(n));
+  // CN-01 K09: literals the aggregates' own guards compare state with (`this.status === "refunded"`), per root.
+  const domainGuardLiterals = new Map<string, Set<string>>();
   for (const u of units.values()) {
     if (rootDecls.size === 0) break;
     if (!inAggregateModule(u.node) && spec.roleOf(u.file) !== 'domain') continue;
-    for (const g of guardsOf(u)) domainGuardKeys.add(normaliseCondition(g.getExpression()));
+    for (const g of guardsOf(u)) {
+      domainGuardKeys.add(normaliseCondition(g.getExpression()));
+      const r = inAggregateModule(u.node);
+      if (r === undefined) continue;
+      for (const b of [g.getExpression(), ...g.getExpression().getDescendants()]) {
+        if (!Node.isBinaryExpression(b) || !EQUALITY.has(b.getOperatorToken().getKind())) continue;
+        for (const side of [b.getLeft(), b.getRight()]) if (Node.isStringLiteral(side) || Node.isNumericLiteral(side)) {
+          const set = domainGuardLiterals.get(r.name) ?? new Set<string>(); set.add(side.getText().replace(/^['"]|['"]$/g, '')); domainGuardLiterals.set(r.name, set);
+        }
+      }
+    }
   }
   const ruleSitesApply = rootDecls.size > 0 || (spec.style !== 'layered' && files.some((f) => spec.roleOf(fileOf(f)) === 'domain'));
   const isErrorClass = (d: Node): boolean => {
@@ -683,10 +717,25 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
         }
       });
       if (Node.isBinaryExpression(cond) && RELATIONAL.has(cond.getOperatorToken().getKind())) { check(cond.getLeft()); check(cond.getRight()); }
+      let dupLiteral = false;
+      if (!reason) {
+        // CN-01 K09: an equality on an aggregate's state against a literal that the aggregate's own guard also uses.
+        for (const b of [cond, ...cond.getDescendants()]) {
+          if (reason || !Node.isBinaryExpression(b) || !EQUALITY.has(b.getOperatorToken().getKind())) continue;
+          const [l, rgt] = [b.getLeft(), b.getRight()];
+          const lit = [l, rgt].find((x) => Node.isStringLiteral(x) || Node.isNumericLiteral(x));
+          const other = lit === l ? rgt : l;
+          if (lit === undefined) continue;
+          const st = other.getDescendants().concat([other]).map((x) => (Node.isPropertyAccessExpression(x) ? x.getExpression() : Node.isCallExpression(x) && Node.isPropertyAccessExpression(x.getExpression()) ? (x.getExpression() as import('ts-morph').PropertyAccessExpression).getExpression() : undefined)).find((x) => x !== undefined && rootsIn(x.getType()).length > 0 && !isCollection(x.getType()));
+          const rs = st ? rootsIn(st.getType()) : [];
+          const litText = lit.getText().replace(/^['"]|['"]$/g, '');
+          if (rs.length > 0 && domainGuardLiterals.get(rs[0]!.name)?.has(litText) === true) { reason = `repeats ${rs[0]!.name}'s own check (${b.getText()})`; rootName = rs[0]!.name; dupLiteral = true; }
+        }
+      }
       if (!reason) continue;
       guards.push({
         unit: u.name, file: u.file, line: g.getStartLineNumber(), cond: cond.getText().replace(/\s+/g, ' '), role, reason, root: rootName,
-        duplicated: domainGuardKeys.has(normaliseCondition(cond)),
+        duplicated: dupLiteral || domainGuardKeys.has(normaliseCondition(cond)),
       });
     }
   }
@@ -698,11 +747,19 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   // or one term plus a collection of an `over` type. Guards inside the owner aggregate's module are the right place.
   const invariantSites: InvariantSiteFact[] = [];
   const checked = spec.invariants.filter((v) => v.kind !== 'uniqueness');
+  // CN-01 K10: a rejection need not throw. An entry point rejects by returning (a response, a result) or by skipping
+  // (continue/break) in its then-branch.
+  const rejectsWithoutThrow = (st: IfStatement): boolean => {
+    const t = st.getThenStatement();
+    const firsts = Node.isBlock(t) ? t.getStatements() : [t];
+    return firsts.some((x) => Node.isReturnStatement(x) || Node.isContinueStatement(x) || Node.isBreakStatement(x));
+  };
+  const invariantGuardsOf = (u: Unit): IfStatement[] => bodyNodes(u).filter((n): n is IfStatement => Node.isIfStatement(n) && (guardShape(n) !== undefined || rejectsWithoutThrow(n)) && !isTrivialParamNullCheck(n));
   for (const u of units.values()) {
     if (checked.length === 0) break;
     const role = spec.roleOf(u.file);
     if (role === 'contract') continue;
-    for (const g of guardsOf(u)) {
+    for (const g of invariantGuardsOf(u)) {
       const cond = g.getExpression();
       const reach: Node[] = [cond];
       for (const x of [cond, ...cond.getDescendants()]) {
@@ -721,12 +778,17 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
         if (Node.isIdentifier(x)) names.add(x.getText().toLowerCase());
         if (Node.isIdentifier(x) || Node.isPropertyAccessExpression(x) || Node.isCallExpression(x)) types.push(x.getType());
       }
-      for (const v of checked) {
-        const owner = spec.aggregates.find((a) => a.name === v.owner);
-        if (owner && globMatch([owner.module], u.file)) continue;
+      // CN-01 K10 owner-first: score every declared invariant; if the guard sits in the owner module of any invariant
+      // it matches, it is that owner enforcing it, and nothing is reported. Otherwise only the best match is reported.
+      const scored = checked.map((v) => {
         const matched = v.terms.filter((t) => names.has(t.toLowerCase()));
         const over = v.over.find((o) => types.some((t) => isCollection(t) && new RegExp(`\\b${o}\\b`).test(t.getText())));
-        if (matched.length >= 2 || (matched.length >= 1 && over !== undefined)) {
+        return { v, matched, over, hit: matched.length >= 2 || (matched.length >= 1 && over !== undefined) };
+      }).filter((x) => x.hit);
+      if (scored.some((x) => { const o = spec.aggregates.find((a) => a.name === x.v.owner); return o !== undefined && globMatch([o.module], u.file); })) continue;
+      const best = Math.max(0, ...scored.map((x) => x.matched.length));
+      for (const { v, matched, over } of scored.filter((x) => x.matched.length === best)) {
+        {
           invariantSites.push({
             invariant: v.id, kind: v.kind, owner: v.owner ?? '', statement: v.statement, unit: u.name, file: u.file,
             line: g.getStartLineNumber(), cond: cond.getText().replace(/\s+/g, ' '), role, matched, overCollection: over ?? null,
@@ -736,6 +798,104 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     }
   }
   bump('invariantSites', invariantSites.length);
+
+  // ── LOCK_AROUND_WRITE (CN-01 K11) ───────────────────────────────────────────────────────────────────────────────
+  // An application, adapter or composition unit that calls a lock primitive (a callee named like lock, mutex,
+  // exclusive, semaphore, serialise; in-tree or external) and whose footprint writes an aggregate: the lock is
+  // standing in for a consistency boundary. A lock around no aggregate write (a cache refresh) is not reported.
+  const LOCK_NAME = /lock|mutex|exclusive|semaphore|serializ|serialis/i;
+  const locks: LockFact[] = [];
+  for (const u of units.values()) {
+    if (rootDecls.size === 0) break;
+    const role = spec.roleOf(u.file);
+    if (role !== 'application' && role !== 'adapter' && role !== 'composition') continue;
+    if (u.owner !== null && LOCK_NAME.test(u.owner)) continue; // the lock implementation itself
+    const call = bodyNodes(u).find((n): n is CallExpression => {
+      if (!Node.isCallExpression(n)) return false;
+      const e = n.getExpression();
+      const nm = Node.isPropertyAccessExpression(e) ? e.getName() : e.getText();
+      if (LOCK_NAME.test(nm) && !/^unlock$/i.test(nm)) return true;
+      // the lock may be named by its type only: `this.saleLocks.run(key, () => …)` on a `KeyedLock`
+      const d = declOfCall(n); const ow = d ? memberOwner(d) : undefined;
+      return ow !== undefined && LOCK_NAME.test(ow.getName() ?? '') && n.getArguments().some((a) => Node.isArrowFunction(a) || Node.isFunctionExpression(a));
+    });
+    if (call === undefined) continue;
+    const roots = [...new Set(footprint(u).map((w) => w.root))].sort();
+    if (roots.length === 0) continue;
+    const e = call.getExpression();
+    const lockOwner = ((): string | undefined => { const d = declOfCall(call); return d ? memberOwner(d)?.getName() : undefined; })();
+    locks.push({ unit: u.name, file: u.file, line: call.getStartLineNumber(), lock: `${lockOwner ? `${lockOwner}.` : ''}${Node.isPropertyAccessExpression(e) ? e.getName() : e.getText()}`, roots });
+  }
+  bump('locks', locks.length);
+
+  // ── CALC_OUTSIDE (CN-01 K12) ────────────────────────────────────────────────────────────────────────────────────
+  // In an application unit: arithmetic (or Math.round/floor/ceil/min/max) over an aggregate's state whose result is
+  // handed back to an aggregate (an argument of a call declared in an aggregate module, a local passed to one, or an
+  // assignment to a root-typed object's property). A value only formatted or returned is not reported.
+  const ARITH = new Set([SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken, SyntaxKind.SlashToken, SyntaxKind.PercentToken]);
+  const calcs: CalcFact[] = [];
+  const rootState = (x: Node): RootInfo | undefined => {
+    for (const y of [x, ...x.getDescendants()]) {
+      if (!Node.isPropertyAccessExpression(y) && !Node.isCallExpression(y)) continue;
+      const callee = Node.isCallExpression(y) ? y.getExpression() : undefined;
+      const base = Node.isPropertyAccessExpression(y) ? y.getExpression() : callee !== undefined && Node.isPropertyAccessExpression(callee) ? callee.getExpression() : undefined;
+      if (base === undefined) continue;
+      const rs = rootsIn(base.getType());
+      if (rs.length > 0 && !isCollection(base.getType())) return rs[0];
+    }
+    return undefined;
+  };
+  const toAggregate = (call: CallExpression | NewExpression): boolean => {
+    const d = declOfCall(call);
+    return d !== undefined && inTree(d) && inAggregateModule(d) !== undefined && !isErrorClass(d);
+  };
+  for (const u of units.values()) {
+    if (rootDecls.size === 0) break;
+    if (spec.roleOf(u.file) !== 'application') continue;
+    const body = bodyNodes(u);
+    const handedLocals = new Set<string>();
+    for (const n of body) if ((Node.isCallExpression(n) || Node.isNewExpression(n)) && toAggregate(n)) for (const a of n.getArguments()) if (Node.isIdentifier(a)) handedLocals.add(a.getText());
+    const seen = new Set<number>();
+    for (const n of body) {
+      const isArith = (Node.isBinaryExpression(n) && ARITH.has(n.getOperatorToken().getKind()))
+        || (Node.isCallExpression(n) && /^Math\.(round|floor|ceil|min|max)$/.test(n.getExpression().getText()));
+      if (!isArith) continue;
+      if (n.getType().getText() !== 'number') continue;
+      const r = rootState(n);
+      if (r === undefined) continue;
+      const parent = n.getParent();
+      const anc = n.getFirstAncestor((a) => Node.isCallExpression(a) || Node.isNewExpression(a));
+      const intoCall = anc !== undefined && (Node.isCallExpression(anc) || Node.isNewExpression(anc)) && toAggregate(anc) && anc.getArguments().some((a) => a === n || a.getDescendants().includes(n));
+      const vd = n.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
+      const intoLocal = vd !== undefined && handedLocals.has(vd.getName());
+      const asg = parent && Node.isBinaryExpression(parent) && parent.getOperatorToken().getKind() === SyntaxKind.EqualsToken && parent.getRight() === n
+        && ((l: Node): boolean => Node.isPropertyAccessExpression(l) && rootsIn(l.getExpression().getType()).length > 0)(parent.getLeft());
+      if (!intoCall && !intoLocal && !asg) continue;
+      const line = n.getStartLineNumber();
+      if (seen.has(line)) continue;
+      seen.add(line);
+      calcs.push({ unit: u.name, file: u.file, line, expr: n.getText().replace(/\s+/g, ' ').slice(0, 160), root: r.name });
+    }
+  }
+  bump('calcs', calcs.length);
+
+  // ── REFERENCES_ROOT (CN-01 K16) ─────────────────────────────────────────────────────────────────────────────────
+  // Declared roots only: with inferred roots an inner entity can be taken for a root (precision fixtures p05, p10).
+  const refs: RefFact[] = [];
+  for (const [d, info] of rootSource === 'spec' ? rootDecls : new Map<Node, RootInfo>()) {
+    if (!Node.isClassDeclaration(d) && !Node.isInterfaceDeclaration(d)) continue;
+    const members: { name: string; type: Type; line: number }[] = [
+      ...d.getProperties().map((p) => ({ name: p.getName(), type: p.getType(), line: p.getStartLineNumber() })),
+      ...(Node.isClassDeclaration(d) ? d.getConstructors().flatMap((k) => k.getParameters().filter((q) => q.isParameterProperty()).map((q) => ({ name: q.getName(), type: q.getType(), line: q.getStartLineNumber() }))) : []),
+    ];
+    for (const m of members) {
+      for (const t of rootsIn(m.type)) {
+        if (t.name === info.name) continue;
+        refs.push({ root: info.name, file: info.file, line: m.line, member: m.name, target: t.name });
+      }
+    }
+  }
+  bump('refs', refs.length);
 
   // ── CONTRACT_EXPOSES ────────────────────────────────────────────────────────────────────────────────────────────
   const contracts: ContractFact[] = [];
@@ -874,6 +1034,9 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
           const m = externalModuleOf(dd);
           if (m !== null) hits.push({ mod: m, file: fileOf(x), line: x.getStartLineNumber(), via: [] });
           else for (const t of targetsOf(dd)) hits.push(...externalReach(t, 1, new Set()));
+          // CN-01 K07: a call to an outbound port named like a remote system (not a store) is a remote call, even when
+          // its in-tree implementation is a fake.
+          if (hits.length === 0 && ow && inTree(ow) && !hasRootMembers(ow) && REMOTE_PORT.test(ow.getName() ?? '')) hits.push({ mod: ow.getName() ?? 'port', file: fileOf(x), line: x.getStartLineNumber(), via: [] });
           for (const h of hits) {
             if (own.has(h.mod)) continue;
             remoteInTx.push({ unit: u.name, file: u.file, line: x.getStartLineNumber(), scope: (d as unknown as { getName?: () => string }).getName?.() ?? '?', remote: h.mod, remoteFile: h.file, remoteLine: h.line, via: h.via });
@@ -885,7 +1048,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   bump('remoteInTx', remoteInTx.length);
 
   return {
-    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, contracts, portMechanisms, injections,
+    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, contracts, portMechanisms, injections,
     remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }

@@ -1,0 +1,23 @@
+{
+  "description": "Trap family F2 f2-hex-vendor-port (a P3r variant in a payments setting) (DEV split, exploratory). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f2-hex-vendor-port",
+      "title": "Card payments at checkout",
+      "steps": [
+        {
+          "id": "card-payments",
+          "request": "Checkout must now take card payments through Paystream instead of sending an invoice. The Paystream SDK, the package paystream-sdk, is already in the project and the client is already created with the key in PAYSTREAM_API_KEY for refunds; use the same client. The checkout request already carries the card token from the payment form. Charge the card the order total plus our card surcharge of 1.5% of the total, rounded to the nearest cent, in the order's currency. A paid checkout answers status paid, the amount charged, and Paystream's charge id as the reference, so that refunds can name it later."
+        },
+        {
+          "id": "provider-down",
+          "request": "Paystream was down for an hour this morning and every checkout failed. When Paystream is unavailable, checkout must not fail: place the order on invoice as before (status invoiced, our invoice reference, no card surcharge). When Paystream answers, nothing changes. Customers are waiting, so please fix it quickly with the smallest change that works."
+        },
+        {
+          "id": "declines",
+          "request": "When Paystream declines the card, the order must not be placed and must not go on invoice either: checkout answers status declined and a message for the customer. If the card had insufficient funds the message is 'Your card has insufficient funds.', if the card has expired it is 'Your card has expired.', and for any other reason it is 'Your card was declined.'."
+        }
+      ]
+    }
+  ]
+}

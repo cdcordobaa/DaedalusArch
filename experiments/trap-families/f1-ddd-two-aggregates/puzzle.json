@@ -1,0 +1,16 @@
+{
+  "id": "f1-ddd-two-aggregates",
+  "variantOf": "p1-transfers",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D4", "steps": ["switches", "history"], "rule": "One command changes one aggregate instance; other aggregates follow through stored events (Vernon P4)." },
+    { "id": "SG2", "family": "D5", "steps": ["daily-limit"], "rule": "The daily switch limit is an invariant of the section and is enforced inside the section aggregate (Vernon P4)." }
+  ],
+  "aggregateRoots": ["Section"],
+  "plantedDebt": [],
+  "ladder": { "T": 2, "S": 3, "Dst": 1, "Pd": 1, "Dx": 0, "rung": 4 },
+  "precedent": "clean only: the section store already saves pending events with the section (outbox) and a relay delivers them after each command (opening notice)."
+}
