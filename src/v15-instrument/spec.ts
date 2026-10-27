@@ -11,6 +11,12 @@
  *     - rule: R-D4
  *       command: src/x/application/ImportAccounts.ts#execute   # file#method; `*` as method allows the whole file
  *       reason: declared batch command
+ *
+ * Declared invariants (C1, 2026-10-26; `ops/notes/d5-declared-invariants-design.md` §3), optional, v1.5 only:
+ *   architecture.ddd.invariants:
+ *     - { id: room-no-overlap, kind: set, owner: RoomSchedule, over: [Booking], terms: [roomId, checkIn, checkOut] }
+ *     - { id: order-number-unique, kind: uniqueness, over: [Order], terms: [orderNumber], enforced_by: store }
+ * An invalid entry is dropped and reported in `specErrors`; a spec without the field behaves as before.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -22,6 +28,11 @@ export type Role = 'domain' | 'application' | 'port' | 'contract' | 'adapter' | 
 
 export interface ContextDecl { readonly name: string; readonly root: string; readonly publicApi: readonly string[]; readonly acl: readonly string[] }
 export interface AggregateDecl { readonly name: string; readonly context: string; readonly module: string; readonly root: string; readonly innerEntities: readonly string[] }
+export type InvariantKind = 'set' | 'single' | 'uniqueness';
+export interface InvariantDecl {
+  readonly id: string; readonly kind: InvariantKind; readonly owner: string | null; readonly over: readonly string[];
+  readonly terms: readonly string[]; readonly statement: string; readonly enforcedBy: string | null;
+}
 export interface Allowance { readonly rule: string; readonly command: string; readonly reason: string }
 
 export interface DetectSpec {
@@ -32,6 +43,8 @@ export interface DetectSpec {
   readonly repositories: readonly string[];
   readonly domainEventTypes: readonly string[];
   readonly allow: readonly Allowance[];
+  readonly invariants: readonly InvariantDecl[];
+  readonly specErrors: readonly string[];
   roleOf(file: string): Role;
   contextOf(file: string): string | null;
   isPublished(file: string): boolean;
@@ -74,9 +87,23 @@ export function loadSpec(tree: string, specPath?: string, styleHint?: string): D
     contexts?: { name: string; root: string; public_api?: string[]; acl?: string[] }[];
     aggregates?: { name: string; context: string; module: string; root: string; inner_entities?: string[] }[];
     repositories?: string[]; domain_event_types?: string[]; outside_contexts?: string[];
+    invariants?: { id?: string; kind?: string; owner?: string; over?: string[]; terms?: string[]; statement?: string; enforced_by?: string }[];
   };
   const contexts: ContextDecl[] = (ddd.contexts ?? []).map((c) => ({ name: c.name, root: c.root, publicApi: c.public_api ?? [], acl: c.acl ?? [] }));
   const aggregates: AggregateDecl[] = (ddd.aggregates ?? []).map((a) => ({ name: a.name, context: a.context, module: a.module, root: a.root, innerEntities: a.inner_entities ?? [] }));
+  const specErrors: string[] = [];
+  const invariants: InvariantDecl[] = [];
+  for (const [i, v] of (ddd.invariants ?? []).entries()) {
+    const where = `ddd.invariants[${String(i)}]${v.id ? ` (${v.id})` : ''}`;
+    const kind = v.kind as InvariantKind | undefined;
+    if (!v.id) { specErrors.push(`${where}: id is missing`); continue; }
+    if (kind !== 'set' && kind !== 'single' && kind !== 'uniqueness') { specErrors.push(`${where}: kind must be set, single or uniqueness`); continue; }
+    if (!Array.isArray(v.terms) || v.terms.length === 0) { specErrors.push(`${where}: terms must be a non-empty list`); continue; }
+    if (kind === 'uniqueness') {
+      if (v.enforced_by !== 'store' || v.owner !== undefined) { specErrors.push(`${where}: a uniqueness invariant needs enforced_by: store and no owner`); continue; }
+    } else if (!v.owner || !aggregates.some((a) => a.name === v.owner)) { specErrors.push(`${where}: owner must name a declared aggregate`); continue; }
+    invariants.push({ id: v.id, kind, owner: v.owner ?? null, over: v.over ?? [], terms: v.terms, statement: v.statement ?? '', enforcedBy: v.enforced_by ?? null });
+  }
   const layers = arch.layers ?? [];
   const style = arch.style ?? styleHint ?? 'unknown';
 
@@ -112,7 +139,7 @@ export function loadSpec(tree: string, specPath?: string, styleHint?: string): D
     || (/^src\/[^/]+\/index\.ts$/.test(file) && contextOf(file) !== null);
   return {
     source: found ? 'spec' : 'conventions', style, contexts, aggregates,
-    repositories: ddd.repositories ?? DEFAULT_REPOSITORIES, domainEventTypes: ddd.domain_event_types ?? ['DomainEvent'], allow,
+    repositories: ddd.repositories ?? DEFAULT_REPOSITORIES, domainEventTypes: ddd.domain_event_types ?? ['DomainEvent'], allow, invariants, specErrors,
     roleOf, contextOf, isPublished,
   };
 }

@@ -20,10 +20,10 @@ interface Row { fixture: string; variant: string; condition: string; pass: boole
 interface Meta { pattern: string; legit: string; positive: string | null; expectLegit?: 'allowed'; expectPositive?: string[] }
 
 describe('v1.5 instrument: rules', () => {
-  it('loads the seven RULES-V15 Cypher rules, byte-identical to the prototype', () => {
+  it('loads the RULES-V15 Cypher rules: the seven prototype rules byte-identical, plus R-D5S (C1, v1.5 only)', () => {
     const rules = loadRules();
-    expect(rules.map((r) => r.id).sort()).toEqual(['R-D4', 'R-D5', 'R-D9', 'R-H5', 'R-INJ', 'R-RTX', 'R-XCTX']);
-    for (const r of rules) {
+    expect(rules.map((r) => r.id).sort()).toEqual(['R-D4', 'R-D5', 'R-D5S', 'R-D9', 'R-H5', 'R-INJ', 'R-RTX', 'R-XCTX']);
+    for (const r of rules.filter((x) => x.id !== 'R-D5S')) {
       expect(r.text).toBe(fs.readFileSync(path.join(REPO, 'experiments', 'detect-02', 'rules', r.file), 'utf8'));
     }
     expect(path.relative(REPO, rulesDir())).toBe(path.join('src', 'v15-instrument', 'rules'));
@@ -74,4 +74,42 @@ describe('v1.5 instrument: precision fixtures reproduce the recorded prototype r
       }
     }, 180_000);
   }
+});
+
+describe('v1.5 instrument: R-D5S declared invariants (C1, development fixture)', () => {
+  const FXD = path.join(REPO, 'tests', 'fixtures', 'v15-d5s');
+  const spec = path.join(FXD, 'spec.yaml');
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'v15-d5s-'));
+  afterAll(() => fs.rmSync(scratch, { recursive: true, force: true }));
+  const rules = loadRules();
+  const d5s = async (variant: string) => (await runTree(path.join(FXD, variant), rules, { spec, scratch })).findings.filter((f) => f.rule === 'R-D5S');
+
+  it('flags the overlap check made in the application service, outside the owner RoomSchedule', async () => {
+    const f = await d5s('pos');
+    expect(f).toHaveLength(1);
+    expect(f[0]!.file).toBe('src/stays/application/BookRoom.ts');
+    expect(f[0]!.evidence).toContain('room-no-overlap');
+  });
+
+  it('is silent when the owner enforces it, and never flags the declared uniqueness check', async () => {
+    expect(await d5s('twin')).toEqual([]);
+  });
+
+  it('is silent when the spec declares no invariants', async () => {
+    const doc = YAML.parse(fs.readFileSync(spec, 'utf8')) as { architecture: { ddd: Record<string, unknown> } };
+    delete doc.architecture.ddd['invariants'];
+    const bare = path.join(scratch, 'bare.yaml');
+    fs.writeFileSync(bare, YAML.stringify(doc));
+    const r = await runTree(path.join(FXD, 'pos'), rules, { spec: bare, scratch });
+    expect(r.findings.filter((f) => f.rule === 'R-D5S')).toEqual([]);
+  });
+
+  it('reports an invalid invariant entry instead of using it', async () => {
+    const doc = YAML.parse(fs.readFileSync(spec, 'utf8')) as { architecture: { ddd: { invariants: Record<string, unknown>[] } } };
+    doc.architecture.ddd.invariants.push({ id: 'bad', kind: 'set', owner: 'Nobody', terms: ['x'] });
+    const bad = path.join(scratch, 'bad.yaml');
+    fs.writeFileSync(bad, YAML.stringify(doc));
+    const r = await runTree(path.join(FXD, 'pos'), rules, { spec: bad, scratch });
+    expect(r.spec.specErrors).toEqual(['ddd.invariants[2] (bad): owner must name a declared aggregate']);
+  });
 });

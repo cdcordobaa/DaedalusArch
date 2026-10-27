@@ -140,6 +140,11 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const g = node(['Guard'], { line: gd.line, cond: gd.cond, reason: gd.reason, root: gd.root, duplicated: gd.duplicated, file: gd.file });
     rel('RULE_SITE', u, g, { line: gd.line });
   }
+  for (const v of facts.invariantSites) {
+    const u = node(['Unit'], { name: v.unit, file: v.file, role: v.role });
+    const i = node(['Invariant'], { id: v.invariant, kind: v.kind, owner: v.owner, statement: v.statement });
+    rel('INVARIANT_SITE', u, i, { line: v.line, file: v.file, cond: v.cond, matched: [...v.matched], overCollection: v.overCollection ?? '' });
+  }
   for (const c of facts.contracts) {
     const a = node(['ContractType'], { name: c.contract, file: c.file, line: c.line });
     const b = node(['EntityType'], { name: c.entity, file: c.entityFile });

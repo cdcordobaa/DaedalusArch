@@ -36,6 +36,12 @@ export interface GuardFact {
   readonly unit: string; readonly file: string; readonly line: number; readonly cond: string; readonly role: Role;
   readonly reason: string; readonly root: string; readonly duplicated: boolean;
 }
+/** C1 (2026-10-26): a guard outside its owner aggregate that checks a declared set or single invariant. */
+export interface InvariantSiteFact {
+  readonly invariant: string; readonly kind: string; readonly owner: string; readonly statement: string;
+  readonly unit: string; readonly file: string; readonly line: number; readonly cond: string; readonly role: Role;
+  readonly matched: readonly string[]; readonly overCollection: string | null;
+}
 export interface ContractFact { readonly contract: string; readonly file: string; readonly line: number; readonly entity: string; readonly entityFile: string; readonly via: string; readonly form: 'type' | 'mirror' }
 export interface PortMechFact { readonly port: string; readonly method: string; readonly file: string; readonly line: number; readonly form: 'vendor-type' | 'adapter-type' | 'scope-callback'; readonly detail: string }
 export interface InjectionFact { readonly cls: string; readonly file: string; readonly line: number; readonly adapter: string; readonly adapterFile: string; readonly form: 'constructor' | 'property' | 'new' }
@@ -46,6 +52,7 @@ export interface Facts {
   readonly rootSource: 'spec' | 'fallback' | 'none';
   readonly commands: readonly CommandFact[];
   readonly guards: readonly GuardFact[];
+  readonly invariantSites: readonly InvariantSiteFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
   readonly injections: readonly InjectionFact[];
@@ -685,6 +692,51 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   }
   bump('ruleSites', guards.length);
 
+  // ── INVARIANT_SITE (C1, declared invariants only) ───────────────────────────────────────────────────────────────
+  // A guard matches a declared invariant when the names it reads (its condition, the initialisers of local consts the
+  // condition names, and the bodies of same-file functions it calls, one level) include two of the invariant's terms,
+  // or one term plus a collection of an `over` type. Guards inside the owner aggregate's module are the right place.
+  const invariantSites: InvariantSiteFact[] = [];
+  const checked = spec.invariants.filter((v) => v.kind !== 'uniqueness');
+  for (const u of units.values()) {
+    if (checked.length === 0) break;
+    const role = spec.roleOf(u.file);
+    if (role === 'contract') continue;
+    for (const g of guardsOf(u)) {
+      const cond = g.getExpression();
+      const reach: Node[] = [cond];
+      for (const x of [cond, ...cond.getDescendants()]) {
+        if (Node.isIdentifier(x)) {
+          const d = x.getSymbol()?.getDeclarations()[0];
+          if (d && Node.isVariableDeclaration(d) && d.getSourceFile() === g.getSourceFile()) { const init = d.getInitializer(); if (init) reach.push(init); }
+        }
+        if (Node.isCallExpression(x)) {
+          const d = declOfCall(x);
+          if (d && d.getSourceFile() === g.getSourceFile() && (Node.isFunctionDeclaration(d) || Node.isMethodDeclaration(d))) { const b = d.getBody(); if (b) reach.push(b); }
+        }
+      }
+      const names = new Set<string>();
+      const types: Type[] = [];
+      for (const r of reach) for (const x of [r, ...r.getDescendants()]) {
+        if (Node.isIdentifier(x)) names.add(x.getText().toLowerCase());
+        if (Node.isIdentifier(x) || Node.isPropertyAccessExpression(x) || Node.isCallExpression(x)) types.push(x.getType());
+      }
+      for (const v of checked) {
+        const owner = spec.aggregates.find((a) => a.name === v.owner);
+        if (owner && globMatch([owner.module], u.file)) continue;
+        const matched = v.terms.filter((t) => names.has(t.toLowerCase()));
+        const over = v.over.find((o) => types.some((t) => isCollection(t) && new RegExp(`\\b${o}\\b`).test(t.getText())));
+        if (matched.length >= 2 || (matched.length >= 1 && over !== undefined)) {
+          invariantSites.push({
+            invariant: v.id, kind: v.kind, owner: v.owner ?? '', statement: v.statement, unit: u.name, file: u.file,
+            line: g.getStartLineNumber(), cond: cond.getText().replace(/\s+/g, ' '), role, matched, overCollection: over ?? null,
+          });
+        }
+      }
+    }
+  }
+  bump('invariantSites', invariantSites.length);
+
   // ── CONTRACT_EXPOSES ────────────────────────────────────────────────────────────────────────────────────────────
   const contracts: ContractFact[] = [];
   const isEntity = (d: Node): boolean => rootDecls.has(d) || entityDecls.has(d)
@@ -833,7 +885,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   bump('remoteInTx', remoteInTx.length);
 
   return {
-    roots: [...rootDecls.values()], rootSource, commands, guards, contracts, portMechanisms, injections,
+    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, contracts, portMechanisms, injections,
     remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
