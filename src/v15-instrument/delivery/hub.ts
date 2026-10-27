@@ -32,6 +32,7 @@ import { GATED_TOOLS, insideTree, keyOf, parseHookEvent, postToolUseReply, stopR
 import { changedSince, escapingLinks, treeHashes } from '../edit-gate/hub.js';
 import { checkLayers, LAYER_RULES, toKeyed } from '../edit-gate/layers.js';
 import { CHECK_CONSISTENCY, CHECK_CONSISTENCY_DESCRIPTION, CONSISTENCY_SHAPE } from '../mcp/server.js';
+import { preflightSpec } from '../preflight.js';
 import { FindingLedger, type PullAnnotation, type PullScope } from './ledger.js';
 import { pullConsistencyText, pullFrozenHeader, pushMessage, stopText } from './messages.js';
 
@@ -92,6 +93,9 @@ export class DeliveryHub {
   }
 
   async setCell(cell: DeliveryCell): Promise<void> {
+    // Pre-flight: a spec the frozen schema, the frozen DDD binder or the v1.5 reader rejects is refused loudly.
+    const pre = await preflightSpec(cell.spec);
+    if (!pre.ok) throw new Error(`delivery hub: cell ${cell.id} spec ${cell.spec} fails pre-flight: ${pre.errors.join('; ')}`);
     const scratch = path.join(this.logDir, 'scratch', cell.id);
     fs.mkdirSync(scratch, { recursive: true, mode: 0o700 });
     const seedCopy = path.join(scratch, 'seed');

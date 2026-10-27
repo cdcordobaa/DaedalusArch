@@ -19,6 +19,8 @@ export type { AggregateDecl, Allowance, ContextDecl, DetectSpec, Role } from './
 export { CONSISTENCY_RULES, checkConsistency, formatText } from './consistency.js';
 export type { CheckOptions, ConsistencyFinding, ConsistencyResult } from './consistency.js';
 export * as s3 from './s3-ownership.js';
+export { formatPreflight, preflightSpec } from './preflight.js';
+export type { PreflightResult } from './preflight.js';
 
 /** The instruments the code base can run. `v1.4` is the frozen default; `v1.5` is opt-in. */
 export const INSTRUMENTS = {

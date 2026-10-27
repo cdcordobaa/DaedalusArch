@@ -7,34 +7,74 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { extractAPG, V13_APG2_OPTIONS } from '../apg-extractor/index.js';
 import { executeQuery, MemoryGraph, parseCypher } from '../cypher-interp/index.js';
 import { fromDriver, toDriver } from '../cypher-interp/driver-values.js';
 import type { GraphNode } from '../cypher-interp/values.js';
 import { computeFacts } from './facts.js';
 import type { Facts } from './facts.js';
-import { loadSpec } from './spec.js';
+import { preflightSpec } from './preflight.js';
+import type { PreflightResult } from './preflight.js';
+import { findSpec, loadSpec } from './spec.js';
 import type { DetectSpec } from './spec.js';
 
 export const VERSION = 'v1.5';
 /** The prototype this module was promoted from; DRIFT-01 and PUZZLE-04 records carry it. */
 export const PROTOTYPE_VERSION = 'detect-02/v1.5-exp';
 
+/** The sentinel rule file: a directory holding it is the rules directory. */
+const RULES_SENTINEL = 'r-d4-multi-aggregate-write.cypher';
+
 /**
- * The RULES-V15 Cypher files (`src/v15-instrument/rules/*.cypher`, the only rule definition). `__dirname` exists
- * under CommonJS (jest); under an ESM loader (tsx) or from `dist/` the source tree is found from the working directory
- * or the entry script, as `src/spec-parser/preset-loader.ts` finds `presets/`.
+ * The directory of this module. `__dirname` exists under CommonJS (jest) and tsx; the compiled ESM output (`dist/`, the
+ * npx package) has none, so the module's own file is read from a stack frame (no `import.meta`, which CommonJS rejects).
  */
-export function rulesDir(): string {
-  const here = typeof __dirname === 'string' ? [__dirname] : [];
-  const entry = process.argv[1] !== undefined ? [path.dirname(path.resolve(process.argv[1]))] : [];
+function moduleDir(): string | undefined {
+  if (typeof __dirname === 'string') return __dirname;
+  const m = /(file:\/\/[^\s()]+?|\/[^\s()]+?)\/v15-instrument\/graph\.[cm]?[jt]s/.exec(new Error().stack ?? '');
+  if (m === null) return undefined;
+  const parent = m[1]!.startsWith('file://') ? fileURLToPath(m[1]!) : m[1]!;
+  return path.join(parent, 'v15-instrument');
+}
+
+/** The real path of the entry script (`node_modules/.bin/daedalus-mcp` resolves to the package's `dist/.../main.js`). */
+function realEntry(entry: string | undefined): string | undefined {
+  if (entry === undefined || entry === '') return undefined;
+  try { return fs.realpathSync(entry); } catch { return path.resolve(entry); }
+}
+
+export interface RulesDirInputs { readonly here?: string | undefined; readonly entry?: string | undefined; readonly cwd: string }
+
+/**
+ * The rules directory from explicit inputs. Candidates, in order: next to this module (`src/v15-instrument/rules` from
+ * source; `dist/v15-instrument/rules` from the build, which copies the `.cypher` files there with
+ * `scripts/copy-v15-rules.mjs`), the source tree from this module or the working directory, every ancestor `a` of the
+ * entry script (`a/v15-instrument/rules`, `a/dist/v15-instrument/rules`, `a/src/v15-instrument/rules`), and an
+ * installed package under the working directory.
+ */
+export function rulesDirFrom(inputs: RulesDirInputs): string {
+  const here = inputs.here !== undefined ? [inputs.here] : [];
+  const ancestors: string[] = [];
+  if (inputs.entry !== undefined) {
+    for (let d = path.dirname(inputs.entry); ; d = path.dirname(d)) {
+      ancestors.push(d);
+      if (path.dirname(d) === d) break;
+    }
+  }
   const candidates = [
     ...here.map((d) => path.join(d, 'rules')),
     ...here.map((d) => path.resolve(d, '..', '..', 'src', 'v15-instrument', 'rules')),
-    path.resolve(process.cwd(), 'src', 'v15-instrument', 'rules'),
-    ...entry.map((d) => path.resolve(d, '..', '..', 'src', 'v15-instrument', 'rules')),
+    path.resolve(inputs.cwd, 'src', 'v15-instrument', 'rules'),
+    ...ancestors.flatMap((a) => [path.join(a, 'v15-instrument', 'rules'), path.join(a, 'dist', 'v15-instrument', 'rules'), path.join(a, 'src', 'v15-instrument', 'rules')]),
+    path.resolve(inputs.cwd, 'node_modules', 'daedalus-arch', 'dist', 'v15-instrument', 'rules'),
   ];
-  return candidates.find((d) => fs.existsSync(path.join(d, 'r-d4-multi-aggregate-write.cypher'))) ?? candidates[candidates.length - 1]!;
+  return candidates.find((d) => fs.existsSync(path.join(d, RULES_SENTINEL))) ?? path.resolve(inputs.cwd, 'src', 'v15-instrument', 'rules');
+}
+
+/** The RULES-V15 Cypher files (`src/v15-instrument/rules/*.cypher`, the only rule definition), from source or the package. */
+export function rulesDir(): string {
+  return rulesDirFrom({ here: moduleDir(), entry: realEntry(process.argv[1]), cwd: process.cwd() });
 }
 
 export interface Rule { readonly id: string; readonly family: string; readonly title: string; readonly rule: string; readonly fix: string; readonly applies: string; readonly file: string; readonly text: string }
@@ -42,7 +82,7 @@ export interface Finding {
   readonly rule: string; readonly family: string; readonly file: string; readonly line: number | null; readonly subject: string;
   readonly evidence: string; readonly path: readonly string[]; readonly status: 'violation' | 'allowed' | 'info'; readonly note?: string;
 }
-export interface TreeResult { readonly findings: Finding[]; readonly stats: Record<string, number>; readonly facts: Facts; readonly spec: DetectSpec; readonly ms: number }
+export interface TreeResult { readonly findings: Finding[]; readonly stats: Record<string, number>; readonly facts: Facts; readonly spec: DetectSpec; readonly ms: number; readonly preflight?: PreflightResult }
 
 export function loadRules(dir = rulesDir()): Rule[] {
   return fs.readdirSync(dir).filter((f) => f.endsWith('.cypher')).sort().map((f) => {
@@ -67,10 +107,13 @@ export function writeTsconfig(tree: string, scratch: string): string {
 
 export interface BuildOptions { readonly spec?: string | undefined; readonly style?: string | undefined; readonly withApg?: boolean | undefined; readonly scratch?: string | undefined; readonly tsconfig?: string | undefined }
 
-export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise<{ graph: MemoryGraph; facts: Facts; spec: DetectSpec; stats: Record<string, number> }> {
+export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise<{ graph: MemoryGraph; facts: Facts; spec: DetectSpec; stats: Record<string, number>; preflight?: PreflightResult }> {
   const scratch = opts.scratch ?? fs.mkdtempSync(path.join(os.tmpdir(), 'detect-02-'));
   const tsconfig = opts.tsconfig ?? writeTsconfig(tree, scratch);
   const spec = loadSpec(tree, opts.spec, opts.style);
+  // Pre-flight (reported, never acted on here): the frozen schema, the frozen DDD binder and the v1.5 reader.
+  const specFile = findSpec(tree, opts.spec);
+  const preflight = specFile !== undefined ? await preflightSpec(specFile) : undefined;
   const graph = new MemoryGraph();
   const stats: Record<string, number> = {};
   const node = (labels: string[], p: Record<string, unknown>): GraphNode =>
@@ -184,7 +227,8 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
   }
   for (const [k, v] of Object.entries(facts.stats)) stats[k] = v;
   stats.nodes = graph.nodes.length; stats.relationships = graph.relationships.length;
-  return { graph, facts, spec, stats };
+  if (preflight !== undefined) { stats.preflightOk = preflight.ok ? 1 : 0; stats.preflightErrors = preflight.errors.length; }
+  return { graph, facts, spec, stats, ...(preflight !== undefined ? { preflight } : {}) };
 }
 
 const num = (v: unknown): number | null =>
@@ -192,7 +236,7 @@ const num = (v: unknown): number | null =>
 
 export async function runTree(tree: string, rules: readonly Rule[], opts: BuildOptions = {}): Promise<TreeResult> {
   const t0 = Date.now();
-  const { graph, facts, spec, stats } = await buildGraph(tree, opts);
+  const { graph, facts, spec, stats, preflight } = await buildGraph(tree, opts);
   const findings: Finding[] = [];
   for (const r of rules) {
     if (r.id === 'R-INJ' && spec.style === 'layered') continue; // Layered services may depend on concrete persistence
@@ -213,5 +257,5 @@ export async function runTree(tree: string, rules: readonly Rule[], opts: BuildO
       });
     }
   }
-  return { findings, stats, facts, spec, ms: Date.now() - t0 };
+  return { findings, stats, facts, spec, ms: Date.now() - t0, ...(preflight !== undefined ? { preflight } : {}) };
 }

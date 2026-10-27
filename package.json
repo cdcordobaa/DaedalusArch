@@ -11,12 +11,13 @@
   },
   "files": [
     "dist/**/*.js",
+    "dist/v15-instrument/rules/*.cypher",
     "presets/*.yaml",
     "specs/*.yaml",
     "README.md"
   ],
   "scripts": {
-    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc --project tsconfig.json && node -e \"for (const f of ['dist/cli/bin.js','dist/mcp-server/main.js']) require('fs').chmodSync(f,0o755)\"",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc --project tsconfig.json && node scripts/copy-v15-rules.mjs dist && node -e \"for (const f of ['dist/cli/bin.js','dist/mcp-server/main.js']) require('fs').chmodSync(f,0o755)\"",
     "build:watch": "tsc --project tsconfig.json --watch",
     "prepare": "npm run build",
     "start": "node dist/cli/bin.js",
