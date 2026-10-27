@@ -1,0 +1,8 @@
+import { Property } from './Property';
+
+export interface PropertyRepository {
+  save(property: Property): void;
+  findById(id: string): Property | undefined;
+
+  saveAll(properties: Property[]): void;
+}

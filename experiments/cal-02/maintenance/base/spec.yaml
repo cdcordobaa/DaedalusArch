@@ -1,0 +1,225 @@
+# CAL-02 maintenance base: evaluator spec in the p1-transfers format (DDD preset), declaring the property-maintenance tree.
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/*/domain/**
+        - src/*/contracts/**
+        - src/shared-kernel/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/*/application/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/*/infrastructure/**
+        - src/*/acl/**
+      roles:
+        - repository
+        - anti-corruption-layer
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/*/api/**
+      roles:
+        - controller
+
+    # Composition root, outside every context.
+    - name: composition
+      kind: application
+      directories:
+        - src/main.ts
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: properties
+        root: src/properties/
+        public_api: [src/properties/index.ts, src/properties/contracts/**]
+        acl: []
+      - name: workorders
+        root: src/workorders/
+        public_api: [src/workorders/index.ts, src/workorders/contracts/**]
+        acl: []
+      - name: invoicing
+        root: src/invoicing/
+        public_api: [src/invoicing/index.ts, src/invoicing/contracts/**]
+        acl: []
+    outside_contexts: [src/shared-kernel/**, src/main.ts]
+    aggregates:
+      - name: Property
+        context: properties
+        module: src/properties/domain/property/**
+        root: src/properties/domain/property/Property.ts
+        inner_entities: [src/properties/domain/property/Unit.ts]
+      - name: WorkOrder
+        context: workorders
+        module: src/workorders/domain/workorder/**
+        root: src/workorders/domain/workorder/WorkOrder.ts
+        inner_entities: []
+      - name: Invoice
+        context: invoicing
+        module: src/invoicing/domain/invoice/**
+        root: src/invoicing/domain/invoice/Invoice.ts
+        inner_entities: []
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/*/application/*.ts"]
+    invariants:
+      - { id: property-unit-labels, kind: set, owner: Property, over: [Unit], terms: [unitId, label], statement: "a property never holds two units with the same id" }
+      - { id: work-order-cost-within-budget, kind: single, owner: WorkOrder, over: [WorkOrder], terms: [cost, budget], statement: "a completed work order never costs more than its budget" }
+      - { id: invoice-per-work-order, kind: uniqueness, owner: Invoice, over: [Invoice], terms: [workOrderId], enforced_by: store }
+
+fitness_functions:
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

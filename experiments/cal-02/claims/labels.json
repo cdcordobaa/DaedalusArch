@@ -1,0 +1,482 @@
+{
+  "K01-pos1": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/claims/application/ClaimService.ts",
+    "note": "ClaimService imports the policies domain repository and reads it directly."
+  },
+  "K01-pos2": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutService.ts",
+    "note": "PayoutService imports another context's in-memory repository from its infrastructure folder."
+  },
+  "K01-twin1": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Claims checks policy status through a port and an adapter that uses only the policies public API."
+  },
+  "K01-twin2": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Payouts skips inactive policies through a port and an adapter that uses only the policies public API."
+  },
+  "K01-legit": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "ClaimService uses PolicyService directly, imported from the policies public index."
+  },
+  "K02-pos1": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/claims/domain/claim/Claim.ts",
+    "note": "The Claim aggregate imports the in-memory repository from infrastructure and calls it."
+  },
+  "K02-pos2": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/payouts/domain/payout/Payout.ts",
+    "note": "The Payout aggregate imports a validation framework package and calls it."
+  },
+  "K02-twin1": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Claim numbering is supplied to the aggregate as a plain function; no infrastructure import."
+  },
+  "K02-twin2": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Payout validates its ids with a local helper instead of a framework package."
+  },
+  "K02-legit": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "The Claim aggregate uses a Clock type from the shared kernel, which is allowed in the domain layer."
+  },
+  "K03-pos1": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/claims/application/ClaimService.ts",
+    "note": "rejectPair loads two Claim instances, rejects both and saves both in one command."
+  },
+  "K03-pos2": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutService.ts",
+    "note": "splitPayout reduces one Payout and creates and saves a second Payout in the same command."
+  },
+  "K03-twin1": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "The duplicate claim is rejected and saved alone; the kept claim is updated later by an event handler."
+  },
+  "K03-twin2": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "splitPayout saves only the original Payout; the remainder Payout is created later by an event handler."
+  },
+  "K03-legit": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "rejectIfDuplicate reads a second claim only to check it and saves just the rejected one."
+  },
+  "K04-pos1": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/claims/infrastructure/InMemoryClaimRepository.ts",
+    "note": "ClaimRepository.saveBoth persists two Claim aggregates and rejectPair calls it."
+  },
+  "K04-pos2": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/policies/infrastructure/InMemoryPolicyRepository.ts",
+    "note": "PolicyRepository.saveAll persists several Policy aggregates and cancelPolicies calls it."
+  },
+  "K04-twin1": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "The duplicate claim is closed and saved alone through the unchanged repository; the kept claim follows by event."
+  },
+  "K04-twin2": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "The repository gains a read query only; raiseLimitForHolder changes and saves exactly one Policy."
+  },
+  "K04-legit": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "The repository writes one Claim together with its inner ClaimLine rows in a single save."
+  },
+  "K05-pos1": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/claims/application/ClaimService.ts",
+    "note": "approveClaim synchronously reserves coverage on the Policy aggregate through the policies service."
+  },
+  "K05-pos2": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutService.ts",
+    "note": "dispatchPayout synchronously marks the Claim aggregate as paid through the claims service."
+  },
+  "K05-twin1": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "approveClaim only publishes ClaimApproved; the policies context reserves coverage in its own handler."
+  },
+  "K05-twin2": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "dispatchPayout only publishes PayoutDispatched; the claims context marks the claim paid in its own handler."
+  },
+  "K05-legit": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "approveClaim only reads policy status across the context line and publishes the event the policies context handles."
+  },
+  "K06-pos1": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "A function in the composition root approves the claim and then reserves coverage on the policy."
+  },
+  "K06-pos2": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "A function in the composition root dispatches the payout and then marks the claim paid."
+  },
+  "K06-twin1": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "The root only wires a subscription and a one-call forwarder; the policies handler reserves coverage."
+  },
+  "K06-twin2": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "The root only wires a subscription and a one-call forwarder; the claims handler marks the claim paid."
+  },
+  "K06-legit": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "The root adds two forwarders, each calling a single context once, and does no business work."
+  },
+  "K07-pos1": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutService.ts",
+    "note": "cancelPayout calls the payment gateway inside the transaction callback."
+  },
+  "K07-pos2": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutService.ts",
+    "note": "retryDispatch sends to the payment gateway from within the transaction callback before saving."
+  },
+  "K07-twin1": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "cancelPayout commits first and calls the payment gateway after the transaction."
+  },
+  "K07-twin2": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "retryDispatch commits first and sends to the payment gateway after the transaction."
+  },
+  "K07-legit": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "The callback only saves and returns the amount; the gateway call happens after commit using that value."
+  },
+  "K08-pos1": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/claims/application/ClaimService.ts",
+    "note": "fileClaim enforces a maximum claim total in the application service instead of the Claim aggregate."
+  },
+  "K08-pos2": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutService.ts",
+    "note": "dispatchPayout enforces a dispatch cap on the payout amount in the service instead of the Payout aggregate."
+  },
+  "K08-twin1": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The maximum claim total is enforced inside Claim.file."
+  },
+  "K08-twin2": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The dispatch cap is enforced inside Payout.markDispatched."
+  },
+  "K08-legit": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "approveClaim only checks that the id argument is non-empty; all claim rules stay in the aggregate."
+  },
+  "K09-pos1": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/claims/application/ClaimService.ts",
+    "note": "fileClaim repeats the at-least-one-line rule that Claim.file already enforces."
+  },
+  "K09-pos2": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/policies/application/PolicyService.ts",
+    "note": "reserveCoverage repeats the active-policy rule that Policy.reserveCoverage already enforces."
+  },
+  "K09-twin1": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "fileSingleLineClaim delegates to fileClaim; the line rule stays only in Claim.file."
+  },
+  "K09-twin2": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "reserveForClaim delegates to reserveCoverage; the active and limit rules stay only in Policy."
+  },
+  "K09-legit": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "cancelPayout only calls Payout.cancel and saves; the state rule lives once in the aggregate."
+  },
+  "K10-pos1": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/policies/application/PolicyService.ts",
+    "note": "reserveCoverage rejects by throwing when the amount exceeds remaining coverage, outside the Policy owner."
+  },
+  "K10-pos2": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/policies/api/PolicyController.ts",
+    "note": "The controller returns an error result when the amount exceeds remaining coverage, without calling the Policy owner."
+  },
+  "K10-twin1": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "The coverage-cap check is a Policy query; the service only forwards it."
+  },
+  "K10-twin2": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "The controller delegates to the service and only maps the Policy aggregate error to a result."
+  },
+  "K10-legit": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "The declared store-enforced uniqueness of payout reference is checked through the repository in the service."
+  },
+  "K11-pos1": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/claims/application/ClaimService.ts",
+    "note": "approveClaim guards the Claim write with an in-process per-id lock held by the service."
+  },
+  "K11-pos2": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/policies/infrastructure/InMemoryPolicyRepository.ts",
+    "note": "The policy repository adapter serialises Policy writes with an in-process mutex."
+  },
+  "K11-twin1": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "Concurrent approval is guarded by a revision check owned by the Claim aggregate, with no lock."
+  },
+  "K11-twin2": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "Concurrent dispatch is guarded by a revision check owned by the Payout aggregate, with no lock."
+  },
+  "K11-legit": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "A flag guards only a read-model cache refresh; no aggregate is written under it."
+  },
+  "K12-pos1": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/claims/application/ClaimService.ts",
+    "note": "assessDeductible computes the deductible from the claim total in the service and writes it back to Claim."
+  },
+  "K12-pos2": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutService.ts",
+    "note": "applyProcessingFee computes a fee from the payout amount in the service and writes the net amount back to Payout."
+  },
+  "K12-twin1": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The deductible is computed inside Claim.assessDeductible; the service only calls it and saves."
+  },
+  "K12-twin2": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The processing fee is computed inside Payout.applyProcessingFee; the service only calls it and saves."
+  },
+  "K12-legit": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "displayAmount only formats the payout amount for display and writes nothing back."
+  },
+  "K13-pos1": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/payouts/application/ChargeGateway.ts",
+    "note": "The ChargeGateway port returns the vendor SDK type StripeCharge."
+  },
+  "K13-pos2": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutLedger.ts",
+    "note": "The PayoutLedger port method takes a transaction handle in its signature."
+  },
+  "K13-twin1": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The port returns its own ChargeReceipt; only the infrastructure adapter touches the vendor type."
+  },
+  "K13-twin2": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The PayoutLedger port uses only a string and the shared-kernel Money."
+  },
+  "K13-legit": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The ClaimNotifier port uses only primitives and a domain status type."
+  },
+  "K14-pos1": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/claims/contracts/ClaimDetails.ts",
+    "note": "The published ClaimDetails contract carries the Claim aggregate itself."
+  },
+  "K14-pos2": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/payouts/index.ts",
+    "note": "The payouts public index re-exports the Payout aggregate class."
+  },
+  "K14-twin1": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The published ClaimDetails contract is a plain DTO of primitives."
+  },
+  "K14-twin2": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The payouts index exposes its own PayoutSummary DTO, not the aggregate."
+  },
+  "K14-legit": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The published ClaimLineView is its own DTO with the same field names as the inner entity, not the entity type."
+  },
+  "K15-pos1": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/claims/application/ClaimService.ts",
+    "note": "ClaimService constructs the concrete InMemoryClaimRepository itself instead of receiving the port."
+  },
+  "K15-pos2": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/payouts/application/PayoutService.ts",
+    "note": "PayoutService depends on the concrete FakePaymentGateway class instead of the PaymentGateway port."
+  },
+  "K15-twin1": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "ClaimService receives a ClaimAudit port; main.ts supplies the adapter."
+  },
+  "K15-twin2": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "PayoutService receives a PayoutAudit port; main.ts supplies the adapter."
+  },
+  "K15-legit": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "main.ts, the composition root, constructs the adapter and injects it through the port."
+  },
+  "K16-pos1": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/claims/domain/claim/Claim.ts",
+    "note": "The Claim aggregate holds a Policy root object in a field instead of the policy id."
+  },
+  "K16-pos2": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/payouts/domain/payout/Payout.ts",
+    "note": "The Payout aggregate holds a Claim root object in a field instead of the claim id."
+  },
+  "K16-twin1": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "The Claim aggregate keeps the covering policy only as an id string."
+  },
+  "K16-twin2": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "The Payout aggregate keeps the source claim only as an id string."
+  },
+  "K16-legit": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "The Claim aggregate holds its own inner ClaimLine entity, not another root."
+  }
+}

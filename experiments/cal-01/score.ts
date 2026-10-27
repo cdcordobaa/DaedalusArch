@@ -41,7 +41,12 @@ interface Hit { rule: string; file: string; line: number | null }
 const TEMPLATE = 'experiments/puzzle-01/puzzles/p1-transfers/spec.yaml';
 function frozenSpec(spec: string, out: string): string {
   const d = YAML.parse(fs.readFileSync(spec, 'utf8')) as { architecture: { ddd: Record<string, unknown> }; scoring?: unknown };
-  if (d.scoring !== undefined) return spec; // already a full frozen-format spec
+  if (d.scoring !== undefined) { // already a full frozen-format spec: only the v1.5-only `invariants` field goes
+    const full = YAML.parse(fs.readFileSync(spec, 'utf8')) as { architecture: { ddd?: Record<string, unknown> } };
+    if (full.architecture.ddd) delete full.architecture.ddd['invariants'];
+    fs.writeFileSync(out, YAML.stringify(full));
+    return out;
+  }
   const t = YAML.parse(fs.readFileSync(TEMPLATE, 'utf8')) as { architecture: Record<string, unknown> };
   const ddd = { ...d.architecture.ddd }; delete ddd['invariants'];
   // The frozen binder takes inner entities as paths inside the context; the v1.5 reader also takes class names.
@@ -55,7 +60,7 @@ function frozenSpec(spec: string, out: string): string {
   return out;
 }
 
-async function frozenHits(root: string, specIn: string): Promise<Hit[]> {
+export async function frozenHits(root: string, specIn: string): Promise<Hit[]> {
   const spec = frozenSpec(specIn, path.join(path.dirname(root), `${path.basename(root)}.frozen.yaml`));
   const files = execFileSync('find', ['src', '-name', '*.ts'], { cwd: root, encoding: 'utf8' }).trim().split('\n').filter(Boolean);
   const diff = files.map((f) => {
@@ -101,4 +106,4 @@ async function main(): Promise<void> {
   for (const [k, v] of Object.entries(perRow)) process.stdout.write(`${k} recall ${v.recall} fp ${v.fp}\n`);
   for (const x of rows.filter((y) => y.row === null)) process.stdout.write(`${String(x.domain)} base: ${(x.hits as Hit[]).map((h) => `${h.rule} ${h.file}:${String(h.line)}`).join(' | ') || 'clean'}\n`);
 }
-void main();
+if (process.argv[1]?.endsWith("score.ts")) void main();

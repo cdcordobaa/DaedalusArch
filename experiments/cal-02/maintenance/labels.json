@@ -1,0 +1,482 @@
+{
+  "K01-pos1": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/invoicing/application/InvoiceService.ts",
+    "note": "invoicing imports the workorders domain aggregate directly and uses its fields."
+  },
+  "K01-pos2": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "workorders imports the properties in-memory repository (infrastructure internals) and calls it."
+  },
+  "K01-twin1": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Invoicing drafts from a work order view taken from the workorders contracts."
+  },
+  "K01-twin2": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Workorders asks the properties context through its index.ts public API."
+  },
+  "K01-legit": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Invoicing imports a property summary type through the properties public API (directory import of index.ts)."
+  },
+  "K02-pos1": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/invoicing/domain/invoice/Invoice.ts",
+    "note": "The Invoice aggregate imports the infrastructure in-memory repository and calls it."
+  },
+  "K02-pos2": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/properties/domain/property/Property.ts",
+    "note": "The Property aggregate imports the axios HTTP package to geocode itself."
+  },
+  "K02-twin1": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "The id sequence is a pure aggregate function; the service reads the count from the repository port."
+  },
+  "K02-twin2": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Coordinates are set on the aggregate as plain values; any geocoding stays outside the domain."
+  },
+  "K02-legit": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "The domain uses the shared-kernel Money value object."
+  },
+  "K03-pos1": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "replaceWorkOrder saves the cancelled work order and its successor in one command."
+  },
+  "K03-pos2": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/properties/application/PropertyService.ts",
+    "note": "transferUnit saves both the source and the target property."
+  },
+  "K03-twin1": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "The command cancels and saves one work order; a handler opens the successor on the published event."
+  },
+  "K03-twin2": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "The command saves the source property and publishes an event; a handler adds the unit to the target."
+  },
+  "K03-legit": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "The command reads two properties but changes and saves only the target one."
+  },
+  "K04-pos1": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/workorders/infrastructure/InMemoryWorkOrderRepository.ts",
+    "note": "The work order repository gains saveBoth (two aggregates at once) and supersedeWorkOrder calls it."
+  },
+  "K04-pos2": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/properties/infrastructure/InMemoryPropertyRepository.ts",
+    "note": "The property repository gains saveAll (several aggregates at once) and swapUnits calls it."
+  },
+  "K04-twin1": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "The command cancels and saves one work order and publishes the successor request; no multi-aggregate repository method exists."
+  },
+  "K04-twin2": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "The command saves one property through the single-aggregate repository method and publishes the handed-over unit as an event."
+  },
+  "K04-legit": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "The repository method persists one property together with its inner unit entities and the command calls it."
+  },
+  "K05-pos1": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "A workorders command synchronously records a maintenance visit on the Property through PropertyService."
+  },
+  "K05-pos2": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/invoicing/application/InvoiceService.ts",
+    "note": "An invoicing command synchronously cancels the WorkOrder through WorkOrderService."
+  },
+  "K05-twin1": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "The command completes and saves one work order and publishes the event that the properties context handles."
+  },
+  "K05-twin2": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "The command cancels and saves one invoice and publishes InvoiceCancelled for other contexts to handle."
+  },
+  "K05-legit": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "The command only queries the properties public API and then saves its own work order."
+  },
+  "K06-pos1": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "A function in main.ts completes the work order and records the visit on the property."
+  },
+  "K06-pos2": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "A function in main.ts deactivates the property and cancels the work order."
+  },
+  "K06-twin1": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "main.ts only subscribes a handler; workorders cancels its own work order when an invoice is cancelled."
+  },
+  "K06-twin2": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "main.ts only subscribes a handler; invoicing cancels its own invoice when a work order is cancelled."
+  },
+  "K06-legit": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "main.ts only wires: a small helper that subscribes handlers, with no write of its own."
+  },
+  "K07-pos1": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "reassignContractor calls the notifier port inside the transaction callback."
+  },
+  "K07-pos2": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "closeAndNotify calls the notifier port inside the transaction callback."
+  },
+  "K07-twin1": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "reassignContractor notifies the contractor after the transaction has committed."
+  },
+  "K07-twin2": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "closeAndNotify reads the contractor inside the transaction and notifies after commit."
+  },
+  "K07-legit": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "The port call sits lexically inside an arrow function, but the function runs after the transaction commits."
+  },
+  "K08-pos1": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "The service compares the estimate with the work order budget; the aggregate setter enforces nothing."
+  },
+  "K08-pos2": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/invoicing/application/InvoiceService.ts",
+    "note": "The service checks invoice status and line count; Invoice.release enforces nothing."
+  },
+  "K08-twin1": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The aggregate rejects an estimate over budget; the service only loads, delegates and saves."
+  },
+  "K08-twin2": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "Invoice.release enforces draft status and non-empty lines; the service only delegates."
+  },
+  "K08-legit": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The service validates only that the id is non-empty; the name rule lives in Property.rename."
+  },
+  "K09-pos1": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "The service re-checks cost against budget, which WorkOrder.complete also enforces."
+  },
+  "K09-pos2": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/invoicing/application/InvoiceService.ts",
+    "note": "The service re-checks the 20-line limit that Invoice.addLine also enforces."
+  },
+  "K09-twin1": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "A batch completion only calls completeWorkOrder; the budget rule stays in the aggregate."
+  },
+  "K09-twin2": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "A batch add of lines only calls addLine; the line limit stays in Invoice."
+  },
+  "K09-legit": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "The service rejects an empty label (an input rule no aggregate checks); the unit rules stay in Property."
+  },
+  "K10-pos1": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/properties/application/PropertyService.ts",
+    "note": "The service throws on a duplicate unit id, the set invariant Property owns."
+  },
+  "K10-pos2": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/properties/api/PropertyController.ts",
+    "note": "The controller returns an error result for a duplicate unit id without throwing, outside Property."
+  },
+  "K10-twin1": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "A batch add only calls addUnit; Property.addUnit rejects duplicates."
+  },
+  "K10-twin2": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "The controller delegates to the service and maps its error to a result; no duplicate check of its own."
+  },
+  "K10-legit": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "The declared uniqueness invariant (invoice per work order, enforced by the store) is checked through the repository in the service."
+  },
+  "K11-pos1": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "The service serialises completion of a work order with its own in-process lock set."
+  },
+  "K11-pos2": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/properties/infrastructure/InMemoryPropertyRepository.ts",
+    "note": "The repository adapter serialises writes of a property with an in-process lock set."
+  },
+  "K11-twin1": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "Stale completion is rejected by the WorkOrder aggregate through a revision it owns; the service takes no lock."
+  },
+  "K11-twin2": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "The Property aggregate rejects a stale visit count itself; the service takes no lock."
+  },
+  "K11-legit": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "A guard flag surrounds a summary cache refresh only; no aggregate is written."
+  },
+  "K12-pos1": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "The service computes labour cost with a surcharge from the work order budget and writes it back to the aggregate."
+  },
+  "K12-pos2": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/invoicing/application/InvoiceService.ts",
+    "note": "The service computes a late surcharge from the invoice total and writes it back as a line."
+  },
+  "K12-twin1": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "WorkOrder computes its labour cost with surcharge; the service only delegates."
+  },
+  "K12-twin2": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "Invoice computes its late surcharge; the service only delegates."
+  },
+  "K12-legit": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The service formats the invoice total for display and writes nothing."
+  },
+  "K13-pos1": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/workorders/application/ContractorMailer.ts",
+    "note": "The out-port method takes MailMessage from the ambient mailer-sdk shim."
+  },
+  "K13-pos2": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/invoicing/application/InvoiceExporter.ts",
+    "note": "The out-port method takes the concrete InMemoryInvoiceRepository adapter class and a SqlTransaction handle."
+  },
+  "K13-twin1": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The mail port uses only primitive types; the adapter implements it."
+  },
+  "K13-twin2": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The export port takes the InvoiceView contract DTO; the adapter implements it."
+  },
+  "K13-legit": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The port takes the Property aggregate and primitives, all domain-side types."
+  },
+  "K14-pos1": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/properties/index.ts",
+    "note": "The public index re-exports the Property aggregate type."
+  },
+  "K14-pos2": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/invoicing/contracts/InvoiceContracts.ts",
+    "note": "A published contract returns the Invoice aggregate itself."
+  },
+  "K14-twin1": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The published contract exposes a WorkOrderDetail DTO and the service builds it."
+  },
+  "K14-twin2": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The published lookup contract returns the InvoiceView DTO."
+  },
+  "K14-legit": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The contract declares its own PropertyDetail DTO built from UnitSnapshot DTOs; no entity is exposed."
+  },
+  "K15-pos1": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/invoicing/application/InvoiceService.ts",
+    "note": "InvoiceService is injected with the concrete InMemoryInvoiceRepository instead of the port."
+  },
+  "K15-pos2": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/workorders/application/WorkOrderService.ts",
+    "note": "WorkOrderService constructs a RecordingContractorNotifier adapter itself for escalations."
+  },
+  "K15-twin1": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "The escalation goes through the injected ContractorNotifier port."
+  },
+  "K15-twin2": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "The service answers an existence query through the injected repository port."
+  },
+  "K15-legit": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "main.ts builds the invoice repository adapter and injects it into the service."
+  },
+  "K16-pos1": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/invoicing/domain/invoice/Invoice.ts",
+    "note": "The Invoice aggregate holds a WorkOrder root object in a field."
+  },
+  "K16-pos2": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/workorders/domain/workorder/WorkOrder.ts",
+    "note": "The WorkOrder aggregate holds a Property root object in a field."
+  },
+  "K16-twin1": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Invoice references the source work order by id only."
+  },
+  "K16-twin2": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "WorkOrder references the related property by id only."
+  },
+  "K16-legit": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Property holds its own inner Unit entity as the primary unit."
+  }
+}
