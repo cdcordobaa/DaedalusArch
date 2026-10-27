@@ -215,6 +215,16 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const t = node(['TransportConcept'], { form: x.form, detail: x.detail });
     rel('USES_TRANSPORT', u, t, { line: x.line });
   }
+  for (const x of facts.repoMulti) {
+    const a = node(['RepositoryMethod'], { name: `${x.repo}.${x.method}`, file: x.file, line: x.line });
+    const r = roots.get(x.root) ?? node(['Root'], { name: x.root });
+    rel('PERSISTS_MANY', a, r, { form: x.form, line: x.line });
+  }
+  for (const x of facts.domainTech) {
+    const a = node(['DomainFile'], { file: x.file });
+    const b = node(['TechModule'], { module: x.module, category: x.category });
+    rel('DOMAIN_IMPORTS_TECH', a, b, { line: x.line });
+  }
   for (const c of facts.contracts) {
     const a = node(['ContractType'], { name: c.contract, file: c.file, line: c.line });
     const b = node(['EntityType'], { name: c.entity, file: c.entityFile });
