@@ -3182,5 +3182,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "Rule on the open thesis and v1.5 study decisions from the decision register; accept the recommendation wherever no other choice was made."
 **AI Response**: "Recorded the 22 decisions (A1–E3) in ops/decisions.md, with the work each creates. Two items carry the author's qualifications: A2 (the general objective exists; research questions are added) and C10 (Grok possible later, not committed)."
 **Context**: Planning record for the v1.5 final study; no code change.
+## Construction: v1.5 answer keys R6 (decisions B1–B3)
+**Timestamp**: 2026-10-27T02:20:00Z
+**User Input**: "Apply the answer-key rulings of the decision register."
+**AI Response**: "Encoded P1-SG1-c and P2-SG1-e in the P1 and P2 oracles (revision R6), added P1 to the zero-call rescore, and re-scored every recorded arm. Only the runs the hand reads named changed: PUZZLE-04 gate P1 2/5 to 5/5, P2 4/5 to 5/5; baselines unchanged. Report: Docs/DiagnosticRuns/v15-answer-keys-r6-2026-10-26.md."
+**Context**: v1.5 Stage 0 follow-up; zero model calls; recorded as one post-hoc deviation.
 
 ---

@@ -1,5 +1,5 @@
 /**
- * v1.5 Stage 0 (2026-10-26), zero calls: re-score the EXISTING P2 and P5 final trees with the puzzle keys as they are
+ * v1.5 Stage 0 (2026-10-26), zero calls: re-score the EXISTING P1, P2 and P5 final trees with the puzzle keys as they are
  * in this checkout (oracle + behaviour tests). No new runs; the trees are the recorded step snapshots.
  *
  *   npx tsx experiments/v15-stage0/rescore-keys.ts --label before|after
@@ -13,6 +13,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 const PUZZLE_DIR: Record<string, string> = {
+  'p1-transfers': 'experiments/puzzle-01/puzzles/p1-transfers',
   'p2-loyalty': 'experiments/puzzle-01/puzzles/p2-loyalty',
   'p5-ferry-seats': 'experiments/puzzle-03/puzzles/p5-ferry-seats',
 };
