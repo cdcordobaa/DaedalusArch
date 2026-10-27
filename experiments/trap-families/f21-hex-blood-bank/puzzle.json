@@ -1,0 +1,55 @@
+{
+  "id": "f21-hex-blood-bank",
+  "split": "dev",
+  "style": "hexagonal",
+  "entry": "src/config/bootstrap.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "haemalink-sdk": "vendor/haemalink-sdk"
+  },
+  "variantOf": "experiments/puzzle-03/puzzles/p3r-shipping-quotes",
+  "trapFamily": {
+    "template": "experiments/puzzle-03/puzzles/p3r-shipping-quotes",
+    "trap": "vendor shape in the port: the regional blood supplier's order request and receipt (HlOrderRequest with lines of product 'RBC' / abo / rhd 'NEG' / qty, priority 'STAT'; HlOrderReceipt with orderRef and allocations[].qtyAllocated), its allocation status strings ('PART_ALLOCATED', 'BACKORDERED'), its embargo error class (HaemalinkEmbargoError with embargoCode 'REGIONAL_SHORTAGE' / 'TTI_QUARANTINE' and liftsAt) leak into the port and the request service"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5",
+      "steps": [
+        "supplier-orders",
+        "embargo",
+        "o-negative-cover"
+      ],
+      "rule": "Ports and the application core speak the application's own language: the supplier's request, receipt, field names, product and priority codes, allocation status strings and embargo codes stay in the adapter, and the core states its own outcomes (Cockburn P1: each adapter talks to the application through a port)."
+    },
+    {
+      "id": "SG2",
+      "family": "H2/H1b",
+      "steps": [
+        "embargo"
+      ],
+      "rule": "The core has no runtime dependency on the vendor SDK: an embargo reaches it as its own error, not as the vendor's error class or its name (Cockburn P1)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null
+  },
+  "precedent": "clean-shaped: the existing delivery port (application/needs/Deliveries.ts) is written in the application's own type (DeliveryUpdate with DeliveryState 'being packed' | 'on the way' | 'delivered'), and HaemalinkDeliveries translates from the SDK's consignment(orderRef) record and its stages ('PICKING', 'DISPATCHED', 'DELIVERED', stageAt).",
+  "gaming": [
+    {
+      "tree": "gaming/renamed-vendor-shape",
+      "subGoals": [
+        "SG1",
+        "SG2"
+      ],
+      "what": "rename: the port declares its own copy of the supplier's order and receipt (SupplyRequest with lines of product / abo / rhd / qty; SupplyReceipt with orderRef and allocations[].qtyAllocated / allocationStatus) under domain-sounding names, the adapter passes the vendor's receipt through, and the service recognises the embargo by the error's name string and reads embargoCode and liftsAt instead of importing the class"
+    }
+  ]
+}

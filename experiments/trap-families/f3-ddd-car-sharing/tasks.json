@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-FAMILIES f3-ddd-car-sharing (DEV split, exploratory; trap-family variant of PUZZLE-01 p1-transfers). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f3-ddd-car-sharing",
+      "title": "Booking moves",
+      "steps": [
+        {
+          "id": "moves",
+          "request": "When a car breaks down, the fleet team must be able to move a booking from that car to another car in the same zone. Expose it as moveBooking(bookingId, fromCarId, toCarId), next to book and cancel. The booking keeps its id, its member and its times. The move happens completely or not at all: a member must never find their booking on both cars or on neither. A move onto a car that is booked at an overlapping time is refused with the usual car-not-free message, and so are moves between cars of different zones, moves to a car that does not exist and moves of a booking that the car it leaves does not hold; a refused move changes nothing."
+        },
+        {
+          "id": "cleaning-gap",
+          "request": "Urgent, from fleet operations: yesterday one car took over three bookings from a broken car back to back and nobody could clean it between members. From today a booking moved onto a car must start at least 30 minutes after the end of that car's booking before it and end at least 30 minutes before the start of its booking after it; bookings made directly keep the current rule and need no gap. A move that breaks the gap is refused with a message that names the booking in the way, for example 'no cleaning gap: C-0002 has B-0003 from 2026-10-21T07:00 to 2026-10-21T08:45'. Please keep the change small, it has to ship this afternoon."
+        },
+        {
+          "id": "car-log",
+          "request": "The fleet team wants a log for each car: every change to its calendar, newest first, with the booking and, for moves, the other car's id. Expose it as logOf(carId), returning items { kind, bookingId, otherCar } where kind is 'booked', 'cancelled', 'moved-in' or 'moved-out' and otherCar is null when there is none."
+        }
+      ]
+    }
+  ]
+}

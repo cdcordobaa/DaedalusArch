@@ -1,0 +1,23 @@
+{
+  "description": "F22 f22-hex-airport-lounge (DEV split, exploratory; trap family of p6-workshop-jobs). Brownfield change requests, one per agent session turn. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f22-hex-airport-lounge",
+      "title": "Airport lounge access",
+      "steps": [
+        {
+          "id": "guest-cutoff",
+          "request": "Partner airlines can now set an evening cut-off for guests. desk.addPartner takes an optional guestCutoff, a whole hour from 12 to 23, for example { airline: 'LU', guests: 2, guestCutoff: 21 }; any other value is refused with status 400 and 'guest cut-off must be a whole hour from 12 to 23'. From the cut-off hour until 05:00, in local time at the lounge's airport, a holder of that airline's pass may still enter alone, but entering with one or more guests is refused with status 422 and 'no guests between 21:00 and 05:00 at ZRH' (the partner's cut-off hour and the lounge's airport code). At 05:00 guests are welcome again. Partners without a cut-off and day passes are unchanged, and every existing refusal keeps its order, status and wording; the cut-off is checked after the guest allowance. Local time means the wall clock at that airport, not the server's: at 20:30 UTC on 27 October 2026 it is 21:30 in Zurich and 16:30 in New York."
+        },
+        {
+          "id": "late-guest",
+          "request": "A guest can now join a visit in progress: desk.addGuest(visitId) answers { visit, guests } with the visit's new number of guests, and occupancy counts the guest at once. The visit must exist ('no visit V-0999', status 404) and must not have ended ('visit V-0001 has ended', status 422). Then the same rules as entering with one more guest apply, checked in this order and with the same wording and status as on entry: day passes take no guests ('day passes allow no guests'), the airline's guest allowance ('LU allows at most 2 guests'), the guest cut-off at the lounge's local time ('no guests between 21:00 and 05:00 at ZRH'), and room for one more person ('lounge L-01 is full')."
+        },
+        {
+          "id": "full-answer",
+          "request": "The front-desk app must tell a full lounge apart from the other refusals so that it can show a waiting time. When entering, or adding a guest, is refused because the lounge is full, the answer is now status 503 with body { error: 'lounge L-01 is full', retryAfterMinutes: N }: N is the number of minutes, rounded up to a whole minute, until the visit in progress that started earliest in that lounge reaches three hours (no visit lasts longer than that), and at least 1. Every other refusal keeps its current status and body exactly. The app team ships tonight, so keep the change small."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "f13-ddd-bike-repairs",
+  "variantOf": "p1-transfers",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D4", "steps": ["job-completion", "stock-history"], "rule": "One command changes one aggregate instance; a second aggregate of another type (the stockroom) follows the completed job through a stored event (Vernon P4)." },
+    { "id": "SG2", "family": "D5", "steps": ["labour-cap"], "rule": "The labour cap (and its overrun approval) is an invariant of the repair job and is enforced inside the RepairJob aggregate (Vernon P4)." }
+  ],
+  "aggregateRoots": ["RepairJob", "Stockroom"],
+  "plantedDebt": [],
+  "ladder": { "T": 2, "S": 3, "Dst": 1, "Pd": 1, "Dx": 0, "rung": 4 },
+  "precedent": "clean only: both stores already append pending events to one shared outbox in the same step as the change, and a relay delivers them after each command (booking notice on JobBooked)."
+}

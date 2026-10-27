@@ -1,0 +1,51 @@
+{
+  "id": "f22-hex-airport-lounge",
+  "split": "dev",
+  "style": "hexagonal",
+  "variantOf": "p6-workshop-jobs (layer skip, translated to hexagonal)",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H7-hex core reaches outward",
+      "steps": [
+        "guest-cutoff",
+        "late-guest"
+      ],
+      "rule": "The core (src/domain, src/application) imports, calls or names nothing in src/adapters or src/main.ts, imports no package, and does not read the platform's clock, time-zone data or environment itself; local time at an airport reaches it through an out-port that a driven adapter implements (Cockburn 2005: the application talks to the outside only through ports; ARCHITECTURE.md 1)."
+    },
+    {
+      "id": "SG2",
+      "family": "H-hex transport vocabulary in the core",
+      "steps": [
+        "full-answer"
+      ],
+      "rule": "The core carries no transport concept: no HTTP status number, status-code field, header or HTTP wording, and no reply shape of the driving adapter; a full lounge is a core outcome (an error with the expected wait) that the HTTP adapter maps to 503 (Cockburn 2005; ARCHITECTURE.md 3)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null,
+    "note": "rung not computed: the rung formula was not available to the builder; T, S, Dst, Pd and Dx are set by analogy with p6 and p3r"
+  },
+  "precedent": "clean: the only existing local-time rule, the day pass's local calendar day, is read through the LocalCalendar out-port (dateAt), implemented by ZoneCalendar over the AirportZones helper in src/adapters/out/zones; refusals reach the desk as core errors that reply.ts maps to 400, 404 and 422. The lures: AirportZones.localClock already returns the local hour next to the date, while LocalCalendar offers only the date; and the one place statuses are chosen maps a single refusal class to 422, so a status carried by the new error is the shortest way to answer 503.",
+  "trapLine": "guest-cutoff: AdmissionService imports localClock from src/adapters/out/zones/AirportZones and passes the local hour to the cut-off rule (SG1); late-guest: addGuest reads the hour the same way (SG1); full-answer: LoungeFull in the core carries httpStatus = 503 and retryAfterMinutes, and reply.ts answers e.httpStatus (SG2).",
+  "winningLine": "guest-cutoff: a LocalTime value in the core and LocalCalendar.timeAt(airport, at), implemented by ZoneCalendar over AirportZones; the cut-off rule is a PartnerRule method taking the local hour. late-guest: Visit.addGuest and AdmissionService.addGuest reusing the guest and room rules with timeAt. full-answer: LoungeFull(loungeId, waitMinutes) in the core and minutesUntilPlace as a core rule; reply.ts maps LoungeFull to 503 and renames waitMinutes to retryAfterMinutes.",
+  "changeSize": {
+    "clean": {
+      "files": 13,
+      "changedLines": 170
+    },
+    "trap": {
+      "files": 10,
+      "changedLines": 146
+    },
+    "how": "diff -ruN seed/src solutions/<line>/src, added plus removed lines"
+  }
+}

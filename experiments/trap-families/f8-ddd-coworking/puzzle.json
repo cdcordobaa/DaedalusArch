@@ -1,0 +1,16 @@
+{
+  "id": "f8-ddd-coworking",
+  "variantOf": "p1-transfers",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D4", "steps": ["relocations", "room-history"], "rule": "One command changes one aggregate instance; other aggregates follow through stored events (Vernon P4)." },
+    { "id": "SG2", "family": "D5", "steps": ["team-cap"], "rule": "The daily team cap on a relocated reservation is an invariant of the receiving room's calendar and is enforced inside the room aggregate (Vernon P4)." }
+  ],
+  "aggregateRoots": ["Room"],
+  "plantedDebt": [],
+  "ladder": { "T": 2, "S": 3, "Dst": 1, "Pd": 1, "Dx": 0, "rung": 4 },
+  "precedent": "clean only: the room store already saves pending events with the room (outbox) and a relay delivers them after each command (room listing notice)."
+}

@@ -1,0 +1,51 @@
+{
+  "id": "f11-ddd-marina",
+  "variantOf": "p5-ferry-seats",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "D4 cross-context",
+      "steps": ["seasonal-contract"],
+      "rule": "Signing a contract changes and saves only the membership; the pontoon's berth is taken when berthing reacts to what the membership wrote, and the membership learns the answer from what the pontoon wrote, never inside the signContract command or the composition root (Vernon P4; Evans bounded context). Reading a pontoon through the published view is allowed."
+    },
+    {
+      "id": "SG2",
+      "family": "D4 cross-context",
+      "steps": ["storm-closure"],
+      "rule": "Closing a pontoon changes and saves only the pontoon; the suspended contracts and the storm credit follow in membership from what the pontoon wrote, never inside the closePontoon command or the composition root (Vernon P4)."
+    },
+    {
+      "id": "SG3",
+      "family": "D4 cross-context",
+      "steps": ["resign"],
+      "rule": "Resigning changes and saves only the membership; the freed berth follows in berthing from what the membership wrote, never inside the resign command (Vernon P4)."
+    }
+  ],
+  "aggregateRoots": ["Pontoon", "Membership"],
+  "contexts": {
+    "berthing": ["Pontoon"],
+    "membership": ["Membership"]
+  },
+  "commands": {
+    "signContract": "membership",
+    "closePontoon": "berthing",
+    "resign": "membership"
+  },
+  "plantedDebt": [],
+  "nearMiss": [
+    {
+      "file": "src/berthing/index.ts",
+      "what": "berthing already publishes assignBerth / vacateBerth (the harbour master's berths for visiting boats), a synchronous write that picks the shortest fitting berth and throws 'no free berth fits N m', so it does the step-1 choice and the berth change in one call"
+    },
+    {
+      "file": "src/membership/index.ts",
+      "what": "membership already publishes adjustFees (the treasurer's correction), a synchronous write a storm closure could call for the credit"
+    }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 3, "Pd": 1, "Dx": 1, "rung": 4 },
+  "precedent": "clean and across the two contexts: every new member already reaches berthing as a logged MemberJoined that the courier passes on after the command (the dock gate list, through berthing/acl/MembershipFeed.ts and each module's listensTo map); the trap-shaped helpers are legitimate published writes of the other context."
+}

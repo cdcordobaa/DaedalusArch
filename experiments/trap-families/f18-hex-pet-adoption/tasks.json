@@ -1,0 +1,23 @@
+{
+  "description": "F18 f18-hex-pet-adoption (DEV split, exploratory; trap family of p6-workshop-jobs). Brownfield change requests, one per agent session turn. Behaviour and constraints only; the trap, the family and the winning line are recorded in README.md and puzzle.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "f18-hex-pet-adoption",
+      "title": "Shelter front desk",
+      "steps": [
+        {
+          "id": "waiting-list",
+          "request": "The front desk wants to see who is waiting for an answer: frontDesk.waitingList() lists every pending application as { application, pet, adopter, waitingDays }, where application is the application id, pet and adopter are names, and waitingDays the whole days since the application was submitted (0 on the same day). Longest waiting first; equal waits in application id order. Approved and rejected applications are not shown. It is only for the front desk screen, so keep it simple."
+        },
+        {
+          "id": "withdraw",
+          "request": "An adopter can now withdraw an application: shelter.withdrawApplication(applicationId) answers the application as application(id) shows it, with status 'withdrawn'. Refuse it when the application does not exist ('no application AP-0999') or is not pending ('application AP-0002 is not pending'), which covers approved, rejected and already withdrawn ones. A withdrawn application can no longer be approved (same refusal), leaves the waiting list, and does not stop the same adopter from applying for the same pet again."
+        },
+        {
+          "id": "monthly-adoptions",
+          "request": "The shelter manager wants the adoptions of a month by species: frontDesk.adoptionsBySpecies('2026-10') lists { species, adopted, averageStayDays } for every species with at least one pet adopted in that month, where adopted is the number of those pets and averageStayDays the average of their whole days from arrival to adoption, rounded to one decimal. Most adoptions first; equal counts in species name order; a month with no adoptions gives an empty list. A month not written YYYY-MM (month 01 to 12) is refused ('not a month: 2026-13'). The board meets tomorrow morning, so the quickest change that works is fine."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+import type { LicensingDesk } from '../../licensing';
+import type { LicenceRegister } from '../application/ports/LicenceRegister';
+import type { TraderStanding } from '../domain/day/value-objects/TraderStanding';
+
+/** Asks the licensing desk, through what it publishes, and answers in the terms pitch bookings use. */
+export class LicensingGateway implements LicenceRegister {
+  constructor(private readonly desk: LicensingDesk) {}
+
+  isRegistered(vendorId: string): boolean {
+    return this.desk.sheet(vendorId) !== undefined;
+  }
+
+  standingOf(vendorId: string): TraderStanding {
+    const status = this.desk.sheet(vendorId)?.status;
+    if (status === undefined) throw new Error(`no vendor ${vendorId}`);
+    return status;
+  }
+}

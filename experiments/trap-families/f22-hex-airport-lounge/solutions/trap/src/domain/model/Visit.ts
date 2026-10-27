@@ -1,0 +1,47 @@
+import { AccessRefused } from '../errors/LoungeErrors';
+import type { Instant } from './Instant';
+
+/** One stay of a pass holder (and their guests) in a lounge. */
+export class Visit {
+  private left: Instant | null = null;
+
+  constructor(
+    readonly id: string,
+    readonly passId: string,
+    readonly loungeId: string,
+    private guestCount: number,
+    readonly enteredAt: Instant,
+  ) {}
+
+  get guests(): number {
+    return this.guestCount;
+  }
+
+  get leftAt(): Instant | null {
+    return this.left;
+  }
+
+  get inProgress(): boolean {
+    return this.left === null;
+  }
+
+  /** The holder plus their guests. */
+  get people(): number {
+    return 1 + this.guestCount;
+  }
+
+  /** Refuses an ended visit; the rules for the extra guest are checked by the caller first. */
+  ensureInProgress(): void {
+    if (!this.inProgress) throw new AccessRefused(`visit ${this.id} has ended`);
+  }
+
+  addGuest(): void {
+    this.ensureInProgress();
+    this.guestCount += 1;
+  }
+
+  leave(at: Instant): void {
+    this.ensureInProgress();
+    this.left = at;
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "f3-ddd-car-sharing",
+  "variantOf": "p1-transfers",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D4", "steps": ["moves", "car-log"], "rule": "One command changes one aggregate instance; other aggregates follow through stored events (Vernon P4)." },
+    { "id": "SG2", "family": "D5", "steps": ["cleaning-gap"], "rule": "The cleaning gap around a moved booking is an invariant of the receiving car's calendar and is enforced inside the car aggregate (Vernon P4)." }
+  ],
+  "aggregateRoots": ["Car"],
+  "plantedDebt": [],
+  "ladder": { "T": 2, "S": 3, "Dst": 1, "Pd": 1, "Dx": 0, "rung": 4 },
+  "precedent": "clean only: the car store already saves pending events with the car (outbox) and a relay delivers them after each command (availability notice)."
+}

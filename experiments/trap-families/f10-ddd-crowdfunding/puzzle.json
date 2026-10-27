@@ -1,0 +1,18 @@
+{
+  "id": "f10-ddd-crowdfunding",
+  "variantOf": "p2-loyalty",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D6/D10", "steps": ["standing-limits", "trusted-threshold"], "rule": "The standing rule has one owner (backers); campaigns reach it only through the owner's published interface and never re-decide it from the backer's record (Fowler P3; Evans bounded context). The pledge cap per standing is a campaigns rule." },
+    { "id": "SG2", "family": "D4", "steps": ["fulfilled-pledges"], "rule": "Closing a campaign changes no backer: the backers' records follow from the stored CampaignClosed fact delivered to the owning context, one backer per handler call (Vernon P4, eventual consistency outside the boundary)." }
+  ],
+  "aggregateRoots": ["Campaign", "Backer"],
+  "plantedDebt": [
+    { "file": "src/campaigns/application/BackerHandles.ts", "family": "D6", "what": "imports backers' BackerRepository and BackerId from its domain (cross-context internal import)" }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 3, "Pd": 2, "Dx": 0, "rung": 5 },
+  "precedent": "both: a clean published interface (backers index.ts BackersFacade, BackerProfile contract, campaigns acl BackersAdapter) and a stored-fact reaction (CreatorMessages subscribed to PledgeMade and CampaignClosed in the composition root); and a trap-shaped one (BackerHandles reads backers through their domain repository)."
+}

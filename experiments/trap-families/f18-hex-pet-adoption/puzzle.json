@@ -1,0 +1,49 @@
+{
+  "id": "f18-hex-pet-adoption",
+  "split": "dev",
+  "style": "hexagonal",
+  "variantOf": "p6-workshop-jobs (layer skip, translated to hexagonal)",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H7-hex inbound adapter skips the core",
+      "steps": [
+        "waiting-list",
+        "monthly-adoptions"
+      ],
+      "rule": "A driving (inbound) adapter calls the application only through an in-port and never imports, names or receives an outbound adapter; stored data is read by a use case through an out-port (Cockburn 2005: adapters talk to the application only through ports; ARCHITECTURE.md 2)."
+    },
+    {
+      "id": "SG2",
+      "family": "H1 core depends on an adapter",
+      "steps": [
+        "waiting-list",
+        "monthly-adoptions"
+      ],
+      "rule": "No domain or application file imports or names a symbol of src/adapters/** or the composition root; use cases depend only on ports (Cockburn 2005; ARCHITECTURE.md 1)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null,
+    "note": "rung not computed: the rung formula was not available to the builder; T, S, Dst, Pd and Dx are set by analogy with p6 and p3r"
+  },
+  "precedent": "clean: the only existing listing, frontDesk.availablePets, is an in-port (ListAvailablePets) implemented by a use case that reads the PetStore out-port; the in-memory stores also expose a public all() that no port declares, which is the shortcut the trap takes.",
+  "trapLine": "waiting-list: FrontDeskController takes the three in-memory stores and builds the list from all() (SG1); withdraw: as the clean line; monthly-adoptions: an AdoptionStatsService in src/application typed with InMemoryPetStore and reading all() (SG2), the handler delegating to it.",
+  "gaming": [
+    {
+      "tree": "gaming/look-alike-rows",
+      "subGoals": [
+        "SG1"
+      ],
+      "what": "look-alike: the front desk handler declares its own Rows/Named interfaces with the store's members (all, byId) and imports no store; the composition root hands it the in-memory stores. No import crosses from the inbound to the outbound adapters; SG1 (d) sees the stores passed to the handler in src/main.ts. SG2 is as in the trap (the stats service still imports InMemoryPetStore)"
+    }
+  ]
+}

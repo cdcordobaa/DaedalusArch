@@ -1,0 +1,60 @@
+{
+  "id": "f7-ddd-volunteer-shifts",
+  "variantOf": "p5-ferry-seats",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "D4 cross-context",
+      "steps": [
+        "hold-places"
+      ],
+      "rule": "A sign-up command changes and saves only the sign-up; the shift's places change when the shifts context handles an event the sign-up stored, never inside the sign-up command (Vernon P4; Evans bounded context)."
+    },
+    {
+      "id": "SG2",
+      "family": "D4 cross-context",
+      "steps": [
+        "withdraw-sign-up",
+        "shift-cancelled"
+      ],
+      "rule": "Neither context changes the other's aggregate inside its own command: freed places follow a stored event that shifts handles, and a cancelled shift changes no sign-up synchronously (Vernon P4)."
+    }
+  ],
+  "aggregateRoots": [
+    "Shift",
+    "SignUp"
+  ],
+  "contexts": {
+    "shifts": [
+      "Shift"
+    ],
+    "signups": [
+      "SignUp"
+    ]
+  },
+  "commands": {
+    "signUp": "signups",
+    "withdraw": "signups",
+    "cancelShift": "shifts"
+  },
+  "plantedDebt": [],
+  "nearMiss": [
+    {
+      "file": "src/shifts/index.ts",
+      "what": "the published module already offers holdPlaces / releasePlaces (the volunteer coordinator's block of places for a partner group), a synchronous write that does exactly what a sign-up needs"
+    }
+  ],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 3,
+    "Pd": 1,
+    "Dx": 1,
+    "rung": 4
+  },
+  "precedent": "clean: an existing event subscription (SignUpRequested to the coordinator notices through the relay); the trap-shaped helper is a legitimate published write of the other context."
+}

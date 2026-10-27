@@ -1,0 +1,18 @@
+{
+  "id": "f4-ddd-gym-classes",
+  "variantOf": "p2-loyalty",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    { "id": "SG1", "family": "D6/D10", "steps": ["level-discount", "premium-threshold"], "rule": "The level rule has one owner (membership); class bookings reach it only through the owner's published interface and never re-implement it (Fowler P3; Evans bounded context)." },
+    { "id": "SG2", "family": "D4", "steps": ["visits-on-bookings"], "rule": "Booking a class changes no member: the member's visits follow from a stored event delivered to the owning context (Vernon P4, eventual consistency outside the boundary)." }
+  ],
+  "aggregateRoots": ["Booking", "Member"],
+  "plantedDebt": [
+    { "file": "src/bookings/application/ConfirmationNote.ts", "family": "D6", "what": "imports membership's MemberRepository and MemberId from its domain (cross-context internal import)" }
+  ],
+  "ladder": { "T": 2, "S": 3, "Dst": 3, "Pd": 2, "Dx": 0, "rung": 5 },
+  "precedent": "both: a clean published interface (membership index.ts, MemberCard contract, bookings acl) and a trap-shaped one (ConfirmationNote reads members through membership's domain repository)."
+}

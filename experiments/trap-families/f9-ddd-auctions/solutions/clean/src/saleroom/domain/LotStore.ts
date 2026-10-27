@@ -1,0 +1,11 @@
+import type { DomainEvent } from '../../shared-kernel/DomainEvent';
+import type { Lot } from './Lot';
+
+export interface LotStore {
+  newId(): string;
+  find(id: string): Lot | undefined;
+  /** The ids of the open lots this bidder leads. */
+  openLotsLedBy(bidderId: string): string[];
+  /** Writes the lot and appends the events of the change to the outbox, in one step. */
+  save(lot: Lot, events?: readonly DomainEvent[]): void;
+}

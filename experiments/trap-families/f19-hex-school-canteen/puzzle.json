@@ -1,0 +1,44 @@
+{
+  "id": "f19-hex-school-canteen",
+  "split": "dev",
+  "style": "hexagonal",
+  "variantOf": "p6-workshop-jobs (layer skip, translated to hexagonal)",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H7-hex driving adapter skips the use case",
+      "steps": [
+        "kitchen-tally",
+        "finance-export"
+      ],
+      "rule": "A driving adapter (HTTP route or scheduled run) calls the application only through an in-port and never uses a driven adapter, an out-port or the composition root; stored data it shows is read by a use case through an out-port, and no core file uses an adapter (Cockburn 2005: adapters talk to the application only through ports; ARCHITECTURE.md 1 and 2)."
+    },
+    {
+      "id": "SG2",
+      "family": "H7-hex driven adapter uses another driven adapter",
+      "steps": [
+        "finance-export"
+      ],
+      "rule": "A driven adapter (src/adapters/out/<name>) uses only the core and its own folder; data held by one driven adapter reaches another only through a use case and the out-ports, never by import, by name or by being handed over in the composition root (Cockburn 2005; ARCHITECTURE.md 3)."
+    }
+  ],
+  "plantedDebt": [],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 2,
+    "Pd": 0,
+    "Dx": 0,
+    "rung": null,
+    "note": "rung not computed: the rung formula was not available to the builder; T, S, Dst, Pd and Dx are set by analogy with p6 and p3r"
+  },
+  "precedent": "clean: the only existing read-and-report feature, the nightly low-balance letters (NightlyRun.lowBalanceLetters), is a scheduled run calling the LowBalanceLetters in-port, whose use case reads the PupilStore out-port and writes through the ParentPost out-port to the LetterTray driven adapter. The lure: the in-memory CanteenDatabase exposes its tables (pupils, dishes, orders) as public maps, and no out-port can list a day's orders.",
+  "trapLine": "kitchen-tally: KitchenRoutes takes the CanteenDatabase and counts db.orders itself (SG1); cancel-order: as the clean line; finance-export: TakingsCsv in src/adapters/out/finance reads db.orders and db.pupils and writes the FinanceFolder (SG2), and NightlyRun calls TakingsCsv directly (SG1).",
+  "changeSize": {
+    "clean": { "files": 15, "changedLines": 172 },
+    "trap": { "files": 9, "changedLines": 128 },
+    "how": "diff -ruN seed/src solutions/<line>/src, added plus removed lines"
+  }
+}

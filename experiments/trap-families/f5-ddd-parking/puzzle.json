@@ -1,0 +1,60 @@
+{
+  "id": "f5-ddd-parking",
+  "variantOf": "p5-ferry-seats",
+  "split": "dev",
+  "style": "ddd",
+  "entry": "src/main.ts",
+  "spec": "spec.yaml",
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "D4 cross-context",
+      "steps": [
+        "hold-bays"
+      ],
+      "rule": "A reservation command changes and saves only the reservation; the car park's bays change when the car parks context handles an event the reservation stored, never inside the reservation command (Vernon P4; Evans bounded context)."
+    },
+    {
+      "id": "SG2",
+      "family": "D4 cross-context",
+      "steps": [
+        "cancel-reservation",
+        "car-park-closed"
+      ],
+      "rule": "Neither context changes the other's aggregate inside its own command: freed bays follow a stored event that car parks handles, and a closed car park changes no reservation synchronously (Vernon P4)."
+    }
+  ],
+  "aggregateRoots": [
+    "CarPark",
+    "Reservation"
+  ],
+  "contexts": {
+    "carparks": [
+      "CarPark"
+    ],
+    "reservations": [
+      "Reservation"
+    ]
+  },
+  "commands": {
+    "reserve": "reservations",
+    "cancelReservation": "reservations",
+    "closeCarPark": "carparks"
+  },
+  "plantedDebt": [],
+  "nearMiss": [
+    {
+      "file": "src/carparks/index.ts",
+      "what": "the published module already offers holdBays / releaseBays (the contracts desk's block of bays for a company), a synchronous write that does exactly what a reservation needs"
+    }
+  ],
+  "ladder": {
+    "T": 2,
+    "S": 3,
+    "Dst": 3,
+    "Pd": 1,
+    "Dx": 1,
+    "rung": 4
+  },
+  "precedent": "clean: an existing event subscription (ReservationRequested to the attendant notices through the relay); the trap-shaped helper is a legitimate published write of the other context."
+}
