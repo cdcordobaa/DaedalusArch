@@ -13,6 +13,12 @@
  * business comparison (a relational operator that is not a loop bound or a length check), so a limit or balance rule
  * cannot be decided in an application service, the composition root or a store.
  *
+ * Revision R6 (v1.5, 2026-10-26, zero calls; decision B1 of 2026-10-26): P1-SG1-c is encoded. A store method that
+ * no call in the tree reaches is not a write, so the two declaration clauses skip it. "Reached" is by name: the
+ * declaration counts when any call in the tree invokes a method of that name on a store-typed receiver (through the
+ * port or the adapter). This is conservative: one call to any `saveAll` keeps every `saveAll` declaration in scope.
+ * The function-body clause (two writes in one body) is unchanged.
+ *
  * Limits (stated, not hidden): a write in a loop counts once; a comparison hidden behind a helper the domain does not
  * own is not seen; a comparison in the domain is always accepted. Every failure on an agent tree is hand-read before
  * it counts (design note §10 V3).
@@ -50,13 +56,26 @@ for (const rel of outsideDomain) {
     if (writes.length >= 2) sg1.push(`${rel} ${fnName(fn, sf)}: ${writes.join('; ')}`);
   }
 }
+// R6 (B1, P1-SG1-c): store method names that some call in the tree reaches on a store-typed receiver.
+const calledStoreMethods = new Set<string>();
+for (const rel of tree.files) {
+  const sf = tree.source(rel);
+  const visit = (n: ts.Node): void => {
+    if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(n.expression) && STORE_TYPE.test(typeNameOf(tree.checker, n.expression.expression))) {
+      calledStoreMethods.add(n.expression.name.text);
+    }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
+}
+
 // Repository-like declarations whose write method takes several aggregate roots.
 for (const rel of tree.files) {
   const sf = tree.source(rel);
   const visit = (n: ts.Node): void => {
     if ((ts.isInterfaceDeclaration(n) || ts.isClassDeclaration(n)) && n.name !== undefined && STORE_TYPE.test(n.name.text)) {
       for (const m of n.members) {
-        if ((ts.isMethodSignature(m) || ts.isMethodDeclaration(m)) && m.name !== undefined && ts.isIdentifier(m.name) && WRITES.test(m.name.text)) {
+        if ((ts.isMethodSignature(m) || ts.isMethodDeclaration(m)) && m.name !== undefined && ts.isIdentifier(m.name) && WRITES.test(m.name.text) && calledStoreMethods.has(m.name.text)) {
           const rootParams = m.parameters.filter((p) => p.type !== undefined && ROOTS.some((r) => new RegExp(`\\b${r}\\b`).test(p.type!.getText(sf))));
           const arrayRoot = rootParams.some((p) => /\[\]|Array</.test(p.type!.getText(sf)));
           if (rootParams.length >= 2 || arrayRoot) sg1.push(`${rel}:${String(lineOf(sf, m))} ${n.name.text}.${m.name.text} takes several aggregate roots`);
@@ -77,7 +96,7 @@ for (const rel of tree.files) {
     if ((ts.isInterfaceDeclaration(n) || ts.isClassDeclaration(n)) && n.name !== undefined && STORE_TYPE.test(n.name.text)) {
       for (const m of n.members) {
         if (!(ts.isMethodSignature(m) || ts.isMethodDeclaration(m)) || m.name === undefined || !ts.isIdentifier(m.name)) continue;
-        if (READ_NAME.test(m.name.text) || WRITES.test(m.name.text)) continue;
+        if (READ_NAME.test(m.name.text) || WRITES.test(m.name.text) || !calledStoreMethods.has(m.name.text)) continue;
         const accounts = m.parameters.filter((p) => p.type !== undefined && /\bAccount\b/.test(p.type.getText(sf))).length;
         const ids = m.parameters.filter((p) => {
           const t = p.type?.getText(sf) ?? '';

@@ -25,6 +25,11 @@
  *   earned) was failed by SG1 (b). A comparison of a plain points name (an identifier or a property access, no
  *   arithmetic) with the literal 0 is now exempt; any other comparison that mentions points still fails.
  *
+ * Revision R6 (v1.5, 2026-10-26, zero calls; decision B2 of 2026-10-26): P2-SG1-e is encoded. A `tier()` call is
+ * exempt when its receiver's type is declared under src/sales/ (a port sales owns, whose adapter asks membership).
+ * Reading the tier membership decided is not owning the tier rule. The condition of B2 (no points decision from the
+ * tier in sales) is kept by the other SG1 clauses: points comparisons and the tier thresholds still fail.
+ *
  * Limits: a write reached through an indirection that sales does not name is not seen; the planted file may still be
  * copied, which SG1 (a) counts. Every failure on an agent tree is hand-read before it counts.
  *
@@ -56,6 +61,9 @@ const zeroGuard = (n: ts.BinaryExpression): boolean => {
   return (plain(n.left) && zero(n.right)) || (zero(n.left) && plain(n.right));
 };
 const tree = loadTree(treeArg);
+/** R6, P2-SG1-e: the receiver's type is declared in a file under src/sales/. */
+const salesOwnedType = (e: ts.Expression): boolean =>
+  (tree.checker.getTypeAtLocation(e).getSymbol()?.getDeclarations() ?? []).some((d) => d.getSourceFile().fileName.includes('/src/sales/'));
 const sg1: string[] = [];
 const sg2: string[] = [];
 const resolveIndex = (p: string | null): string | null => (p !== null && !tree.files.includes(p) && tree.files.includes(p.replace(/\.ts$/, '/index.ts')) ? p.replace(/\.ts$/, '/index.ts') : p);
@@ -81,7 +89,7 @@ for (const rel of tree.files) {
       if (!ts.isCallExpression(n) || !ts.isPropertyAccessExpression(n.expression)) continue;
       const method = n.expression.name.text;
       const recvType = typeNameOf(tree.checker, n.expression.expression);
-      if (inSales && method === 'tier' && /^Member/.test(recvType)) sg1.push(`${rel}:${String(lineOf(sf, n))} ${fnName(fn, sf)} asks a ${recvType} for its tier`);
+      if (inSales && method === 'tier' && /^Member/.test(recvType) && !salesOwnedType(n.expression.expression)) sg1.push(`${rel}:${String(lineOf(sf, n))} ${fnName(fn, sf)} asks a ${recvType} for its tier`);
       if (outsideDomain && WRITES.test(method) && STORE_TYPE.test(recvType)) writes.push(`${n.expression.getText(sf)}@${String(lineOf(sf, n))}`);
     }
     if (writes.length >= 2) sg2.push(`${rel} ${fnName(fn, sf)}: ${writes.length} store writes (${writes.join('; ')})`);
