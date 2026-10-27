@@ -28,14 +28,14 @@ export const CHECK_CONSISTENCY_DESCRIPTION =
   + 'Each finding gives file:line, the rule, why this code breaks it (the command, the aggregates, the calls that write them) and a fix. status is clean, violations or not-applicable (no aggregates). '
   + 'Fast and deterministic (no model call). Pass `files` (changed files, project-relative) to see only findings that involve them, or nothing to check the whole project.';
 
-const shape = {
+export const CONSISTENCY_SHAPE = {
   files: z.array(z.string().min(1)).optional().describe('Changed files, relative to the project root; omit to check the whole project.'),
   project: z.string().optional().describe("Project root; defaults to the server's configured project."),
   spec: z.string().optional().describe("Path to the firewall spec YAML; defaults to the server's configured spec."),
 };
 
 export async function consistencyHandler(ctx: ServerContext, args: unknown): Promise<CallToolResult> {
-  const a = z.object(shape).parse(args ?? {});
+  const a = z.object(CONSISTENCY_SHAPE).parse(args ?? {});
   const root = a.project !== undefined ? path.resolve(ctx.defaultProjectPath ?? process.cwd(), a.project) : ctx.defaultProjectPath;
   if (root === undefined) return { isError: true, content: [{ type: 'text', text: 'no project: start the server with --project or pass project' }] };
   const spec = a.spec ?? ctx.defaultSpecPath;
@@ -66,7 +66,7 @@ export function createDetectServer(ctx: ServerContext): McpServer {
   register(CHECK_CONSISTENCY, {
     title: 'Check aggregate and context consistency boundaries',
     description: CHECK_CONSISTENCY_DESCRIPTION,
-    inputSchema: shape,
+    inputSchema: CONSISTENCY_SHAPE,
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, handler);
   return server;
