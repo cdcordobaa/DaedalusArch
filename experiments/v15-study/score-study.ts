@@ -250,6 +250,112 @@ async function frozenFileHits(root: string, spec: string, scratch: string): Prom
   return r.data.files.flatMap((f) => f.findings.filter((v) => v.tier === 'blocking').map((v) => ({ rule: v.ruleId, file: f.path, subject: v.subject, line: v.line, source: 'frozen' as const })));
 }
 
+/** What every session of a run shares when it is scored (built once in `main`). */
+export interface SessionScoringContext {
+  readonly scratch: string;
+  readonly scrub: (s: string) => string;
+  readonly rules: ReturnType<typeof loadRules>;
+  readonly frozenEnabled: boolean;
+  readonly nm: string | undefined;
+  readonly env: ReturnType<typeof engineEnv>;
+  readonly deps: ReturnType<typeof engineDeps> | null;
+  readonly head: string | null;
+  readonly onEvaluationFailure: () => void;
+}
+export interface SessionToScore { readonly id: string; readonly sessionsDir: string; readonly task: string; readonly style: Style; readonly nSteps: number; readonly verdict: string; readonly cell: string }
+
+/**
+ * Scores the snapshots of one session (`<sessionsDir>/<id>/snap/step-00..n`): per step tests, oracle sub-goals, v1.5 and
+ * frozen file-rule hits, the frozen instrument's identities; per session D_v15, Y and the frozen D. The scoring copy of
+ * the session is removed by the caller (`<scratch>/<id>`).
+ */
+export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionToScore) {
+  const { scratch, scrub, rules, frozenEnabled, nm, env, deps, head } = ctx;
+  const { id, sessionsDir, nSteps } = s;
+  const m = { task: s.task, style: s.style };
+  const sess = { verdict: s.verdict, arm: s.cell };
+  const taskDir = path.join(REPO, FAM, m.task);
+  const spec = path.join(taskDir, 'spec.yaml');
+  const snaps = Array.from({ length: nSteps + 1 }, (_, k) => path.join(sessionsDir, id, 'snap', `step-0${String(k)}`)).filter((p) => fs.existsSync(p));
+  const complete = sess.verdict === 'done' && snaps.length === nSteps + 1;
+  const steps: Record<string, unknown>[] = [];
+  const hitsPerStep: Hit[][] = [];
+  const frozenIds: (IdFinding[] | null)[] = [];
+  const ev = frozenEnabled ? taggedEvaluator(firewallEvaluator(path.resolve(frozenSpec(spec, path.join(scratch, `${id}.eval.yaml`))), env, deps!, (dir) => `${dir}.tsconfig.json`), 'cypher-interp') : null;
+  const specView = frozenEnabled ? await loadSpecView(path.join(scratch, `${id}.eval.yaml`)) : null;
+  const repo = path.join(scratch, `g-${id}`);
+  const commits: string[] = [];
+  fs.mkdirSync(repo, { recursive: true });
+  execFileSync('git', ['init', '-q'], { cwd: repo });
+  const evasion = new Map<string, EvasionCandidate & { steps: string[] }>();
+  for (const [k, snap] of snaps.entries()) {
+    const tree = path.join(scratch, id, `s${String(k)}`);
+    copyTree(snap, tree);
+    const cands = k === 0 ? [] : evasionCandidates(snaps[0] as string, tree);
+    neutralise(tree, snaps[0] as string, cands);
+    for (const c of cands) evasion.set(c.path, { ...c, steps: [...(evasion.get(c.path)?.steps ?? []), `step-0${String(k)}`] });
+    const tests = tsxJson(['experiments/puzzle-01/tools/run-tests.ts', '--puzzle', taskDir, '--tree', tree]) as TestsResult | null;
+    const oracle = tsxJson([path.join(FAM, m.task, 'oracle.ts'), tree]);
+    const sg = (oracle?.subGoals as SubGoal[] | undefined) ?? null;
+    const r = await runTree(tree, rules, { spec, scratch: path.join(scratch, '_s') });
+    let frozenHitsK: Hit[] = [];
+    let frozenError: string | null = null;
+    try { frozenHitsK = await frozenFileHits(tree, spec, scratch); } catch (e) { frozenError = scrub(String(e)).slice(0, 300); }
+    const hits: Hit[] = [...r.findings.filter((f) => f.status === 'violation').map((f) => ({ rule: f.rule, file: f.file, subject: f.subject, line: f.line, source: 'v15' as const })), ...frozenHitsK];
+    hitsPerStep.push(hits);
+    // The frozen v1.4 instrument (Study 2b's D input): blocking findings, check-correct `correct` only.
+    if (ev !== null && specView !== null) {
+      fs.symlinkSync(path.resolve(nm as string), path.join(tree, 'node_modules'));
+      fs.writeFileSync(`${tree}.tsconfig.json`, `${JSON.stringify(buildHarnessTsconfig(tree), null, 2)}\n`);
+      const e = await ev.evaluate(tree, `v15-study/${id}`);
+      if (!e.success) { ctx.onEvaluationFailure(); frozenIds.push(null); } else {
+        const reportFindings = findingsOfReport({ violations: e.data.reportViolations ?? [] }, { projectId: `${id}/${String(k)}` }, specView.style);
+        const facts = new SourceFacts(tree, { tsconfig: 'adr-032' });
+        const ok: IdFinding[] = [];
+        for (const bf of e.data.blockingFindings) {
+          const match = reportFindings.find((x) => x.violationId === bf.violationId);
+          const c = match === undefined ? { verdict: 'unmatched' } : checkFinding(match, specView, facts);
+          if (c.verdict === 'correct') ok.push(fromBlockingFinding(bf, e.data.reportViolations));
+        }
+        frozenIds.push(ok);
+      }
+      fs.unlinkSync(path.join(tree, 'node_modules'));
+    }
+    // Each scored tree is committed for the rename map (git diff -M50%, as Study 2b).
+    for (const x of fs.readdirSync(repo)) if (x !== '.git') fs.rmSync(path.join(repo, x), { recursive: true, force: true });
+    copyTree(tree, repo);
+    execFileSync('git', ['add', '-A'], { cwd: repo });
+    execFileSync('git', ['-c', 'user.name=v15-study', '-c', 'user.email=v15-study@localhost', 'commit', '-q', '--allow-empty', '-m', `step ${String(k)}`], { cwd: repo });
+    commits.push(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim());
+    const seedHits = hitsPerStep[0] ?? [];
+    steps.push({
+      step: `step-0${String(k)}`,
+      tests: tests === null ? null : { passed: tests.passed, failed: tests.failed, failing: tests.cases.filter((c) => !c.ok).map((c) => c.name) },
+      testsPass: testsPass(tests),
+      oracle: sg === null ? null : sg.map((g) => ({ id: g.id, pass: g.pass })),
+      trapFailed: trapFailed(sg),
+      admittedNewVsSeed: newAgainst(identitiesOf(hits, admittedRules(m.style)), identitiesOf(seedHits, admittedRules(m.style))),
+      exploratoryNewVsSeed: newAgainst(identitiesOf(hits, exploratoryRules(m.style)), identitiesOf(seedHits, exploratoryRules(m.style))),
+      evasionCandidates: cands.map((c) => `${c.kind} ${c.path}`),
+      frozenFileRulesError: frozenError,
+    });
+  }
+  const final = steps.at(-1) as { testsPass: boolean; trapFailed: boolean | null; exploratoryNewVsSeed: string[] } | undefined;
+  const y = complete ? outcomeY(hitsPerStep[0] ?? [], hitsPerStep.at(-1) ?? [], m.style) : null;
+  const rhos = commits.map((c, k) => (k === 0 ? undefined : renameMapBetween(repo, commits[k - 1] as string, c, '.', '').rename));
+  const dv = complete ? dOverSteps(hitsPerStep.map((h) => identitiesOf(h, admittedRules(m.style))), rhos) : { D: null, perStep: [] };
+  // D of the frozen instrument: seed = step 1, the task's steps = 2…n+1 (Study 2b parameters otherwise).
+  let dFrozen: Record<string, unknown> | null = null;
+  if (frozenEnabled && complete && frozenIds.length === snaps.length) {
+    const p: DriftParams = { ...STUDY2_S2D01, kFrom: 2, kTo: snaps.length };
+    const contextId = JSON.stringify([m.task, 'cypher-interp', 'v1.3', head]);
+    const si: StepInput[] = frozenIds.map((f, k) => ({ step: k + 1, final: f === null ? null : { id: commits[k] as string, contextId, ok: true, findings: f, files: [] }, ...(k > 0 ? { rename: rhos[k] } : {}) }));
+    const d = driftRun(si, p, undefined, { runId: id, blockId: id, cell: sess.arm });
+    dFrozen = { D: d.D, perStepNew: d.perStep.map((x) => ({ step: x.step - 1, new: x.newCount })), incomplete: d.incomplete };
+  }
+  return { spec, snaps, complete, steps, hitsPerStep, frozenIds, commits, rhos, evasion, final, y, dv, dFrozen };
+}
+
 interface MapEntry { readonly task: string; readonly style: Style; readonly confirmatory: boolean }
 
 async function main(): Promise<number> {
@@ -284,92 +390,15 @@ async function main(): Promise<number> {
   const head = (() => { try { return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).trim(); } catch { return null; } })();
   const runs: Record<string, unknown>[] = [];
   let evaluationFailures = 0;
+  const sctx: SessionScoringContext = { scratch, scrub, rules, frozenEnabled, nm, env, deps, head, onEvaluationFailure: () => { evaluationFailures++; } };
   try {
     for (const id of ids) {
       if (schedule !== null && !schedule.has(id) && !redrawn.has(id)) continue;
       const sess = JSON.parse(fs.readFileSync(path.join(sessionsDir, id, 'session.json'), 'utf8')) as { taskId: string; arm: string; rep: number; planId: string; redrawOf: string | null; verdict: string; steps: unknown[]; integrity: unknown };
       const m = map[sess.taskId];
       if (m === undefined) throw new Error(`no private map entry for ${sess.taskId}`);
-      const taskDir = path.join(REPO, FAM, m.task);
-      const spec = path.join(taskDir, 'spec.yaml');
-      const nSteps = input.tasks.find((t) => t.id === sess.taskId)?.steps.length ?? 0;
-      const snaps = Array.from({ length: nSteps + 1 }, (_, k) => path.join(sessionsDir, id, 'snap', `step-0${String(k)}`)).filter((p) => fs.existsSync(p));
-      const complete = sess.verdict === 'done' && snaps.length === nSteps + 1;
-      const steps: Record<string, unknown>[] = [];
-      const hitsPerStep: Hit[][] = [];
-      const frozenIds: (IdFinding[] | null)[] = [];
-      const ev = frozenEnabled ? taggedEvaluator(firewallEvaluator(path.resolve(frozenSpec(spec, path.join(scratch, `${id}.eval.yaml`))), env, deps!, (dir) => `${dir}.tsconfig.json`), 'cypher-interp') : null;
-      const specView = frozenEnabled ? await loadSpecView(path.join(scratch, `${id}.eval.yaml`)) : null;
-      const repo = path.join(scratch, `g-${id}`);
-      const commits: string[] = [];
-      fs.mkdirSync(repo, { recursive: true });
-      execFileSync('git', ['init', '-q'], { cwd: repo });
-      const evasion = new Map<string, EvasionCandidate & { steps: string[] }>();
-      for (const [k, snap] of snaps.entries()) {
-        const tree = path.join(scratch, id, `s${String(k)}`);
-        copyTree(snap, tree);
-        const cands = k === 0 ? [] : evasionCandidates(snaps[0] as string, tree);
-        neutralise(tree, snaps[0] as string, cands);
-        for (const c of cands) evasion.set(c.path, { ...c, steps: [...(evasion.get(c.path)?.steps ?? []), `step-0${String(k)}`] });
-        const tests = tsxJson(['experiments/puzzle-01/tools/run-tests.ts', '--puzzle', taskDir, '--tree', tree]) as TestsResult | null;
-        const oracle = tsxJson([path.join(FAM, m.task, 'oracle.ts'), tree]);
-        const sg = (oracle?.subGoals as SubGoal[] | undefined) ?? null;
-        const r = await runTree(tree, rules, { spec, scratch: path.join(scratch, '_s') });
-        let frozenHitsK: Hit[] = [];
-        let frozenError: string | null = null;
-        try { frozenHitsK = await frozenFileHits(tree, spec, scratch); } catch (e) { frozenError = scrub(String(e)).slice(0, 300); }
-        const hits: Hit[] = [...r.findings.filter((f) => f.status === 'violation').map((f) => ({ rule: f.rule, file: f.file, subject: f.subject, line: f.line, source: 'v15' as const })), ...frozenHitsK];
-        hitsPerStep.push(hits);
-        // The frozen v1.4 instrument (Study 2b's D input): blocking findings, check-correct `correct` only.
-        if (ev !== null && specView !== null) {
-          fs.symlinkSync(path.resolve(nm as string), path.join(tree, 'node_modules'));
-          fs.writeFileSync(`${tree}.tsconfig.json`, `${JSON.stringify(buildHarnessTsconfig(tree), null, 2)}\n`);
-          const e = await ev.evaluate(tree, `v15-study/${id}`);
-          if (!e.success) { evaluationFailures++; frozenIds.push(null); } else {
-            const reportFindings = findingsOfReport({ violations: e.data.reportViolations ?? [] }, { projectId: `${id}/${String(k)}` }, specView.style);
-            const facts = new SourceFacts(tree, { tsconfig: 'adr-032' });
-            const ok: IdFinding[] = [];
-            for (const bf of e.data.blockingFindings) {
-              const match = reportFindings.find((x) => x.violationId === bf.violationId);
-              const c = match === undefined ? { verdict: 'unmatched' } : checkFinding(match, specView, facts);
-              if (c.verdict === 'correct') ok.push(fromBlockingFinding(bf, e.data.reportViolations));
-            }
-            frozenIds.push(ok);
-          }
-          fs.unlinkSync(path.join(tree, 'node_modules'));
-        }
-        // Each scored tree is committed for the rename map (git diff -M50%, as Study 2b).
-        for (const x of fs.readdirSync(repo)) if (x !== '.git') fs.rmSync(path.join(repo, x), { recursive: true, force: true });
-        copyTree(tree, repo);
-        execFileSync('git', ['add', '-A'], { cwd: repo });
-        execFileSync('git', ['-c', 'user.name=v15-study', '-c', 'user.email=v15-study@localhost', 'commit', '-q', '--allow-empty', '-m', `step ${String(k)}`], { cwd: repo });
-        commits.push(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim());
-        const seedHits = hitsPerStep[0] ?? [];
-        steps.push({
-          step: `step-0${String(k)}`,
-          tests: tests === null ? null : { passed: tests.passed, failed: tests.failed, failing: tests.cases.filter((c) => !c.ok).map((c) => c.name) },
-          testsPass: testsPass(tests),
-          oracle: sg === null ? null : sg.map((g) => ({ id: g.id, pass: g.pass })),
-          trapFailed: trapFailed(sg),
-          admittedNewVsSeed: newAgainst(identitiesOf(hits, admittedRules(m.style)), identitiesOf(seedHits, admittedRules(m.style))),
-          exploratoryNewVsSeed: newAgainst(identitiesOf(hits, exploratoryRules(m.style)), identitiesOf(seedHits, exploratoryRules(m.style))),
-          evasionCandidates: cands.map((c) => `${c.kind} ${c.path}`),
-          frozenFileRulesError: frozenError,
-        });
-      }
-      const final = steps.at(-1) as { testsPass: boolean; trapFailed: boolean | null; exploratoryNewVsSeed: string[] } | undefined;
-      const y = complete ? outcomeY(hitsPerStep[0] ?? [], hitsPerStep.at(-1) ?? [], m.style) : null;
-      const rhos = commits.map((c, k) => (k === 0 ? undefined : renameMapBetween(repo, commits[k - 1] as string, c, '.', '').rename));
-      const dv = complete ? dOverSteps(hitsPerStep.map((h) => identitiesOf(h, admittedRules(m.style))), rhos) : { D: null, perStep: [] };
-      // D of the frozen instrument: seed = step 1, the task's steps = 2…n+1 (Study 2b parameters otherwise).
-      let dFrozen: Record<string, unknown> | null = null;
-      if (frozenEnabled && complete && frozenIds.length === snaps.length) {
-        const p: DriftParams = { ...STUDY2_S2D01, kFrom: 2, kTo: snaps.length };
-        const contextId = JSON.stringify([m.task, 'cypher-interp', 'v1.3', head]);
-        const si: StepInput[] = frozenIds.map((f, k) => ({ step: k + 1, final: f === null ? null : { id: commits[k] as string, contextId, ok: true, findings: f, files: [] }, ...(k > 0 ? { rename: rhos[k] } : {}) }));
-        const d = driftRun(si, p, undefined, { runId: id, blockId: id, cell: sess.arm });
-        dFrozen = { D: d.D, perStepNew: d.perStep.map((x) => ({ step: x.step - 1, new: x.newCount })), incomplete: d.incomplete };
-      }
+      const sc = await scoreSessionSteps(sctx, { id, sessionsDir, task: m.task, style: m.style, nSteps: input.tasks.find((t) => t.id === sess.taskId)?.steps.length ?? 0, verdict: sess.verdict, cell: sess.arm });
+      const { spec, snaps, complete, steps, evasion, final, y, dv, dFrozen } = sc;
       // Arm combined: the hub's ledger and the attribution table.
       let attribution: Record<string, unknown> | null = null;
       if (sess.arm === 'combined') {
