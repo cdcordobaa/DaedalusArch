@@ -84,7 +84,8 @@ type UnitNode = Node;
 interface Unit { readonly id: string; readonly node: UnitNode; readonly name: string; readonly file: string; readonly line: number; readonly params: readonly string[]; readonly owner: string | null }
 
 const MESSAGING_OWNER = /(Outbox|Relay|EventBus|Bus|Publisher|Dispatcher|Queue|Broker|EventStore)$/;
-const DB_HANDLE = /(Transaction|Tx|Connection|Session|QueryRunner|EntityManager|Cursor|Pool)$/;
+const DB_HANDLE = /(Transaction|Tx|Connection|Session|QueryRunner|EntityManager|Cursor|Pool)(Handle)?$/;
+const SK_HANDLE = /(Transaction|Tx|Connection)(Handle|Context)?$/;
 const REMOTE_PORT = /(Gateway|Client|Provider|Notifier|Mailer|Sender|Api|Http|Sdk)$/;
 const SCOPE_EXTERNAL = /transaction|^tx$|lock|atomic|unitOfWork|serializable/i;
 
@@ -548,7 +549,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     const r = roleOfNode(i);
     if (r === 'port') return true;
     // CN-01 K13: an application interface implemented by an adapter class is a port, wherever it lives.
-    if (r === 'application') { for (const [cls, ifs] of implementedInterfaces) if (ifs.includes(i) && spec.roleOf(fileOf(cls)) === 'adapter') return true; return false; }
+    // CN-02b K13: an application interface with methods is an out-port by its shape, even before any adapter implements it.
+    if (r === 'application') { for (const [cls, ifs] of implementedInterfaces) if (ifs.includes(i) && spec.roleOf(fileOf(cls)) === 'adapter') return true; return i.getMethods().length > 0; }
     if (r !== 'domain') return false;
     return storageOwner(i);
   };
@@ -588,7 +590,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
           const ds0 = new Set<Node>(); deepDecls(t, ds0);
           for (const d of ds0) {
             const name = (d as unknown as { getName?: () => string }).getName?.() ?? '';
-            if (!DB_HANDLE.test(name) || !inTree(d) || roleOfNode(d) === 'domain' || roleOfNode(d) === 'shared-kernel') continue;
+            // CN-02b K13: a transaction or connection handle is a mechanism even when the shared kernel declares it.
+            if (!DB_HANDLE.test(name) || !inTree(d) || roleOfNode(d) === 'domain' || (roleOfNode(d) === 'shared-kernel' && !SK_HANDLE.test(name))) continue;
             const detail = `${where} uses ${name}, a persistence mechanism handle`;
             if (!portMechanisms.some((x) => x.port === i.getName() && x.method === m.getName() && x.detail === detail)) portMechanisms.push({ port: i.getName(), method: m.getName(), file: fileOf(m), line: m.getStartLineNumber(), form: 'adapter-type', detail });
           }
