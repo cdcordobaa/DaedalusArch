@@ -90,6 +90,13 @@ with 1 FP, K11 0/4, K12 1/4. Source: `Docs/DiagnosticRuns/v15-cal03-admission-20
 
 Source: `Docs/DiagnosticRuns/v15-hcal01-2026-10-27.md`.
 
+## 6b. HCAL-03 admission (sealed, scored once, 2026-10-28)
+
+New rows: H08 service locator (R-LOCATOR), H09 I/O without a port in the core (R-COREIO), H10 entity as an inbound
+adapter's transport shape (R-ENTITY-OUT). Admitted (4/4 recall, 0/6 FP): **H01, H02, H03, H04, H05, H07, H09, H10**
+(pooled 32/32, Wilson LB ≈ 0.89). Not admitted: H06 0/4 (no rule), H08 3/4 (a free-function wrapper around the
+registry). Source: `Docs/DiagnosticRuns/v15-hcal03-admission-2026-10-28.md`.
+
 ## 5. Sources
 
 - `Docs/DiagnosticRuns/drift-01-rescores-2026-10-23.md` (HEXDDD-01 coverage)
