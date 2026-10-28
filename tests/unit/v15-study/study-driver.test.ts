@@ -204,7 +204,8 @@ describe('scorer on a tiny fixture (§4, outcome Y)', () => {
     expect(exploratoryRules('ddd')).toEqual(expect.arrayContaining(['R-D5', 'R-RTX', 'R-LOCK', 'R-D3', 'R-D4R']));
     expect(admittedRules('hexagonal')).toEqual(expect.arrayContaining(['R-AXA', 'R-COREIO', 'R-ENTITY-OUT', 'R-TRANSPORT', 'FF-P03']));
     expect(admittedRules('hexagonal')).not.toContain('R-LOCATOR');
-    expect(exploratoryRules('hexagonal')).toEqual(['R-D3', 'R-D5', 'R-LOCATOR']);
+    // CN-04: H06 maps to R-ADAPTER-RULE (in place of R-D5, R-D3) and H11 to R-MIRROR, none admitted yet
+    expect(exploratoryRules('hexagonal')).toEqual(['R-ADAPTER-RULE', 'R-LOCATOR', 'R-MIRROR']);
   });
   it('Y counts admitted identities new against the seed; line shifts and exploratory rules do not count', () => {
     const seed = [h('R-D4', 'src/a.ts', 'A.run', 10), h('R-D5', 'src/b.ts', 'B.x')];
