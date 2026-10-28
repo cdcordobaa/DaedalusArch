@@ -7,8 +7,9 @@
  * - `VersionGuard`: `claude --version` is read before every turn; any version other than the first turn's (or the
  *   input's pin) is a stop of the whole run (infrastructure), never a redraw.
  * - `integrityOf`: per session of arm `combined`, the edits the tree shows against the hook events the hub logged,
- *   the fail-open rate and the hub latency. A session under the thresholds is an infrastructure failure (redrawn);
- *   p95 over 2 s is reported; over 5 s is a mechanism stop.
+ *   the fail-open rate and the hub latency. Pre-registration §5: a hub socket loss is an infrastructure failure
+ *   (redrawn); fail-open above 5 % or an edit with no hook event is kept (ITT) and `flagged`; p95 over 2 s is
+ *   reported; over 5 s is a mechanism stop.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -126,7 +127,10 @@ export interface Integrity {
   readonly hubDeadAfter: readonly string[];
   readonly overlaySeen: boolean;
   readonly uncoveredFiles: readonly { turn: string; file: string }[];
+  /** Hub socket lost: the session is redrawn. */
   readonly infrastructure: boolean;
+  /** Kept (ITT) and flagged: fail-open above 5 %, or edit count ≠ edits with a hook event. */
+  readonly flagged: boolean;
   readonly latencyReported: boolean;
   readonly mechanismStop: boolean;
   readonly reasons: readonly string[];
@@ -173,7 +177,7 @@ export function integrityOf(turns: readonly TurnObservation[]): Integrity {
   const failOpenRate = denom === 0 ? 0 : failOpen / denom;
   const hubP95Ms = p95(ms);
   const reasons: string[] = [];
-  if (coverage < INTEGRITY.minCoverage) reasons.push(`edits with a hook event ${String(covered)}/${String(edits)} < 95 %`);
+  if (covered !== edits) reasons.push(`edits with a hook event ${String(covered)}/${String(edits)}${coverage < INTEGRITY.minCoverage ? ' < 95 %' : ''}`);
   if (failOpenRate > INTEGRITY.maxFailOpenRate) reasons.push(`fail-open ${String(failOpen)}/${String(denom)} > 5 %`);
   if (dead.length > 0) reasons.push(`hub socket dead after ${dead.join(', ')}`);
   const mechanismStop = hubP95Ms !== null && hubP95Ms > INTEGRITY.p95StopMs;
@@ -181,7 +185,8 @@ export function integrityOf(turns: readonly TurnObservation[]): Integrity {
   return {
     edits, editsWithHookEvent: covered, coverage: +coverage.toFixed(4), hookEvents, stopEvents, failOpen, failOpenRate: +failOpenRate.toFixed(4), refused, pullCalls,
     hubP95Ms, hubMaxMs: ms.length === 0 ? null : Math.max(...ms), hubDeadAfter: dead, overlaySeen, uncoveredFiles: uncovered,
-    infrastructure: coverage < INTEGRITY.minCoverage || failOpenRate > INTEGRITY.maxFailOpenRate || dead.length > 0,
+    infrastructure: dead.length > 0,
+    flagged: covered !== edits || failOpenRate > INTEGRITY.maxFailOpenRate,
     latencyReported: hubP95Ms !== null && hubP95Ms > INTEGRITY.p95ReportMs,
     mechanismStop,
     reasons,

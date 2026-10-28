@@ -748,9 +748,11 @@ async function dry(ctx: Ctx): Promise<number> {
   const sc = spawnSync(process.execPath, [path.join(REPO, 'node_modules', 'tsx', 'dist', 'cli.mjs'), path.join(REPO, 'experiments', 'v15-study', 'score-study.ts'), '--results', out, '--input', inputPath(), '--node-modules', path.join(install.dir, 'node_modules'), '--out', path.join(out, 'scores')], { cwd: REPO, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 3_600_000 });
   const scoresFile = path.join(out, 'scores', 'scores.json');
   const scores = fs.existsSync(scoresFile) ? (JSON.parse(fs.readFileSync(scoresFile, 'utf8')) as { runs: { session: string; Y: number | null; attribution?: unknown }[]; evaluationFailures: number }) : null;
-  res.scorer = { exit: sc.status, stderrTail: (sc.stderr ?? '').split(REPO).join('.').slice(-1500), runs: scores?.runs.length ?? 0, scoredWithY: scores?.runs.filter((r) => r.Y !== null).length ?? 0, combinedWithAttribution: scores?.runs.filter((r) => r.attribution !== undefined && r.attribution !== null).length ?? 0, evaluationFailures: scores?.evaluationFailures ?? null };
+  const cellsFile = path.join(out, 'scores', 'cells.json');
+  const cells = fs.existsSync(cellsFile) ? (JSON.parse(fs.readFileSync(cellsFile, 'utf8')) as { cells: { D: number | null; D_frozen: number | null; trapFailed: boolean | null; accepted: boolean | null; flagged: boolean; style: string; arm: string }[] }).cells : [];
+  res.scorer = { exit: sc.status, stderrTail: (sc.stderr ?? '').split(REPO).join('.').slice(-1500), runs: scores?.runs.length ?? 0, scoredWithY: scores?.runs.filter((r) => r.Y !== null).length ?? 0, combinedWithAttribution: scores?.runs.filter((r) => r.attribution !== undefined && r.attribution !== null).length ?? 0, evaluationFailures: scores?.evaluationFailures ?? null, cells: cells.length, cellsWithD: cells.filter((c) => c.D !== null).length, cellsWithDFrozen: cells.filter((c) => c.D_frozen !== null).length, cellArms: [...new Set(cells.map((c) => `${c.style}/${c.arm}`))].sort() };
   const listOk = ctx.local || ((res.listing as { denied: boolean }[]).every((l) => l.denied) && (res.sweep as { controlFound: boolean; readableFiles: string[] }).controlFound && (res.sweep as { readableFiles: string[] }).readableFiles.length === 0);
-  const scorer = res.scorer as { exit: number | null; runs: number; scoredWithY: number; combinedWithAttribution: number };
+  const scorer = res.scorer as { exit: number | null; runs: number; scoredWithY: number; combinedWithAttribution: number; cells: number; cellsWithD: number };
   const argv = res.argv as { noneIdentical: boolean; combinedOnlyTwoChanges: boolean };
   res.items = {
     isolation: listOk,
@@ -759,7 +761,7 @@ async function dry(ctx: Ctx): Promise<number> {
     hubKilledFlagged: (res.hubKilled as { flaggedInfrastructure: boolean }).flaggedInfrastructure,
     versionMismatchStops: versionStop.stopped === true,
     argv: argv.noneIdentical && argv.combinedOnlyTwoChanges,
-    scorerEndToEnd: scorer.exit === 0 && scorer.runs === sessions.length && scorer.scoredWithY === sessions.length && scorer.combinedWithAttribution === input.dryTasks.length,
+    scorerEndToEnd: scorer.exit === 0 && scorer.runs === sessions.length && scorer.scoredWithY === sessions.length && scorer.combinedWithAttribution === input.dryTasks.length && scorer.cells === sessions.length && scorer.cellsWithD === sessions.length,
   };
   res.passed = Object.values(res.items as Record<string, boolean>).every(Boolean);
   res.at = new Date().toISOString();

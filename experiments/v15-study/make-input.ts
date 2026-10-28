@@ -11,7 +11,7 @@
  *   parameters (order seed 20261029, replicates, arms `none` and `combined`) and the hard caps;
  * - `<vault>/private-id-map.json` (tNN → task, style, confirmatory), `<vault>/canary.txt`, `<o>/canary.txt`,
  *   `<vault>/sweep-patterns.txt` (the fingerprint patterns, root-only, piped to the sweep).
- * The task order in the input is the TRAPRATE-01 order (confirmatory DDD, confirmatory Hexagonal, then f19); the run
+ * The task order in the input is the study-set order (confirmatory DDD, confirmatory Hexagonal, then any exploratory); the run
  * order comes from the plan's seeded shuffle.
  */
 import { createHash, randomBytes } from 'node:crypto';
@@ -47,10 +47,12 @@ const filesOf = (dir: string): string[] => {
 };
 const treeSha = (dir: string): string => sha256(`${filesOf(dir).map((f) => `${f}\t${sha256(fs.readFileSync(path.join(dir, f)))}`).join('\n')}\n`);
 
-const set = JSON.parse(fs.readFileSync(path.join(FAM, 'study-set.json'), 'utf8')) as { confirmatory: { ddd: string[]; hexagonal: string[] }; exploratory: { hexagonal: string[] } };
+// The task set is read from study-set.json at build time: the confirmatory lists (12 DDD + 13 Hexagonal since f19 was
+// admitted on HCAL-03), then any exploratory task still listed.
+const set = JSON.parse(fs.readFileSync(path.join(FAM, 'study-set.json'), 'utf8')) as { confirmatory: { ddd: string[]; hexagonal: string[] }; exploratory?: { ddd?: string[]; hexagonal?: string[] } };
 const confirmatory = new Set([...set.confirmatory.ddd, ...set.confirmatory.hexagonal]);
-const ids = [...set.confirmatory.ddd, ...set.confirmatory.hexagonal, ...set.exploratory.hexagonal];
-if (ids.length !== 25) throw new Error(`expected 25 tasks, got ${String(ids.length)}`);
+const ids = [...set.confirmatory.ddd, ...set.confirmatory.hexagonal, ...(set.exploratory?.ddd ?? []), ...(set.exploratory?.hexagonal ?? [])];
+if (new Set(ids).size !== ids.length) throw new Error('a task is listed twice in study-set.json');
 
 const canaries = { vault: randomBytes(16).toString('hex'), out: randomBytes(16).toString('hex'), spec: randomBytes(16).toString('hex') };
 for (const d of ['seeds', 'specs', 'edits']) fs.mkdirSync(path.join(O, d), { recursive: true });

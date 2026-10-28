@@ -8,16 +8,21 @@
  * - the task's behaviour tests (`experiments/puzzle-01/tools/run-tests.ts`) and every oracle sub-goal (`oracle.ts`;
  *   every sub-goal of a study task is a trap sub-goal);
  * - the v1.5 rules (`runTree`, status `violation`) and the frozen file rules (`check_diff` on the whole tree, blocking
- *   tier), as CAL-01/HCAL score them; an agent-written `detect02.allow.yaml` is removed first and recorded (never
- *   honoured by the scorer);
+ *   tier), as CAL-01/HCAL score them. Every spec, overlay, allow or settings file the agent created or edited
+ *   (`EVASION_PATTERNS`) is undone in the scored copy first (created: removed; edited: the seed's version), so it
+ *   changes neither D_v15 nor D_frozen, and is reported per cell as an evasion candidate (count and paths);
  * - `D_v15`: the findings of the ADMITTED rules only (the constant below), as identities rule + file + subject;
  * - the frozen v1.4 instrument's D (Study 2b: `firewallEvaluator`, check-correct `correct` only, `driftRun` at edge
  *   grain, renames continue), with the seed as step 1, when `--node-modules` (the skeleton install) is given.
- * Per run: **Y** = admitted-rule identities on the final step that are not on the seed; **trapFailed** = an oracle
+ * Per run: **D** (D_v15, pre-registration §1) = distinct admitted-rule identities present at step j and absent from the
+ * seed and every earlier step, summed over the steps (renames ρ from `git diff -M50%` carried forward; null when a
+ * step is unscored); **Y** = admitted-rule identities on the final step that are not on the seed; **trapFailed** = an oracle
  * sub-goal fails on the final step; **functional** = every test passes on the final step; the exploratory rows'
  * findings (new against the seed) separately. Arm `combined`: the hub's ledger, the final tree's gate keys, and the
  * attribution table of §4 (push only, pull only, both with order, unexposed), plus double reports, with no hand step.
- * Writes `<out>/scores.json` (default `<results>/scores/`). Absolute paths never reach the output.
+ * Writes `<out>/scores.json` and `<out>/cells.json` (the analysis input of `scripts/v1.5/lib/final-study-analyse.ts`:
+ * task, style, rep, arm, D, trapFailed, accepted, flagged; plus D_frozen, secondary 7), default `<results>/scores/`.
+ * Absolute paths never reach the output.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -124,6 +129,89 @@ export function attributionTable(rows: readonly LedgerRow[], finalKeys: Readonly
   return { rows: out, counts };
 }
 
+// ── Evasion candidates: spec, overlay, allow and settings files the agent created or edited ──────────────────────
+
+/** Files whose creation or edit by the agent could switch a rule off; never honoured by the scorer. */
+export const EVASION_PATTERNS: readonly RegExp[] = [
+  /(^|\/)detect02[^/]*$/i, // the allowance overlay and any variant
+  /(^|\/)[^/]*allow[^/]*\.(ya?ml|json)$/i, // any allow-list file
+  /\.(ya?ml)$/i, // any spec-shaped file (the study seeds hold none; the spec is root-only)
+  /(^|\/)\.claude\//, // agent settings
+  /(^|\/)(architecture|daedalus)[^/]*\.(json|ya?ml)$/i,
+];
+export const isEvasionPath = (rel: string): boolean => EVASION_PATTERNS.some((r) => r.test(rel));
+
+export interface EvasionCandidate { readonly path: string; readonly kind: 'created' | 'edited' }
+
+function filesUnder(dir: string): string[] {
+  const out: string[] = [];
+  const walk = (rel: string): void => {
+    const abs = path.join(dir, rel);
+    for (const e of fs.readdirSync(abs, { withFileTypes: true })) {
+      if (rel === '' && (e.name === 'node_modules' || e.name === '.git')) continue;
+      const r = rel === '' ? e.name : `${rel}/${e.name}`;
+      if (e.isDirectory()) walk(r);
+      else if (e.isFile()) out.push(r);
+    }
+  };
+  if (fs.existsSync(dir)) walk('');
+  return out.sort();
+}
+
+/** The evasion-pattern files of `tree` that are new or differ from `seed`. */
+export function evasionCandidates(seed: string, tree: string): EvasionCandidate[] {
+  const out: EvasionCandidate[] = [];
+  for (const f of filesUnder(tree).filter(isEvasionPath)) {
+    const s = path.join(seed, f);
+    if (!fs.existsSync(s)) out.push({ path: f, kind: 'created' });
+    else if (!fs.readFileSync(s).equals(fs.readFileSync(path.join(tree, f)))) out.push({ path: f, kind: 'edited' });
+  }
+  return out;
+}
+
+/** Undoes the candidates in a scoring copy: created files removed, edited files back to the seed's version. */
+export function neutralise(tree: string, seed: string, cands: readonly EvasionCandidate[]): void {
+  for (const c of cands) {
+    if (c.kind === 'created') fs.rmSync(path.join(tree, c.path), { force: true });
+    else fs.copyFileSync(path.join(seed, c.path), path.join(tree, c.path));
+  }
+}
+
+// ── D_v15 over the steps (pre-registration §1) ───────────────────────────────────────────────────────────────
+
+const renamed = (id: string, rho: ReadonlyMap<string, string>): string => {
+  const [rule, file, ...rest] = id.split('|');
+  const to = rho.get(file ?? '');
+  return to === undefined ? id : [rule, to, ...rest].join('|');
+};
+
+/**
+ * D: identities present at step j (1 ≤ j ≤ n) and absent from the seed and every earlier step, summed over j.
+ * `ids[0]` is the seed; `rhos[j]` maps the file renames between step j-1 and step j (git diff -M50%), applied to the
+ * prior union before comparing. A null step (unscored) makes D null.
+ */
+export function dOverSteps(ids: readonly (ReadonlySet<string> | null)[], rhos: readonly (ReadonlyMap<string, string> | undefined)[] = []): { D: number | null; perStep: number[] } {
+  if (ids.length === 0 || ids.some((x) => x === null)) return { D: null, perStep: [] };
+  let prior = new Set(ids[0] as ReadonlySet<string>);
+  const perStep: number[] = [];
+  for (let j = 1; j < ids.length; j++) {
+    const rho = rhos[j];
+    if (rho !== undefined && rho.size > 0) prior = new Set([...prior].map((x) => renamed(x, rho)));
+    const now = ids[j] as ReadonlySet<string>;
+    const fresh = [...now].filter((x) => !prior.has(x));
+    perStep.push(fresh.length);
+    for (const x of now) prior.add(x);
+  }
+  return { D: perStep.reduce((a, b) => a + b, 0), perStep };
+}
+
+/** One analysis cell (`scripts/v1.5/lib/final-study-analyse.ts` `Cell`, plus D_frozen). */
+export interface AnalysisCell {
+  readonly task: string; readonly style: Style; readonly rep: number; readonly arm: 'none' | 'combined';
+  readonly D: number | null; readonly trapFailed: boolean | null; readonly accepted: boolean | null; readonly flagged: boolean;
+  readonly D_frozen: number | null;
+}
+
 // ── I/O ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 const REPO = process.cwd();
@@ -175,6 +263,9 @@ async function main(): Promise<number> {
   }
   const input = JSON.parse(fs.readFileSync(inputFile, 'utf8')) as { vault: string; tasks: { id: string; steps: string[] }[] };
   const map = JSON.parse(fs.readFileSync(path.join(input.vault, 'private-id-map.json'), 'utf8')) as Record<string, MapEntry>;
+  // Confirmatory status is read from study-set.json at scoring time too (it must agree with the input's map).
+  const studySet = JSON.parse(fs.readFileSync(path.join(REPO, FAM, 'study-set.json'), 'utf8')) as { confirmatory: { ddd: string[]; hexagonal: string[] } };
+  const confirmatorySet = new Set([...studySet.confirmatory.ddd, ...studySet.confirmatory.hexagonal]);
   const hubDir = path.resolve(arg('hub') ?? path.join(results, 'hub'));
   const outDir = path.resolve(arg('out') ?? path.join(results, 'scores'));
   const nm = arg('node-modules');
@@ -211,12 +302,15 @@ async function main(): Promise<number> {
       const specView = frozenEnabled ? await loadSpecView(path.join(scratch, `${id}.eval.yaml`)) : null;
       const repo = path.join(scratch, `g-${id}`);
       const commits: string[] = [];
-      if (frozenEnabled) { fs.mkdirSync(repo, { recursive: true }); execFileSync('git', ['init', '-q'], { cwd: repo }); }
+      fs.mkdirSync(repo, { recursive: true });
+      execFileSync('git', ['init', '-q'], { cwd: repo });
+      const evasion = new Map<string, EvasionCandidate & { steps: string[] }>();
       for (const [k, snap] of snaps.entries()) {
         const tree = path.join(scratch, id, `s${String(k)}`);
         copyTree(snap, tree);
-        const overlay = fs.existsSync(path.join(tree, 'detect02.allow.yaml'));
-        fs.rmSync(path.join(tree, 'detect02.allow.yaml'), { force: true });
+        const cands = k === 0 ? [] : evasionCandidates(snaps[0] as string, tree);
+        neutralise(tree, snaps[0] as string, cands);
+        for (const c of cands) evasion.set(c.path, { ...c, steps: [...(evasion.get(c.path)?.steps ?? []), `step-0${String(k)}`] });
         const tests = tsxJson(['experiments/puzzle-01/tools/run-tests.ts', '--puzzle', taskDir, '--tree', tree]) as TestsResult | null;
         const oracle = tsxJson([path.join(FAM, m.task, 'oracle.ts'), tree]);
         const sg = (oracle?.subGoals as SubGoal[] | undefined) ?? null;
@@ -243,12 +337,13 @@ async function main(): Promise<number> {
             frozenIds.push(ok);
           }
           fs.unlinkSync(path.join(tree, 'node_modules'));
-          for (const x of fs.readdirSync(repo)) if (x !== '.git') fs.rmSync(path.join(repo, x), { recursive: true, force: true });
-          copyTree(tree, repo);
-          execFileSync('git', ['add', '-A'], { cwd: repo });
-          execFileSync('git', ['-c', 'user.name=v15-study', '-c', 'user.email=v15-study@localhost', 'commit', '-q', '--allow-empty', '-m', `step ${String(k)}`], { cwd: repo });
-          commits.push(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim());
         }
+        // Each scored tree is committed for the rename map (git diff -M50%, as Study 2b).
+        for (const x of fs.readdirSync(repo)) if (x !== '.git') fs.rmSync(path.join(repo, x), { recursive: true, force: true });
+        copyTree(tree, repo);
+        execFileSync('git', ['add', '-A'], { cwd: repo });
+        execFileSync('git', ['-c', 'user.name=v15-study', '-c', 'user.email=v15-study@localhost', 'commit', '-q', '--allow-empty', '-m', `step ${String(k)}`], { cwd: repo });
+        commits.push(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim());
         const seedHits = hitsPerStep[0] ?? [];
         steps.push({
           step: `step-0${String(k)}`,
@@ -258,18 +353,20 @@ async function main(): Promise<number> {
           trapFailed: trapFailed(sg),
           admittedNewVsSeed: newAgainst(identitiesOf(hits, admittedRules(m.style)), identitiesOf(seedHits, admittedRules(m.style))),
           exploratoryNewVsSeed: newAgainst(identitiesOf(hits, exploratoryRules(m.style)), identitiesOf(seedHits, exploratoryRules(m.style))),
-          allowOverlayInTree: overlay,
+          evasionCandidates: cands.map((c) => `${c.kind} ${c.path}`),
           frozenFileRulesError: frozenError,
         });
       }
       const final = steps.at(-1) as { testsPass: boolean; trapFailed: boolean | null; exploratoryNewVsSeed: string[] } | undefined;
       const y = complete ? outcomeY(hitsPerStep[0] ?? [], hitsPerStep.at(-1) ?? [], m.style) : null;
+      const rhos = commits.map((c, k) => (k === 0 ? undefined : renameMapBetween(repo, commits[k - 1] as string, c, '.', '').rename));
+      const dv = complete ? dOverSteps(hitsPerStep.map((h) => identitiesOf(h, admittedRules(m.style))), rhos) : { D: null, perStep: [] };
       // D of the frozen instrument: seed = step 1, the task's steps = 2…n+1 (Study 2b parameters otherwise).
       let dFrozen: Record<string, unknown> | null = null;
       if (frozenEnabled && complete && frozenIds.length === snaps.length) {
         const p: DriftParams = { ...STUDY2_S2D01, kFrom: 2, kTo: snaps.length };
         const contextId = JSON.stringify([m.task, 'cypher-interp', 'v1.3', head]);
-        const si: StepInput[] = frozenIds.map((f, k) => ({ step: k + 1, final: f === null ? null : { id: commits[k] as string, contextId, ok: true, findings: f, files: [] }, ...(k > 0 ? { rename: renameMapBetween(repo, commits[k - 1] as string, commits[k] as string, '.', '').rename } : {}) }));
+        const si: StepInput[] = frozenIds.map((f, k) => ({ step: k + 1, final: f === null ? null : { id: commits[k] as string, contextId, ok: true, findings: f, files: [] }, ...(k > 0 ? { rename: rhos[k] } : {}) }));
         const d = driftRun(si, p, undefined, { runId: id, blockId: id, cell: sess.arm });
         dFrozen = { D: d.D, perStepNew: d.perStep.map((x) => ({ step: x.step - 1, new: x.newCount })), incomplete: d.incomplete };
       }
@@ -293,8 +390,11 @@ async function main(): Promise<number> {
         attribution = { ledgerFound: ledger !== null, findings: table.rows.length, counts: table.counts, rows: table.rows, doubleReports: doubleReports(push, ledger?.rows ?? []), pushEvents: push.length, pullCalls: calls.length, pullByTool: Object.fromEntries([...new Set(calls.map((c) => c.tool))].map((t) => [t, calls.filter((c) => c.tool === t).length])) };
       }
       runs.push({
-        session: id, planId: sess.planId, task: sess.taskId, style: m.style, confirmatory: m.confirmatory, arm: sess.arm, rep: sess.rep, redrawOf: sess.redrawOf, verdict: sess.verdict,
+        session: id, planId: sess.planId, task: sess.taskId, style: m.style, confirmatory: confirmatorySet.has(m.task), arm: sess.arm, rep: sess.rep, redrawOf: sess.redrawOf, verdict: sess.verdict,
         counted: complete && (countedIds === null || countedIds.has(id)),
+        D: dv.D, DperStep: dv.perStep,
+        flagged: (sess.integrity as { flagged?: boolean } | null)?.flagged === true,
+        evasion: { count: evasion.size, candidates: [...evasion.values()].map((c) => ({ path: c.path, kind: c.kind, steps: c.steps })) },
         Y: y?.Y ?? null, newAdmittedIdentities: y?.newIdentities ?? null,
         trapFailed: complete ? (final?.trapFailed ?? null) : null,
         functional: complete ? (final?.testsPass ?? null) : null,
@@ -305,7 +405,7 @@ async function main(): Promise<number> {
         steps,
       });
       fs.rmSync(path.join(scratch, id), { recursive: true, force: true });
-      process.stdout.write(`${id} ${sess.taskId} ${sess.arm}: Y ${String(y?.Y ?? null)} trapFailed ${String(final?.trapFailed ?? null)} functional ${String(final?.testsPass ?? null)} D_frozen ${String((dFrozen as { D?: unknown } | null)?.D ?? null)}\n`);
+      process.stdout.write(`${id} ${sess.taskId} ${sess.arm}: D ${String(dv.D)} Y ${String(y?.Y ?? null)} evasion ${String(evasion.size)} trapFailed ${String(final?.trapFailed ?? null)} functional ${String(final?.testsPass ?? null)} D_frozen ${String((dFrozen as { D?: unknown } | null)?.D ?? null)}\n`);
     }
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
@@ -320,7 +420,8 @@ async function main(): Promise<number> {
     params: {
       admitted: { ddd: { rows: ADMITTED_DDD_ROWS, rules: admittedRules('ddd') }, hexagonal: { rows: ADMITTED_HEX_ROWS, rules: admittedRules('hexagonal') }, overrides: ROW_OVERRIDES },
       exploratory: { ddd: exploratoryRules('ddd'), hexagonal: exploratoryRules('hexagonal') },
-      identity: 'rule|file|subject', Y: 'admitted identities on the final step not on the seed (step-00)',
+      identity: 'rule|file|subject', D: 'admitted identities new against the seed and every earlier step, summed over the steps (renames carried)', Y: 'admitted identities on the final step not on the seed (step-00)',
+      evasionPatterns: EVASION_PATTERNS.map(String),
       frozenD: frozenEnabled ? { ...STUDY2_S2D01, kFrom: 2, kTo: 'steps + 1', seedAsStep: 1 } : 'skipped (no --node-modules)',
     },
     evaluationFailures,
@@ -329,6 +430,11 @@ async function main(): Promise<number> {
   };
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, 'scores.json'), `${scrub(JSON.stringify(out, null, 1))}\n`);
+  // The analysis input: one cell per counted session (ITT: every scored session that is the plan's accepted run).
+  const cells: AnalysisCell[] = (runs as unknown as { counted: boolean; task: string; style: Style; rep: number; arm: 'none' | 'combined'; D: number | null; trapFailed: boolean | null; functional: boolean | null; flagged: boolean; D_frozen: { D: number | null } | null }[])
+    .filter((r) => r.counted)
+    .map((r) => ({ task: r.task, style: r.style, rep: r.rep, arm: r.arm, D: r.D, trapFailed: r.trapFailed, accepted: r.functional, flagged: r.flagged, D_frozen: r.D_frozen?.D ?? null }));
+  fs.writeFileSync(path.join(outDir, 'cells.json'), `${JSON.stringify({ schema: 'v15-study-cells/v1', cells }, null, 1)}\n`);
   return evaluationFailures > 0 ? 1 : 0;
 }
 
