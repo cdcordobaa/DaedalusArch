@@ -1,0 +1,482 @@
+{
+  "K01-pos1": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/rehearsals/application/RehearsalService.ts",
+    "note": "Rehearsals service imports the ProductionOpened class from the productions domain/events folder instead of the public contract."
+  },
+  "K01-pos2": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/casting/application/ProductionLookup.ts",
+    "note": "New casting lookup imports the productions repository interface from the productions domain folder to read a title."
+  },
+  "K01-twin1": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Rehearsals service imports the event type from the productions index (public API) instead of the contract file."
+  },
+  "K01-twin2": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Casting lookup reaches productions only through its index and its contracts folder."
+  },
+  "K01-legit": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Api helper in rehearsals imports the context own domain file and shared-kernel only; deep imports inside one context are fine."
+  },
+  "K02-pos1": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/productions/domain/production/Production.ts",
+    "note": "Production aggregate imports the Logger of a web framework package and logs inside close()."
+  },
+  "K02-pos2": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/casting/domain/actor/Actor.ts",
+    "note": "Actor aggregate imports and instantiates an infrastructure calendar adapter to answer availability."
+  },
+  "K02-twin1": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Actor answers availability through a policy interface declared in the domain; no infrastructure import."
+  },
+  "K02-twin2": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Actor gains a rate using the shared-kernel Money value object; the domain imports only shared-kernel."
+  },
+  "K02-legit": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Infrastructure adapter depends on an application port and a domain repository interface, which is the allowed direction."
+  },
+  "K03-pos1": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/casting/application/CastingService.ts",
+    "note": "confirm() saves the booking and also the actor instance after starting an engagement."
+  },
+  "K03-pos2": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/rehearsals/application/RehearsalService.ts",
+    "note": "New moveBooking command loads two rooms and saves both in one command."
+  },
+  "K03-twin1": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "Engagement is started by a separate single-aggregate command that reacts to the confirmed event; confirm() saves only the booking."
+  },
+  "K03-twin2": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "moveBooking works on one room: release and book, then a single save."
+  },
+  "K03-legit": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "confirm() loads the actor to check it exists but saves only the booking."
+  },
+  "K04-pos1": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/casting/domain/cast-booking/CastBookingRepository.ts",
+    "note": "Repository gains saveWithActor, which persists a booking and an actor aggregate in one call; confirm() uses it."
+  },
+  "K04-pos2": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/rehearsals/domain/room/RehearsalRoomRepository.ts",
+    "note": "Room repository gains saveBoth, persisting two room aggregates in one call (no caller yet)."
+  },
+  "K04-twin1": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "Repository saveWithSlots stores one room together with its own inner slot entities."
+  },
+  "K04-twin2": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "Repository gains a read-only findByProduction query; nothing is persisted."
+  },
+  "K04-legit": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "save() also appends a history snapshot row (not an aggregate) next to the booking."
+  },
+  "K05-pos1": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/casting/application/CastingService.ts",
+    "note": "confirm() calls ProductionService.addCast of the productions context synchronously instead of publishing the event."
+  },
+  "K05-pos2": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/productions/application/ProductionService.ts",
+    "note": "close() calls RehearsalService.release of the rehearsals context synchronously through a helper."
+  },
+  "K05-twin1": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "Closing a production publishes a ProductionClosed event; rehearsals reacts in its own handler wired through the bus."
+  },
+  "K05-twin2": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "Casting reads the production through its public service to refuse offers on a closed production; it writes only its own aggregate."
+  },
+  "K05-legit": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "ProductionService gets an own handler that writes only its own aggregate when a booking is confirmed; the bus invokes it."
+  },
+  "K06-pos1": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "Composition root defines a BookingDesk facade that confirms a booking in casting and adds the cast in productions."
+  },
+  "K06-pos2": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "Composition root defines an openAndReserve function that writes a production and a rehearsal room directly through both repositories."
+  },
+  "K06-twin1": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "Composition root builds a read-only snapshot helper that only queries two contexts through their services."
+  },
+  "K06-twin2": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "Composition root wraps a single-context command (open a production) and records it; no second aggregate is written."
+  },
+  "K06-legit": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "Composition root subscribes an extra audit handler that only records booking ids; wiring through the bus is the composition root job."
+  },
+  "K07-pos1": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/productions/application/ProductionService.ts",
+    "note": "open() announces to the external ticketing system inside the unit-of-work callback."
+  },
+  "K07-pos2": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/casting/application/CastingService.ts",
+    "note": "offer() checks the external calendar inside the unit-of-work callback, through a local callback and an early throw."
+  },
+  "K07-twin1": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "open() commits first and calls the ticketing system after the transaction, translating failures."
+  },
+  "K07-twin2": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "offer() checks the calendar in a private helper before the transaction starts."
+  },
+  "K07-legit": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "Inside the transaction offer() only touches local repositories (reads the actor, saves the booking); the remote check stays before it."
+  },
+  "K08-pos1": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/productions/application/ProductionService.ts",
+    "note": "The rule that a production needs a show to open is decided in ProductionService.open; the aggregate no longer checks it."
+  },
+  "K08-pos2": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/rehearsals/api/RehearsalController.ts",
+    "note": "The rule that a slot ends after it starts is decided in the controller; RehearsalRoom.book no longer checks it."
+  },
+  "K08-twin1": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "Service only wraps the aggregate error with context; the aggregate still decides whether a production can open."
+  },
+  "K08-twin2": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "Controller validates that start and end are numbers (request shape); the ordering rule stays in the aggregate."
+  },
+  "K08-legit": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "Controller authorises the caller role before opening; authorisation is an application concern, not an aggregate rule."
+  },
+  "K09-pos1": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/casting/application/CastingService.ts",
+    "note": "decline() checks the offered status in the service and the aggregate checks it again."
+  },
+  "K09-pos2": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/rehearsals/application/RehearsalService.ts",
+    "note": "bookSlot checks start<end through a local flag and RehearsalRoom.book checks it again."
+  },
+  "K09-twin1": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "The aggregate exposes canDecline() and uses it itself; the service only reads it for a query."
+  },
+  "K09-twin2": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "Controller turns thrown aggregate errors into a result object; it makes no check of its own."
+  },
+  "K09-legit": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "Controller trims the title input (normalisation) and the aggregate setter still validates it; no rule is duplicated."
+  },
+  "K10-pos1": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/productions/application/ProductionService.ts",
+    "note": "The cast capacity (set invariant owned by Production) is checked in ProductionService.addCast; the aggregate no longer checks it."
+  },
+  "K10-pos2": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/productions/api/ProductionController.ts",
+    "note": "The cast capacity is checked in the controller from the DTO (maxCast exposed); the aggregate does not check it."
+  },
+  "K10-twin1": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "Aggregate exposes openSlots (derived from maxCast and cast) and the DTO reports it; the capacity check stays in Production.addCast."
+  },
+  "K10-twin2": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "Aggregate gains addCastMany that reuses addCast, so capacity is enforced inside; the service only forwards the ids."
+  },
+  "K10-legit": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "Production gains replaceCast, which swaps one actor for another inside the aggregate and keeps the size within maxCast."
+  },
+  "K11-pos1": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/rehearsals/application/RehearsalService.ts",
+    "note": "bookSlot uses an in-process Set of busy room ids as a lock instead of relying on the aggregate."
+  },
+  "K11-pos2": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/casting/application/CastingService.ts",
+    "note": "confirm() serialises per booking id with a Map of promises (a mutex chain) held in the service."
+  },
+  "K11-twin1": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "The room aggregate carries a version and the repository rejects stale saves (optimistic concurrency), no in-process lock."
+  },
+  "K11-twin2": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "The service keeps a Map cache of room names for reads; it is a read cache, not a lock or consistency boundary."
+  },
+  "K11-legit": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "The calendar adapter (infrastructure) de-duplicates concurrent identical lookups with an in-flight Map; a technical optimisation, not an aggregate lock."
+  },
+  "K12-pos1": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/casting/application/CastingService.ts",
+    "note": "confirm() multiplies fee by weeks in the service and hands the total to booking.recordTotal."
+  },
+  "K12-pos2": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/rehearsals/application/RehearsalService.ts",
+    "note": "bookSlot sums the booked hours of the room in a service helper and sets them back on the room."
+  },
+  "K12-twin1": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The room computes its own bookedHours() and the DTO reports it; the service performs no calculation."
+  },
+  "K12-twin2": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "offerAnnual converts an annual fee from the command input into a weekly fee before creating the booking; no aggregate state is involved."
+  },
+  "K12-legit": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "payrollFor sums the totals of several bookings for reporting; it reads aggregates (using their own totalDue) and hands nothing back."
+  },
+  "K13-pos1": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/productions/application/ports/TicketingGateway.ts",
+    "note": "The ticketing port returns HttpResponse, a type declared in the infrastructure adapter file."
+  },
+  "K13-pos2": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/casting/application/ports/ActorAvailabilityPort.ts",
+    "note": "The availability port takes a Transaction parameter, leaking a transaction type into the port signature."
+  },
+  "K13-twin1": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The ticketing port returns an AnnounceResult type declared in the port file itself."
+  },
+  "K13-twin2": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The availability port gains a quote method using the shared-kernel Money value object and plain parameters."
+  },
+  "K13-legit": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The adapter uses an HttpResponse type internally while the port keeps returning void; the vendor-shaped type never reaches the port."
+  },
+  "K14-pos1": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/productions/index.ts",
+    "note": "The productions public API re-exports the Production aggregate class."
+  },
+  "K14-pos2": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/rehearsals/contracts/RoomDto.ts",
+    "note": "RoomDto exposes RoomSlot entities in its slots field and the service hands them out directly."
+  },
+  "K14-twin1": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "A new ProductionSummaryDto of plain fields is published through contracts and the index; no entity type leaves the context."
+  },
+  "K14-twin2": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "A new ActorDto of plain fields is added to casting contracts and mapped in the service."
+  },
+  "K14-legit": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "CastBookingDto exposes the fee as the shared-kernel Money value object, which is a value object and not an entity."
+  },
+  "K15-pos1": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/casting/application/CastingService.ts",
+    "note": "CastingService constructor is typed against the concrete CalendarAvailabilityAdapter instead of the port."
+  },
+  "K15-pos2": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/rehearsals/application/RehearsalService.ts",
+    "note": "RehearsalService constructor is typed against InMemoryRehearsalRoomRepository instead of the repository interface."
+  },
+  "K15-twin1": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "CastingService takes a narrower slice of the port (Pick of isFree); still typed against the port."
+  },
+  "K15-twin2": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "An audit decorator wraps the calendar adapter and is itself typed against the port; the service still receives a port."
+  },
+  "K15-legit": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "An infrastructure decorator wraps the concrete calendar adapter; concrete types inside infrastructure and the composition root are normal."
+  },
+  "K16-pos1": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/casting/domain/cast-booking/CastBooking.ts",
+    "note": "CastBooking keeps an Actor aggregate object in a field (assignActor) instead of only the actor id."
+  },
+  "K16-pos2": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/casting/domain/actor/Actor.ts",
+    "note": "Actor keeps a list of CastBooking aggregate objects instead of their ids."
+  },
+  "K16-twin1": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "CastBooking records an understudy by actor id only, through a typed setter."
+  },
+  "K16-twin2": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Actor keeps the ids of its bookings, not the booking objects."
+  },
+  "K16-legit": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "CastBooking holds a list of Money value objects (bonuses); a value object held by value is part of the aggregate, not another aggregate."
+  }
+}
