@@ -1,0 +1,867 @@
+{
+ "schema": "v15-study-scores/v1",
+ "modelCalls": 0,
+ "instrumentCommit": "d634af79069a69f50dd3dc5afe66268f36591ec0",
+ "params": {
+  "admitted": {
+   "ddd": {
+    "rows": [
+     "K01",
+     "K02",
+     "K03",
+     "K05",
+     "K10",
+     "K13",
+     "K14",
+     "K15",
+     "K16"
+    ],
+    "rules": [
+     "FF-DS02",
+     "FF-DT04",
+     "FF-S01",
+     "FF-S03",
+     "R-D4",
+     "R-D5S",
+     "R-D9",
+     "R-H5",
+     "R-INJ",
+     "R-PURE",
+     "R-REF",
+     "R-XCTX"
+    ]
+   },
+   "hexagonal": {
+    "rows": [
+     "H01",
+     "H02",
+     "H03",
+     "H04",
+     "H05",
+     "H07",
+     "H09",
+     "H10"
+    ],
+    "rules": [
+     "FF-P01",
+     "FF-P02",
+     "FF-P03",
+     "FF-S01",
+     "FF-S03",
+     "FF-S04",
+     "R-AXA",
+     "R-COREIO",
+     "R-ENTITY-OUT",
+     "R-H5",
+     "R-INJ",
+     "R-TRANSPORT"
+    ]
+   },
+   "overrides": {
+    "K10": [
+     "R-D5S"
+    ]
+   }
+  },
+  "exploratory": {
+   "ddd": [
+    "R-D3",
+    "R-D4R",
+    "R-D5",
+    "R-LOCK",
+    "R-RTX"
+   ],
+   "hexagonal": [
+    "R-D3",
+    "R-D5",
+    "R-LOCATOR"
+   ]
+  },
+  "identity": "rule|file|subject",
+  "D": "admitted identities new against the seed and every earlier step, summed over the steps (renames carried)",
+  "Y": "admitted identities on the final step not on the seed (step-00)",
+  "evasionPatterns": [
+   "/(^|\\/)detect02[^/]*$/i",
+   "/(^|\\/)[^/]*allow[^/]*\\.(ya?ml|json)$/i",
+   "/\\.(ya?ml)$/i",
+   "/(^|\\/)\\.claude\\//",
+   "/(^|\\/)(architecture|daedalus)[^/]*\\.(json|ya?ml)$/i"
+  ],
+  "frozenD": {
+   "grain": "edge",
+   "cycleIdentity": "sorted-files",
+   "edgeOnly": true,
+   "renamePolicy": "continue",
+   "rePointed": false,
+   "merged": false,
+   "s02Cap": 100,
+   "leftCensor": "first-valid",
+   "kFrom": 2,
+   "kTo": "steps + 1",
+   "priorUnion": "final-snapshots",
+   "y1Min": 1,
+   "seedAsStep": 1
+  }
+ },
+ "evaluationFailures": 0,
+ "summary": {
+  "none": {
+   "turnWallTime": {
+    "turns": 6,
+    "medianMs": 35164,
+    "meanMs": 35463,
+    "maxMs": 42052
+   },
+   "runs": 2,
+   "meanY": 0.5,
+   "runsWithY0": 1,
+   "trapFailed": 2,
+   "functional": 2
+  },
+  "combined": {
+   "turnWallTime": {
+    "turns": 6,
+    "medianMs": 42201,
+    "meanMs": 44104,
+    "maxMs": 68305
+   },
+   "runs": 2,
+   "meanY": 0,
+   "runsWithY0": 2,
+   "trapFailed": 1,
+   "functional": 2
+  }
+ },
+ "runs": [
+  {
+   "session": "c001",
+   "planId": "c001",
+   "task": "t13",
+   "style": "hexagonal",
+   "confirmatory": true,
+   "arm": "none",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 2,
+      "failed": 4,
+      "failing": [
+       "checkout charges the card the order total plus the 1.5% card surcharge",
+       "when the payment provider is down the order is placed on invoice, without the surcharge",
+       "card payments are not placed on invoice while the provider answers",
+       "a declined card is told to the customer in plain words and the order is not placed"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 4,
+      "failed": 2,
+      "failing": [
+       "when the payment provider is down the order is placed on invoice, without the surcharge",
+       "a declined card is told to the customer in plain words and the order is not placed"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 5,
+      "failed": 1,
+      "failing": [
+       "a declined card is told to the customer in plain words and the order is not placed"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 6,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c002",
+   "planId": "c002",
+   "task": "t01",
+   "style": "ddd",
+   "confirmatory": true,
+   "arm": "none",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 1,
+   "DperStep": [
+    1,
+    0,
+    0
+   ],
+   "flagged": false,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 1,
+   "newAdmittedIdentities": [
+    "R-D4|src/enrolment/application/SwitchSection.ts|SwitchSection.execute"
+   ],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 3,
+      "failed": 6,
+      "failing": [
+       "a switch moves the student from one section to the other",
+       "a switch into a full section is refused and nothing changes",
+       "a switch across courses, to an unknown section or for a student not in the section is refused",
+       "switches over the daily limit are refused and say how many came in today",
+       "the daily limit starts again the next day and counts only students taken in",
+       "the history lists roster changes newest first with the other section"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 7,
+      "failed": 2,
+      "failing": [
+       "switches over the daily limit are refused and say how many came in today",
+       "the history lists roster changes newest first with the other section"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [
+      "R-D4|src/enrolment/application/SwitchSection.ts|SwitchSection.execute"
+     ],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 8,
+      "failed": 1,
+      "failing": [
+       "the history lists roster changes newest first with the other section"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [
+      "R-D4|src/enrolment/application/SwitchSection.ts|SwitchSection.execute"
+     ],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 9,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [
+      "R-D4|src/enrolment/application/SwitchSection.ts|SwitchSection.execute"
+     ],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c003",
+   "planId": "c003",
+   "task": "t01",
+   "style": "ddd",
+   "confirmatory": true,
+   "arm": "combined",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 13,
+    "editsWithHookEvent": 13,
+    "coverage": 1,
+    "hookEvents": 36,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 10,
+    "hubP95Ms": 492,
+    "hubMaxMs": 755,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 1,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-D4",
+      "file": "src/enrolment/application/SwitchSection.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 1,
+      "onFinalTree": false,
+      "attribution": "push first, then pull"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 40,
+    "pullCalls": 10,
+    "pullByTool": {
+     "check_consistency": 4,
+     "check_file": 3,
+     "check_diff": 1,
+     "get_architecture_spec": 1,
+     "evaluate_project": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 3,
+      "failed": 6,
+      "failing": [
+       "a switch moves the student from one section to the other",
+       "a switch into a full section is refused and nothing changes",
+       "a switch across courses, to an unknown section or for a student not in the section is refused",
+       "switches over the daily limit are refused and say how many came in today",
+       "the daily limit starts again the next day and counts only students taken in",
+       "the history lists roster changes newest first with the other section"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 7,
+      "failed": 2,
+      "failing": [
+       "switches over the daily limit are refused and say how many came in today",
+       "the history lists roster changes newest first with the other section"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 8,
+      "failed": 1,
+      "failing": [
+       "the history lists roster changes newest first with the other section"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 9,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c004",
+   "planId": "c004",
+   "task": "t13",
+   "style": "hexagonal",
+   "confirmatory": true,
+   "arm": "combined",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 16,
+    "editsWithHookEvent": 16,
+    "coverage": 1,
+    "hookEvents": 22,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 8,
+    "hubP95Ms": 400,
+    "hubMaxMs": 410,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 0,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [],
+    "doubleReports": 0,
+    "pushEvents": 25,
+    "pullCalls": 8,
+    "pullByTool": {
+     "get_architecture_spec": 1,
+     "check_consistency": 3,
+     "check_file": 3,
+     "check_diff": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 2,
+      "failed": 4,
+      "failing": [
+       "checkout charges the card the order total plus the 1.5% card surcharge",
+       "when the payment provider is down the order is placed on invoice, without the surcharge",
+       "card payments are not placed on invoice while the provider answers",
+       "a declined card is told to the customer in plain words and the order is not placed"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 4,
+      "failed": 2,
+      "failing": [
+       "when the payment provider is down the order is placed on invoice, without the surcharge",
+       "a declined card is told to the customer in plain words and the order is not placed"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 5,
+      "failed": 1,
+      "failing": [
+       "a declined card is told to the customer in plain words and the order is not placed"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 6,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      },
+      {
+       "id": "SG2",
+       "pass": true
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  }
+ ]
+}
