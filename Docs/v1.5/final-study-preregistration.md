@@ -140,7 +140,9 @@ use?" (thesis SO3, Kap6).
    study snapshots is ≥ 0.90.
 2. **N2, D_sem on the rule-blind rows.** The C4 interpretation with the U3 rubric on the study's final snapshots, for
    the meaning-level rows no admitted rule covers (H06, K11, K12). **Precondition:** a pilot on TRAPRATE-01 outputs
-   against a 30-item author audit made before the pilot is run: ≥ 0.80 agreement and 0 hallucinated citations. If the
+   against the author's audit of the 27 items drawn by the procedure committed before the draw
+   (`experiments/v15-n2/README.md`, seed 20261028; the procedure yielded 27 distinct candidates, not the planned 30),
+   answered before the pilot is run: ≥ 0.80 agreement and 0 hallucinated citations. If the
    precondition fails, N2 is reported as "not run" and the pilot result is reported.
 
 ### SO4 hold-out (separate, zero calls)
