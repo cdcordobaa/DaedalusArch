@@ -54,7 +54,7 @@ export interface AdapterImportFact { readonly file: string; readonly line: numbe
 /** HCAL-01: a transport concept (an HTTP status code, an HTTP or SQL error type) in domain, application or port code (H07). */
 export interface RepoMultiFact { readonly file: string; readonly line: number; readonly repo: string; readonly method: string; readonly root: string; readonly form: 'two-params' | 'collection' }
 export interface DomainTechFact { readonly file: string; readonly line: number; readonly module: string; readonly category: string }
-export interface TransportFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'status-code' | 'transport-type'; readonly detail: string }
+export interface TransportFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'status-code' | 'transport-type' | 'transport-import'; readonly detail: string }
 export interface ContractFact { readonly contract: string; readonly file: string; readonly line: number; readonly entity: string; readonly entityFile: string; readonly via: string; readonly form: 'type' | 'mirror' }
 export interface PortMechFact { readonly port: string; readonly method: string; readonly file: string; readonly line: number; readonly form: 'vendor-type' | 'adapter-type' | 'scope-callback'; readonly detail: string }
 export interface InjectionFact { readonly cls: string; readonly file: string; readonly line: number; readonly adapter: string; readonly adapterFile: string; readonly form: 'constructor' | 'property' | 'new' }
@@ -1208,8 +1208,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     if (spec.roleOf(f) !== 'adapter') continue;
     const from = ADAPTER_PKG.exec(f)?.[1];
     if (from === undefined) continue;
+    // CN-03 H03: a type-only import couples the two adapters as much as a value import does.
     for (const imp of sf.getImportDeclarations()) {
-      if (imp.isTypeOnly()) continue;
       const tsf = imp.getModuleSpecifierSourceFile();
       if (tsf === undefined || !inTree(tsf)) continue;
       const t = fileOf(tsf);
@@ -1283,6 +1283,9 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
 
   const STATUS_KEY = /^(status|statusCode|httpStatus|httpCode)$/i;
   const TRANSPORT_TYPE = /(Http\w*(Error|Exception|Status)|HttpStatus|StatusCode|Sql\w*Error|QueryFailed\w*)$/;
+  // CN-03 H07: a field or parameter named for an HTTP status, and packages whose subject is HTTP errors or statuses.
+  const HTTP_STATUS_NAME = /^(httpStatus|httpStatusCode|statusCode|httpCode)$/i;
+  const HTTP_ERROR_PKG = /^(http-errors|http-status|http-status-codes|@hapi\/boom|boom)$/;
   const transports: TransportFact[] = [];
   const isHttpCode = (n: Node): boolean => Node.isNumericLiteral(n) && Number(n.getText()) >= 100 && Number(n.getText()) <= 599 && Number.isInteger(Number(n.getText()));
   for (const sf of files) {
@@ -1295,7 +1298,15 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       if (Node.isPropertyAssignment(n) && STATUS_KEY.test(n.getName()) && n.getInitializer() !== undefined && isHttpCode(n.getInitializer()!)) add(n.getStartLineNumber(), 'status-code', `${n.getName()}: ${n.getInitializer()!.getText()}`);
       if (Node.isNewExpression(n) && TRANSPORT_TYPE.test(n.getExpression().getText())) add(n.getStartLineNumber(), 'transport-type', `new ${n.getExpression().getText()}(…)`);
       if (Node.isClassDeclaration(n) && TRANSPORT_TYPE.test(n.getName() ?? '')) add(n.getStartLineNumber(), 'transport-type', `class ${n.getName() ?? ''}`);
+      if ((Node.isParameterDeclaration(n) || Node.isPropertyDeclaration(n) || Node.isPropertySignature(n)) && Node.isIdentifier(n.getNameNode())) {
+        const init = n.getInitializer();
+        if (HTTP_STATUS_NAME.test(n.getName()) || (STATUS_KEY.test(n.getName()) && init !== undefined && isHttpCode(init))) add(n.getStartLineNumber(), 'status-code', `field ${n.getName()}`);
+      }
     });
+    for (const imp of sf.getImportDeclarations()) {
+      const mod = imp.getModuleSpecifierValue();
+      if (HTTP_ERROR_PKG.test(mod) || categoryOfModule(mod) === 'transport') add(imp.getStartLineNumber(), 'transport-import', `import from '${mod}'`);
+    }
   }
   bump('transports', transports.length);
 
