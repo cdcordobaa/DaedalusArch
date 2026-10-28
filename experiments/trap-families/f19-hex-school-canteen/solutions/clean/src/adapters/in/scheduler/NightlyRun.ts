@@ -1,6 +1,6 @@
 import type { LowBalanceLetters } from '../../../application/ports/in/LowBalanceLetters';
 import type { TakingsExport } from '../../../application/ports/in/TakingsExport';
-import { reply, type Reply } from '../shared/reply';
+import { reply, type Reply } from './reply';
 
 /** What the scheduler starts every night after the canteen closes. */
 export class NightlyRun {
