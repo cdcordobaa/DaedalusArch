@@ -1,0 +1,133 @@
+diff --git a/step-01/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts b/step-01/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
+new file mode 100644
+index 000000000..c6eb5e759
+--- /dev/null
++++ b/step-01/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
+@@ -0,0 +1,30 @@
++import { PaystreamUnavailableError } from 'paystream-sdk';
++import type { PaystreamCharge, PaystreamClient } from 'paystream-sdk';
++import type { Charges } from '../../../application/ports/out/Charges';
++import { PaymentError } from '../../../domain/errors/PaymentError';
++import type { ChargeReceipt } from '../../../domain/model/ChargeReceipt';
++import type { Money } from '../../../domain/model/Money';
++
++export class PaystreamChargesAdapter implements Charges {
++  constructor(private readonly client: PaystreamClient) {}
++
++  async charge(cardToken: string, amount: Money, orderId: string): Promise<ChargeReceipt> {
++    let charge: PaystreamCharge;
++    try {
++      charge = await this.client.charge({
++        amountMinor: amount.cents,
++        currency: amount.currency,
++        source: { token: cardToken },
++        captureMethod: 'automatic',
++        merchantReference: orderId,
++      });
++    } catch (e) {
++      if (e instanceof PaystreamUnavailableError) throw new PaymentError('the payment service is unavailable, please try again');
++      throw e;
++    }
++    if (charge.state !== 'SUCCEEDED') {
++      throw new PaymentError(`the card was declined${charge.declineCode ? `: ${charge.declineCode}` : ''}`);
++    }
++    return { reference: charge.chargeId };
++  }
++}
+diff --git a/step-01/src/application/ports/out/Charges.ts b/step-01/src/application/ports/out/Charges.ts
+new file mode 100644
+index 000000000..235ef3f34
+--- /dev/null
++++ b/step-01/src/application/ports/out/Charges.ts
+@@ -0,0 +1,7 @@
++import type { ChargeReceipt } from '../../../domain/model/ChargeReceipt';
++import type { Money } from '../../../domain/model/Money';
++
++/** Takes a card payment, in the application's own terms. */
++export interface Charges {
++  charge(cardToken: string, amount: Money, orderId: string): Promise<ChargeReceipt>;
++}
+diff --git a/step-00/src/application/services/CheckoutService.ts b/step-01/src/application/services/CheckoutService.ts
+index 74fb9f7bc..f29a5ec73 100644
+--- a/step-00/src/application/services/CheckoutService.ts
++++ b/step-01/src/application/services/CheckoutService.ts
+@@ -1,13 +1,17 @@
+ import { Order } from '../../domain/model/Order';
+-import { Invoicing } from '../../domain/services/Invoicing';
+ import type { Checkout, CheckoutRequest, CheckoutView } from '../ports/in/Checkout';
++import type { Charges } from '../ports/out/Charges';
++
++/** Card surcharge in basis points (1.5%). */
++const CARD_SURCHARGE_BASIS_POINTS = 150;
+ 
+ export class CheckoutService implements Checkout {
+-  constructor(private readonly invoicing: Invoicing = new Invoicing()) {}
++  constructor(private readonly charges: Charges) {}
+ 
+   async checkout(request: CheckoutRequest): Promise<CheckoutView> {
+     const order = Order.of(request.orderId, request.total, request.currency);
+-    const payment = this.invoicing.invoiceFor(order);
+-    return { orderId: order.id, status: payment.status, amount: payment.amount.amount(), currency: payment.amount.currency, reference: payment.reference };
++    const amount = order.total.plusSurcharge(CARD_SURCHARGE_BASIS_POINTS);
++    const receipt = await this.charges.charge(request.cardToken, amount, order.id);
++    return { orderId: order.id, status: 'paid', amount: amount.amount(), currency: amount.currency, reference: receipt.reference };
+   }
+ }
+diff --git a/step-00/src/config/container.ts b/step-01/src/config/container.ts
+index 5117817ba..c80418beb 100644
+--- a/step-00/src/config/container.ts
++++ b/step-01/src/config/container.ts
+@@ -1,5 +1,6 @@
+ import { PaystreamClient } from 'paystream-sdk';
+ import { PaymentsController } from '../adapters/inbound/http/PaymentsController';
++import { PaystreamChargesAdapter } from '../adapters/outbound/paystream/PaystreamChargesAdapter';
+ import { PaystreamRefundsAdapter } from '../adapters/outbound/paystream/PaystreamRefundsAdapter';
+ import { CheckoutService } from '../application/services/CheckoutService';
+ import { RefundPaymentService } from '../application/services/RefundPaymentService';
+@@ -7,7 +8,7 @@ import { RefundPaymentService } from '../application/services/RefundPaymentServi
+ /** Composition root. The Paystream key comes from PAYSTREAM_API_KEY. */
+ export function createApp() {
+   const paystream = new PaystreamClient({ apiKey: process.env.PAYSTREAM_API_KEY ?? '' });
+-  const checkouts = new CheckoutService();
++  const checkouts = new CheckoutService(new PaystreamChargesAdapter(paystream));
+   const refunds = new RefundPaymentService(new PaystreamRefundsAdapter(paystream));
+   const http = new PaymentsController(checkouts, refunds);
+   return {
+diff --git a/step-01/src/domain/model/ChargeReceipt.ts b/step-01/src/domain/model/ChargeReceipt.ts
+new file mode 100644
+index 000000000..53e5e73cc
+--- /dev/null
++++ b/step-01/src/domain/model/ChargeReceipt.ts
+@@ -0,0 +1,3 @@
++export interface ChargeReceipt {
++  readonly reference: string;
++}
+diff --git a/step-00/src/domain/model/Money.ts b/step-01/src/domain/model/Money.ts
+index 943cbe4eb..068139aa9 100644
+--- a/step-00/src/domain/model/Money.ts
++++ b/step-01/src/domain/model/Money.ts
+@@ -18,6 +18,11 @@ export class Money {
+     return new Money(this.cents + other.cents, this.currency);
+   }
+ 
++  /** This amount plus a surcharge given in basis points, rounded to the nearest cent. */
++  plusSurcharge(basisPoints: number): Money {
++    return new Money(this.cents + Math.round((this.cents * basisPoints) / 10000), this.currency);
++  }
++
+   isPositive(): boolean {
+     return this.cents > 0;
+   }
+diff --git a/step-00/src/domain/model/Payment.ts b/step-01/src/domain/model/Payment.ts
+index 7d3d69e6c..a365f1d33 100644
+--- a/step-00/src/domain/model/Payment.ts
++++ b/step-01/src/domain/model/Payment.ts
+@@ -2,7 +2,7 @@ import type { Money } from './Money';
+ 
+ /** How an order is paid: the amount asked of the customer and our reference for it. */
+ export interface Payment {
+-  readonly status: 'invoiced';
++  readonly status: 'invoiced' | 'paid';
+   readonly amount: Money;
+   readonly reference: string;
+ }

@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The front-desk app must tell a full lounge apart from the other refusals so that it can show a waiting time. When entering, or adding a guest, is refused because the lounge is full, the answer is now status 503 with body { error: 'lounge L-01 is full', retryAfterMinutes: N }: N is the number of minutes, rounded up to a whole minute, until the visit in progress that started earliest in that lounge reaches three hours (no visit lasts longer than that), and at least 1. Every other refusal keeps its current status and body exactly. The app team ships tonight, so keep the change small.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c27/tsconfig.json

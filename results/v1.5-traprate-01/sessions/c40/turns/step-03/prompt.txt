@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Tenants who have not signed must get reminders through Inkwell. createApp() must also answer sendReminders(now), which a scheduler runs with the current time; it answers the ids of the agreements it reminded, in the order they were drafted. Only agreements out for signature are reminded. The first reminder comes no earlier than 3 days (72 hours) after Inkwell's sent time, and each later one no earlier than 3 days after the previous reminder. A signing gets at most 2 reminders, and an agreement sent again starts with none. No reminder is sent once the signing link has expired, 14 days after the sent time, even before Inkwell's callback about it arrives. A reminder names only the tenants who have not signed yet according to Inkwell, never the landlord; when Inkwell shows that every tenant has signed, no reminder is sent and the agreement is not counted as reminded. When Inkwell answers that it is busy and cannot send a reminder now, that agreement is skipped in this run, the attempt does not count as a reminder, and the other agreements are still reminded; any other Inkwell failure stops the run. The time of a reminder is the now the run was given.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c40/tsconfig.json

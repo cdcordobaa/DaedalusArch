@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Mechanics can now mark a repair as done. Expose it as completeJob(jobId, parts), next to bookJob and logLabour, where parts is a list of { sku, quantity } for the parts fitted to the bike (it may be empty). Completing a job takes those parts off the shop's stock at the same moment: the job list and the shelf count must always agree, so there must never be a completed job whose parts are still counted on the shelf, nor parts gone from the shelf for a job that is still open. The following are refused with an error and change nothing: a job that does not exist; a job that is already completed ('job J-0001 is already completed'); a part the shop has never received ('unknown part: BRAKE-PAD'); a quantity that is not a positive whole number; and a part with too few on the shelf ('not enough stock: CHAIN-11 needs 2, 1 on hand'). Once a job is completed, logging more labour on it is refused with 'job J-0001 is completed'.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c25/tsconfig.json

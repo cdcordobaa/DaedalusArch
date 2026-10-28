@@ -1,0 +1,166 @@
+diff --git a/step-03/src/enrolment/application/GetHistory.ts b/step-03/src/enrolment/application/GetHistory.ts
+new file mode 100644
+index 000000000..cd28a135b
+--- /dev/null
++++ b/step-03/src/enrolment/application/GetHistory.ts
+@@ -0,0 +1,15 @@
++import type { SectionRepository } from '../domain/section/SectionRepository';
++import type { HistoryItem } from '../domain/section/Section';
++import { SectionId } from '../domain/section/value-objects/SectionId';
++import { EnrolmentError } from '../domain/EnrolmentError';
++
++export class GetHistory {
++  constructor(private readonly sections: SectionRepository) {}
++
++  /** Every roster change of the section, newest first. */
++  execute(sectionId: string): HistoryItem[] {
++    const section = this.sections.byId(SectionId.of(sectionId));
++    if (section === undefined) throw new EnrolmentError(`no section ${sectionId}`);
++    return section.history();
++  }
++}
+diff --git a/step-02/src/enrolment/application/SwitchSection.ts b/step-03/src/enrolment/application/SwitchSection.ts
+index c437b2de5..a86f77f3a 100644
+--- a/step-02/src/enrolment/application/SwitchSection.ts
++++ b/step-03/src/enrolment/application/SwitchSection.ts
+@@ -16,8 +16,8 @@ export class SwitchSection {
+     }
+     if (!from.has(studentId)) throw new EnrolmentError(`${studentId} is not enrolled in ${fromSectionId}`);
+     if (fromSectionId === toSectionId) throw new EnrolmentError(`${studentId} is already enrolled in ${toSectionId}`);
+-    to.enrolBySwitch(studentId, this.today());
+-    from.drop(studentId);
++    to.enrolBySwitch(studentId, this.today(), fromSectionId);
++    from.dropBySwitch(studentId, toSectionId);
+     this.sections.saveAll([from, to]);
+   }
+ }
+diff --git a/step-02/src/enrolment/domain/section/Section.ts b/step-03/src/enrolment/domain/section/Section.ts
+index 601b9a738..4b76e9b19 100644
+--- a/step-02/src/enrolment/domain/section/Section.ts
++++ b/step-03/src/enrolment/domain/section/Section.ts
+@@ -3,6 +3,14 @@ import { EnrolmentError } from '../EnrolmentError';
+ import { SectionOpened } from './events/SectionOpened';
+ import type { SectionId } from './value-objects/SectionId';
+ 
++export type HistoryKind = 'enrolled' | 'dropped' | 'switched-in' | 'switched-out';
++
++export interface HistoryItem {
++  readonly kind: HistoryKind;
++  readonly studentId: string;
++  readonly otherSection: string | null;
++}
++
+ export interface SectionState {
+   readonly id: SectionId;
+   readonly courseCode: string;
+@@ -11,6 +19,8 @@ export interface SectionState {
+   /** Day (YYYY-MM-DD) of the latest switch into the section, and how many switches came in that day. */
+   readonly switchInDay?: string;
+   readonly switchInCount?: number;
++  /** Roster changes, oldest first. */
++  readonly history?: readonly HistoryItem[];
+ }
+ 
+ export const DAILY_SWITCH_LIMIT = 3;
+@@ -26,6 +36,7 @@ export class Section {
+     private students: string[],
+     private switchInDay = '',
+     private switchInCount = 0,
++    private log: HistoryItem[] = [],
+   ) {}
+ 
+   static open(id: SectionId, courseCode: string, capacity: number): Section {
+@@ -36,7 +47,7 @@ export class Section {
+   }
+ 
+   static restore(state: SectionState): Section {
+-    return new Section(state.id, state.courseCode, state.capacity, [...state.students], state.switchInDay ?? '', state.switchInCount ?? 0);
++    return new Section(state.id, state.courseCode, state.capacity, [...state.students], state.switchInDay ?? '', state.switchInCount ?? 0, [...(state.history ?? [])]);
+   }
+ 
+   roster(): string[] {
+@@ -47,7 +58,17 @@ export class Section {
+     return this.students.includes(studentId);
+   }
+ 
++  /** Roster changes, newest first. */
++  history(): HistoryItem[] {
++    return [...this.log].reverse();
++  }
++
+   enrol(studentId: string): void {
++    this.admit(studentId);
++    this.log.push({ kind: 'enrolled', studentId, otherSection: null });
++  }
++
++  private admit(studentId: string): void {
+     if (studentId.trim() === '') throw new EnrolmentError('a student id must not be empty');
+     if (this.has(studentId)) throw new EnrolmentError(`${studentId} is already enrolled in ${this.id.value}`);
+     if (this.isFull()) throw new EnrolmentError(`section full: ${this.id.value} has ${String(this.students.length)} of ${String(this.capacity)} seats taken`);
+@@ -55,23 +76,35 @@ export class Section {
+   }
+ 
+   /** Enrols a student who switches in from another section; at most DAILY_SWITCH_LIMIT per calendar day. */
+-  enrolBySwitch(studentId: string, today: string): void {
++  enrolBySwitch(studentId: string, today: string, fromSection: string): void {
+     const taken = this.switchInDay === today ? this.switchInCount : 0;
+     if (taken >= DAILY_SWITCH_LIMIT) {
+       throw new EnrolmentError(`daily switch limit reached: ${this.id.value} already took ${String(taken)} students by switch today`);
+     }
+-    this.enrol(studentId);
++    this.admit(studentId);
++    this.log.push({ kind: 'switched-in', studentId, otherSection: fromSection });
+     this.switchInDay = today;
+     this.switchInCount = taken + 1;
+   }
+ 
+   drop(studentId: string): void {
++    this.remove(studentId);
++    this.log.push({ kind: 'dropped', studentId, otherSection: null });
++  }
++
++  /** Removes a student who switches out to another section. */
++  dropBySwitch(studentId: string, toSection: string): void {
++    this.remove(studentId);
++    this.log.push({ kind: 'switched-out', studentId, otherSection: toSection });
++  }
++
++  private remove(studentId: string): void {
+     if (!this.has(studentId)) throw new EnrolmentError(`${studentId} is not enrolled in ${this.id.value}`);
+     this.students = this.students.filter((s) => s !== studentId);
+   }
+ 
+   state(): SectionState {
+-    return { id: this.id, courseCode: this.courseCode, capacity: this.capacity, students: [...this.students], switchInDay: this.switchInDay, switchInCount: this.switchInCount };
++    return { id: this.id, courseCode: this.courseCode, capacity: this.capacity, students: [...this.students], switchInDay: this.switchInDay, switchInCount: this.switchInCount, history: [...this.log] };
+   }
+ 
+   pullEvents(): DomainEvent[] {
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 51d1b6e94..bb6330556 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -1,11 +1,13 @@
+ import { Drop } from './enrolment/application/Drop';
+ import { Enrol } from './enrolment/application/Enrol';
+ import { EventRelay } from './enrolment/application/EventRelay';
+-import { GetRoster } from './enrolment/application/GetRoster';
++import { GetHistory } from './enrolment/application/GetHistory';
++import { GetRoster }from './enrolment/application/GetRoster';
+ import { OpenSection } from './enrolment/application/OpenSection';
+ import { SendOpeningNotice } from './enrolment/application/SendOpeningNotice';
+ import { SwitchSection } from './enrolment/application/SwitchSection';
+-import { InMemoryNotices } from './enrolment/infrastructure/InMemoryNotices';
++import type { HistoryItem } from './enrolment/domain/section/Section';
++import { InMemoryNotices }from './enrolment/infrastructure/InMemoryNotices';
+ import { InMemorySectionRepository } from './enrolment/infrastructure/InMemorySectionRepository';
+ 
+ export interface AppOptions {
+@@ -33,6 +35,7 @@ export function createApp(options: AppOptions = {}) {
+     switchSection: (studentId: string, fromSectionId: string, toSectionId: string): void =>
+       command(() => new SwitchSection(sections, today).execute(studentId, fromSectionId, toSectionId)),
+     rosterOf: (sectionId: string): string[] => new GetRoster(sections).execute(sectionId),
++    history: (sectionId: string): HistoryItem[] => new GetHistory(sections).execute(sectionId),
+     notices: (): string[] => notices.all(),
+   };
+ }

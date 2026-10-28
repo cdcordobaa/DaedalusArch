@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The finance office wants a nightly export of a day's takings; keep it small, it only runs at night. nightly.financeExport(date) writes the file takings-<date>.csv into the finance folder and answers { file, classes }. The file has the header line 'class,meals,amount', then one line per class that had at least one meal that day (cancelled meals do not count), in class name order, then the line 'total,<meals>,<amount>'. amount is what those meals cost, written like 12.40 (pounds and pence, no currency); classes is the number of class lines. Lines end with a newline. Running it again for the same day replaces the file. The finance office reads the folder as app.financeFolder: financeFolder.read(name) gives the file text (null when there is no such file) and financeFolder.names() the file names in name order. A bad date is refused with 'not a date: <value>' as 400 { error }, and no file is written.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c03/tsconfig.json

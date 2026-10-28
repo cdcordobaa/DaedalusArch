@@ -1,0 +1,63 @@
+diff --git a/step-02/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts b/step-03/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts
+index 650a6b44a..e397a9c91 100644
+--- a/step-02/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts
++++ b/step-03/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts
+@@ -24,6 +24,7 @@ export class GeopinAddressGeocoder implements AddressGeocoder {
+       point: { latitude: best.location.lat, longitude: best.location.lng },
+       precision: best.precision,
+       confidence: best.confidence,
++      country: best.components.countryIso.toUpperCase(),
+     };
+   }
+ }
+diff --git a/step-02/src/application/services/ScheduleDeliveryService.ts b/step-03/src/application/services/ScheduleDeliveryService.ts
+index ac790383d..65dddce29 100644
+--- a/step-02/src/application/services/ScheduleDeliveryService.ts
++++ b/step-03/src/application/services/ScheduleDeliveryService.ts
+@@ -13,7 +13,7 @@ export class ScheduleDeliveryService implements ScheduleDelivery {
+     const address = DeliveryAddress.of(request.street, request.postcode, request.city, request.country);
+     try {
+       const match = await this.geocoder.geocode(address);
+-      return this.booking.book(request.orderId, match);
++      return this.booking.book(request.orderId, match, address.country);
+     } catch (e) {
+       if (e instanceof GeocoderUnavailableError) return this.booking.bookUnverified(request.orderId, address.oneLine());
+       throw e;
+diff --git a/step-02/src/domain/model/GeocodedAddress.ts b/step-03/src/domain/model/GeocodedAddress.ts
+index 2b74e2b13..54f9ef22d 100644
+--- a/step-02/src/domain/model/GeocodedAddress.ts
++++ b/step-03/src/domain/model/GeocodedAddress.ts
+@@ -6,4 +6,6 @@ export interface GeocodedAddress {
+   readonly point: GeoPoint;
+   readonly precision: 'ROOFTOP' | 'STREET' | 'LOCALITY' | 'POSTCODE';
+   readonly confidence: number;
++  /** Two-letter country code of the match. */
++  readonly country: string;
+ }
+diff --git a/step-02/src/domain/services/DeliveryBooking.ts b/step-03/src/domain/services/DeliveryBooking.ts
+index 0d8a2e684..265eec1c7 100644
+--- a/step-02/src/domain/services/DeliveryBooking.ts
++++ b/step-03/src/domain/services/DeliveryBooking.ts
+@@ -5,14 +5,16 @@ const MIN_CONFIDENCE = 0.8;
+ 
+ /** Books a delivery for an order when the geocoded match is precise enough to drive to. */
+ export class DeliveryBooking {
+-  book(orderId: string, match: GeocodedAddress | undefined): Delivery {
+-    if (
+-      !match
+-      || (match.precision !== 'ROOFTOP' && match.precision !== 'STREET')
+-      || match.confidence < MIN_CONFIDENCE
+-    ) {
++  book(orderId: string, match: GeocodedAddress | undefined, country: string): Delivery {
++    if (match && match.country !== country) {
++      return { orderId, status: 'rejected', reason: 'This address is in another country.' };
++    }
++    if (!match || match.confidence < MIN_CONFIDENCE) {
+       return { orderId, status: 'rejected', reason: 'We could not find this address.' };
+     }
++    if (match.precision !== 'ROOFTOP' && match.precision !== 'STREET') {
++      return { orderId, status: 'rejected', reason: 'Please add your street and house number.' };
++    }
+     return { orderId, status: 'scheduled', address: match.address, point: match.point, unverified: false };
+   }
+ 

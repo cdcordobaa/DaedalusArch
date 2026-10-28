@@ -1,0 +1,67 @@
+diff --git a/step-00/src/market/acl/LicensingGateway.ts b/step-01/src/market/acl/LicensingGateway.ts
+index 13ee55d26..f16cbabcc 100644
+--- a/step-00/src/market/acl/LicensingGateway.ts
++++ b/step-01/src/market/acl/LicensingGateway.ts
+@@ -1,5 +1,5 @@
+ import type { LicensingDesk } from '../../licensing';
+-import type { LicenceRegister } from '../application/ports/LicenceRegister';
++import type { LicenceRegister, LicenceStanding } from '../application/ports/LicenceRegister';
+ 
+ /** Asks the licensing desk, through what it publishes, and answers in the terms pitch bookings use. */
+ export class LicensingGateway implements LicenceRegister {
+@@ -8,4 +8,8 @@ export class LicensingGateway implements LicenceRegister {
+   isRegistered(vendorId: string): boolean {
+     return this.desk.sheet(vendorId) !== undefined;
+   }
++
++  standing(vendorId: string): LicenceStanding | undefined {
++    return this.desk.sheet(vendorId)?.status;
++  }
+ }
+diff --git a/step-00/src/market/application/bookPitch.ts b/step-01/src/market/application/bookPitch.ts
+index b4edcf472..71f383a61 100644
+--- a/step-00/src/market/application/bookPitch.ts
++++ b/step-01/src/market/application/bookPitch.ts
+@@ -9,10 +9,11 @@ export interface BookingConfirmation {
+ }
+ 
+ export function bookPitch(days: MarketDayRepository, licences: LicenceRegister, date: string, pitchCode: string, vendorId: string): BookingConfirmation {
+-  if (!licences.isRegistered(vendorId)) throw new Error(`no vendor ${vendorId}`);
++  const standing = licences.standing(vendorId);
++  if (standing === undefined) throw new Error(`no vendor ${vendorId}`);
+   const day = dayOf(days, date);
+   const ref = days.issueRef();
+-  const pitch = day.book(ref, pitchCode, vendorId);
++  const pitch = day.book(ref, pitchCode, vendorId, standing);
+   days.store(day);
+   return { ref, pitch: pitch.code, fee: pitch.fee() };
+ }
+diff --git a/step-00/src/market/application/ports/LicenceRegister.ts b/step-01/src/market/application/ports/LicenceRegister.ts
+index fbcbd6294..0bd4af6aa 100644
+--- a/step-00/src/market/application/ports/LicenceRegister.ts
++++ b/step-01/src/market/application/ports/LicenceRegister.ts
+@@ -1,4 +1,8 @@
++export type LicenceStanding = 'full' | 'basic' | 'suspended';
++
+ /** What pitch bookings need to know about licensed vendors. */
+ export interface LicenceRegister {
+   isRegistered(vendorId: string): boolean;
++  /** The licence status the vendor's licence shows, or undefined for an unknown vendor. */
++  standing(vendorId: string): LicenceStanding | undefined;
+ }
+diff --git a/step-00/src/market/domain/day/MarketDay.ts b/step-01/src/market/domain/day/MarketDay.ts
+index 95f7fa4b6..462d082b6 100644
+--- a/step-00/src/market/domain/day/MarketDay.ts
++++ b/step-01/src/market/domain/day/MarketDay.ts
+@@ -53,8 +53,10 @@ export class MarketDay {
+     return p;
+   }
+ 
+-  book(ref: string, pitchCode: string, vendorId: string): Pitch {
++  book(ref: string, pitchCode: string, vendorId: string, licence: 'full' | 'basic' | 'suspended'): Pitch {
+     const pitch = this.pitch(pitchCode);
++    if (licence === 'suspended') throw new Error(`vendor ${vendorId} is suspended`);
++    if (pitch.kind === 'hall' && licence !== 'full') throw new Error(`hall pitch ${pitch.code} needs a full licence`);
+     if (this.bookings.some((b) => b.pitch === pitch.code)) throw new Error(`pitch ${pitch.code} is taken on ${this.date.iso}`);
+     if (this.bookings.some((b) => b.vendorId === vendorId)) throw new Error(`vendor ${vendorId} already has a pitch on ${this.date.iso}`);
+     this.bookings = [...this.bookings, { ref, pitch: pitch.code, vendorId, attendance: 'expected' }];

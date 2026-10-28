@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Inkwell now calls us back when a tenant declines to sign, when a signing link expires and when everyone has signed. createApp() must also answer inkwellEvent(rawBody, signatureHeader), which answers { status } with the HTTP status for Inkwell; the callback secret is in INKWELL_WEBHOOK_SECRET, and the Inkwell SDK checks the signature header against the raw body with it. When a tenant declines, viewing the agreement shows the status 'declined', declinedBy (that tenant's email) and reason (the reason the tenant gave). When the signing link expires it shows 'expired', and when everyone has signed it shows 'signed'. Each of these answers 200. These callbacks change nothing: one whose signature does not check out answers 401; one about a signing we do not know, or about an earlier sending of an agreement that has since been sent again, answers 200; one about an agreement that is no longer out for signature (already declined, expired or signed; Inkwell may send the same callback more than once) answers 200, so the first outcome stays; and any other kind of callback, such as a tenant opening the document, answers 200.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c18/tsconfig.json

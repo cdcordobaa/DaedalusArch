@@ -1,0 +1,66 @@
+diff --git a/step-03/src/adapters/in/http/LockbankMqttRoutes.ts b/step-03/src/adapters/in/http/LockbankMqttRoutes.ts
+new file mode 100644
+index 000000000..cad64942b
+--- /dev/null
++++ b/step-03/src/adapters/in/http/LockbankMqttRoutes.ts
+@@ -0,0 +1,40 @@
++import { LockerError } from '../../../domain/LockerError';
++import type { MemoryLockers } from '../../out/memory/MemoryLockers';
++import { reply, type Reply } from './reply';
++
++const TOPIC = /^lockbank\/([^/]+)\/bay\/([1-9][0-9]*)\/fault$/;
++const NOT_FAULT = 'not a LockBank fault message';
++
++/** Latch faults published by the LockBank hubs, handed over by the MQTT bridge. */
++export class LockbankMqttRoutes {
++  constructor(private readonly lockerStore: MemoryLockers) {}
++
++  receive(topic: string, payload: string): Reply {
++    return reply(() => {
++      const match = typeof topic === 'string' ? TOPIC.exec(topic) : null;
++      const fault = parseFault(payload);
++      if (match === null || fault === undefined) throw new LockerError(NOT_FAULT);
++      const buildingId = match[1] as string;
++      const bay = Number(match[2]);
++      const locker = this.lockerStore.inBuilding(buildingId).find((l) => l.bay === bay);
++      if (locker === undefined) throw new LockerError(`no locker at bay ${String(bay)} of ${buildingId}`);
++      if (fault === 'cleared') locker.returnToService();
++      else locker.takeOutOfService();
++      this.lockerStore.save(locker);
++      return { locker: locker.id, inService: locker.inService };
++    });
++  }
++}
++
++function parseFault(payload: string): 'jammed' | 'left-open' | 'cleared' | undefined {
++  if (typeof payload !== 'string') return undefined;
++  let data: unknown;
++  try {
++    data = JSON.parse(payload);
++  } catch {
++    return undefined;
++  }
++  if (typeof data !== 'object' || data === null || Array.isArray(data)) return undefined;
++  const fault = (data as Record<string, unknown>)['fault'];
++  return fault === 'jammed' || fault === 'left-open' || fault === 'cleared' ? fault : undefined;
++}
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index d7da0e690..71b2c6921 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -1,6 +1,7 @@
+ import { ManagerRoutes } from './adapters/in/http/ManagerRoutes';
+ import { ResidentRoutes } from './adapters/in/http/ResidentRoutes';
+ import { LaundryRoutes } from './adapters/in/http/LaundryRoutes';
++import { LockbankMqttRoutes } from './adapters/in/http/LockbankMqttRoutes';
+ import { BuildingClock } from './adapters/out/clock/BuildingClock';
+ import { SeededCodes } from './adapters/out/codes/SeededCodes';
+ import { LockBankDriver } from './adapters/out/lockbank/LockBankDriver';
+@@ -40,6 +41,7 @@ export function createApp(options: AppOptions = {}) {
+     managers: new ManagerRoutes(admin, lockers, lockbank),
+     laundry: new LaundryRoutes(intake, takeBacks),
+     residents: new ResidentRoutes(pickups),
++    lockbankMqtt: new LockbankMqttRoutes(lockers),
+     hardware: {
+       jam: (hubId: string, bay: number) => hub.jam(hubId, bay),
+       unjam: (hubId: string, bay: number) => hub.unjam(hubId, bay),

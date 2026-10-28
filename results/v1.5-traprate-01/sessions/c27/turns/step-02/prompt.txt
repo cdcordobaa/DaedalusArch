@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+A guest can now join a visit in progress: desk.addGuest(visitId) answers { visit, guests } with the visit's new number of guests, and occupancy counts the guest at once. The visit must exist ('no visit V-0999', status 404) and must not have ended ('visit V-0001 has ended', status 422). Then the same rules as entering with one more guest apply, checked in this order and with the same wording and status as on entry: day passes take no guests ('day passes allow no guests'), the airline's guest allowance ('LU allows at most 2 guests'), the guest cut-off at the lounge's local time ('no guests between 21:00 and 05:00 at ZRH'), and room for one more person ('lounge L-01 is full').
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c27/tsconfig.json

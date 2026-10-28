@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Prices must now be rounded the way each currency is written, not always to two decimals: to the number of decimals Ratewise gives with the rate (none for the Japanese yen, three for the Kuwaiti dinar, two for most currencies), with halves rounded up. Two exceptions win over Ratewise's decimals. Swiss franc prices are rounded to the nearest 0.05, with halves rounded up. And no price is ever shown as zero: a price that would round to zero is shown as the smallest amount the currency can be shown in after this rounding, for example 0.01 pounds, 1 yen or 0.05 francs. Estimated prices are rounded in the same way. Euro prices do not change.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c43/tsconfig.json

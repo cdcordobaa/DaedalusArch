@@ -1,0 +1,154 @@
+diff --git a/step-02/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts b/step-03/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
+index 2804c4b4e..6de336181 100644
+--- a/step-02/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
++++ b/step-03/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
+@@ -1,6 +1,6 @@
+ import { InkwellError } from 'inkwell-sdk';
+ import type { InkwellClient, InkwellRecipient } from 'inkwell-sdk';
+-import type { EnvelopeSender, SentEnvelope } from '../../../application/ports/out/EnvelopeSender';
++import type { EnvelopeSender, ReminderOutcome, SentEnvelope } from '../../../application/ports/out/EnvelopeSender';
+ import { TenancyError } from '../../../domain/errors/TenancyError';
+ import type { Agreement } from '../../../domain/model/Agreement';
+ 
+@@ -10,6 +10,19 @@ const EXPIRES_IN_DAYS = 14;
+ export class InkwellEnvelopeAdapter implements EnvelopeSender {
+   constructor(private readonly client: InkwellClient) {}
+ 
++  async remind(envelopeId: string): Promise<ReminderOutcome> {
++    const envelope = await this.client.getEnvelope(envelopeId);
++    const pending = envelope.recipients.filter((r) => r.role === 'SIGNER' && r.recipientStatus !== 'SIGNED').map((r) => r.emailAddress);
++    if (pending.length === 0) return 'all signed';
++    try {
++      await this.client.sendReminder(envelopeId, { recipientEmails: pending });
++      return 'reminded';
++    } catch (e) {
++      if (e instanceof InkwellError && e.errorCode === 'RATE_LIMITED') return 'busy';
++      throw e;
++    }
++  }
++
+   async send(agreement: Agreement): Promise<SentEnvelope> {
+     const signers: InkwellRecipient[] = agreement.tenants.map((t, i) => ({
+       emailAddress: t.email,
+diff --git a/step-02/src/application/ports/in/ManageAgreements.ts b/step-03/src/application/ports/in/ManageAgreements.ts
+index 1eef61c3e..6e1ac7255 100644
+--- a/step-02/src/application/ports/in/ManageAgreements.ts
++++ b/step-03/src/application/ports/in/ManageAgreements.ts
+@@ -31,6 +31,8 @@ export interface ManageAgreements {
+   draft(request: DraftRequest): Promise<string>;
+   view(id: string): Promise<AgreementView>;
+   send(id: string): Promise<void>;
++  /** Reminds unsigned tenants; answers the ids reminded, in drafting order. */
++  sendReminders(now: Date): Promise<string[]>;
+   /** Outcomes Inkwell reports for the signing identified by envelopeId; unknown or superseded signings are ignored. */
+   tenantDeclined(envelopeId: string, tenantEmail: string, reason: string): Promise<void>;
+   signingExpired(envelopeId: string): Promise<void>;
+diff --git a/step-02/src/application/ports/out/EnvelopeSender.ts b/step-03/src/application/ports/out/EnvelopeSender.ts
+index 9dfdff4ee..03a97e872 100644
+--- a/step-02/src/application/ports/out/EnvelopeSender.ts
++++ b/step-03/src/application/ports/out/EnvelopeSender.ts
+@@ -5,7 +5,12 @@ export interface SentEnvelope {
+   readonly sentAt: Date;
+ }
+ 
++/** 'reminded' when sent; 'all signed' when no tenant is left to remind; 'busy' when Inkwell cannot send one now. */
++export type ReminderOutcome = 'reminded' | 'all signed' | 'busy';
++
+ export interface EnvelopeSender {
++  /** Reminds the tenants who have not signed yet. Other service failures are thrown. */
++  remind(envelopeId: string): Promise<ReminderOutcome>;
+   /** Throws TenancyError when the signing service refuses one of the email addresses. */
+   send(agreement: Agreement): Promise<SentEnvelope>;
+ }
+diff --git a/step-02/src/application/services/AgreementService.ts b/step-03/src/application/services/AgreementService.ts
+index ac42e84c2..40f5fbda3 100644
+--- a/step-02/src/application/services/AgreementService.ts
++++ b/step-03/src/application/services/AgreementService.ts
+@@ -57,6 +57,19 @@ export class AgreementService implements ManageAgreements {
+     }
+   }
+ 
++  async sendReminders(now: Date): Promise<string[]> {
++    const reminded: string[] = [];
++    for (const agreement of await this.store.all()) {
++      const envelopeId = agreement.envelopeId;
++      if (envelopeId === undefined || !agreement.isDueForReminder(now)) continue;
++      if ((await this.envelopes.remind(envelopeId)) !== 'reminded') continue;
++      agreement.recordReminder(now);
++      await this.store.save(agreement);
++      reminded.push(agreement.id);
++    }
++    return reminded;
++  }
++
+   private async apply(envelopeId: string, change: (a: Agreement) => void): Promise<void> {
+     const agreement = (await this.store.all()).find((a) => a.envelopeId === envelopeId);
+     if (agreement === undefined) return;
+diff --git a/step-02/src/config/container.ts b/step-03/src/config/container.ts
+index 58268c08e..f011f60a2 100644
+--- a/step-02/src/config/container.ts
++++ b/step-03/src/config/container.ts
+@@ -32,6 +32,7 @@ export function createApp() {
+     draft: (request: DraftRequest) => agreements.draft(request),
+     view: (id: string) => agreements.view(id),
+     send: (agreementId: string) => agreements.send(agreementId),
++    sendReminders: (now: Date) => agreements.sendReminders(now),
+     allowance: () => allowance.allowance(),
+     inkwellEvent,
+     http,
+diff --git a/step-02/src/domain/model/Agreement.ts b/step-03/src/domain/model/Agreement.ts
+index e832f150d..f74763ac0 100644
+--- a/step-02/src/domain/model/Agreement.ts
++++ b/step-03/src/domain/model/Agreement.ts
+@@ -3,6 +3,11 @@ import type { Party } from './Party';
+ 
+ export type AgreementStatus = 'draft' | 'out for signature' | 'signed' | 'declined' | 'expired';
+ 
++const DAY_MS = 24 * 60 * 60 * 1000;
++const REMINDER_GAP_MS = 3 * DAY_MS;
++const LINK_LIFETIME_MS = 14 * DAY_MS;
++const MAX_REMINDERS = 2;
++
+ /** A tenancy agreement between one landlord and one to four tenants, for a monthly rent from a start date. */
+ export class Agreement {
+   private constructor(
+@@ -17,6 +22,8 @@ export class Agreement {
+     private currentEnvelopeId?: string,
+     private currentDeclinedBy?: string,
+     private currentReason?: string,
++    private currentReminders: number = 0,
++    private currentRemindedAt?: Date,
+   ) {}
+ 
+   static draft(id: string, address: string, landlord: Party, tenants: readonly Party[], monthlyRent: number, startsOn: string): Agreement {
+@@ -45,6 +52,21 @@ export class Agreement {
+     return this.currentDeclinedBy;
+   }
+ 
++  /** Whether a reminder may go out at `now`: out for signature, link unexpired, spaced 3 days apart, at most 2. */
++  isDueForReminder(now: Date): boolean {
++    if (this.currentStatus !== 'out for signature' || this.currentSentAt === undefined) return false;
++    if (this.currentReminders >= MAX_REMINDERS) return false;
++    const sent = this.currentSentAt.getTime();
++    if (now.getTime() >= sent + LINK_LIFETIME_MS) return false;
++    const since = this.currentRemindedAt?.getTime() ?? sent;
++    return now.getTime() >= since + REMINDER_GAP_MS;
++  }
++
++  recordReminder(at: Date): void {
++    this.currentReminders += 1;
++    this.currentRemindedAt = at;
++  }
++
+   get reason(): string | undefined {
+     return this.currentReason;
+   }
+@@ -81,6 +103,8 @@ export class Agreement {
+     this.currentSentAt = sentAt;
+     this.currentDeclinedBy = undefined;
+     this.currentReason = undefined;
++    this.currentReminders = 0;
++    this.currentRemindedAt = undefined;
+   }
+ 
+   /** The agreement as the parties read and sign it. */

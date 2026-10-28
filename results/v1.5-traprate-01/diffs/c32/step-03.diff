@@ -1,0 +1,245 @@
+diff --git a/step-03/src/carparks/application/CloseCarPark.ts b/step-03/src/carparks/application/CloseCarPark.ts
+new file mode 100644
+index 000000000..f53eb8f59
+--- /dev/null
++++ b/step-03/src/carparks/application/CloseCarPark.ts
+@@ -0,0 +1,14 @@
++import { CarParkError } from '../domain/CarParkError';
++import type { CarParkRepository } from '../domain/carpark/CarParkRepository';
++import { CarParkId } from '../domain/carpark/value-objects/CarParkId';
++
++export class CloseCarPark {
++  constructor(private readonly carParks: CarParkRepository) {}
++
++  execute(carParkId: string): void {
++    const carPark = this.carParks.byId(CarParkId.of(carParkId));
++    if (carPark === undefined) throw new CarParkError(`no car park ${carParkId}`);
++    carPark.close();
++    this.carParks.save(carPark);
++  }
++}
+diff --git a/step-02/src/carparks/domain/carpark/CarPark.ts b/step-03/src/carparks/domain/carpark/CarPark.ts
+index 36a315fc2..ec7923429 100644
+--- a/step-02/src/carparks/domain/carpark/CarPark.ts
++++ b/step-03/src/carparks/domain/carpark/CarPark.ts
+@@ -1,5 +1,6 @@
+ import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
+ import { CarParkError } from '../CarParkError';
++import { CarParkClosed } from './events/CarParkClosed';
+ import { CarParkOpened } from './events/CarParkOpened';
+ import type { CarParkId } from './value-objects/CarParkId';
+ 
+@@ -9,6 +10,7 @@ export interface CarParkState {
+   readonly bays: number;
+   /** Bays held, by holder. */
+   readonly holds: Readonly<Record<string, number>>;
++  readonly closed: boolean;
+ }
+ 
+ /** One car park with a fixed number of bays. The bays held never add up to more than it has. */
+@@ -20,18 +22,19 @@ export class CarPark {
+     readonly name: string,
+     readonly bays: number,
+     private holds: Record<string, number>,
++    private closed: boolean,
+   ) {}
+ 
+   static open(id: CarParkId, name: string, bays: number): CarPark {
+     if (name.trim() === '') throw new CarParkError('a car park needs a name');
+     if (!Number.isInteger(bays) || bays <= 0) throw new CarParkError('bays must be a positive whole number');
+-    const carPark = new CarPark(id, name, bays, {});
++    const carPark = new CarPark(id, name, bays, {}, false);
+     carPark.pending.push(new CarParkOpened(id.value, name, bays));
+     return carPark;
+   }
+ 
+   static restore(state: CarParkState): CarPark {
+-    return new CarPark(state.id, state.name, state.bays, { ...state.holds });
++    return new CarPark(state.id, state.name, state.bays, { ...state.holds }, state.closed);
+   }
+ 
+   baysFree(): number {
+@@ -49,11 +52,19 @@ export class CarPark {
+ 
+   /** Like hold, but answers false instead of throwing when there are not enough bays free. */
+   tryHold(holder: string, bays: number): boolean {
++    if (this.closed) return false;
+     if (Number.isInteger(bays) && bays > 0 && bays > this.baysFree()) return false;
+     this.hold(holder, bays);
+     return true;
+   }
+ 
++  /** Closes the car park (resurfacing, for example). Closing twice changes nothing. */
++  close(): void {
++    if (this.closed) return;
++    this.closed = true;
++    this.pending.push(new CarParkClosed(this.id.value));
++  }
++
+   release(holder: string): void {
+     if (this.holds[holder] === undefined) throw new CarParkError(`no bays are held for ${holder}`);
+     const { [holder]: _released, ...rest } = this.holds;
+@@ -61,7 +72,7 @@ export class CarPark {
+   }
+ 
+   state(): CarParkState {
+-    return { id: this.id, name: this.name, bays: this.bays, holds: { ...this.holds } };
++    return { id: this.id, name: this.name, bays: this.bays, holds: { ...this.holds }, closed: this.closed };
+   }
+ 
+   pullEvents(): DomainEvent[] {
+diff --git a/step-03/src/carparks/domain/carpark/events/CarParkClosed.ts b/step-03/src/carparks/domain/carpark/events/CarParkClosed.ts
+new file mode 100644
+index 000000000..5f5c19d5d
+--- /dev/null
++++ b/step-03/src/carparks/domain/carpark/events/CarParkClosed.ts
+@@ -0,0 +1,7 @@
++import type { DomainEvent } from '../../../../shared-kernel/DomainEvent';
++
++export class CarParkClosed implements DomainEvent {
++  readonly type = 'CarParkClosed';
++
++  constructor(readonly carParkId: string) {}
++}
+diff --git a/step-02/src/carparks/index.ts b/step-03/src/carparks/index.ts
+index fdd6503bd..2bd678fe4 100644
+--- a/step-02/src/carparks/index.ts
++++ b/step-03/src/carparks/index.ts
+@@ -1,3 +1,4 @@
++import { CloseCarPark } from './application/CloseCarPark';
+ import { GetCarPark } from './application/GetCarPark';
+ import { HoldBays } from './application/HoldBays';
+ import { OpenCarPark } from './application/OpenCarPark';
+@@ -17,6 +18,7 @@ export interface CarParksModule {
+   /** Holds the bays only if all are free; false (and nothing held) otherwise. */
+   tryHoldBays(carParkId: string, holder: string, bays: number): boolean;
+   releaseBays(carParkId: string, holder: string): void;
++  close(carParkId: string): void;
+ }
+ 
+ export function createCarParks(carParks: CarParkRepository = new InMemoryCarParkRepository()): CarParksModule {
+@@ -26,5 +28,6 @@ export function createCarParks(carParks: CarParkRepository = new InMemoryCarPark
+     holdBays: (carParkId, holder, bays) => new HoldBays(carParks).execute(carParkId, holder, bays),
+     tryHoldBays: (carParkId, holder, bays) => new TryHoldBays(carParks).execute(carParkId, holder, bays),
+     releaseBays: (carParkId, holder) => new ReleaseBays(carParks).execute(carParkId, holder),
++    close: (carParkId) => new CloseCarPark(carParks).execute(carParkId),
+   };
+ }
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 38933b26c..95f271598 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -17,6 +17,7 @@ export function createApp() {
+   const relay = new EventRelay([carParkStore, reservationStore]);
+   const notifyAttendant = new NotifyAttendant(notices);
+   relay.on('ReservationRequested', (e) => notifyAttendant.handle(e));
++  relay.on('CarParkClosed', (e) => reservations.carParkClosed((e as unknown as { carParkId: string }).carParkId));
+   const command = <T>(run: () => T): T => {
+     const result = run();
+     relay.deliverPending();
+@@ -24,6 +25,7 @@ export function createApp() {
+   };
+   return {
+     openCarPark: (name: string, bays: number): string => command(() => carParks.open(name, bays)),
++    closeCarPark: (carParkId: string): void => command(() => carParks.close(carParkId)),
+     carPark: (carParkId: string) => carParks.carPark(carParkId),
+     blockBays: (carParkId: string, company: string, bays: number): void => command(() => carParks.holdBays(carParkId, company, bays)),
+     releaseBlock: (carParkId: string, company: string): void => command(() => carParks.releaseBays(carParkId, company)),
+diff --git a/step-03/src/reservations/application/MarkCarParkClosed.ts b/step-03/src/reservations/application/MarkCarParkClosed.ts
+new file mode 100644
+index 000000000..38052f2d4
+--- /dev/null
++++ b/step-03/src/reservations/application/MarkCarParkClosed.ts
+@@ -0,0 +1,13 @@
++import type { ReservationRepository } from '../domain/reservation/ReservationRepository';
++
++/** Each reservation in the closed car park is changed and saved on its own. */
++export class MarkCarParkClosed {
++  constructor(private readonly reservations: ReservationRepository) {}
++
++  execute(carParkId: string): void {
++    for (const reservation of this.reservations.byCarPark(carParkId)) {
++      reservation.carParkClosed();
++      this.reservations.save(reservation);
++    }
++  }
++}
+diff --git a/step-02/src/reservations/domain/reservation/Reservation.ts b/step-03/src/reservations/domain/reservation/Reservation.ts
+index 7226b7c51..1ff4096a8 100644
+--- a/step-02/src/reservations/domain/reservation/Reservation.ts
++++ b/step-03/src/reservations/domain/reservation/Reservation.ts
+@@ -3,7 +3,7 @@ import { ReservationError } from '../ReservationError';
+ import { ReservationRequested } from './events/ReservationRequested';
+ import type { ReservationId } from './value-objects/ReservationId';
+ 
+-export type ReservationStatus = 'requested' | 'confirmed' | 'rejected' | 'cancelled';
++export type ReservationStatus = 'requested' | 'confirmed' | 'rejected' | 'cancelled' | 'car-park-closed';
+ 
+ /** Bays one driver may reserve at once (a group arriving together). */
+ const MAX_BAYS = 6;
+@@ -48,6 +48,11 @@ export class Reservation {
+     this.current = 'rejected';
+   }
+ 
++  /** The car park closed: a confirmed reservation can no longer be used. */
++  carParkClosed(): void {
++    if (this.current === 'confirmed') this.current = 'car-park-closed';
++  }
++
+   cancel(): void {
+     this.current = 'cancelled';
+   }
+diff --git a/step-02/src/reservations/domain/reservation/ReservationRepository.ts b/step-03/src/reservations/domain/reservation/ReservationRepository.ts
+index 9de6bba93..60eff1753 100644
+--- a/step-02/src/reservations/domain/reservation/ReservationRepository.ts
++++ b/step-03/src/reservations/domain/reservation/ReservationRepository.ts
+@@ -4,6 +4,7 @@ import type { ReservationId } from './value-objects/ReservationId';
+ export interface ReservationRepository {
+   nextId(): ReservationId;
+   byId(id: ReservationId): Reservation | undefined;
++  byCarPark(carParkId: string): Reservation[];
+   /** Stores the reservation and its pending events in one step. */
+   save(reservation: Reservation): void;
+ }
+diff --git a/step-02/src/reservations/index.ts b/step-03/src/reservations/index.ts
+index d8463b1fd..2e5a0f3d4 100644
+--- a/step-02/src/reservations/index.ts
++++ b/step-03/src/reservations/index.ts
+@@ -1,5 +1,6 @@
+ import { CancelReservation } from './application/CancelReservation';
+ import { GetReservation } from './application/GetReservation';
++import { MarkCarParkClosed } from './application/MarkCarParkClosed';
+ import { RequestReservation } from './application/RequestReservation';
+ import type { CarParkDirectory } from './application/ports/CarParkDirectory';
+ import type { ReservationView } from './contracts/ReservationView';
+@@ -11,6 +12,7 @@ export type { ReservationView } from './contracts/ReservationView';
+ export interface ReservationsModule {
+   reserve(driver: string, carParkId: string, bays: number): string;
+   cancel(reservationId: string): void;
++  carParkClosed(carParkId: string): void;
+   reservation(reservationId: string): ReservationView | undefined;
+ }
+ 
+@@ -18,6 +20,7 @@ export function createReservations(reservations: ReservationRepository, carParks
+   return {
+     reserve: (driver, carParkId, bays) => new RequestReservation(reservations, carParks).execute(driver, carParkId, bays),
+     cancel: (reservationId) => new CancelReservation(reservations, carParks).execute(reservationId),
++    carParkClosed: (carParkId) => new MarkCarParkClosed(reservations).execute(carParkId),
+     reservation: (reservationId) => new GetReservation(reservations).execute(reservationId),
+   };
+ }
+diff --git a/step-02/src/reservations/infrastructure/InMemoryReservationRepository.ts b/step-03/src/reservations/infrastructure/InMemoryReservationRepository.ts
+index 79aaa37e0..cd63eef14 100644
+--- a/step-02/src/reservations/infrastructure/InMemoryReservationRepository.ts
++++ b/step-03/src/reservations/infrastructure/InMemoryReservationRepository.ts
+@@ -20,6 +20,10 @@ export class InMemoryReservationRepository implements ReservationRepository, Out
+     return row === undefined ? undefined : Reservation.restore(row);
+   }
+ 
++  byCarPark(carParkId: string): Reservation[] {
++    return [...this.rows.values()].filter((row) => row.carParkId === carParkId).map((row) => Reservation.restore(row));
++  }
++
+   save(reservation: Reservation): void {
+     const events = reservation.pullEvents();
+     this.rows.set(reservation.id.value, reservation.state());

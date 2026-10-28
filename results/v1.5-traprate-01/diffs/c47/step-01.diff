@@ -1,0 +1,136 @@
+diff --git a/step-00/src/adapters/in/http/DeskRoutes.ts b/step-01/src/adapters/in/http/DeskRoutes.ts
+index c493d0215..a77eb92c1 100644
+--- a/step-00/src/adapters/in/http/DeskRoutes.ts
++++ b/step-01/src/adapters/in/http/DeskRoutes.ts
+@@ -13,9 +13,9 @@ export class DeskRoutes {
+   }
+ 
+   /** PUT /partners/:airline */
+-  addPartner(body: { airline: string; guests: number }): Reply {
++  addPartner(body: { airline: string; guests: number; guestCutoff?: number }): Reply {
+     return reply(() => {
+-      this.setup.addPartner(body.airline, body.guests);
++      this.setup.addPartner(body.airline, body.guests, body.guestCutoff);
+       return { airline: body.airline.trim().toUpperCase() };
+     });
+   }
+diff --git a/step-00/src/adapters/out/zones/ZoneCalendar.ts b/step-01/src/adapters/out/zones/ZoneCalendar.ts
+index 6412df1cd..18eaf1cc4 100644
+--- a/step-00/src/adapters/out/zones/ZoneCalendar.ts
++++ b/step-01/src/adapters/out/zones/ZoneCalendar.ts
+@@ -8,4 +8,8 @@ export class ZoneCalendar implements LocalCalendar {
+   dateAt(airport: AirportCode, at: Instant): LocalDate {
+     return localDate(localClock(airport, at).date);
+   }
++
++  hourAt(airport: AirportCode, at: Instant): number {
++    return localClock(airport, at).hour;
++  }
+ }
+diff --git a/step-00/src/application/ports/in/LoungeSetup.ts b/step-01/src/application/ports/in/LoungeSetup.ts
+index fcdae3eb6..08c33023a 100644
+--- a/step-00/src/application/ports/in/LoungeSetup.ts
++++ b/step-01/src/application/ports/in/LoungeSetup.ts
+@@ -1,4 +1,4 @@
+ export interface LoungeSetup {
+   openLounge(name: string, airport: string, capacity: number, partners: readonly string[]): string;
+-  addPartner(airline: string, guestAllowance: number): void;
++  addPartner(airline: string, guestAllowance: number, guestCutoff?: number): void;
+ }
+diff --git a/step-00/src/application/ports/out/LocalCalendar.ts b/step-01/src/application/ports/out/LocalCalendar.ts
+index 4f04c89f7..b9ef2405c 100644
+--- a/step-00/src/application/ports/out/LocalCalendar.ts
++++ b/step-01/src/application/ports/out/LocalCalendar.ts
+@@ -6,4 +6,6 @@ import type { LocalDate } from '../../../domain/model/LocalDate';
+ export interface LocalCalendar {
+   /** The date at `airport` at the moment `at`. */
+   dateAt(airport: AirportCode, at: Instant): LocalDate;
++  /** The wall-clock hour (0-23) at `airport` at the moment `at`. */
++  hourAt(airport: AirportCode, at: Instant): number;
+ }
+diff --git a/step-00/src/application/usecases/AdmissionService.ts b/step-01/src/application/usecases/AdmissionService.ts
+index bc94eba2f..10677d778 100644
+--- a/step-00/src/application/usecases/AdmissionService.ts
++++ b/step-01/src/application/usecases/AdmissionService.ts
+@@ -32,6 +32,7 @@ export class AdmissionService implements Admissions {
+       guests,
+       peopleInside: this.peopleIn(lounge.id),
+       passInside: this.visits.inProgressFor(pass.id) !== null,
++      hour: this.calendar.hourAt(lounge.airport, now),
+       today: this.calendar.dateAt(lounge.airport, now),
+     });
+     const visit = new Visit(this.visits.nextId(), pass.id, lounge.id, guests, now);
+diff --git a/step-00/src/application/usecases/SetupService.ts b/step-01/src/application/usecases/SetupService.ts
+index 7fd152eb6..ff9e03991 100644
+--- a/step-00/src/application/usecases/SetupService.ts
++++ b/step-01/src/application/usecases/SetupService.ts
+@@ -14,7 +14,7 @@ export class SetupService implements LoungeSetup {
+     return lounge.id;
+   }
+ 
+-  addPartner(airline: string, guestAllowance: number): void {
+-    this.partners.save(PartnerRule.create(airline, guestAllowance));
++  addPartner(airline: string, guestAllowance: number, guestCutoff?: number): void {
++    this.partners.save(PartnerRule.create(airline, guestAllowance, guestCutoff));
+   }
+ }
+diff --git a/step-00/src/domain/model/PartnerRule.ts b/step-01/src/domain/model/PartnerRule.ts
+index 7e918f61b..f3ee3f169 100644
+--- a/step-00/src/domain/model/PartnerRule.ts
++++ b/step-01/src/domain/model/PartnerRule.ts
+@@ -2,13 +2,19 @@ import { InvalidRequest } from '../errors/LoungeErrors';
+ 
+ /** What a partner airline allows the holders of its passes. */
+ export class PartnerRule {
+-  private constructor(readonly airline: string, readonly guestAllowance: number) {}
++  private constructor(readonly airline: string, readonly guestAllowance: number, readonly guestCutoff: number | null) {}
+ 
+-  static create(airline: string, guestAllowance: number): PartnerRule {
++  static create(airline: string, guestAllowance: number, guestCutoff?: number): PartnerRule {
+     const code = airline.trim().toUpperCase();
+     if (!/^[A-Z0-9]{2}$/.test(code)) throw new InvalidRequest('airline must be a two-character code');
+     if (!Number.isInteger(guestAllowance) || guestAllowance < 0 || guestAllowance > 5) throw new InvalidRequest('guest allowance must be a whole number from 0 to 5');
+-    return new PartnerRule(code, guestAllowance);
++    if (guestCutoff !== undefined && (!Number.isInteger(guestCutoff) || guestCutoff < 12 || guestCutoff > 23)) throw new InvalidRequest('guest cut-off must be a whole hour from 12 to 23');
++    return new PartnerRule(code, guestAllowance, guestCutoff ?? null);
++  }
++
++  /** Whether guests are barred at local `hour` (from the cut-off until 05:00). */
++  barsGuestsAt(hour: number): boolean {
++    return this.guestCutoff !== null && (hour >= this.guestCutoff || hour < 5);
+   }
+ 
+   /** 'LU allows at most 1 guest', 'NW allows at most 2 guests'. */
+diff --git a/step-00/src/domain/rules/Admission.ts b/step-01/src/domain/rules/Admission.ts
+index 167219ff2..3bec2e39f 100644
+--- a/step-00/src/domain/rules/Admission.ts
++++ b/step-01/src/domain/rules/Admission.ts
+@@ -17,6 +17,8 @@ export interface EntryFacts {
+   readonly passInside: boolean;
+   /** Today's date at the lounge's airport. */
+   readonly today: LocalDate;
++  /** The wall-clock hour (0-23) at the lounge's airport. */
++  readonly hour: number;
+ }
+ 
+ export function checkGuestNumber(guests: number): void {
+@@ -33,6 +35,12 @@ export function checkGuests(lounge: Lounge, pass: Pass, partner: PartnerRule | n
+   if (guests > partner.guestAllowance) throw new AccessRefused(partner.allowanceText());
+ }
+ 
++/** Are guests barred at this hour by the partner's evening cut-off? */
++export function checkCutoff(lounge: Lounge, partner: PartnerRule | null, guests: number, hour: number): void {
++  if (partner === null || guests === 0 || partner.guestCutoff === null || !partner.barsGuestsAt(hour)) return;
++  throw new AccessRefused(`no guests between ${String(partner.guestCutoff)}:00 and 05:00 at ${lounge.airport}`);
++}
++
+ /** Is there room for `adding` more people? */
+ export function checkRoom(lounge: Lounge, peopleInside: number, adding: number): void {
+   if (peopleInside + adding > lounge.capacity) throw new AccessRefused(`lounge ${lounge.id} is full`);
+@@ -49,5 +57,6 @@ export function checkEntry(f: EntryFacts): void {
+     if (f.pass.validOn !== f.today) throw new AccessRefused(`day pass ${f.pass.id} is valid on ${f.pass.validOn}`);
+   }
+   checkGuests(f.lounge, f.pass, f.partner, f.guests);
++  if (f.pass.kind === 'airline') checkCutoff(f.lounge, f.partner, f.guests, f.hour);
+   checkRoom(f.lounge, f.peopleInside, 1 + f.guests);
+ }

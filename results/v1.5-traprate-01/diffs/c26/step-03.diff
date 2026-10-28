@@ -1,0 +1,119 @@
+diff --git a/step-02/src/adapters/in/desk/DispatchDesk.ts b/step-03/src/adapters/in/desk/DispatchDesk.ts
+index d1fbe5c08..4dd779845 100644
+--- a/step-02/src/adapters/in/desk/DispatchDesk.ts
++++ b/step-03/src/adapters/in/desk/DispatchDesk.ts
+@@ -1,6 +1,7 @@
+ import type {
+   AssignRider,
+   ConfirmDelivery,
++  EstimateArrival,
+   PostJob,
+   RecordPickup,
+   RiderShifts,
+@@ -20,6 +21,7 @@ export interface DeskOperations {
+   readonly view: ViewJob;
+   readonly shifts: RiderShifts;
+   readonly suggest: SuggestRider;
++  readonly estimate: EstimateArrival;
+ }
+ 
+ /** What the dispatchers' screen calls. Refusals are thrown as errors whose message the screen shows. */
+@@ -54,6 +56,10 @@ export class DispatchDesk {
+     return this.ops.view.run(jobId);
+   }
+ 
++  eta(jobId: string): Promise<number> {
++    return this.ops.estimate.run(jobId);
++  }
++
+   suggestRider(jobId: string): Promise<RiderSuggestion | null> {
+     return this.ops.suggest.run(jobId);
+   }
+diff --git a/step-02/src/application/ports/in/Dispatching.ts b/step-03/src/application/ports/in/Dispatching.ts
+index f49e08ddd..7edbe0091 100644
+--- a/step-02/src/application/ports/in/Dispatching.ts
++++ b/step-03/src/application/ports/in/Dispatching.ts
+@@ -31,6 +31,11 @@ export interface SuggestRider {
+   run(jobId: string): Promise<RiderSuggestion | null>;
+ }
+ 
++export interface EstimateArrival {
++  /** Whole minutes until the picked-up job reaches its drop-off point. */
++  run(jobId: string): Promise<number>;
++}
++
+ export interface RiderShifts {
+   register(request: { name: string; trackerId: string }): RiderView;
+   clockOff(riderId: string): RiderView;
+diff --git a/step-03/src/application/usecases/EstimateArrivalCase.ts b/step-03/src/application/usecases/EstimateArrivalCase.ts
+new file mode 100644
+index 000000000..9123106e9
+--- /dev/null
++++ b/step-03/src/application/usecases/EstimateArrivalCase.ts
+@@ -0,0 +1,36 @@
++import { DispatchRefusal } from '../../domain/DispatchRefusal';
++import { metersBetween } from '../../domain/geo';
++import type { EstimateArrival } from '../ports/in/Dispatching';
++import type { Clock } from '../ports/out/Clock';
++import type { JobLedger } from '../ports/out/JobLedger';
++import type { RiderPositions } from '../ports/out/RiderPositions';
++import type { RiderRoster } from '../ports/out/RiderRoster';
++import { requireJob, requireRider } from './lookups';
++
++const MAX_POSITION_AGE_MS = 10 * 60 * 1000;
++const METERS_PER_MINUTE = 250;
++const HANDOVER_MINUTES = 2;
++
++/** Whole minutes until a picked-up job reaches its drop-off point, handover included. */
++export class EstimateArrivalCase implements EstimateArrival {
++  constructor(
++    private readonly ledger: JobLedger,
++    private readonly roster: RiderRoster,
++    private readonly positions: RiderPositions,
++    private readonly clock: Clock,
++  ) {}
++
++  async run(jobId: string): Promise<number> {
++    const job = requireJob(this.ledger, jobId);
++    if (job.currentStatus !== 'picked-up' || job.riderId === null) {
++      throw new DispatchRefusal(`job ${job.id} is not on its way`);
++    }
++    const rider = requireRider(this.roster, job.riderId);
++    const position = await this.positions.latest(rider.trackerId);
++    if (position === null || this.clock.now().getTime() - position.at.getTime() > MAX_POSITION_AGE_MS) {
++      throw new DispatchRefusal(`no recent position for rider ${rider.id}`);
++    }
++    const meters = metersBetween(position.point, job.dropoff);
++    return Math.ceil(meters / METERS_PER_MINUTE) + HANDOVER_MINUTES;
++  }
++}
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 63cea1bb2..7c9ae0476 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -6,6 +6,7 @@ import { FixedClock, SystemClock } from './adapters/out/time/clocks';
+ import type { Clock } from './application/ports/out/Clock';
+ import { AssignRiderCase } from './application/usecases/AssignRiderCase';
+ import { ConfirmDeliveryCase } from './application/usecases/ConfirmDeliveryCase';
++import { EstimateArrivalCase } from './application/usecases/EstimateArrivalCase';
+ import { PostJobCase } from './application/usecases/PostJobCase';
+ import { RecordPickupCase } from './application/usecases/RecordPickupCase';
+ import { RiderShiftsCase } from './application/usecases/RiderShiftsCase';
+@@ -22,6 +23,7 @@ export function createApp(options: AppOptions = {}) {
+   const clock: Clock = options.now === undefined ? new SystemClock() : new FixedClock(new Date(options.now));
+   const ledger = new MemoryJobLedger();
+   const roster = new MemoryRiderRoster();
++  const positions = new TrackpointRiderPositions();
+   const dispatch = new DispatchDesk({
+     post: new PostJobCase(ledger, clock),
+     assign: new AssignRiderCase(ledger, roster),
+@@ -29,7 +31,8 @@ export function createApp(options: AppOptions = {}) {
+     confirm: new ConfirmDeliveryCase(ledger, roster, clock),
+     view: new ViewJobCase(ledger),
+     shifts: new RiderShiftsCase(roster),
+-    suggest: new SuggestRiderCase(ledger, roster, new TrackpointRiderPositions(), clock),
++    suggest: new SuggestRiderCase(ledger, roster, positions, clock),
++    estimate: new EstimateArrivalCase(ledger, roster, positions, clock),
+   });
+   return { dispatch };
+ }

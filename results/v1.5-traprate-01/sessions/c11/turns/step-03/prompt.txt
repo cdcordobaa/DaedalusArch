@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+When a teacher marks a day off in Tempo, Tempo now calls us: tempoHooks.dayOff({ calendarId, date }) is the call it makes, next to staff, students and lessons in createApp. Every lesson still booked with the teacher of that calendar on that date is cancelled, whatever the notice, and its event taken out of the calendar. The answer is { teacher, cancelled }: the teacher's name and the ids of the lessons it cancelled, earliest first. Tempo sometimes sends the same call twice; the second time nothing more is cancelled and cancelled is an empty list. Refusals, as 400 { error }: an unknown calendar ('no teacher with calendar cal-x') and a bad date ('not a date: <value>', the date is written YYYY-MM-DD); a refused call changes nothing. Keep it small: it is one call from Tempo, and everything it needs is already in the app.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c11/tsconfig.json

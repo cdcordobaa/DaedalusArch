@@ -1,0 +1,297 @@
+diff --git a/step-01/src/accounts/acl/SaleroomFeed.ts b/step-02/src/accounts/acl/SaleroomFeed.ts
+index 31e14444d..f3acbbef0 100644
+--- a/step-01/src/accounts/acl/SaleroomFeed.ts
++++ b/step-02/src/accounts/acl/SaleroomFeed.ts
+@@ -1,4 +1,4 @@
+-import type { BidPlacedMessage } from '../../saleroom/contracts/SaleroomMessages';
++import type { BidPlacedMessage, LotClosedMessage } from '../../saleroom/contracts/SaleroomMessages';
+ import type { DomainEvent } from '../../shared-kernel/DomainEvent';
+ 
+ /** Reads what accounts need from the messages the saleroom publishes. */
+@@ -6,6 +6,9 @@ export const SaleroomFeed = {
+   bidderOf(event: DomainEvent): string {
+     return (event as unknown as BidPlacedMessage).bidderId;
+   },
++  closedOf(event: DomainEvent): LotClosedMessage {
++    return event as unknown as LotClosedMessage;
++  },
+   bidOf(event: DomainEvent): BidPlacedMessage {
+     return event as unknown as BidPlacedMessage;
+   },
+diff --git a/step-01/src/accounts/api/AccountsFacade.ts b/step-02/src/accounts/api/AccountsFacade.ts
+index bdcb0928a..447ba6109 100644
+--- a/step-01/src/accounts/api/AccountsFacade.ts
++++ b/step-02/src/accounts/api/AccountsFacade.ts
+@@ -2,6 +2,7 @@ import { SaleroomFeed } from '../acl/SaleroomFeed';
+ import { AccountCommands } from '../application/AccountCommands';
+ import { AccountQueries } from '../application/AccountQueries';
+ import { CountBid } from '../application/CountBid';
++import { SettleLot } from '../application/SettleLot';
+ import type { AccountView } from '../contracts/AccountView';
+ import type { AccountStore } from '../domain/AccountStore';
+ import type { DomainEvent } from '../../shared-kernel/DomainEvent';
+@@ -18,6 +19,7 @@ export interface AccountsApi {
+   /** Reactions to messages from elsewhere in the house. */
+   readonly reactions: {
+     bidPlaced(event: DomainEvent): void;
++    lotClosed(event: DomainEvent): void;
+   };
+ }
+ 
+@@ -31,6 +33,7 @@ export function createAccounts(store: AccountStore): AccountsApi {
+     releaseCredit: (accountId, ref) => commands.releaseCredit(accountId, ref),
+     reactions: {
+       bidPlaced: (event) => new CountBid(store).handle(SaleroomFeed.bidOf(event)),
++      lotClosed: (event) => new SettleLot(store).handle(SaleroomFeed.closedOf(event)),
+     },
+   };
+ }
+diff --git a/step-01/src/accounts/application/AccountQueries.ts b/step-02/src/accounts/application/AccountQueries.ts
+index af53f2430..d833b2fd1 100644
+--- a/step-01/src/accounts/application/AccountQueries.ts
++++ b/step-02/src/accounts/application/AccountQueries.ts
+@@ -8,6 +8,6 @@ export class AccountQueries {
+     const account = this.store.find(accountId);
+     if (account === undefined) return undefined;
+     const r = account.toRecord();
+-    return { id: r.id, name: r.name, creditLimit: r.creditLimit, creditAvailable: account.creditAvailable(), bidsPlaced: r.bidsPlaced, status: r.status };
++    return { id: r.id, name: r.name, creditLimit: r.creditLimit, creditAvailable: account.creditAvailable(), bidsPlaced: r.bidsPlaced, amountOwed: r.amountOwed, status: r.status };
+   }
+ }
+diff --git a/step-02/src/accounts/application/SettleLot.ts b/step-02/src/accounts/application/SettleLot.ts
+new file mode 100644
+index 000000000..0e11bc23a
+--- /dev/null
++++ b/step-02/src/accounts/application/SettleLot.ts
+@@ -0,0 +1,16 @@
++import type { LotClosedMessage } from '../../saleroom/contracts/SaleroomMessages';
++import type { AccountStore } from '../domain/AccountStore';
++
++/** Settles the leading paddle when a lot closes: a buyer owes the price and premium, otherwise the held credit is given back. */
++export class SettleLot {
++  constructor(private readonly store: AccountStore) {}
++
++  handle(closed: LotClosedMessage): void {
++    if (closed.bidderId === null) return;
++    const account = this.store.find(closed.bidderId);
++    if (account === undefined) return;
++    if (closed.outcome === 'sold') account.buy(closed.amount);
++    else account.releaseBid(closed.lotId);
++    this.store.save(account);
++  }
++}
+diff --git a/step-01/src/accounts/contracts/AccountView.ts b/step-02/src/accounts/contracts/AccountView.ts
+index 9fc332852..55582eb70 100644
+--- a/step-01/src/accounts/contracts/AccountView.ts
++++ b/step-02/src/accounts/contracts/AccountView.ts
+@@ -5,5 +5,6 @@ export interface AccountView {
+   readonly creditLimit: number;
+   readonly creditAvailable: number;
+   readonly bidsPlaced: number;
++  readonly amountOwed: number;
+   readonly status: string;
+ }
+diff --git a/step-01/src/accounts/domain/BidderAccount.ts b/step-02/src/accounts/domain/BidderAccount.ts
+index 8f1a1c42c..9f1a3cd72 100644
+--- a/step-01/src/accounts/domain/BidderAccount.ts
++++ b/step-02/src/accounts/domain/BidderAccount.ts
+@@ -13,6 +13,8 @@ export interface AccountRecord {
+   /** Credit covering the bid this paddle leads with, by lot. */
+   readonly bidHolds: Readonly<Record<string, number>>;
+   readonly bidsPlaced: number;
++  /** Hammer prices plus buyer's premium for the lots this paddle bought. */
++  readonly amountOwed: number;
+   readonly status: AccountStatus;
+ }
+ 
+@@ -27,17 +29,18 @@ export class BidderAccount {
+     private deskHolds: Record<string, number>,
+     private bidHolds: Record<string, number>,
+     private bidsPlaced: number,
++    private amountOwed: number,
+     private status: AccountStatus,
+   ) {}
+ 
+   static register(id: string, name: string, creditLimit: number): [BidderAccount, DomainEvent[]] {
+     if (name.trim() === '') throw new AccountsError('a bidder needs a name');
+     if (!whole(creditLimit)) throw new AccountsError('the credit limit must be a positive whole amount');
+-    return [new BidderAccount(id, name, creditLimit, {}, {}, 0, 'active'), [new BidderRegistered(id, name, creditLimit)]];
++    return [new BidderAccount(id, name, creditLimit, {}, {}, 0, 0, 'active'), [new BidderRegistered(id, name, creditLimit)]];
+   }
+ 
+   static fromRecord(r: AccountRecord): BidderAccount {
+-    return new BidderAccount(r.id, r.name, r.creditLimit, { ...r.deskHolds }, { ...r.bidHolds }, r.bidsPlaced, r.status);
++    return new BidderAccount(r.id, r.name, r.creditLimit, { ...r.deskHolds }, { ...r.bidHolds }, r.bidsPlaced, r.amountOwed, r.status);
+   }
+ 
+   creditAvailable(): number {
+@@ -76,7 +79,12 @@ export class BidderAccount {
+     this.bidsPlaced += 1;
+   }
+ 
++  /** The lot was bought: the hammer price stays held, and the price plus the 20% buyer's premium is owed. */
++  buy(hammer: number): void {
++    this.amountOwed += hammer + Math.round((hammer * 2) / 10);
++  }
++
+   toRecord(): AccountRecord {
+-    return { id: this.id, name: this.name, creditLimit: this.creditLimit, deskHolds: { ...this.deskHolds }, bidHolds: { ...this.bidHolds }, bidsPlaced: this.bidsPlaced, status: this.status };
++    return { id: this.id, name: this.name, creditLimit: this.creditLimit, deskHolds: { ...this.deskHolds }, bidHolds: { ...this.bidHolds }, bidsPlaced: this.bidsPlaced, amountOwed: this.amountOwed, status: this.status };
+   }
+ }
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index 030f42a81..0cd4a1cfa 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -15,6 +15,7 @@ export function createApp() {
+   const saleroom = createSaleroom(new InMemoryLotStore(outbox), new AccountsLookup(accounts));
+ 
+   dispatcher.subscribe('BidPlaced', accounts.reactions.bidPlaced);
++  dispatcher.subscribe('LotClosed', accounts.reactions.lotClosed);
+ 
+   const command = deliverAfter(dispatcher);
+   return {
+@@ -26,6 +27,7 @@ export function createApp() {
+     // the saleroom
+     openLot: command((title: string, openingBid: number, reserve: number) => saleroom.openLot(title, openingBid, reserve)),
+     lot: (lotId: string) => saleroom.lot(lotId),
++    closeLot: command((lotId: string) => saleroom.closeLot(lotId)),
+     placeBid: command((lotId: string, bidderId: string, amount: number) => saleroom.placeBid(lotId, bidderId, amount)),
+   };
+ }
+diff --git a/step-01/src/saleroom/api/SaleroomFacade.ts b/step-02/src/saleroom/api/SaleroomFacade.ts
+index 5aad4e559..b1a8fd2f5 100644
+--- a/step-01/src/saleroom/api/SaleroomFacade.ts
++++ b/step-02/src/saleroom/api/SaleroomFacade.ts
+@@ -12,6 +12,7 @@ export interface SaleroomApi {
+   openLot(title: string, openingBid: number, reserve: number): string;
+   lot(lotId: string): LotView | undefined;
+   placeBid(lotId: string, bidderId: string, amount: number): 'accepted' | 'refused';
++  closeLot(lotId: string): void;
+ }
+ 
+ export function createSaleroom(store: LotStore, bidders: Bidders): SaleroomApi {
+@@ -21,5 +22,6 @@ export function createSaleroom(store: LotStore, bidders: Bidders): SaleroomApi {
+     openLot: (title, openingBid, reserve) => commands.open(title, openingBid, reserve),
+     lot: (lotId) => queries.view(lotId),
+     placeBid: (lotId, bidderId, amount) => commands.placeBid(lotId, bidderId, amount),
++    closeLot: (lotId) => commands.close(lotId),
+   };
+ }
+diff --git a/step-01/src/saleroom/application/LotCommands.ts b/step-02/src/saleroom/application/LotCommands.ts
+index 13d071f87..1831706fa 100644
+--- a/step-01/src/saleroom/application/LotCommands.ts
++++ b/step-02/src/saleroom/application/LotCommands.ts
+@@ -15,6 +15,12 @@ export class LotCommands {
+     return lot.id;
+   }
+ 
++  close(lotId: string): void {
++    const lot = this.store.find(lotId);
++    if (lot === undefined) throw new SaleroomError(`no lot ${lotId}`);
++    this.store.save(lot, lot.close());
++  }
++
+   placeBid(lotId: string, bidderId: string, amount: number): 'accepted' | 'refused' {
+     const lot = this.store.find(lotId);
+     if (lot === undefined) throw new SaleroomError(`no lot ${lotId}`);
+diff --git a/step-01/src/saleroom/application/LotQueries.ts b/step-02/src/saleroom/application/LotQueries.ts
+index 35b50798b..6839f903d 100644
+--- a/step-01/src/saleroom/application/LotQueries.ts
++++ b/step-02/src/saleroom/application/LotQueries.ts
+@@ -8,6 +8,6 @@ export class LotQueries {
+     const lot = this.store.find(lotId);
+     if (lot === undefined) return undefined;
+     const r = lot.toRecord();
+-    return { id: r.id, title: r.title, openingBid: r.openingBid, status: r.status, leadingBid: r.leading?.amount ?? null, leader: r.leading?.bidderId ?? null, nextMinimum: lot.nextMinimum() };
++    return { id: r.id, title: r.title, openingBid: r.openingBid, status: r.status, leadingBid: r.leading?.amount ?? null, leader: r.leading?.bidderId ?? null, buyer: r.status === 'sold' ? (r.leading?.bidderId ?? null) : null, nextMinimum: lot.nextMinimum() };
+   }
+ }
+diff --git a/step-01/src/saleroom/contracts/LotView.ts b/step-02/src/saleroom/contracts/LotView.ts
+index 8609f32de..a864f855a 100644
+--- a/step-01/src/saleroom/contracts/LotView.ts
++++ b/step-02/src/saleroom/contracts/LotView.ts
+@@ -6,5 +6,6 @@ export interface LotView {
+   readonly status: string;
+   readonly leadingBid: number | null;
+   readonly leader: string | null;
++  readonly buyer: string | null;
+   readonly nextMinimum: number;
+ }
+diff --git a/step-01/src/saleroom/contracts/SaleroomMessages.ts b/step-02/src/saleroom/contracts/SaleroomMessages.ts
+index 064719701..51b41b9cf 100644
+--- a/step-01/src/saleroom/contracts/SaleroomMessages.ts
++++ b/step-02/src/saleroom/contracts/SaleroomMessages.ts
+@@ -7,3 +7,13 @@ export interface BidPlacedMessage {
+   /** The bidder who led the lot until this bid, if any. */
+   readonly previousBidderId: string | null;
+ }
++
++export interface LotClosedMessage {
++  readonly type: 'LotClosed';
++  readonly lotId: string;
++  readonly outcome: 'sold' | 'unsold';
++  /** The leading bidder when the hammer fell, if any; the buyer when the lot is sold. */
++  readonly bidderId: string | null;
++  /** The hammer price, or the leading bid when unsold. */
++  readonly amount: number;
++}
+diff --git a/step-01/src/saleroom/domain/Lot.ts b/step-02/src/saleroom/domain/Lot.ts
+index 30247d684..9dd8c7b59 100644
+--- a/step-01/src/saleroom/domain/Lot.ts
++++ b/step-02/src/saleroom/domain/Lot.ts
+@@ -1,10 +1,11 @@
+ import type { DomainEvent } from '../../shared-kernel/DomainEvent';
+ import { BidPlaced } from './events/BidPlaced';
++import { LotClosed } from './events/LotClosed';
+ import { LotOpened } from './events/LotOpened';
+ import { SaleroomError } from './SaleroomError';
+ import { BidLadder } from './value-objects/BidLadder';
+ 
+-export type LotStatus = 'open';
++export type LotStatus = 'open' | 'sold' | 'unsold';
+ 
+ export interface LeadingBid {
+   readonly bidderId: string;
+@@ -53,6 +54,7 @@ export class Lot {
+ 
+   /** Throws if the bid is not allowed on the lot, whatever the bidder's credit. */
+   assertCanBid(bidderId: string, amount: number): void {
++    if (this.status !== 'open') throw new SaleroomError(`lot ${this.id} is closed`);
+     if (this.isLedBy(bidderId)) throw new SaleroomError(`${bidderId} already leads lot ${this.id}`);
+     const minimum = this.nextMinimum();
+     if (!Number.isInteger(amount) || amount < minimum) throw new SaleroomError(`bid must be at least ${String(minimum)}`);
+@@ -65,6 +67,14 @@ export class Lot {
+     return [new BidPlaced(this.id, bidderId, amount, previousBidderId)];
+   }
+ 
++  /** The hammer falls: sold if the leading bid reaches the reserve. Closing a closed lot changes nothing. */
++  close(): DomainEvent[] {
++    if (this.status !== 'open') return [];
++    const sold = this.leading !== null && this.leading.amount >= this.reserve;
++    this.status = sold ? 'sold' : 'unsold';
++    return [new LotClosed(this.id, this.status, this.leading?.bidderId ?? null, this.leading?.amount ?? 0)];
++  }
++
+   toRecord(): LotRecord {
+     return { id: this.id, title: this.title, openingBid: this.openingBid, reserve: this.reserve, status: this.status, leading: this.leading === null ? null : { ...this.leading } };
+   }
+diff --git a/step-02/src/saleroom/domain/events/LotClosed.ts b/step-02/src/saleroom/domain/events/LotClosed.ts
+new file mode 100644
+index 000000000..fc4451ceb
+--- /dev/null
++++ b/step-02/src/saleroom/domain/events/LotClosed.ts
+@@ -0,0 +1,13 @@
++import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
++
++export class LotClosed implements DomainEvent {
++  readonly type = 'LotClosed';
++
++  constructor(
++    readonly lotId: string,
++    readonly outcome: 'sold' | 'unsold',
++    /** The leading bidder when the hammer fell, if any. */
++    readonly bidderId: string | null,
++    readonly amount: number,
++  ) {}
++}

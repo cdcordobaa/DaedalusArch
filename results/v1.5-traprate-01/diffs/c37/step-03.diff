@@ -1,0 +1,234 @@
+diff --git a/step-03/src/adapters/outbound/memory/InMemoryOptOuts.ts b/step-03/src/adapters/outbound/memory/InMemoryOptOuts.ts
+new file mode 100644
+index 000000000..0e64090f7
+--- /dev/null
++++ b/step-03/src/adapters/outbound/memory/InMemoryOptOuts.ts
+@@ -0,0 +1,14 @@
++import type { OptOuts } from '../../../application/ports/out/OptOuts';
++import type { PhoneNumber } from '../../../domain/model/PhoneNumber';
++
++export class InMemoryOptOuts implements OptOuts {
++  private readonly numbers = new Set<string>();
++
++  async has(phone: PhoneNumber): Promise<boolean> {
++    return this.numbers.has(phone.value);
++  }
++
++  async add(phone: PhoneNumber): Promise<void> {
++    this.numbers.add(phone.value);
++  }
++}
+diff --git a/step-02/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts b/step-03/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
+index 59b1d5c36..7844f660e 100644
+--- a/step-02/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
++++ b/step-03/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
+@@ -1,6 +1,6 @@
+-import { TextwaveThrottledError } from 'textwave-sdk';
++import { TextwaveRecipientBlockedError, TextwaveThrottledError } from 'textwave-sdk';
+ import type { TextwaveClient } from 'textwave-sdk';
+-import { TextThrottledError } from '../../../application/ports/out/TextMessages';
++import { TextCarrierBlockedError, TextOptedOutError, TextThrottledError } from '../../../application/ports/out/TextMessages';
+ import type { TextMessages } from '../../../application/ports/out/TextMessages';
+ import type { PhoneNumber } from '../../../domain/model/PhoneNumber';
+ import type { SentText } from '../../../domain/model/SentText';
+@@ -17,6 +17,10 @@ export class TextwaveTextMessagesAdapter implements TextMessages {
+       return { id: response.messageSid };
+     } catch (e) {
+       if (e instanceof TextwaveThrottledError) throw new TextThrottledError(e.message, e.retryAfterSeconds);
++      if (e instanceof TextwaveRecipientBlockedError) {
++        if (e.blockReason === 'OPTED_OUT') throw new TextOptedOutError(e.message);
++        throw new TextCarrierBlockedError(e.message);
++      }
+       throw e;
+     }
+   }
+diff --git a/step-03/src/application/ports/out/OptOuts.ts b/step-03/src/application/ports/out/OptOuts.ts
+new file mode 100644
+index 000000000..fdc6c3b3c
+--- /dev/null
++++ b/step-03/src/application/ports/out/OptOuts.ts
+@@ -0,0 +1,7 @@
++import type { PhoneNumber } from '../../../domain/model/PhoneNumber';
++
++/** The numbers whose owners opted out of texts. */
++export interface OptOuts {
++  has(phone: PhoneNumber): Promise<boolean>;
++  add(phone: PhoneNumber): Promise<void>;
++}
+diff --git a/step-02/src/application/ports/out/TextMessages.ts b/step-03/src/application/ports/out/TextMessages.ts
+index 7b946a106..2da1a0b3b 100644
+--- a/step-02/src/application/ports/out/TextMessages.ts
++++ b/step-03/src/application/ports/out/TextMessages.ts
+@@ -8,6 +8,22 @@ export interface TextMessages {
+   deliveryOf(textId: string): Promise<'delivered' | 'failed' | 'sent'>;
+ }
+ 
++/** The recipient has opted out of texts; no text to this number may be attempted. */
++export class TextOptedOutError extends Error {
++  constructor(message: string) {
++    super(message);
++    this.name = 'TextOptedOutError';
++  }
++}
++
++/** The phone carrier blocks the number; this is not an opt-out and may be tried again later. */
++export class TextCarrierBlockedError extends Error {
++  constructor(message: string) {
++    super(message);
++    this.name = 'TextCarrierBlockedError';
++  }
++}
++
+ /** The text provider refused a text for now; it may be sent again after the given wait. */
+ export class TextThrottledError extends Error {
+   constructor(message: string, readonly retryAfterSeconds: number) {
+diff --git a/step-02/src/application/services/BookAppointmentService.ts b/step-03/src/application/services/BookAppointmentService.ts
+index 5ea57deda..8f52a09ff 100644
+--- a/step-02/src/application/services/BookAppointmentService.ts
++++ b/step-03/src/application/services/BookAppointmentService.ts
+@@ -2,6 +2,7 @@ import { Appointment } from '../../domain/model/Appointment';
+ import { PhoneNumber } from '../../domain/model/PhoneNumber';
+ import { ClinicTexts } from '../../domain/services/ClinicTexts';
+ import type { AppointmentRequest, BookAppointment, BookingView } from '../ports/in/BookAppointment';
++import { TextCarrierBlockedError, TextOptedOutError } from '../ports/out/TextMessages';
+ import type { Appointments } from '../ports/out/Appointments';
+ import type { TextMessages } from '../ports/out/TextMessages';
+ 
+@@ -15,7 +16,13 @@ export class BookAppointmentService implements BookAppointment {
+   async book(request: AppointmentRequest): Promise<BookingView> {
+     const appointment = Appointment.book(this.appointments.nextId(), request.patientName, PhoneNumber.of(request.phone), request.day, request.time);
+     await this.appointments.save(appointment);
+-    await this.texts.send(appointment.phone, this.wording.confirmation(appointment));
++    try {
++      await this.texts.send(appointment.phone, this.wording.confirmation(appointment));
++    } catch (e) {
++      if (e instanceof TextOptedOutError) return { appointmentId: appointment.id, confirmation: 'opted out' };
++      if (e instanceof TextCarrierBlockedError) return { appointmentId: appointment.id, confirmation: 'not sent' };
++      throw e;
++    }
+     return { appointmentId: appointment.id, confirmation: 'sent' };
+   }
+ }
+diff --git a/step-03/src/application/services/OptOutAwareTexts.ts b/step-03/src/application/services/OptOutAwareTexts.ts
+new file mode 100644
+index 000000000..050282ad4
+--- /dev/null
++++ b/step-03/src/application/services/OptOutAwareTexts.ts
+@@ -0,0 +1,27 @@
++import type { PhoneNumber } from '../../domain/model/PhoneNumber';
++import type { SentText } from '../../domain/model/SentText';
++import type { OptOuts } from '../ports/out/OptOuts';
++import { TextOptedOutError } from '../ports/out/TextMessages';
++import type { TextMessages } from '../ports/out/TextMessages';
++
++/** Never attempts a text to a number that opted out, and remembers numbers the provider reports as opted out. */
++export class OptOutAwareTexts implements TextMessages {
++  constructor(
++    private readonly inner: TextMessages,
++    private readonly optOuts: OptOuts,
++  ) {}
++
++  async send(to: PhoneNumber, text: string): Promise<SentText> {
++    if (await this.optOuts.has(to)) throw new TextOptedOutError('recipient opted out');
++    try {
++      return await this.inner.send(to, text);
++    } catch (e) {
++      if (e instanceof TextOptedOutError) await this.optOuts.add(to);
++      throw e;
++    }
++  }
++
++  deliveryOf(textId: string): Promise<'delivered' | 'failed' | 'sent'> {
++    return this.inner.deliveryOf(textId);
++  }
++}
+diff --git a/step-02/src/application/services/SendRemindersService.ts b/step-03/src/application/services/SendRemindersService.ts
+index aee55e228..41662c29d 100644
+--- a/step-02/src/application/services/SendRemindersService.ts
++++ b/step-03/src/application/services/SendRemindersService.ts
+@@ -3,7 +3,8 @@ import type { SentText } from '../../domain/model/SentText';
+ import { ClinicTexts } from '../../domain/services/ClinicTexts';
+ import type { ReminderLine, ReminderResult, SendReminders } from '../ports/in/SendReminders';
+ import type { Appointments } from '../ports/out/Appointments';
+-import { TextThrottledError } from '../ports/out/TextMessages';
++import type { OptOuts } from '../ports/out/OptOuts';
++import { TextCarrierBlockedError, TextOptedOutError, TextThrottledError } from '../ports/out/TextMessages';
+ import type { TextMessages } from '../ports/out/TextMessages';
+ 
+ const MAX_TRIES = 3;
+@@ -12,6 +13,7 @@ export class SendRemindersService implements SendReminders {
+   constructor(
+     private readonly appointments: Appointments,
+     private readonly texts: TextMessages,
++    private readonly optOuts: OptOuts,
+     private readonly wording: ClinicTexts = new ClinicTexts(),
+   ) {}
+ 
+@@ -19,7 +21,20 @@ export class SendRemindersService implements SendReminders {
+     const results: ReminderResult[] = [];
+     for (const appointment of await this.appointments.onDay(day)) {
+       if (appointment.reminder !== undefined) continue;
+-      const sent = await this.sendWithRetry(appointment.phone, this.wording.reminder(appointment));
++      let sent: SentText | undefined;
++      try {
++        sent = await this.sendWithRetry(appointment.phone, this.wording.reminder(appointment));
++      } catch (e) {
++        if (e instanceof TextOptedOutError) {
++          results.push({ appointmentId: appointment.id, status: 'opted out' });
++          continue;
++        }
++        if (e instanceof TextCarrierBlockedError) {
++          results.push({ appointmentId: appointment.id, status: 'not sent' });
++          continue;
++        }
++        throw e;
++      }
+       if (sent === undefined) {
+         results.push({ appointmentId: appointment.id, status: 'not sent' });
+         continue;
+@@ -46,14 +61,16 @@ export class SendRemindersService implements SendReminders {
+ 
+   async reportFor(day: string): Promise<ReminderLine[]> {
+     return Promise.all((await this.appointments.onDay(day)).map(async (a) => {
+-      const reminder = a.reminder === undefined ? 'not sent' : await this.texts.deliveryOf(a.reminder);
++      const reminder = a.reminder !== undefined
++        ? await this.texts.deliveryOf(a.reminder)
++        : await this.optOuts.has(a.phone) ? 'opted out' : 'not sent';
+       return {
+         appointmentId: a.id,
+         patientName: a.patientName,
+         phone: a.phone.value,
+         time: a.time,
+         reminder,
+-        callPatient: reminder === 'failed' || reminder === 'not sent',
++        callPatient: reminder === 'failed' || reminder === 'not sent' || reminder === 'opted out',
+       };
+     }));
+   }
+diff --git a/step-02/src/config/container.ts b/step-03/src/config/container.ts
+index 76bb5a194..45479ef48 100644
+--- a/step-02/src/config/container.ts
++++ b/step-03/src/config/container.ts
+@@ -1,17 +1,20 @@
+ import { TextwaveClient } from 'textwave-sdk';
+ import { ClinicController } from '../adapters/inbound/http/ClinicController';
+ import { InMemoryAppointments } from '../adapters/outbound/memory/InMemoryAppointments';
++import { InMemoryOptOuts } from '../adapters/outbound/memory/InMemoryOptOuts';
+ import { TextwaveTextMessagesAdapter } from '../adapters/outbound/textwave/TextwaveTextMessagesAdapter';
+ import { BookAppointmentService } from '../application/services/BookAppointmentService';
++import { OptOutAwareTexts } from '../application/services/OptOutAwareTexts';
+ import { SendRemindersService } from '../application/services/SendRemindersService';
+ 
+ /** Composition root. The Textwave key comes from TEXTWAVE_API_KEY; texts are sent as NORTHSIDE. */
+ export function createApp() {
+   const textwave = new TextwaveClient({ apiKey: process.env.TEXTWAVE_API_KEY ?? '' });
+   const appointments = new InMemoryAppointments();
+-  const texts = new TextwaveTextMessagesAdapter(textwave, 'NORTHSIDE');
++  const optOuts = new InMemoryOptOuts();
++  const texts = new OptOutAwareTexts(new TextwaveTextMessagesAdapter(textwave, 'NORTHSIDE'), optOuts);
+   const booking = new BookAppointmentService(appointments, texts);
+-  const reminders = new SendRemindersService(appointments, texts);
++  const reminders = new SendRemindersService(appointments, texts, optOuts);
+   const http = new ClinicController(booking, reminders);
+   return {
+     book: (patientName: string, phone: string, day: string, time: string) => booking.book({ patientName, phone, day, time }),

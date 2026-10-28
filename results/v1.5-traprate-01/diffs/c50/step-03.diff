@@ -1,0 +1,124 @@
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 80a019efb..7da4f69aa 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -5,6 +5,7 @@ import { EventPump } from './enrolment/application/EventPump';
+ import { IssueCertificate } from './enrolment/application/IssueCertificate';
+ import { JoinCourse, type JoinConfirmation } from './enrolment/application/JoinCourse';
+ import { OpenCourse } from './enrolment/application/OpenCourse';
++import type { CourseCompleted } from './enrolment/domain/course-run/events/CourseCompleted';
+ import { MemoryCertificateBook } from './enrolment/infrastructure/MemoryCertificateBook';
+ import { MemoryCourseRunStore } from './enrolment/infrastructure/MemoryCourseRunStore';
+ import { MemoryLearnerStore } from './placement/infrastructure/MemoryLearnerStore';
+@@ -19,6 +20,10 @@ export function createApp() {
+   const pump = new EventPump(runs);
+   const certificates = new IssueCertificate(book, new CertificateWording(learners));
+   pump.subscribe('CourseCompleted', (fact) => certificates.on(fact));
++  pump.subscribe('CourseCompleted', (fact) => {
++    const done = fact as CourseCompleted;
++    desk.creditCompletion(done.studentId, done.runId);
++  });
+   const registry = new PlacementGateway(desk);
+   const thenHandOn = <R>(work: () => R): R => {
+     const out = work();
+diff --git a/step-03/src/placement/application/creditCompletion.ts b/step-03/src/placement/application/creditCompletion.ts
+new file mode 100644
+index 000000000..a4dd30486
+--- /dev/null
++++ b/step-03/src/placement/application/creditCompletion.ts
+@@ -0,0 +1,9 @@
++import type { LearnerStore } from '../domain/learner/LearnerStore';
++import { StudentId } from '../domain/learner/value-objects/StudentId';
++
++export function creditCompletion(learners: LearnerStore, studentId: string, runId: string): void {
++  const learner = learners.find(StudentId.from(studentId));
++  if (learner === undefined) throw new Error(`no student ${studentId}`);
++  learner.creditCompletion(runId);
++  learners.put(learner);
++}
+diff --git a/step-02/src/placement/domain/learner/Learner.ts b/step-03/src/placement/domain/learner/Learner.ts
+index 7801054f2..7ae5ca49e 100644
+--- a/step-02/src/placement/domain/learner/Learner.ts
++++ b/step-03/src/placement/domain/learner/Learner.ts
+@@ -6,8 +6,12 @@ export interface LearnerSnapshot {
+   readonly id: string;
+   readonly name: string;
+   readonly bestScore: number | null;
++  readonly completedRuns?: readonly string[];
+ }
+ 
++const COMPLETION_BONUS = 5;
++const MAX_STANDING = 100;
++
+ /**
+  * A student as the placement office knows them. The standing is the best placement test score (0 before any test);
+  * the CEFR level follows from the standing and nothing else decides it.
+@@ -17,16 +21,17 @@ export class Learner {
+     readonly id: StudentId,
+     readonly name: string,
+     private bestScore: number | null,
++    private completedRuns: readonly string[],
+   ) {}
+ 
+   static register(id: StudentId, name: string): Learner {
+     const clean = name.trim();
+     if (clean === '') throw new Error('a student needs a name');
+-    return new Learner(id, clean, null);
++    return new Learner(id, clean, null, []);
+   }
+ 
+   static fromSnapshot(s: LearnerSnapshot): Learner {
+-    return new Learner(StudentId.from(s.id), s.name, s.bestScore);
++    return new Learner(StudentId.from(s.id), s.name, s.bestScore, [...(s.completedRuns ?? [])]);
+   }
+ 
+   /** A placement test result: a whole number from 0 to 100. Only the best result counts. */
+@@ -35,8 +40,14 @@ export class Learner {
+     if (this.bestScore === null || score > this.bestScore) this.bestScore = score;
+   }
+ 
++  /** Each completed course run adds 5 to the standing, once per run, up to 100. */
++  creditCompletion(runId: string): void {
++    if (this.completedRuns.includes(runId)) return;
++    this.completedRuns = [...this.completedRuns, runId];
++  }
++
+   standing(): number {
+-    return this.bestScore ?? 0;
++    return Math.min(MAX_STANDING, (this.bestScore ?? 0) + COMPLETION_BONUS * this.completedRuns.length);
+   }
+ 
+   level(): Cefr {
+@@ -44,6 +55,6 @@ export class Learner {
+   }
+ 
+   snapshot(): LearnerSnapshot {
+-    return { id: this.id.raw, name: this.name, bestScore: this.bestScore };
++    return { id: this.id.raw, name: this.name, bestScore: this.bestScore, completedRuns: [...this.completedRuns] };
+   }
+ }
+diff --git a/step-02/src/placement/published/PlacementDesk.ts b/step-03/src/placement/published/PlacementDesk.ts
+index fa6342e86..d48b1f007 100644
+--- a/step-02/src/placement/published/PlacementDesk.ts
++++ b/step-03/src/placement/published/PlacementDesk.ts
+@@ -1,3 +1,4 @@
++import { creditCompletion } from '../application/creditCompletion';
+ import { readProgressSheet } from '../application/readProgressSheet';
+ import { recordTestScore } from '../application/recordTestScore';
+ import { registerStudent } from '../application/registerStudent';
+@@ -11,6 +12,7 @@ export type { ProgressSheet } from './ProgressSheet';
+ export interface PlacementDesk {
+   register(name: string): string;
+   recordTest(studentId: string, score: number): void;
++  creditCompletion(studentId: string, runId: string): void;
+   sheet(studentId: string): ProgressSheet | undefined;
+ }
+ 
+@@ -18,6 +20,7 @@ export function openPlacementDesk(learners: LearnerStore = new MemoryLearnerStor
+   return {
+     register: (name) => registerStudent(learners, name),
+     recordTest: (studentId, score) => recordTestScore(learners, studentId, score),
++    creditCompletion: (studentId, runId) => creditCompletion(learners, studentId, runId),
+     sheet: (studentId) => readProgressSheet(learners, studentId),
+   };
+ }

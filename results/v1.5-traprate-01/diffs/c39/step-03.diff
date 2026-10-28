@@ -1,0 +1,138 @@
+diff --git a/step-02/src/application/RequestUnits.ts b/step-03/src/application/RequestUnits.ts
+index 771dff90a..bdd490167 100644
+--- a/step-02/src/application/RequestUnits.ts
++++ b/step-03/src/application/RequestUnits.ts
+@@ -13,6 +13,10 @@ export interface RequestAnswer {
+   readonly fromSupplier: number;
+   /** Haemalink's order number, or null when the supplier was not asked. */
+   readonly supplierOrder: string | null;
++  /** O negative red cells given in place of the requested group, from the fridge and Haemalink together. */
++  readonly substituted: number;
++  /** Haemalink's number of the O negative cover order, or null when none was placed. */
++  readonly coverOrder: string | null;
+   readonly outstanding: number;
+   readonly status: FulfilmentStatus;
+   readonly holdReason: 'shortage' | 'quarantine' | null;
+diff --git a/step-02/src/application/RequestUnitsService.ts b/step-03/src/application/RequestUnitsService.ts
+index e929b5b35..34dab7052 100644
+--- a/step-02/src/application/RequestUnitsService.ts
++++ b/step-03/src/application/RequestUnitsService.ts
+@@ -1,7 +1,9 @@
++import type { BloodGroup } from '../domain/BloodGroup';
++import type { Component } from '../domain/Component';
+ import { Fulfilment } from '../domain/Fulfilment';
+ import { UnitRequest } from '../domain/UnitRequest';
+ import type { Fridge } from './needs/Fridge';
+-import type { Supplier } from './needs/Supplier';
++import type { Supplier, SupplyConfirmation, SupplyHold } from './needs/Supplier';
+ import type { RequestAnswer, RequestUnits, UnitRequestInput } from './RequestUnits';
+ 
+ export class RequestUnitsService implements RequestUnits {
+@@ -19,39 +21,63 @@ export class RequestUnitsService implements RequestUnits {
+     let fromSupplier = 0;
+     let supplierOrder: string | null = null;
+     // Ordered before the fridge is touched, so a failing supplier takes none of our stock.
+-    let held: { hold: 'shortage' | 'quarantine'; until: string } | null = null;
++    let held: SupplyHold | null = null;
+     if (missing > 0) {
+-      const key = `${request.component}|${request.group}`;
+-      const known = this.holds.get(key);
+-      if (known && known.untilMs > Date.now()) {
+-        held = known;
++      const answer = await this.orderUnlessHeld(request.component, request.group, missing, request.urgent);
++      if ('hold' in answer) {
++        held = answer;
+       } else {
+-        this.holds.delete(key);
+-        const answer = await this.supplier.order({
+-          component: request.component,
+-          group: request.group,
+-          units: missing,
+-          urgent: request.urgent,
+-        });
+-        if ('hold' in answer) {
+-          held = answer;
+-          this.holds.set(key, { hold: answer.hold, until: answer.until, untilMs: Date.parse(answer.until) });
+-        } else {
+-          fromSupplier = answer.confirmed;
+-          supplierOrder = answer.orderNumber;
++        fromSupplier = answer.confirmed;
++        supplierOrder = answer.orderNumber;
++      }
++    }
++    let coverStock = 0;
++    let coverSupplier = 0;
++    let coverOrder: string | null = null;
++    const stillMissing = missing - fromSupplier;
++    if (stillMissing > 0 && request.urgent && request.component === 'red cells' && request.group !== 'O-') {
++      coverStock = Math.min(stillMissing, this.fridge.onHand('red cells', 'O-'));
++      const rest = stillMissing - coverStock;
++      if (rest > 0) {
++        // An O negative embargo is not ours to report: the units simply stay outstanding.
++        const answer = await this.orderUnlessHeld('red cells', 'O-', rest, true);
++        if (!('hold' in answer)) {
++          coverSupplier = answer.confirmed;
++          coverOrder = answer.orderNumber;
+         }
+       }
+     }
+     if (fromStock > 0) this.fridge.take(request.component, request.group, fromStock);
+-    const fulfilment = Fulfilment.of(request.units, fromStock, fromSupplier);
++    if (coverStock > 0) this.fridge.take('red cells', 'O-', coverStock);
++    const fulfilment = Fulfilment.of(request.units, fromStock, fromSupplier, coverStock + coverSupplier);
+     return {
+       fromStock: fulfilment.fromStock,
+       fromSupplier: fulfilment.fromSupplier,
+       supplierOrder,
++      substituted: fulfilment.substituted,
++      coverOrder,
+       outstanding: fulfilment.outstanding,
+       status: fulfilment.status(held !== null),
+       holdReason: held?.hold ?? null,
+       holdUntil: held?.until ?? null,
+     };
+   }
++
++  /** Orders from the supplier unless the group is known to be on hold, in which case the hold is returned. */
++  private async orderUnlessHeld(
++    component: Component,
++    group: BloodGroup,
++    units: number,
++    urgent: boolean,
++  ): Promise<SupplyConfirmation | SupplyHold> {
++    const key = `${component}|${group}`;
++    const known = this.holds.get(key);
++    if (known && known.untilMs > Date.now()) return known;
++    this.holds.delete(key);
++    const answer = await this.supplier.order({ component, group, units, urgent });
++    if ('hold' in answer) {
++      this.holds.set(key, { hold: answer.hold, until: answer.until, untilMs: Date.parse(answer.until) });
++    }
++    return answer;
++  }
+ }
+diff --git a/step-02/src/domain/Fulfilment.ts b/step-03/src/domain/Fulfilment.ts
+index 2f3235e73..a1aafc87c 100644
+--- a/step-02/src/domain/Fulfilment.ts
++++ b/step-03/src/domain/Fulfilment.ts
+@@ -6,16 +6,17 @@ export class Fulfilment {
+     readonly fromStock: number,
+     readonly fromSupplier: number,
+     readonly outstanding: number,
++    readonly substituted: number,
+   ) {}
+ 
+-  static of(requested: number, fromStock: number, fromSupplier = 0): Fulfilment {
+-    return new Fulfilment(fromStock, fromSupplier, requested - fromStock - fromSupplier);
++  static of(requested: number, fromStock: number, fromSupplier = 0, substituted = 0): Fulfilment {
++    return new Fulfilment(fromStock, fromSupplier, requested - fromStock - fromSupplier - substituted, substituted);
+   }
+ 
+   status(onHold = false): FulfilmentStatus {
+     if (this.outstanding === 0) return 'filled';
+     if (onHold) return 'on hold';
+-    if (this.fromStock === 0 && this.fromSupplier === 0) return 'unfilled';
++    if (this.fromStock === 0 && this.fromSupplier === 0 && this.substituted === 0) return 'unfilled';
+     return 'partly filled';
+   }
+ }

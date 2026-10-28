@@ -1,0 +1,80 @@
+diff --git a/step-01/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts b/step-02/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+index 589eb24e3..c2ea290bd 100644
+--- a/step-01/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
++++ b/step-02/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+@@ -10,12 +10,18 @@ export class RatewiseRatesAdapter implements ExchangeRates {
+     private readonly now: () => number = Date.now,
+   ) {}
+ 
++  private readonly lastUsable = new Map<string, { mid: number; fixedAt: number }>();
++
+   async fromEuro(currency: string): Promise<EuroRate | undefined> {
+     let result: RatewiseLatestResult;
+     try {
+       result = await this.client.latest({ base: 'EUR', symbols: [currency] });
+     } catch (e) {
+-      if (e instanceof RatewiseUnavailableError) return undefined;
++      if (e instanceof RatewiseUnavailableError) {
++        const last = this.lastUsable.get(currency);
++        if (last === undefined || this.now() - last.fixedAt > MAX_AGE_MS) return undefined;
++        return { currency, mid: last.mid, estimated: true };
++      }
+       throw e;
+     }
+     if (result.base !== 'EUR') return undefined;
+@@ -24,7 +30,8 @@ export class RatewiseRatesAdapter implements ExchangeRates {
+       const fixedAt = Date.parse(rate.asOf);
+       if (Number.isNaN(fixedAt) || this.now() - fixedAt > MAX_AGE_MS) continue;
+       if (!Number.isFinite(rate.mid) || rate.mid <= 0) continue;
+-      return { currency, mid: rate.mid };
++      this.lastUsable.set(currency, { mid: rate.mid, fixedAt });
++      return { currency, mid: rate.mid, estimated: false };
+     }
+     return undefined;
+   }
+diff --git a/step-01/src/application/ports/in/PriceProduct.ts b/step-02/src/application/ports/in/PriceProduct.ts
+index c2a226146..8fc676dd0 100644
+--- a/step-01/src/application/ports/in/PriceProduct.ts
++++ b/step-02/src/application/ports/in/PriceProduct.ts
+@@ -4,6 +4,7 @@ export interface PriceView {
+   readonly currency: string;
+   /** Null when no usable rate exists; see reason. */
+   readonly amount: number | null;
++  readonly estimated?: boolean;
+   readonly reason?: string;
+ }
+ 
+diff --git a/step-01/src/application/ports/out/ExchangeRates.ts b/step-02/src/application/ports/out/ExchangeRates.ts
+index 65dedc83c..272edc4bb 100644
+--- a/step-01/src/application/ports/out/ExchangeRates.ts
++++ b/step-02/src/application/ports/out/ExchangeRates.ts
+@@ -2,6 +2,8 @@
+ export interface EuroRate {
+   readonly currency: string;
+   readonly mid: number;
++  /** True when taken from an earlier answer because Ratewise was unavailable. */
++  readonly estimated?: boolean;
+ }
+ 
+ export interface ExchangeRates {
+diff --git a/step-01/src/application/services/PriceProductService.ts b/step-02/src/application/services/PriceProductService.ts
+index efe0a1c49..895a44acd 100644
+--- a/step-01/src/application/services/PriceProductService.ts
++++ b/step-02/src/application/services/PriceProductService.ts
+@@ -16,7 +16,7 @@ export class PriceProductService implements PriceProduct {
+     const product = this.prices.product(sku);
+     if (currency === 'EUR') {
+       const price = this.prices.euroPrice(product);
+-      return { sku: product.sku, name: product.name, currency: price.currency, amount: price.amount };
++      return { sku: product.sku, name: product.name, currency: price.currency, amount: price.amount, estimated: false };
+     }
+     const rate = await this.rates.fromEuro(currency);
+     if (rate === undefined || rate.currency !== currency) {
+@@ -24,6 +24,6 @@ export class PriceProductService implements PriceProduct {
+     }
+     // euroCents * mid is the amount in hundredths; round halves up (toPrecision absorbs float noise).
+     const hundredths = Math.round(Number((product.euroCents * rate.mid).toPrecision(12)));
+-    return { sku: product.sku, name: product.name, currency, amount: hundredths / 100 };
++    return { sku: product.sku, name: product.name, currency, amount: hundredths / 100, estimated: rate.estimated === true };
+   }
+ }

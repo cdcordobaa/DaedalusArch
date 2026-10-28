@@ -1,0 +1,17 @@
+{
+  "H06-pos1": {"rule":"H06","label":"violation","file":"src/adapters/in/http/donation.controller.ts","note":"The controller rejects donations below a business minimum by branching on the amount."},
+  "H06-pos2": {"rule":"H06","label":"violation","file":"src/adapters/out/royalty/playlog-report.gateway.ts","note":"The vendor gateway decides which plays are royalty-bearing by branching on duration and skips the report."},
+  "H06-twin1": {"rule":"H06","label":"clean","file":null,"note":"The controller only checks the transport shape of the amount and email."},
+  "H06-twin2": {"rule":"H06","label":"clean","file":null,"note":"The same short-play rule lives in a domain policy consulted by the use case."},
+  "H06-legit": {"rule":"H06","label":"clean","file":null,"note":"The controller maps domain error types to HTTP statuses without deciding anything."},
+  "H08-pos1": {"rule":"H08","label":"violation","file":"src/application/report-play.use-case.ts","note":"The use case pulls the notifier from a static registry at run time."},
+  "H08-pos2": {"rule":"H08","label":"violation","file":"src/adapters/in/http/lookup.ts","note":"The controller obtains the notifier through a helper that calls container.get."},
+  "H08-twin1": {"rule":"H08","label":"clean","file":null,"note":"The registry is used only in the composition root; the use case receives the notifier by constructor."},
+  "H08-twin2": {"rule":"H08","label":"clean","file":null,"note":"The controller gets a notifier provider function through its constructor."},
+  "H08-legit": {"rule":"H08","label":"clean","file":null,"note":"The use case receives a map of notifier channels by constructor and reads from that data structure."},
+  "H11-pos1": {"rule":"H11","label":"violation","file":"src/domain/royalty-status.ts","note":"A domain string-literal union copies the vendor's status codes."},
+  "H11-pos2": {"rule":"H11","label":"violation","file":"src/application/ports/out/report-options.ts","note":"A port declares an enum whose values copy the vendor's precision codes."},
+  "H11-twin1": {"rule":"H11","label":"clean","file":null,"note":"The domain union expresses the same idea in the core's own words."},
+  "H11-twin2": {"rule":"H11","label":"clean","file":null,"note":"The domain enum for report granularity uses the core's own values."},
+  "H11-legit": {"rule":"H11","label":"clean","file":null,"note":"Vendor error codes are used only inside the vendor adapter."}
+}

@@ -1,0 +1,70 @@
+diff --git a/step-00/src/campaigns/acl/BackersAdapter.ts b/step-01/src/campaigns/acl/BackersAdapter.ts
+index 711e2d9f0..cac554896 100644
+--- a/step-00/src/campaigns/acl/BackersAdapter.ts
++++ b/step-01/src/campaigns/acl/BackersAdapter.ts
+@@ -8,4 +8,8 @@ export class BackersAdapter implements BackerLookup {
+   isRegistered(backerId: string): boolean {
+     return this.backers.profile(backerId) !== undefined;
+   }
++
++  standingOf(backerId: string): string | undefined {
++    return this.backers.profile(backerId)?.standing;
++  }
+ }
+diff --git a/step-00/src/campaigns/application/PlacePledge.ts b/step-01/src/campaigns/application/PlacePledge.ts
+index df660542c..cb58faf8b 100644
+--- a/step-00/src/campaigns/application/PlacePledge.ts
++++ b/step-01/src/campaigns/application/PlacePledge.ts
+@@ -6,8 +6,17 @@ import type { BackerLookup } from './ports/BackerLookup';
+ export interface PledgeReceipt {
+   readonly pledgeId: string;
+   readonly campaignTotal: number;
++  /** Room the backer has left on this campaign after the pledge. */
++  readonly remaining: number;
+ }
+ 
++/** Most a backer may have pledged on one campaign, by standing, in cents. */
++const CAP_CENTS: Readonly<Record<string, number>> = {
++  trusted: 500_000,
++  established: 100_000,
++  newcomer: 25_000,
++};
++
+ export class PlacePledge {
+   constructor(
+     private readonly campaigns: CampaignRepository,
+@@ -18,8 +27,21 @@ export class PlacePledge {
+     const campaign = this.campaigns.find(CampaignId.of(campaignId));
+     if (campaign === undefined) throw new Error(`no campaign ${campaignId}`);
+     if (!this.backers.isRegistered(backerId)) throw new Error(`no backer ${backerId}`);
+-    const pledge = campaign.takePledge(backerId, Amount.ofUnits(amount));
++    const standing = this.backers.standingOf(backerId);
++    if (standing === 'blocked') throw new Error(`backer ${backerId} is blocked`);
++    const capCents = standing === undefined ? undefined : CAP_CENTS[standing];
++    if (capCents === undefined) throw new Error(`unknown standing for backer ${backerId}`);
++    const cap = Amount.ofCents(capCents);
++    const requested = Amount.ofUnits(amount);
++    if (requested.isPositive() && campaign.pledgedBy(backerId).add(requested).exceeds(cap)) {
++      throw new Error(`pledge is over the limit of ${cap.label()} for backer ${backerId} on this campaign`);
++    }
++    const pledge = campaign.takePledge(backerId, requested);
+     this.campaigns.save(campaign);
+-    return { pledgeId: pledge.pledgeId, campaignTotal: campaign.raised().units() };
++    return {
++      pledgeId: pledge.pledgeId,
++      campaignTotal: campaign.raised().units(),
++      remaining: cap.subtract(campaign.pledgedBy(backerId)).units(),
++    };
+   }
+ }
+diff --git a/step-00/src/campaigns/application/ports/BackerLookup.ts b/step-01/src/campaigns/application/ports/BackerLookup.ts
+index 0b684b409..06c782473 100644
+--- a/step-00/src/campaigns/application/ports/BackerLookup.ts
++++ b/step-01/src/campaigns/application/ports/BackerLookup.ts
+@@ -1,4 +1,6 @@
+ /** What campaigns need to know about the people who pledge. */
+ export interface BackerLookup {
+   isRegistered(backerId: string): boolean;
++  /** The backer's standing as their profile shows it, or undefined for an unknown backer. */
++  standingOf(backerId: string): string | undefined;
+ }

@@ -1,0 +1,194 @@
+diff --git a/step-02/src/accounts/api/AccountsFacade.ts b/step-03/src/accounts/api/AccountsFacade.ts
+index 447ba6109..de361d2fa 100644
+--- a/step-02/src/accounts/api/AccountsFacade.ts
++++ b/step-03/src/accounts/api/AccountsFacade.ts
+@@ -16,6 +16,8 @@ export interface AccountsApi {
+   /** The finance desk sets credit aside, for example for a telephone or absentee bid. */
+   holdCredit(accountId: string, ref: string, amount: number): void;
+   releaseCredit(accountId: string, ref: string): void;
++  /** Suspends the bidder; withdrawBids removes its leading bids and returns the lots concerned. */
++  suspend(accountId: string, withdrawBids: () => readonly string[]): void;
+   /** Reactions to messages from elsewhere in the house. */
+   readonly reactions: {
+     bidPlaced(event: DomainEvent): void;
+@@ -31,6 +33,7 @@ export function createAccounts(store: AccountStore): AccountsApi {
+     account: (accountId) => queries.view(accountId),
+     holdCredit: (accountId, ref, amount) => commands.holdCredit(accountId, ref, amount),
+     releaseCredit: (accountId, ref) => commands.releaseCredit(accountId, ref),
++    suspend: (accountId, withdrawBids) => commands.suspend(accountId, withdrawBids),
+     reactions: {
+       bidPlaced: (event) => new CountBid(store).handle(SaleroomFeed.bidOf(event)),
+       lotClosed: (event) => new SettleLot(store).handle(SaleroomFeed.closedOf(event)),
+diff --git a/step-02/src/accounts/application/AccountCommands.ts b/step-03/src/accounts/application/AccountCommands.ts
+index 50f360c45..b881103ce 100644
+--- a/step-02/src/accounts/application/AccountCommands.ts
++++ b/step-03/src/accounts/application/AccountCommands.ts
+@@ -23,6 +23,14 @@ export class AccountCommands {
+     this.store.save(account);
+   }
+ 
++  /** Suspends the account and gives back the credit held for the bids it no longer leads. */
++  suspend(accountId: string, withdrawBids: () => readonly string[]): void {
++    const account = this.load(accountId);
++    account.suspend();
++    for (const lotId of withdrawBids()) account.releaseBid(lotId);
++    this.store.save(account);
++  }
++
+   private load(accountId: string): BidderAccount {
+     const account = this.store.find(accountId);
+     if (account === undefined) throw new AccountsError(`no account ${accountId}`);
+diff --git a/step-02/src/accounts/domain/BidderAccount.ts b/step-03/src/accounts/domain/BidderAccount.ts
+index 9f1a3cd72..93cce6fe1 100644
+--- a/step-02/src/accounts/domain/BidderAccount.ts
++++ b/step-03/src/accounts/domain/BidderAccount.ts
+@@ -2,7 +2,7 @@ import type { DomainEvent } from '../../shared-kernel/DomainEvent';
+ import { AccountsError } from './AccountsError';
+ import { BidderRegistered } from './events/BidderRegistered';
+ 
+-export type AccountStatus = 'active';
++export type AccountStatus = 'active' | 'suspended';
+ 
+ export interface AccountRecord {
+   readonly id: string;
+@@ -74,6 +74,10 @@ export class BidderAccount {
+     this.bidHolds = rest;
+   }
+ 
++  suspend(): void {
++    this.status = 'suspended';
++  }
++
+   /** Counts a bid the saleroom took from this paddle. */
+   countBid(): void {
+     this.bidsPlaced += 1;
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 0cd4a1cfa..e1c558080 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -24,6 +24,7 @@ export function createApp() {
+     account: (accountId: string) => accounts.account(accountId),
+     holdCredit: command((accountId: string, ref: string, amount: number) => accounts.holdCredit(accountId, ref, amount)),
+     releaseCredit: command((accountId: string, ref: string) => accounts.releaseCredit(accountId, ref)),
++    suspendAccount: command((accountId: string) => accounts.suspend(accountId, () => saleroom.withdrawBidsOf(accountId))),
+     // the saleroom
+     openLot: command((title: string, openingBid: number, reserve: number) => saleroom.openLot(title, openingBid, reserve)),
+     lot: (lotId: string) => saleroom.lot(lotId),
+diff --git a/step-02/src/saleroom/acl/AccountsLookup.ts b/step-03/src/saleroom/acl/AccountsLookup.ts
+index 51637d63c..68e4d67a3 100644
+--- a/step-02/src/saleroom/acl/AccountsLookup.ts
++++ b/step-03/src/saleroom/acl/AccountsLookup.ts
+@@ -9,6 +9,10 @@ export class AccountsLookup implements Bidders {
+     return this.accounts.account(bidderId) !== undefined;
+   }
+ 
++  isSuspended(bidderId: string): boolean {
++    return this.accounts.account(bidderId)?.status === 'suspended';
++  }
++
+   creditAvailable(bidderId: string): number {
+     return this.accounts.account(bidderId)?.creditAvailable ?? 0;
+   }
+diff --git a/step-02/src/saleroom/api/SaleroomFacade.ts b/step-03/src/saleroom/api/SaleroomFacade.ts
+index b1a8fd2f5..7940cf70f 100644
+--- a/step-02/src/saleroom/api/SaleroomFacade.ts
++++ b/step-03/src/saleroom/api/SaleroomFacade.ts
+@@ -13,6 +13,8 @@ export interface SaleroomApi {
+   lot(lotId: string): LotView | undefined;
+   placeBid(lotId: string, bidderId: string, amount: number): 'accepted' | 'refused';
+   closeLot(lotId: string): void;
++  /** Removes the bidder's leading bids from open lots; returns the lots concerned. */
++  withdrawBidsOf(bidderId: string): string[];
+ }
+ 
+ export function createSaleroom(store: LotStore, bidders: Bidders): SaleroomApi {
+@@ -23,5 +25,6 @@ export function createSaleroom(store: LotStore, bidders: Bidders): SaleroomApi {
+     lot: (lotId) => queries.view(lotId),
+     placeBid: (lotId, bidderId, amount) => commands.placeBid(lotId, bidderId, amount),
+     closeLot: (lotId) => commands.close(lotId),
++    withdrawBidsOf: (bidderId) => commands.withdrawBidsOf(bidderId),
+   };
+ }
+diff --git a/step-02/src/saleroom/application/LotCommands.ts b/step-03/src/saleroom/application/LotCommands.ts
+index 1831706fa..0956df58a 100644
+--- a/step-02/src/saleroom/application/LotCommands.ts
++++ b/step-03/src/saleroom/application/LotCommands.ts
+@@ -21,10 +21,22 @@ export class LotCommands {
+     this.store.save(lot, lot.close());
+   }
+ 
++  /** Removes the bidder's leading bid from every open lot; returns those lots. */
++  withdrawBidsOf(bidderId: string): string[] {
++    const withdrawn: string[] = [];
++    for (const lot of this.store.all()) {
++      if (!lot.withdrawLead(bidderId)) continue;
++      this.store.save(lot);
++      withdrawn.push(lot.id);
++    }
++    return withdrawn;
++  }
++
+   placeBid(lotId: string, bidderId: string, amount: number): 'accepted' | 'refused' {
+     const lot = this.store.find(lotId);
+     if (lot === undefined) throw new SaleroomError(`no lot ${lotId}`);
+     if (!this.bidders.isRegistered(bidderId)) throw new SaleroomError(`no account ${bidderId}`);
++    if (this.bidders.isSuspended(bidderId)) throw new SaleroomError(`account ${bidderId} is suspended`);
+     lot.assertCanBid(bidderId, amount);
+     if (amount > this.bidders.creditAvailable(bidderId)) return 'refused';
+     const events = lot.bid(bidderId, amount);
+diff --git a/step-02/src/saleroom/application/ports/Bidders.ts b/step-03/src/saleroom/application/ports/Bidders.ts
+index 5329ea9f2..d526f63c6 100644
+--- a/step-02/src/saleroom/application/ports/Bidders.ts
++++ b/step-03/src/saleroom/application/ports/Bidders.ts
+@@ -1,5 +1,6 @@
+ /** What the saleroom needs to know about bidders. */
+ export interface Bidders {
+   isRegistered(bidderId: string): boolean;
++  isSuspended(bidderId: string): boolean;
+   creditAvailable(bidderId: string): number;
+ }
+diff --git a/step-02/src/saleroom/domain/Lot.ts b/step-03/src/saleroom/domain/Lot.ts
+index 9dd8c7b59..1d3eb96c3 100644
+--- a/step-02/src/saleroom/domain/Lot.ts
++++ b/step-03/src/saleroom/domain/Lot.ts
+@@ -67,6 +67,13 @@ export class Lot {
+     return [new BidPlaced(this.id, bidderId, amount, previousBidderId)];
+   }
+ 
++  /** Takes back the leading bid if this bidder holds it on an open lot. */
++  withdrawLead(bidderId: string): boolean {
++    if (this.status !== 'open' || !this.isLedBy(bidderId)) return false;
++    this.leading = null;
++    return true;
++  }
++
+   /** The hammer falls: sold if the leading bid reaches the reserve. Closing a closed lot changes nothing. */
+   close(): DomainEvent[] {
+     if (this.status !== 'open') return [];
+diff --git a/step-02/src/saleroom/domain/LotStore.ts b/step-03/src/saleroom/domain/LotStore.ts
+index 77648221b..85c289601 100644
+--- a/step-02/src/saleroom/domain/LotStore.ts
++++ b/step-03/src/saleroom/domain/LotStore.ts
+@@ -3,6 +3,7 @@ import type { Lot } from './Lot';
+ 
+ export interface LotStore {
+   newId(): string;
++  all(): Lot[];
+   find(id: string): Lot | undefined;
+   /** Writes the lot and appends the events of the change to the outbox, in one step. */
+   save(lot: Lot, events?: readonly DomainEvent[]): void;
+diff --git a/step-02/src/saleroom/infrastructure/InMemoryLotStore.ts b/step-03/src/saleroom/infrastructure/InMemoryLotStore.ts
+index 94467ac1e..b205ee282 100644
+--- a/step-02/src/saleroom/infrastructure/InMemoryLotStore.ts
++++ b/step-03/src/saleroom/infrastructure/InMemoryLotStore.ts
+@@ -14,6 +14,10 @@ export class InMemoryLotStore implements LotStore {
+     return `LOT-${String(this.numbering)}`;
+   }
+ 
++  all(): Lot[] {
++    return [...this.rows.values()].map((r) => Lot.fromRecord(r));
++  }
++
+   find(id: string): Lot | undefined {
+     const row = this.rows.get(id);
+     return row === undefined ? undefined : Lot.fromRecord(row);

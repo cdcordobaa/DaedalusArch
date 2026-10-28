@@ -1,0 +1,113 @@
+diff --git a/step-02/src/adapters/in/http/LessonRoutes.ts b/step-03/src/adapters/in/http/LessonRoutes.ts
+index 5d6656cd3..6a2076757 100644
+--- a/step-02/src/adapters/in/http/LessonRoutes.ts
++++ b/step-03/src/adapters/in/http/LessonRoutes.ts
+@@ -12,6 +12,10 @@ export class LessonRoutes {
+     return answer(() => this.desk.lesson(id));
+   }
+ 
++  dayOff(calendarId: string, date: string): Answer {
++    return answer(() => this.desk.dayOff(calendarId, date));
++  }
++
+   cancel(id: string): Answer {
+     return answer(() => this.desk.cancel(id));
+   }
+diff --git a/step-02/src/adapters/out/memory/MemoryTeacherBook.ts b/step-03/src/adapters/out/memory/MemoryTeacherBook.ts
+index 92b5f0f62..053ccbd0c 100644
+--- a/step-02/src/adapters/out/memory/MemoryTeacherBook.ts
++++ b/step-03/src/adapters/out/memory/MemoryTeacherBook.ts
+@@ -18,6 +18,10 @@ export class MemoryTeacherBook implements TeacherBook {
+     return this.rows.get(id) ?? null;
+   }
+ 
++  findByCalendar(calendarId: string): Teacher | null {
++    return this.all().find((t) => t.calendarId === calendarId) ?? null;
++  }
++
+   /** Every teacher, in id order. */
+   all(): Teacher[] {
+     return [...this.rows.values()].sort((a, b) => a.id.localeCompare(b.id));
+diff --git a/step-02/src/application/ports/in/LessonDesk.ts b/step-03/src/application/ports/in/LessonDesk.ts
+index 365ff2579..bec4a479a 100644
+--- a/step-02/src/application/ports/in/LessonDesk.ts
++++ b/step-03/src/application/ports/in/LessonDesk.ts
+@@ -18,7 +18,13 @@ export interface LessonView {
+   readonly status: string;
+ }
+ 
++export interface DayOffResult {
++  readonly teacher: string;
++  readonly cancelled: string[];
++}
++
+ export interface LessonDesk {
++  dayOff(calendarId: string, date: string): DayOffResult;
+   book(request: BookingRequest): LessonView;
+   lesson(id: string): LessonView;
+   cancel(id: string): LessonView;
+diff --git a/step-02/src/application/ports/out/TeacherBook.ts b/step-03/src/application/ports/out/TeacherBook.ts
+index 2d5d81285..27891b2f0 100644
+--- a/step-02/src/application/ports/out/TeacherBook.ts
++++ b/step-03/src/application/ports/out/TeacherBook.ts
+@@ -4,4 +4,5 @@ export interface TeacherBook {
+   nextId(): string;
+   save(teacher: Teacher): void;
+   find(id: string): Teacher | null;
++  findByCalendar(calendarId: string): Teacher | null;
+ }
+diff --git a/step-02/src/application/workflows/BookingWorkflow.ts b/step-03/src/application/workflows/BookingWorkflow.ts
+index e67d74829..b3ef35dc1 100644
+--- a/step-02/src/application/workflows/BookingWorkflow.ts
++++ b/step-03/src/application/workflows/BookingWorkflow.ts
+@@ -5,7 +5,7 @@ import { parseInstrument } from '../../domain/teaching/Instrument';
+ import type { Teacher } from '../../domain/teaching/Teacher';
+ import { parseDate } from '../../domain/time/LessonDate';
+ import { parseTime } from '../../domain/time/TimeOfDay';
+-import type { BookingRequest, LessonDesk, LessonView } from '../ports/in/LessonDesk';
++import type { BookingRequest, DayOffResult, LessonDesk, LessonView } from '../ports/in/LessonDesk';
+ import type { Clock } from '../ports/out/Clock';
+ import type { LessonLedger } from '../ports/out/LessonLedger';
+ import type { StudentRoll } from '../ports/out/StudentRoll';
+@@ -72,6 +72,20 @@ export class BookingWorkflow implements LessonDesk {
+     return lessonView(lesson);
+   }
+ 
++  /** Cancels every lesson still booked with the calendar's teacher on `date`, whatever the notice. */
++  dayOff(calendarId: string, date: string): DayOffResult {
++    const teacher = this.teachers.findByCalendar(calendarId);
++    if (teacher === null) throw new SchoolError(`no teacher with calendar ${calendarId}`);
++    const day = parseDate(date);
++    const cancelled = this.lessons.forTeacherOn(teacher.id, day).filter((l) => l.isBooked());
++    for (const lesson of cancelled) {
++      if (lesson.eventId !== null) this.calendar.removeAppointment(teacher.calendarId, lesson.eventId);
++      lesson.cancel();
++      this.lessons.save(lesson);
++    }
++    return { teacher: teacher.name, cancelled: cancelled.map((l) => l.id) };
++  }
++
+   private student(id: string): Student {
+     const student = this.students.find(id);
+     if (student === null) throw new SchoolError(`no student ${id}`);
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index dbc023551..942bb165e 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -32,10 +32,15 @@ export function createApp(options: AppOptions = {}) {
+   const hours = new TempoTeachingHours(tempo);
+   const clock = new SchoolClock(options.today);
+ 
++  const lessonRoutes = new LessonRoutes(new BookingWorkflow(lessons, teachers, students, hours, clock, new TempoTeacherCalendar(tempo)));
++
+   return {
+     staff: new StaffRoutes(new TeacherWorkflow(teachers, hours)),
+     students: new StudentRoutes(new StudentWorkflow(students)),
+-    lessons: new LessonRoutes(new BookingWorkflow(lessons, teachers, students, hours, clock, new TempoTeacherCalendar(tempo))),
++    lessons: lessonRoutes,
++    tempoHooks: {
++      dayOff: ({ calendarId, date }: { calendarId: string; date: string }) => lessonRoutes.dayOff(calendarId, date),
++    },
+     calendar: {
+       addHours: (calendarId: string, date: string, from: string, to: string): void => {
+         cloud.insert({ calendarId, summary: 'Teaching hours', day: date, startsAt: from, endsAt: to, category: 'TEACHING_HOURS' });

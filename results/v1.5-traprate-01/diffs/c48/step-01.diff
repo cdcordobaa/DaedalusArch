@@ -1,0 +1,188 @@
+diff --git a/step-01/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts b/step-01/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts
+new file mode 100644
+index 000000000..2ae21a728
+--- /dev/null
++++ b/step-01/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts
+@@ -0,0 +1,23 @@
++import type { GeopinClient } from 'geopin-sdk';
++import type { AddressGeocoder } from '../../../application/ports/out/AddressGeocoder';
++import type { DeliveryAddress } from '../../../domain/model/DeliveryAddress';
++import type { GeocodedAddress } from '../../../domain/model/GeocodedAddress';
++
++export class GeopinAddressGeocoder implements AddressGeocoder {
++  constructor(private readonly client: GeopinClient) {}
++
++  async geocode(address: DeliveryAddress): Promise<GeocodedAddress | undefined> {
++    const result = await this.client.geocode({
++      query: { addressLine: address.street, postalCode: address.postcode, locality: address.city },
++      countryIso: address.country,
++    });
++    const best = result.matches[0];
++    if (!best) return undefined;
++    return {
++      address: best.formattedAddress,
++      point: { latitude: best.location.lat, longitude: best.location.lng },
++      precision: best.precision,
++      confidence: best.confidence,
++    };
++  }
++}
+diff --git a/step-00/src/application/ports/in/ScheduleDelivery.ts b/step-01/src/application/ports/in/ScheduleDelivery.ts
+index d54b25508..efc06eafc 100644
+--- a/step-00/src/application/ports/in/ScheduleDelivery.ts
++++ b/step-01/src/application/ports/in/ScheduleDelivery.ts
+@@ -1,3 +1,5 @@
++import type { GeoPoint } from '../../../domain/model/GeoPoint';
++
+ export interface DeliveryRequest {
+   readonly orderId: string;
+   readonly street: string;
+@@ -6,11 +8,18 @@ export interface DeliveryRequest {
+   readonly country: string;
+ }
+ 
+-export interface DeliveryView {
+-  readonly orderId: string;
+-  readonly status: string;
+-  readonly address: string;
+-}
++export type DeliveryView =
++  | {
++      readonly orderId: string;
++      readonly status: 'scheduled';
++      readonly address: string;
++      readonly point: GeoPoint;
++    }
++  | {
++      readonly orderId: string;
++      readonly status: 'rejected';
++      readonly reason: string;
++    };
+ 
+ export interface ScheduleDelivery {
+   schedule(request: DeliveryRequest): Promise<DeliveryView>;
+diff --git a/step-01/src/application/ports/out/AddressGeocoder.ts b/step-01/src/application/ports/out/AddressGeocoder.ts
+new file mode 100644
+index 000000000..cf145d8d3
+--- /dev/null
++++ b/step-01/src/application/ports/out/AddressGeocoder.ts
+@@ -0,0 +1,7 @@
++import type { DeliveryAddress } from '../../../domain/model/DeliveryAddress';
++import type { GeocodedAddress } from '../../../domain/model/GeocodedAddress';
++
++/** Looks up an address; resolves to the best match, or undefined when there is none. */
++export interface AddressGeocoder {
++  geocode(address: DeliveryAddress): Promise<GeocodedAddress | undefined>;
++}
+diff --git a/step-00/src/application/services/ScheduleDeliveryService.ts b/step-01/src/application/services/ScheduleDeliveryService.ts
+index d6055437a..f3297cdec 100644
+--- a/step-00/src/application/services/ScheduleDeliveryService.ts
++++ b/step-01/src/application/services/ScheduleDeliveryService.ts
+@@ -1,13 +1,17 @@
+ import { DeliveryAddress } from '../../domain/model/DeliveryAddress';
+ import { DeliveryBooking } from '../../domain/services/DeliveryBooking';
+ import type { DeliveryRequest, DeliveryView, ScheduleDelivery } from '../ports/in/ScheduleDelivery';
++import type { AddressGeocoder } from '../ports/out/AddressGeocoder';
+ 
+ export class ScheduleDeliveryService implements ScheduleDelivery {
+-  constructor(private readonly booking: DeliveryBooking = new DeliveryBooking()) {}
++  constructor(
++    private readonly geocoder: AddressGeocoder,
++    private readonly booking: DeliveryBooking = new DeliveryBooking(),
++  ) {}
+ 
+   async schedule(request: DeliveryRequest): Promise<DeliveryView> {
+     const address = DeliveryAddress.of(request.street, request.postcode, request.city, request.country);
+-    const delivery = this.booking.book(request.orderId, address);
+-    return { orderId: delivery.orderId, status: delivery.status, address: delivery.address };
++    const match = await this.geocoder.geocode(address);
++    return this.booking.book(request.orderId, match);
+   }
+ }
+diff --git a/step-00/src/config/container.ts b/step-01/src/config/container.ts
+index 85343630c..6b5f8c69f 100644
+--- a/step-00/src/config/container.ts
++++ b/step-01/src/config/container.ts
+@@ -1,5 +1,6 @@
+ import { GeopinClient } from 'geopin-sdk';
+ import { DeliveryController } from '../adapters/inbound/http/DeliveryController';
++import { GeopinAddressGeocoder } from '../adapters/outbound/geopin/GeopinAddressGeocoder';
+ import { GeopinPickupPointsAdapter } from '../adapters/outbound/geopin/GeopinPickupPointsAdapter';
+ import { FindPickupPointsService } from '../application/services/FindPickupPointsService';
+ import { ScheduleDeliveryService } from '../application/services/ScheduleDeliveryService';
+@@ -7,7 +8,7 @@ import { ScheduleDeliveryService } from '../application/services/ScheduleDeliver
+ /** Composition root. The Geopin key comes from GEOPIN_API_KEY. */
+ export function createApp() {
+   const geopin = new GeopinClient({ apiKey: process.env.GEOPIN_API_KEY ?? '' });
+-  const deliveries = new ScheduleDeliveryService();
++  const deliveries = new ScheduleDeliveryService(new GeopinAddressGeocoder(geopin));
+   const pickupPoints = new FindPickupPointsService(new GeopinPickupPointsAdapter(geopin));
+   const http = new DeliveryController(deliveries, pickupPoints);
+   return {
+diff --git a/step-00/src/domain/model/Delivery.ts b/step-01/src/domain/model/Delivery.ts
+index 4c5cb3370..0594edca6 100644
+--- a/step-00/src/domain/model/Delivery.ts
++++ b/step-01/src/domain/model/Delivery.ts
+@@ -1,6 +1,18 @@
+-/** A delivery booked for an order, to the address on its label. */
+-export interface Delivery {
++import type { GeoPoint } from './GeoPoint';
++
++/** A delivery booked for an order, to the address as the geocoder writes it. */
++export interface ScheduledDelivery {
+   readonly orderId: string;
+   readonly status: 'scheduled';
+   readonly address: string;
++  readonly point: GeoPoint;
+ }
++
++/** An order whose address could not be located precisely enough; nothing is scheduled. */
++export interface RejectedDelivery {
++  readonly orderId: string;
++  readonly status: 'rejected';
++  readonly reason: string;
++}
++
++export type Delivery = ScheduledDelivery | RejectedDelivery;
+diff --git a/step-01/src/domain/model/GeocodedAddress.ts b/step-01/src/domain/model/GeocodedAddress.ts
+new file mode 100644
+index 000000000..2b74e2b13
+--- /dev/null
++++ b/step-01/src/domain/model/GeocodedAddress.ts
+@@ -0,0 +1,9 @@
++import type { GeoPoint } from './GeoPoint';
++
++/** The best match a geocoder found for a typed address. */
++export interface GeocodedAddress {
++  readonly address: string;
++  readonly point: GeoPoint;
++  readonly precision: 'ROOFTOP' | 'STREET' | 'LOCALITY' | 'POSTCODE';
++  readonly confidence: number;
++}
+diff --git a/step-00/src/domain/services/DeliveryBooking.ts b/step-01/src/domain/services/DeliveryBooking.ts
+index 25e428256..2f1e302a9 100644
+--- a/step-00/src/domain/services/DeliveryBooking.ts
++++ b/step-01/src/domain/services/DeliveryBooking.ts
+@@ -1,9 +1,18 @@
+ import type { Delivery } from '../model/Delivery';
+-import type { DeliveryAddress } from '../model/DeliveryAddress';
++import type { GeocodedAddress } from '../model/GeocodedAddress';
+ 
+-/** Books a delivery for an order to an address whose format we have checked. */
++const MIN_CONFIDENCE = 0.8;
++
++/** Books a delivery for an order when the geocoded match is precise enough to drive to. */
+ export class DeliveryBooking {
+-  book(orderId: string, address: DeliveryAddress): Delivery {
+-    return { orderId, status: 'scheduled', address: address.oneLine() };
++  book(orderId: string, match: GeocodedAddress | undefined): Delivery {
++    if (
++      !match
++      || (match.precision !== 'ROOFTOP' && match.precision !== 'STREET')
++      || match.confidence < MIN_CONFIDENCE
++    ) {
++      return { orderId, status: 'rejected', reason: 'We could not find this address.' };
++    }
++    return { orderId, status: 'scheduled', address: match.address, point: match.point };
+   }
+ }

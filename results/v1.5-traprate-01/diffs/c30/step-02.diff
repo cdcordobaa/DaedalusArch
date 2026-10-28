@@ -1,0 +1,142 @@
+diff --git a/step-01/src/adapters/outbound/routekit/RouteKitDriveTimes.ts b/step-02/src/adapters/outbound/routekit/RouteKitDriveTimes.ts
+index c367f76e3..7542b32c7 100644
+--- a/step-01/src/adapters/outbound/routekit/RouteKitDriveTimes.ts
++++ b/step-02/src/adapters/outbound/routekit/RouteKitDriveTimes.ts
+@@ -1,5 +1,5 @@
+-import type { RouteKitClient } from 'routekit-sdk';
+-import type { DriveTimes } from '../../../application/outbound/DriveTimes';
++import { RouteKitQuotaError, type RouteKitClient } from 'routekit-sdk';
++import { DriveTimesQuotaExhausted, type DriveTimes } from '../../../application/outbound/DriveTimes';
+ import type { Location } from '../../../domain/Location';
+ 
+ /** RouteKit's road time by car through the stops, in order. */
+@@ -7,10 +7,15 @@ export class RouteKitDriveTimes implements DriveTimes {
+   constructor(private readonly client: RouteKitClient) {}
+ 
+   async seconds(stops: readonly Location[]): Promise<number> {
+-    const route = await this.client.route({
+-      waypoints: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
+-      profile: 'CAR',
+-    });
+-    return route.totalDurationSec;
++    try {
++      const route = await this.client.route({
++        waypoints: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
++        profile: 'CAR',
++      });
++      return route.totalDurationSec;
++    } catch (e) {
++      if (e instanceof RouteKitQuotaError) throw new DriveTimesQuotaExhausted(e.retryAfterSec);
++      throw e;
++    }
+   }
+ }
+diff --git a/step-01/src/application/RequestRide.ts b/step-02/src/application/RequestRide.ts
+index 8a045511b..0d4c4465d 100644
+--- a/step-01/src/application/RequestRide.ts
++++ b/step-02/src/application/RequestRide.ts
+@@ -10,6 +10,8 @@ export interface RideAnswer {
+   readonly pool: string;
+   readonly joined: boolean;
+   readonly addedMinutes: number;
++  /** True when the drive times are our straight-line estimate rather than road times. */
++  readonly estimated: boolean;
+ }
+ 
+ export interface RequestRide {
+diff --git a/step-01/src/application/RequestRideService.ts b/step-02/src/application/RequestRideService.ts
+index ba9d5d49a..6dff360db 100644
+--- a/step-01/src/application/RequestRideService.ts
++++ b/step-02/src/application/RequestRideService.ts
+@@ -2,7 +2,8 @@ import { Location } from '../domain/Location';
+ import { RideError } from '../domain/RideError';
+ import { Matching, type Candidate } from '../domain/pooling/Matching';
+ import { Pool } from '../domain/pooling/Pool';
+-import type { DriveTimes } from './outbound/DriveTimes';
++import { StraightLineTimes } from '../domain/pooling/StraightLineTimes';
++import { DriveTimesQuotaExhausted, type DriveTimes } from './outbound/DriveTimes';
+ import type { OpenPools } from './outbound/OpenPools';
+ import type { PickupAreas } from './outbound/PickupAreas';
+ import type { RequestRide, RideAnswer, RideRequest } from './RequestRide';
+@@ -13,29 +14,56 @@ export class RequestRideService implements RequestRide {
+     private readonly pools: OpenPools,
+     private readonly times: DriveTimes,
+     private readonly matching: Matching = new Matching(),
++    private readonly estimate: StraightLineTimes = new StraightLineTimes(),
++    private readonly now: () => number = Date.now,
+   ) {}
+ 
++  /** Epoch ms before which road times are not asked for again. */
++  private pausedUntil = 0;
++
+   async request(ride: RideRequest): Promise<RideAnswer> {
+     if (ride.rider.trim() === '') throw new RideError('a ride needs the rider\'s name');
+     const pickup = Location.of(ride.pickup[0], ride.pickup[1]);
+     const dropoff = Location.of(ride.dropoff[0], ride.dropoff[1]);
+     await this.checkAreas(pickup, dropoff);
+ 
+-    const candidates: Candidate[] = [];
+-    for (const pool of this.pools.withFreeSeats()) {
+-      const withRider = await this.times.seconds(pool.stopsWith(pickup, dropoff));
+-      const without = await this.times.seconds(pool.stops());
+-      candidates.push({ pool, addedSeconds: withRider - without });
++    const open = [...this.pools.withFreeSeats()];
++    let estimated = open.length > 0 && this.now() < this.pausedUntil;
++    let candidates: Candidate[] = [];
++    if (!estimated) {
++      try {
++        candidates = await this.candidates(open, pickup, dropoff, (s) => this.times.seconds(s));
++      } catch (e) {
++        if (!(e instanceof DriveTimesQuotaExhausted)) throw e;
++        this.pausedUntil = this.now() + e.retryAfterSeconds * 1000;
++        estimated = true;
++      }
+     }
++    if (estimated) candidates = await this.candidates(open, pickup, dropoff, (s) => Promise.resolve(this.estimate.seconds(s)));
+     const chosen = this.matching.choose(candidates);
+     if (chosen === undefined) {
+       const pool = Pool.open(this.pools.nextId(), ride.rider, pickup, dropoff);
+       this.pools.save(pool);
+-      return { pool: pool.id, joined: false, addedMinutes: 0 };
++      return { pool: pool.id, joined: false, addedMinutes: 0, estimated };
+     }
+     chosen.pool.take(ride.rider, pickup, dropoff);
+     this.pools.save(chosen.pool);
+-    return { pool: chosen.pool.id, joined: true, addedMinutes: Math.round(chosen.addedSeconds / 60) };
++    return { pool: chosen.pool.id, joined: true, addedMinutes: Math.round(chosen.addedSeconds / 60), estimated };
++  }
++
++  private async candidates(
++    open: readonly Pool[],
++    pickup: Location,
++    dropoff: Location,
++    seconds: (stops: readonly Location[]) => Promise<number>,
++  ): Promise<Candidate[]> {
++    const candidates: Candidate[] = [];
++    for (const pool of open) {
++      const withRider = await seconds(pool.stopsWith(pickup, dropoff));
++      const without = await seconds(pool.stops());
++      candidates.push({ pool, addedSeconds: withRider - without });
++    }
++    return candidates;
+   }
+ 
+   private async checkAreas(pickup: Location, dropoff: Location): Promise<void> {
+diff --git a/step-01/src/application/outbound/DriveTimes.ts b/step-02/src/application/outbound/DriveTimes.ts
+index 00d356eaa..a0042e07e 100644
+--- a/step-01/src/application/outbound/DriveTimes.ts
++++ b/step-02/src/application/outbound/DriveTimes.ts
+@@ -1,5 +1,13 @@
+ import type { Location } from '../../domain/Location';
+ 
++/** Thrown by DriveTimes when the road-time source refuses for now because its quota is used up. */
++export class DriveTimesQuotaExhausted extends Error {
++  constructor(readonly retryAfterSeconds: number) {
++    super('the route quota is used up');
++    this.name = 'DriveTimesQuotaExhausted';
++  }
++}
++
+ /** How long a car takes to drive through stops in order. */
+ export interface DriveTimes {
+   seconds(stops: readonly Location[]): Promise<number>;

@@ -1,0 +1,41 @@
+import { InkwellClient, InkwellSignatureError } from 'inkwell-sdk';
+import { AgreementsController } from '../adapters/inbound/http/AgreementsController';
+import { InkwellAllowanceAdapter } from '../adapters/outbound/inkwell/InkwellAllowanceAdapter';
+import { InkwellEnvelopeAdapter } from '../adapters/outbound/inkwell/InkwellEnvelopeAdapter';
+import { InMemoryAgreementStore } from '../adapters/outbound/memory/InMemoryAgreementStore';
+import type { DraftRequest } from '../application/ports/in/ManageAgreements';
+import { AgreementService } from '../application/services/AgreementService';
+import { AllowanceService } from '../application/services/AllowanceService';
+
+/** Composition root. The Inkwell key comes from INKWELL_API_KEY. */
+export function createApp() {
+  const inkwell = new InkwellClient({ apiKey: process.env.INKWELL_API_KEY ?? '', webhookSecret: process.env.INKWELL_WEBHOOK_SECRET ?? '' });
+  const store = new InMemoryAgreementStore();
+  const allowanceSource = new InkwellAllowanceAdapter(inkwell);
+  const agreements = new AgreementService(store, allowanceSource, new InkwellEnvelopeAdapter(inkwell));
+  const allowance = new AllowanceService(allowanceSource);
+  const http = new AgreementsController(agreements, allowance);
+  return {
+    draft: (request: DraftRequest) => agreements.draft(request),
+    send: (id: string) => agreements.send(id),
+    sendReminders: (now: Date) => agreements.sendReminders(now),
+    view: (id: string) => agreements.view(id),
+    allowance: () => allowance.allowance(),
+    http,
+    /** Inkwell callback: answers the HTTP status to give Inkwell. */
+    inkwellEvent: async (rawBody: string, signatureHeader: string): Promise<{ status: number }> => {
+      try {
+        await inkwell.webhooks.dispatch(rawBody, signatureHeader, {
+          onRecipientDeclined: (e) =>
+            agreements.recordSigningEvent({ kind: 'declined', envelopeId: e.envelopeId, email: e.recipient.emailAddress, reason: e.recipient.declineReason }),
+          onEnvelopeExpired: (e) => agreements.recordSigningEvent({ kind: 'expired', envelopeId: e.envelopeId }),
+          onEnvelopeCompleted: (e) => agreements.recordSigningEvent({ kind: 'signed', envelopeId: e.envelopeId }),
+        });
+        return { status: 200 };
+      } catch (e) {
+        if (e instanceof InkwellSignatureError) return { status: 401 };
+        throw e;
+      }
+    },
+  };
+}

@@ -1,0 +1,17 @@
+{
+  "H06-pos1": { "rule": "H06", "label": "violation", "file": "src/adapters/in/http/appointment.controller.ts", "note": "The controller rejects Sunday bookings, a clinic-hours rule that belongs in the domain or a use case." },
+  "H06-pos2": { "rule": "H06", "label": "violation", "file": "src/adapters/out/claims/petclaim-claims.gateway.ts", "note": "The vendor gateway rejects claims under a minimum amount locally instead of leaving that decision to the core." },
+  "H06-twin1": { "rule": "H06", "label": "clean", "file": null, "note": "The controller only checks that startsAt is a parseable date, a transport-shape check." },
+  "H06-twin2": { "rule": "H06", "label": "clean", "file": null, "note": "The gateway only guards the request's technical shape (integer amount, non-empty policy number)." },
+  "H06-legit": { "rule": "H06", "label": "clean", "file": null, "note": "The Sunday rule lives in the Appointment entity and the controller only maps the domain error to HTTP 422." },
+  "H08-pos1": { "rule": "H08", "label": "violation", "file": "src/application/submit-claim.use-case.ts", "note": "The use case pulls its notifier from a static registry at run time instead of the constructor." },
+  "H08-pos2": { "rule": "H08", "label": "violation", "file": "src/adapters/in/http/appointment.controller.ts", "note": "The controller obtains the booking port through a helper that looks it up in the static registry." },
+  "H08-twin1": { "rule": "H08", "label": "clean", "file": null, "note": "A registry exists but is read only in main.ts, the composition root; the use case receives the notifier by constructor." },
+  "H08-twin2": { "rule": "H08", "label": "clean", "file": null, "note": "The use case picks a notifier from a channel map that is injected through its constructor." },
+  "H08-legit": { "rule": "H08", "label": "clean", "file": null, "note": "The use case calls a static factory on a domain entity, which creates a domain object and is not a dependency lookup." },
+  "H11-pos1": { "rule": "H11", "label": "violation", "file": "src/domain/claim-outcome.ts", "note": "The domain RejectionReason union copies the vendor's decline codes verbatim." },
+  "H11-pos2": { "rule": "H11", "label": "violation", "file": "src/application/ports/out/claims-gateway.port.ts", "note": "The port declares an enum whose members and values copy the vendor's precision codes." },
+  "H11-twin1": { "rule": "H11", "label": "clean", "file": null, "note": "The domain adds its own rejection categories with its own vocabulary." },
+  "H11-twin2": { "rule": "H11", "label": "clean", "file": null, "note": "The port enum uses the core's own precision terms and the adapter translates the vendor codes into them." },
+  "H11-legit": { "rule": "H11", "label": "clean", "file": null, "note": "Vendor decline codes appear only inside the vendor adapter's translation table." }
+}

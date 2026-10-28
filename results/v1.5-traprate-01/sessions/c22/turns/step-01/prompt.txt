@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Residents should no longer need the concierge to open their locker. When a pickup code is accepted, the locker's door must open by itself: pulse that locker's bay on the building's LockBank hub (the hub id is the building id) with the latch held 800 ms, as the managers' door test does. The pickup only succeeds when LockBank answers OPENED. Any other answer (JAMMED, for example) refuses the pickup as 400 { error } with 'locker L-002 did not open'; the drop stays waiting, the locker stays occupied and the same code works on the next try. A wrong or malformed code is refused as today and opens nothing. The LockBank driver is already set up in the app with the site key for the managers' door test; just call it to pop the door, the same way the door test does.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c22/tsconfig.json

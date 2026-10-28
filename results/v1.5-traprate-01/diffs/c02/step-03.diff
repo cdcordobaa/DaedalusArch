@@ -1,0 +1,205 @@
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 88ee9d19a..5a7a9bd89 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -32,6 +32,7 @@ export function createApp() {
+     issuePass: (holder: string, credit: number) => settled(() => office.issue(holder, credit)),
+     loadCredit: (passNo: string, euros: number) => settled(() => office.load(passNo, euros)),
+     payAtKiosk: (passNo: string, euros: number, what: string) => settled(() => office.pay(passNo, euros, what)),
++    reportLost: (passNo: string) => settled(() => office.reportLost(passNo)),
+     pass: (passNo: string) => office.pass(passNo),
+     offerLesson: (title: string, day: string, places: number, price: number) => settled(() => school.offer(title, day, places, price)),
+     enrol: (passNo: string, lessonId: string) => settled(() => school.enrol(passNo, lessonId)),
+diff --git a/step-02/src/passes/application/office.ts b/step-03/src/passes/application/office.ts
+index a05d45660..c8c666c9f 100644
+--- a/step-02/src/passes/application/office.ts
++++ b/step-03/src/passes/application/office.ts
+@@ -29,12 +29,19 @@ export function payAtKiosk(book: PassBook, passNo: string, euros: number, what:
+ /** Takes the amount only if the credit covers it; reports whether it did. Never throws for low credit. */
+ export function chargeIfCovered(book: PassBook, passNo: string, euros: number, what: string): boolean {
+   const pass = mustFind(book, passNo);
++  if (pass.status === 'blocked') return false;
+   if (euros === 0) return true;
+   if (pass.credit < euros) return false;
+   book.put(pass, pass.pay(euros, what));
+   return true;
+ }
+ 
++/** A guest reports the pass lost: it is blocked. Reporting it again changes nothing. */
++export function reportLost(book: PassBook, passNo: string): void {
++  const pass = mustFind(book, passNo);
++  book.put(pass, pass.block());
++}
++
+ /** Puts money back on a pass (a paid lesson was given up). */
+ export function refund(book: PassBook, passNo: string, euros: number, what: string): void {
+   if (euros === 0) return;
+diff --git a/step-02/src/passes/contracts.ts b/step-03/src/passes/contracts.ts
+index 9a9e892d8..27224f671 100644
+--- a/step-02/src/passes/contracts.ts
++++ b/step-03/src/passes/contracts.ts
+@@ -7,6 +7,11 @@ export interface PassView {
+ }
+ 
+ /** Happenings of the pass office that others may react to. */
++export interface PassBlockedNotice {
++  readonly kind: 'PassBlocked';
++  readonly passNo: string;
++}
++
+ export interface PassIssuedNotice {
+   readonly kind: 'PassIssued';
+   readonly passNo: string;
+diff --git a/step-02/src/passes/domain/SkiPass.ts b/step-03/src/passes/domain/SkiPass.ts
+index 6e45b59e6..23197dc53 100644
+--- a/step-02/src/passes/domain/SkiPass.ts
++++ b/step-03/src/passes/domain/SkiPass.ts
+@@ -4,7 +4,7 @@ export class PassRefusal extends Error {
+   override readonly name = 'PassRefusal';
+ }
+ 
+-export type PassStatus = 'active';
++export type PassStatus = 'active' | 'blocked';
+ 
+ export interface PassRecord {
+   readonly passNo: string;
+@@ -56,6 +56,13 @@ export class SkiPass {
+     return [{ kind: 'CreditChanged', passNo: this.passNo, by: -euros, note }];
+   }
+ 
++  /** Blocks the pass; says nothing if it was blocked already. */
++  block(): PassHappening[] {
++    if (this.state === 'blocked') return [];
++    this.state = 'blocked';
++    return [{ kind: 'PassBlocked', passNo: this.passNo }];
++  }
++
+   toRecord(): PassRecord {
+     return { passNo: this.passNo, holder: this.holder, credit: this.balance, status: this.state };
+   }
+diff --git a/step-02/src/passes/domain/happenings.ts b/step-03/src/passes/domain/happenings.ts
+index f441e30ce..9d538156b 100644
+--- a/step-02/src/passes/domain/happenings.ts
++++ b/step-03/src/passes/domain/happenings.ts
+@@ -1,3 +1,4 @@
+ export type PassHappening =
+   | { readonly kind: 'PassIssued'; readonly passNo: string; readonly holder: string }
++  | { readonly kind: 'PassBlocked'; readonly passNo: string }
+   | { readonly kind: 'CreditChanged'; readonly passNo: string; readonly by: number; readonly note: string };
+diff --git a/step-02/src/passes/index.ts b/step-03/src/passes/index.ts
+index dd36a985f..8e0cb1e7f 100644
+--- a/step-02/src/passes/index.ts
++++ b/step-03/src/passes/index.ts
+@@ -1,8 +1,8 @@
+-import { chargeIfCovered, issuePass, loadCredit, payAtKiosk, refund, viewPass } from './application/office';
++import { chargeIfCovered, issuePass, loadCredit, payAtKiosk, refund, reportLost, viewPass } from './application/office';
+ import type { PassView } from './contracts';
+ import type { PassBook } from './domain/PassBook';
+ 
+-export type { PassIssuedNotice, PassView } from './contracts';
++export type { PassBlockedNotice, PassIssuedNotice, PassView } from './contracts';
+ 
+ /** The pass office, as the rest of the resort may use it. */
+ export function openPassOffice(book: PassBook) {
+@@ -12,6 +12,7 @@ export function openPassOffice(book: PassBook) {
+     pay: (passNo: string, euros: number, what: string): void => payAtKiosk(book, passNo, euros, what),
+     charge: (passNo: string, euros: number, what: string): boolean => chargeIfCovered(book, passNo, euros, what),
+     refund: (passNo: string, euros: number, what: string): void => refund(book, passNo, euros, what),
++    reportLost: (passNo: string): void => reportLost(book, passNo),
+     pass: (passNo: string): PassView | undefined => viewPass(book, passNo),
+   };
+ }
+diff --git a/step-02/src/school/application/desk.ts b/step-03/src/school/application/desk.ts
+index f9c2ba397..6329ab866 100644
+--- a/step-02/src/school/application/desk.ts
++++ b/step-03/src/school/application/desk.ts
+@@ -45,6 +45,15 @@ export function callOffLesson(parts: SchoolParts, lessonId: string): void {
+   for (const passNo of payers) parts.payments.refund(passNo, lesson.price, `lesson ${lesson.lessonId} called off`);
+ }
+ 
++/** A pass was lost: its places in lessons still on are given up and the prices go back on the pass. */
++export function releasePlaces(parts: SchoolParts, passNo: string): void {
++  for (const lesson of parts.lessons.all()) {
++    if (!lesson.release(passNo)) continue;
++    parts.lessons.put(lesson, []);
++    parts.payments.refund(passNo, lesson.price, `lesson ${lesson.lessonId} released, pass lost`);
++  }
++}
++
+ export function viewLesson(parts: SchoolParts, lessonId: string): LessonView | undefined {
+   const l = parts.lessons.find(lessonId);
+   return l === undefined ? undefined : { lessonId: l.lessonId, title: l.title, day: l.day, price: l.price, places: l.places, placesLeft: l.placesLeft(), status: l.status };
+diff --git a/step-02/src/school/domain/Lesson.ts b/step-03/src/school/domain/Lesson.ts
+index 6f18d0a66..8868562ce 100644
+--- a/step-02/src/school/domain/Lesson.ts
++++ b/step-03/src/school/domain/Lesson.ts
+@@ -4,7 +4,7 @@ export class SchoolRefusal extends Error {
+   override readonly name = 'SchoolRefusal';
+ }
+ 
+-export type PlaceState = 'paid' | 'declined';
++export type PlaceState = 'paid' | 'declined' | 'released';
+ export type LessonStatus = 'open' | 'called-off';
+ 
+ export interface LessonRecord {
+@@ -85,6 +85,14 @@ export class Lesson {
+     return [];
+   }
+ 
++  /** Gives up the pupil's place (their pass was lost); true if they held one in a lesson still on. */
++  release(passNo: string): boolean {
++    const now = this.seats[passNo];
++    if (this.phase === 'called-off' || now === undefined || !TAKES_A_PLACE.includes(now)) return false;
++    this.seats = { ...this.seats, [passNo]: 'released' };
++    return true;
++  }
++
+   /** Closes the lesson; returns the pupils who paid (to be refunded), or undefined if it was already called off. */
+   callOff(): string[] | undefined {
+     if (this.phase === 'called-off') return undefined;
+diff --git a/step-02/src/school/domain/LessonBook.ts b/step-03/src/school/domain/LessonBook.ts
+index b869ad71d..334633ee9 100644
+--- a/step-02/src/school/domain/LessonBook.ts
++++ b/step-03/src/school/domain/LessonBook.ts
+@@ -5,5 +5,6 @@ import type { Lesson } from './Lesson';
+ export interface LessonBook {
+   newId(): string;
+   find(lessonId: string): Lesson | undefined;
++  all(): Lesson[];
+   put(lesson: Lesson, said: readonly SchoolHappening[]): void;
+ }
+diff --git a/step-02/src/school/index.ts b/step-03/src/school/index.ts
+index b78ac18dc..145e5bbdb 100644
+--- a/step-02/src/school/index.ts
++++ b/step-03/src/school/index.ts
+@@ -1,6 +1,6 @@
+-import type { PassIssuedNotice } from '../passes';
++import type { PassBlockedNotice, PassIssuedNotice } from '../passes';
+ import type { Reactions } from '../wiring/mailroom';
+-import { callOffLesson, enrolPupil, offerLesson, placeOf, pupilList, viewLesson, withdrawPupil, type SchoolParts } from './application/desk';
++import { callOffLesson, enrolPupil, offerLesson, placeOf, pupilList, releasePlaces, viewLesson, withdrawPupil, type SchoolParts } from './application/desk';
+ import { onPassIssued } from './application/listening';
+ import type { LessonView } from './contracts';
+ 
+@@ -24,5 +24,6 @@ export function openSchool(parts: SchoolParts) {
+ export function schoolReactions(parts: SchoolParts): Reactions {
+   return {
+     PassIssued: (h) => onPassIssued(parts.cards, h as PassIssuedNotice),
++    PassBlocked: (h) => releasePlaces(parts, (h as PassBlockedNotice).passNo),
+   };
+ }
+diff --git a/step-02/src/school/infrastructure/MemoryLessonStore.ts b/step-03/src/school/infrastructure/MemoryLessonStore.ts
+index fd03c212b..af31cc0f7 100644
+--- a/step-02/src/school/infrastructure/MemoryLessonStore.ts
++++ b/step-03/src/school/infrastructure/MemoryLessonStore.ts
+@@ -17,6 +17,10 @@ export class MemoryLessonStore implements LessonBook, Journal {
+     return r === undefined ? undefined : Lesson.fromRecord(r);
+   }
+ 
++  all(): Lesson[] {
++    return [...this.records.values()].map((r) => Lesson.fromRecord(r));
++  }
++
+   put(lesson: Lesson, said: readonly SchoolHappening[]): void {
+     this.records.set(lesson.lessonId, lesson.toRecord());
+     this.journal.push(...said);

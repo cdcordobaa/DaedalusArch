@@ -1,0 +1,65 @@
+diff --git a/step-01/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts b/step-02/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
+index c6eb5e759..2c92f0db8 100644
+--- a/step-01/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
++++ b/step-02/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
+@@ -1,7 +1,7 @@
+ import { PaystreamUnavailableError } from 'paystream-sdk';
+ import type { PaystreamCharge, PaystreamClient } from 'paystream-sdk';
+ import type { Charges } from '../../../application/ports/out/Charges';
+-import { PaymentError } from '../../../domain/errors/PaymentError';
++import { PaymentError, PaymentUnavailableError } from '../../../domain/errors/PaymentError';
+ import type { ChargeReceipt } from '../../../domain/model/ChargeReceipt';
+ import type { Money } from '../../../domain/model/Money';
+ 
+@@ -19,7 +19,7 @@ export class PaystreamChargesAdapter implements Charges {
+         merchantReference: orderId,
+       });
+     } catch (e) {
+-      if (e instanceof PaystreamUnavailableError) throw new PaymentError('the payment service is unavailable, please try again');
++      if (e instanceof PaystreamUnavailableError) throw new PaymentUnavailableError('the payment service is unavailable, please try again');
+       throw e;
+     }
+     if (charge.state !== 'SUCCEEDED') {
+diff --git a/step-01/src/application/services/CheckoutService.ts b/step-02/src/application/services/CheckoutService.ts
+index f29a5ec73..85d8b663f 100644
+--- a/step-01/src/application/services/CheckoutService.ts
++++ b/step-02/src/application/services/CheckoutService.ts
+@@ -1,4 +1,6 @@
++import { PaymentUnavailableError } from '../../domain/errors/PaymentError';
+ import { Order } from '../../domain/model/Order';
++import { Invoicing } from '../../domain/services/Invoicing';
+ import type { Checkout, CheckoutRequest, CheckoutView } from '../ports/in/Checkout';
+ import type { Charges } from '../ports/out/Charges';
+ 
+@@ -11,7 +13,14 @@ export class CheckoutService implements Checkout {
+   async checkout(request: CheckoutRequest): Promise<CheckoutView> {
+     const order = Order.of(request.orderId, request.total, request.currency);
+     const amount = order.total.plusSurcharge(CARD_SURCHARGE_BASIS_POINTS);
+-    const receipt = await this.charges.charge(request.cardToken, amount, order.id);
++    let receipt;
++    try {
++      receipt = await this.charges.charge(request.cardToken, amount, order.id);
++    } catch (e) {
++      if (!(e instanceof PaymentUnavailableError)) throw e;
++      const invoice = new Invoicing().invoiceFor(order);
++      return { orderId: order.id, status: invoice.status, amount: invoice.amount.amount(), currency: invoice.amount.currency, reference: invoice.reference };
++    }
+     return { orderId: order.id, status: 'paid', amount: amount.amount(), currency: amount.currency, reference: receipt.reference };
+   }
+ }
+diff --git a/step-01/src/domain/errors/PaymentError.ts b/step-02/src/domain/errors/PaymentError.ts
+index c47986642..b65436da1 100644
+--- a/step-01/src/domain/errors/PaymentError.ts
++++ b/step-02/src/domain/errors/PaymentError.ts
+@@ -4,3 +4,11 @@ export class PaymentError extends Error {
+     this.name = 'PaymentError';
+   }
+ }
++
++/** The payment provider could not be reached; the card was not charged. */
++export class PaymentUnavailableError extends PaymentError {
++  constructor(message: string) {
++    super(message);
++    this.name = 'PaymentUnavailableError';
++  }
++}

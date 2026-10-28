@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Drivers can now cancel: cancelReservation(reservationId). The reservation's status becomes 'cancelled' and its bays are free again in the car park straight away, so carPark(id).baysFree shows them. Cancelling a reservation that is already cancelled, or that was rejected, returns normally without an error and changes nothing. Cancelling an id that does not exist throws an error with the message 'no reservation <id>'. Please keep the change small, it ships with today's release.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c32/tsconfig.json

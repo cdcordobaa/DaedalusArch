@@ -1,0 +1,163 @@
+diff --git a/step-01/src/adapters/in/desk/DispatchDesk.ts b/step-02/src/adapters/in/desk/DispatchDesk.ts
+index 93e8cb041..22c2794f1 100644
+--- a/step-01/src/adapters/in/desk/DispatchDesk.ts
++++ b/step-02/src/adapters/in/desk/DispatchDesk.ts
+@@ -1,4 +1,4 @@
+-import type { AssignRider, PostJob, RecordPickup, RiderShifts, RiderSuggestion, SuggestRider, ViewJob } from '../../../application/ports/in/Dispatching';
++import type { AssignRider, ConfirmDelivery, PostJob, RecordPickup, RiderShifts, RiderSuggestion, SuggestRider, ViewJob } from '../../../application/ports/in/Dispatching';
+ import type { JobView } from '../../../domain/DeliveryJob';
+ import type { LatLng } from '../../../domain/geo';
+ import type { RiderView } from '../../../domain/Rider';
+@@ -7,6 +7,7 @@ export interface DeskOperations {
+   readonly post: PostJob;
+   readonly assign: AssignRider;
+   readonly pickup: RecordPickup;
++  readonly confirm: ConfirmDelivery;
+   readonly view: ViewJob;
+   readonly shifts: RiderShifts;
+   readonly suggest: SuggestRider;
+@@ -36,6 +37,10 @@ export class DispatchDesk {
+     return this.ops.pickup.run(jobId);
+   }
+ 
++  confirmDelivery(jobId: string, riderId: string, proof: { signedBy: string; photoRef: string }): JobView {
++    return this.ops.confirm.run(jobId, riderId, proof);
++  }
++
+   job(jobId: string): JobView {
+     return this.ops.view.run(jobId);
+   }
+diff --git a/step-01/src/application/ports/in/Dispatching.ts b/step-02/src/application/ports/in/Dispatching.ts
+index 6995706d3..f49e08ddd 100644
+--- a/step-01/src/application/ports/in/Dispatching.ts
++++ b/step-02/src/application/ports/in/Dispatching.ts
+@@ -14,6 +14,10 @@ export interface RecordPickup {
+   run(jobId: string): JobView;
+ }
+ 
++export interface ConfirmDelivery {
++  run(jobId: string, riderId: string, proof: { signedBy: string; photoRef: string }): JobView;
++}
++
+ export interface ViewJob {
+   run(jobId: string): JobView;
+ }
+diff --git a/step-02/src/application/usecases/ConfirmDeliveryCase.ts b/step-02/src/application/usecases/ConfirmDeliveryCase.ts
+new file mode 100644
+index 000000000..3d9311f2d
+--- /dev/null
++++ b/step-02/src/application/usecases/ConfirmDeliveryCase.ts
+@@ -0,0 +1,23 @@
++import type { JobView } from '../../domain/DeliveryJob';
++import type { ConfirmDelivery } from '../ports/in/Dispatching';
++import type { Clock } from '../ports/out/Clock';
++import type { JobLedger } from '../ports/out/JobLedger';
++import type { RiderRoster } from '../ports/out/RiderRoster';
++import { requireJob, requireRider } from './lookups';
++
++/** Closes a picked-up job at the door, freeing the rider. */
++export class ConfirmDeliveryCase implements ConfirmDelivery {
++  constructor(
++    private readonly ledger: JobLedger,
++    private readonly roster: RiderRoster,
++    private readonly clock: Clock,
++  ) {}
++
++  run(jobId: string, riderId: string, proof: { signedBy: string; photoRef: string }): JobView {
++    const job = requireJob(this.ledger, jobId);
++    const rider = requireRider(this.roster, riderId);
++    job.deliver(rider.id, proof.signedBy, proof.photoRef, this.clock.now());
++    this.ledger.save(job);
++    return job.view();
++  }
++}
+diff --git a/step-01/src/domain/DeliveryJob.ts b/step-02/src/domain/DeliveryJob.ts
+index e6c7b5212..80965fb58 100644
+--- a/step-01/src/domain/DeliveryJob.ts
++++ b/step-02/src/domain/DeliveryJob.ts
+@@ -1,7 +1,13 @@
+ import { DispatchRefusal } from './DispatchRefusal';
+ import type { LatLng } from './geo';
+ 
+-export type JobStatus = 'waiting' | 'assigned' | 'picked-up';
++export type JobStatus = 'waiting' | 'assigned' | 'picked-up' | 'delivered';
++
++export interface DeliveryProof {
++  readonly signedBy: string;
++  readonly photoRef: string;
++  readonly deliveredAt: string;
++}
+ 
+ export interface JobView {
+   readonly id: string;
+@@ -11,6 +17,7 @@ export interface JobView {
+   readonly riderId: string | null;
+   readonly postedAt: string;
+   readonly pickedUpAt: string | null;
++  readonly proof: DeliveryProof | null;
+ }
+ 
+ /** A parcel to carry from a pickup point to a drop-off point. */
+@@ -18,6 +25,7 @@ export class DeliveryJob {
+   private status: JobStatus = 'waiting';
+   private rider: string | null = null;
+   private pickedUpAt: Date | null = null;
++  private proof: DeliveryProof | null = null;
+ 
+   constructor(
+     readonly id: string,
+@@ -46,12 +54,26 @@ export class DeliveryJob {
+   }
+ 
+   collect(at: Date): void {
++    if (this.status === 'delivered') throw new DispatchRefusal(`job ${this.id} is already delivered`);
+     if (this.status === 'waiting') throw new DispatchRefusal(`job ${this.id} has no rider yet`);
+     if (this.status !== 'assigned') throw new DispatchRefusal(`job ${this.id} is already picked up`);
+     this.status = 'picked-up';
+     this.pickedUpAt = at;
+   }
+ 
++  /** Closes a picked-up job held by the given rider, once proof is given. */
++  deliver(riderId: string, signedBy: string, photoRef: string, at: Date): void {
++    if (this.status === 'delivered') throw new DispatchRefusal(`job ${this.id} is already delivered`);
++    if (this.status !== 'picked-up') throw new DispatchRefusal(`job ${this.id} has not been picked up`);
++    if (this.rider !== riderId) throw new DispatchRefusal(`job ${this.id} is with another rider`);
++    const name = signedBy.trim();
++    const photo = photoRef.trim();
++    if (name === '') throw new DispatchRefusal('a delivery needs the name of the person who signed');
++    if (photo === '') throw new DispatchRefusal('a delivery needs a photo');
++    this.status = 'delivered';
++    this.proof = { signedBy: name, photoRef: photo, deliveredAt: at.toISOString() };
++  }
++
+   view(): JobView {
+     return {
+       id: this.id,
+@@ -61,6 +83,7 @@ export class DeliveryJob {
+       riderId: this.rider,
+       postedAt: this.postedAt.toISOString(),
+       pickedUpAt: this.pickedUpAt?.toISOString() ?? null,
++      proof: this.proof,
+     };
+   }
+ }
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index 3bb37aae6..4b8cd84bc 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -6,6 +6,7 @@ import { MemoryRiderRoster } from './adapters/out/memory/MemoryRiderRoster';
+ import { FixedClock, SystemClock } from './adapters/out/time/clocks';
+ import type { Clock } from './application/ports/out/Clock';
+ import { AssignRiderCase } from './application/usecases/AssignRiderCase';
++import { ConfirmDeliveryCase } from './application/usecases/ConfirmDeliveryCase';
+ import { PostJobCase } from './application/usecases/PostJobCase';
+ import { RecordPickupCase } from './application/usecases/RecordPickupCase';
+ import { RiderShiftsCase } from './application/usecases/RiderShiftsCase';
+@@ -26,6 +27,7 @@ export function createApp(options: AppOptions = {}) {
+     post: new PostJobCase(ledger, clock),
+     assign: new AssignRiderCase(ledger, roster),
+     pickup: new RecordPickupCase(ledger, clock),
++    confirm: new ConfirmDeliveryCase(ledger, roster, clock),
+     view: new ViewJobCase(ledger),
+     shifts: new RiderShiftsCase(roster),
+     suggest: new SuggestRiderCase(ledger, roster, new TrackpointPositions(new TrackpointClient()), clock),

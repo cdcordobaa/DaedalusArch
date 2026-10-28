@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Laundry nobody collects goes back to the shop. The laundry's van driver calls laundry.takeBack(dropId): the door of the drop's locker opens the same way as for a pickup, the drop's status becomes 'returned' with closedAt set to now, the locker is free for the next drop, and the pickup code no longer works. Refusals, as 400 { error }, checked in this order: an unknown drop ('no drop D-0999'), a drop that is no longer waiting ('drop D-0001 is no longer waiting'), a drop dropped off less than 72 hours ago ('drop D-0001 has waited less than 72 hours'), and a door that does not open ('locker L-001 did not open'). A refused take-back changes nothing.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c22/tsconfig.json

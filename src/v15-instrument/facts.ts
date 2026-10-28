@@ -14,6 +14,7 @@
  * `saveAll([a, b])`, `Promise.all(xs.map(save))`, a write inside `uow.run(() => …)` and a write reached through a port,
  * an ACL and another context's published object literal all reach the same footprint fact.
  */
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Node, Project, SyntaxKind } from 'ts-morph';
 import type { CallExpression, ClassDeclaration, IfStatement, InterfaceDeclaration, NewExpression, SourceFile, Type } from 'ts-morph';
@@ -54,9 +55,13 @@ export interface AdapterImportFact { readonly file: string; readonly line: numbe
 /** HCAL-01: a transport concept (an HTTP status code, an HTTP or SQL error type) in domain, application or port code (H07). */
 export interface RepoMultiFact { readonly file: string; readonly line: number; readonly repo: string; readonly method: string; readonly root: string; readonly form: 'two-params' | 'collection' }
 export interface DomainTechFact { readonly file: string; readonly line: number; readonly module: string; readonly category: string }
-export interface LocatorFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'container-call' | 'static-instance'; readonly detail: string }
+export interface LocatorFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'container-call' | 'static-instance' | 'via-helper'; readonly detail: string }
 export interface CoreIoFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'io-import' | 'io-global'; readonly detail: string }
 export interface EntityOutFact { readonly file: string; readonly line: number; readonly handler: string; readonly entity: string; readonly entityFile: string; readonly form: 'returns' | 'accepts' | 'responds' }
+/** CN-04 (2026-10-28): a conditional in an adapter that decides a business rule on domain state (H06). */
+export interface AdapterRuleFact { readonly file: string; readonly line: number; readonly unit: string; readonly cond: string; readonly reads: string; readonly effect: string }
+/** CN-04: a core type whose string-literal values or field names are copied from one vendor SDK type (H11). */
+export interface MirrorFact { readonly file: string; readonly line: number; readonly role: Role; readonly core: string; readonly vendor: string; readonly module: string; readonly form: 'values' | 'names'; readonly detail: string }
 export interface TransportFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'status-code' | 'transport-type' | 'transport-import'; readonly detail: string }
 export interface ContractFact { readonly contract: string; readonly file: string; readonly line: number; readonly entity: string; readonly entityFile: string; readonly via: string; readonly form: 'type' | 'mirror' }
 export interface PortMechFact { readonly port: string; readonly method: string; readonly file: string; readonly line: number; readonly form: 'vendor-type' | 'adapter-type' | 'scope-callback'; readonly detail: string }
@@ -78,6 +83,8 @@ export interface Facts {
   readonly locators: readonly LocatorFact[];
   readonly coreIo: readonly CoreIoFact[];
   readonly entityOut: readonly EntityOutFact[];
+  readonly adapterRules: readonly AdapterRuleFact[];
+  readonly mirrors: readonly MirrorFact[];
   readonly repoMulti: readonly RepoMultiFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
@@ -1326,6 +1333,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   const LOCATOR_METHOD = /^(get|resolve|getService|getRequiredService|make|lookup|locate|inject|require)$/;
   const MAP_TYPE = /^(Map|ReadonlyMap|WeakMap|Set|ReadonlySet)$/;
   const locators: LocatorFact[] = [];
+  const lookupCalls: [CallExpression, string][] = [];
   const declsOf = (n: Node): Node[] => { let sym = n.getSymbol(); if (sym?.isAlias()) sym = sym.getAliasedSymbol() ?? sym; return sym?.getDeclarations() ?? []; };
   const isTokenArg = (a: Node): boolean => {
     if (Node.isIdentifier(a)) {
@@ -1352,7 +1360,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       // A static accessor of an adapter class, called from another file.
       if (/^(getInstance|instance|shared|default)$/.test(method) && Node.isIdentifier(recv)) {
         const d = declsOf(recv).find((x) => Node.isClassDeclaration(x));
-        if (d !== undefined && inTree(d) && roleOfNode(d) === 'adapter' && fileOf(d) !== f) locators.push({ file: f, line: n.getStartLineNumber(), role, form: 'static-instance', detail: `${recv.getText()}.${method}()` });
+        if (d !== undefined && inTree(d) && roleOfNode(d) === 'adapter' && fileOf(d) !== f) { locators.push({ file: f, line: n.getStartLineNumber(), role, form: 'static-instance', detail: `${recv.getText()}.${method}()` }); lookupCalls.push([n, `${recv.getText()}.${method}()`]); }
         return;
       }
       if (!LOCATOR_METHOD.test(method)) return;
@@ -1365,6 +1373,34 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       // A container's own implementation (`this.get` inside a Container class) is not a lookup.
       if (Node.isThisExpression(recv)) return;
       locators.push({ file: f, line: n.getStartLineNumber(), role, form: 'container-call', detail: `${recv.getText()}.${method}(${first?.getText() ?? ''})` });
+      lookupCalls.push([n, `${recv.getText()}.${method}(${first?.getText() ?? ''})`]);
+    });
+  }
+  // CN-04 H08: one level of call. A function or method whose body holds one of the lookups above is a locator helper
+  // (`resolve(CLOCK)` wrapping `registry.get(CLOCK)`); a call to it outside the composition root is reported at the
+  // caller too. Only direct calls of the helper count: a call through a port reaches an adapter, not a helper.
+  const FN_LIKE = (x: Node): boolean => Node.isFunctionDeclaration(x) || Node.isMethodDeclaration(x) || Node.isArrowFunction(x) || Node.isFunctionExpression(x) || Node.isGetAccessorDeclaration(x);
+  const helpers = new Map<Node, string>();
+  for (const [call, detail] of lookupCalls) { const fn = call.getFirstAncestor(FN_LIKE); if (fn !== undefined && !helpers.has(fn)) helpers.set(fn, detail); }
+  const helperOf = (d: Node | undefined): Node | undefined => {
+    if (d === undefined) return undefined;
+    if (helpers.has(d)) return d;
+    if (Node.isVariableDeclaration(d) || Node.isPropertyDeclaration(d) || Node.isPropertyAssignment(d)) { const init = d.getInitializer(); if (init !== undefined && helpers.has(init)) return init; }
+    return undefined;
+  };
+  const lookupLines = new Set(locators.map((x) => `${x.file}:${String(x.line)}`));
+  for (const sf of files) {
+    const f = fileOf(sf);
+    const role = spec.roleOf(f);
+    if (role === 'composition' || role === 'other') continue;
+    sf.forEachDescendant((n) => {
+      if (!Node.isCallExpression(n)) return;
+      const h = helperOf(declOfCall(n));
+      if (h === undefined || n.getAncestors().includes(h)) return;
+      const key = `${f}:${String(n.getStartLineNumber())}`;
+      if (lookupLines.has(key)) return;
+      lookupLines.add(key);
+      locators.push({ file: f, line: n.getStartLineNumber(), role, form: 'via-helper', detail: `${n.getExpression().getText()}(…), which runs ${helpers.get(h)!} (${fileOf(h)}:${String(h.getStartLineNumber())})` });
     });
   }
   bump('locators', locators.length);
@@ -1459,9 +1495,316 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   }
   bump('entityOut', entityOut.length);
 
+  // ── ADAPTER_DECIDES (CN-04 H06) ─────────────────────────────────────────────────────────────────────────────────
+  // A conditional (if, ternary, switch) in an adapter that decides on domain state: its condition reads a property,
+  // getter or predicate of a type declared in a domain file (in a comparison, a predicate call, a boolean flag), or
+  // compares a domain-typed value with a constant; and a branch throws or builds a domain error, returns a business
+  // result (a literal, an object, a new value), changes domain state, or computes an amount. Not reported: transport
+  // validation (typeof, presence, parse, regex and Number tests read request data, not domain state), identity and
+  // version reads (a store's own uniqueness and concurrency checks), conditionals in a catch clause (error
+  // translation), and a branch that only maps an equality on a decided state to an HTTP status.
+  const adapterRules: AdapterRuleFact[] = [];
+  const ARITH_OPS = new Set([SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken, SyntaxKind.SlashToken, SyntaxKind.PercentToken]);
+  const ARITH_ASSIGN = new Set([SyntaxKind.PlusEqualsToken, SyntaxKind.MinusEqualsToken, SyntaxKind.AsteriskEqualsToken, SyntaxKind.SlashEqualsToken]);
+  const COMPARE = new Set([...EQUALITY, ...RELATIONAL]);
+  const MECHANISM_FIELD = /^(_?id|\w+Id|version|revision|etag|createdAt|updatedAt)$/;
+  const VALIDATION_CALL = /^(test|match|isNaN|isFinite|isInteger|isSafeInteger|parse\w*|isArray)$/;
+  /** The in-tree domain declaration (class, interface, alias, enum; not an error class) a type names, if any. */
+  const domainDeclOf = (t: Type): Node | undefined => {
+    const ds = new Set<Node>();
+    for (const d of t.getAliasSymbol()?.getDeclarations() ?? []) ds.add(d);
+    for (const d of t.getSymbol()?.getDeclarations() ?? []) if (Node.isEnumDeclaration(d) || Node.isEnumMember(d)) ds.add(Node.isEnumMember(d) ? d.getParentOrThrow() : d);
+    if (!t.isUnion()) typeDecls(t, ds);
+    return [...ds].find((d) => inTree(d) && roleOfNode(d) === 'domain' && (Node.isClassDeclaration(d) || Node.isInterfaceDeclaration(d) || Node.isTypeAliasDeclaration(d) || Node.isEnumDeclaration(d)) && !isErrorClass(d));
+  };
+  const isNullish = (x: Node): boolean => Node.isNullLiteral(x) || (Node.isIdentifier(x) && x.getText() === 'undefined');
+  const isConstant = (x: Node): boolean => {
+    if (Node.isStringLiteral(x) || Node.isNumericLiteral(x) || Node.isNoSubstitutionTemplateLiteral(x) || Node.isTrueLiteral(x) || Node.isFalseLiteral(x)) return true;
+    if (Node.isPrefixUnaryExpression(x)) return Node.isNumericLiteral(x.getOperand());
+    if (Node.isPropertyAccessExpression(x)) return (x.getNameNode().getSymbol()?.getDeclarations() ?? []).some((d) => Node.isEnumMember(d));
+    if (Node.isIdentifier(x) && /^[A-Z][A-Z0-9_]+$/.test(x.getText())) { const d = x.getSymbol()?.getDeclarations()[0]; const init = d !== undefined && Node.isVariableDeclaration(d) ? d.getInitializer() : undefined; return init !== undefined && (Node.isNumericLiteral(init) || Node.isStringLiteral(init)); }
+    return false;
+  };
+  const calleeName = (c: CallExpression): string => { const e = c.getExpression(); return Node.isPropertyAccessExpression(e) ? e.getName() : e.getText(); };
+  /** A domain-state read in a condition (its text), or undefined: see the section comment for what counts. */
+  const domainRead = (cond: Node): string | undefined => {
+    const inside = new Set(cond.getDescendants());
+    const validation = (x: Node): boolean => x.getAncestors().some((a) => inside.has(a) && (Node.isTypeOfExpression(a) || (Node.isCallExpression(a) && VALIDATION_CALL.test(calleeName(a)))));
+    for (const x of [cond, ...cond.getDescendants()]) {
+      if (validation(x)) continue;
+      // (a) a comparison of a domain-typed value with a constant (`status === LoanStatus.Overdue`, `tier === 'gold'`)
+      if (Node.isBinaryExpression(x) && COMPARE.has(x.getOperatorToken().getKind())) {
+        for (const [a, b] of [[x.getLeft(), x.getRight()], [x.getRight(), x.getLeft()]] as const) {
+          if (!isConstant(b) || isNullish(b) || Node.isThisExpression(a)) continue;
+          if (Node.isPropertyAccessExpression(a) && MECHANISM_FIELD.test(a.getName())) continue;
+          if (domainDeclOf(a.getType()) !== undefined) return a.getText().replace(/\s+/g, ' ').slice(0, 80);
+        }
+      }
+      // (b) a property, getter or predicate of a domain object
+      if (!Node.isPropertyAccessExpression(x)) continue;
+      const base = x.getExpression();
+      if (Node.isThisExpression(base) || isCollection(base.getType()) || MECHANISM_FIELD.test(x.getName())) continue;
+      const bd = domainDeclOf(base.getType());
+      if (bd === undefined || Node.isEnumDeclaration(bd)) continue;
+      const p = x.getParent();
+      const called = p !== undefined && Node.isCallExpression(p) && p.getExpression() === x;
+      const top: Node = called ? p! : x;
+      const up = top.getParent();
+      // compared with something other than null or undefined, used in arithmetic, or a boolean (a flag or a
+      // predicate); a bare optional value in a truthiness test is a presence check
+      const compared = up !== undefined && Node.isBinaryExpression(up) && COMPARE.has(up.getOperatorToken().getKind()) && !isNullish(up.getLeft() === top ? up.getRight() : up.getLeft());
+      const arith = up !== undefined && Node.isBinaryExpression(up) && ARITH_OPS.has(up.getOperatorToken().getKind());
+      const flag = top.getType().isBoolean() || top.getType().isBooleanLiteral();
+      if (compared || arith || flag) return top.getText().replace(/\s+/g, ' ').slice(0, 80);
+    }
+    return undefined;
+  };
+  const isDomainError = (d: Node | undefined): boolean => d !== undefined && inTree(d) && roleOfNode(d) === 'domain' && isErrorClass(d);
+  const isHttpResponse = (e: Node): boolean => {
+    if (Node.isObjectLiteralExpression(e)) return e.getProperties().some((p) => Node.isPropertyAssignment(p) && STATUS_KEY.test(p.getName()) && p.getInitializer() !== undefined && isHttpCode(p.getInitializer()!));
+    return [...(Node.isCallExpression(e) ? [e] : []), ...e.getDescendantsOfKind(SyntaxKind.CallExpression)].some((c) => /^(status|code|sendStatus)$/.test(calleeName(c)) && c.getArguments().some((a) => isHttpCode(a)));
+  };
+  const short = (n: Node): string => n.getText().replace(/\s+/g, ' ').slice(0, 60);
+  /** What a branch does that a business rule does, or undefined. `stmt` false: an expression branch (a ternary arm). */
+  const branchEffect = (branch: Node, stmt: boolean): { effect: string; http: boolean } | undefined => {
+    const nodes = [branch, ...branch.getDescendants()];
+    for (const n of nodes) {
+      if (!Node.isNewExpression(n) && !Node.isCallExpression(n)) continue;
+      const d = declOfCall(n);
+      if (d === undefined) continue;
+      // a domain error built here (`new LoanTooLongError()`, `LoanError.tooLong()`)
+      const cls = Node.isClassDeclaration(d) ? d : (d.getFirstAncestorByKind(SyntaxKind.ClassDeclaration) ?? memberOwner(d));
+      if (isDomainError(cls)) return { effect: `raises ${short(n)}`, http: false };
+    }
+    for (const n of nodes) {
+      // changes domain state: a void method of a domain class, or an assignment to a domain object's property
+      if (Node.isCallExpression(n) && Node.isPropertyAccessExpression(n.getExpression())) {
+        const d = declOfCall(n);
+        const o = d !== undefined ? memberOwner(d) : undefined;
+        if (d !== undefined && Node.isMethodDeclaration(d) && !d.isStatic() && o !== undefined && Node.isClassDeclaration(o) && inTree(o) && roleOfNode(o) === 'domain' && !isErrorClass(o)) {
+          let rt = d.getReturnType(); if (rt.getSymbol()?.getName() === 'Promise') rt = rt.getTypeArguments()[0] ?? rt;
+          if (rt.isVoid()) return { effect: `changes state: ${short(n)}`, http: false };
+        }
+      }
+      if (Node.isBinaryExpression(n) && (n.getOperatorToken().getKind() === SyntaxKind.EqualsToken || ARITH_ASSIGN.has(n.getOperatorToken().getKind()))) {
+        const l = n.getLeft();
+        if (Node.isPropertyAccessExpression(l) && !Node.isThisExpression(l.getExpression()) && domainDeclOf(l.getExpression().getType()) !== undefined) return { effect: `changes state: ${short(n)}`, http: false };
+      }
+      // computes an amount
+      if ((Node.isBinaryExpression(n) && (ARITH_OPS.has(n.getOperatorToken().getKind()) || ARITH_ASSIGN.has(n.getOperatorToken().getKind())) && n.getType().isNumber())
+        || (Node.isCallExpression(n) && /^Math\.(round|floor|ceil|min|max)$/.test(n.getExpression().getText()))) return { effect: `computes ${short(n)}`, http: false };
+    }
+    if (!stmt) return undefined;
+    // returns early with a business result: a literal, an object or array, a new value, or a failure result
+    for (const s of Node.isBlock(branch) ? branch.getStatements() : [branch]) {
+      if (!Node.isReturnStatement(s)) continue;
+      let e = s.getExpression();
+      while (e !== undefined && (Node.isAwaitExpression(e) || Node.isParenthesizedExpression(e) || Node.isAsExpression(e))) e = e.getExpression();
+      if (e === undefined || isNullish(e)) continue;
+      const http = isHttpResponse(e);
+      const result = http || Node.isStringLiteral(e) || Node.isNoSubstitutionTemplateLiteral(e) || Node.isTemplateExpression(e) || Node.isNumericLiteral(e) || Node.isTrueLiteral(e) || Node.isFalseLiteral(e)
+        || Node.isObjectLiteralExpression(e) || Node.isArrayLiteralExpression(e) || Node.isNewExpression(e)
+        || (Node.isCallExpression(e) && /^(fail|failure|err|error|reject|rejected|declined|denied|refused)$/.test(calleeName(e)));
+      if (result) return { effect: `returns ${short(e)}`, http };
+    }
+    return undefined;
+  };
+  const unitName = (n: Node): string => {
+    const fn = n.getFirstAncestor((a) => units.has(a));
+    return fn !== undefined ? units.get(fn)!.name : '(module)';
+  };
+  for (const sf of files) {
+    const f = fileOf(sf);
+    if (spec.roleOf(f) !== 'adapter') continue;
+    const seen = new Set<number>();
+    sf.forEachDescendant((n) => {
+      let cond: Node | undefined; let branches: [Node, boolean][] = [];
+      if (Node.isIfStatement(n)) { const el = n.getElseStatement(); cond = n.getExpression(); branches = [[n.getThenStatement(), true], ...(el !== undefined && !Node.isIfStatement(el) ? [[el, true] as [Node, boolean]] : [])]; }
+      else if (Node.isConditionalExpression(n)) { cond = n.getCondition(); branches = [[n.getWhenTrue(), false], [n.getWhenFalse(), false]]; }
+      else if (Node.isSwitchStatement(n)) { cond = n.getExpression(); branches = n.getClauses().flatMap((c) => c.getStatements().map((s) => [s, true] as [Node, boolean])); }
+      if (cond === undefined) return;
+      if (n.getFirstAncestor((a) => Node.isCatchClause(a)) !== undefined) return; // error translation
+      // a switch on a domain value compares it with each case's constant
+      const read = Node.isSwitchStatement(n)
+        ? (domainDeclOf(cond.getType()) !== undefined && !(Node.isPropertyAccessExpression(cond) && MECHANISM_FIELD.test(cond.getName())) && n.getClauses().some((c) => Node.isCaseClause(c) && isConstant(c.getExpression())) ? short(cond) : undefined)
+        : domainRead(cond);
+      if (read === undefined) return;
+      const equalityOnly = ![cond, ...cond.getDescendants()].some((x) => (Node.isBinaryExpression(x) && RELATIONAL.has(x.getOperatorToken().getKind())) || Node.isCallExpression(x));
+      for (const [b, stmt] of branches) {
+        const e = branchEffect(b, stmt);
+        if (e === undefined || (e.http && equalityOnly)) continue; // an equality mapped to an HTTP status is translation
+        const line = n.getStartLineNumber();
+        if (!seen.has(line)) { seen.add(line); adapterRules.push({ file: f, line, unit: unitName(n), cond: cond.getText().replace(/\s+/g, ' ').slice(0, 100), reads: read, effect: e.effect }); }
+        break;
+      }
+    });
+  }
+  bump('adapterRules', adapterRules.length);
+
+  // ── MIRRORS_VENDOR (CN-04 H11) ──────────────────────────────────────────────────────────────────────────────────
+  // Domain, application or port code re-declares a vendor SDK's vocabulary without importing it. The vendor types are
+  // the exports of every vendor module an adapter of the tree imports (CN-05: a bare specifier, wherever it resolves;
+  // see below). A core type alias, enum, interface or const object or array mirrors one when all its string-literal
+  // values (at least 2) or all its property names (at least 3, `id` aside) are found in one vendor type. A string-
+  // literal union in a property of an interface or object alias counts as its own type (`Payment.declineCode`).
+  // CN-04 decision: a value set may hold at most one value outside the vendor type, and only a generic catch-all
+  // (other, unknown, none, default, unspecified; any case) next to at least 2 vendor values: a vendor code set plus one
+  // catch-all is still the vendor's vocabulary.
+  const CATCH_ALL = /^(other|unknown|none|default|unspecified)$/i;
+  const mirrors: MirrorFact[] = [];
+  interface Vocab { readonly name: string; readonly module: string; readonly literals: Set<string>; readonly names: Set<string> }
+  const vocabs: Vocab[] = [];
+  const literalsIn = (t: Type, out: Set<string>, depth: number): void => {
+    if (t.isStringLiteral()) { out.add(String(t.getLiteralValue())); return; }
+    if (t.isUnion()) { for (const u of t.getUnionTypes()) literalsIn(u, out, depth); return; }
+    if (t.isArray()) { const e = t.getArrayElementType(); if (e) literalsIn(e, out, depth); return; }
+    if (depth >= 2 || !t.isObject() || t.getCallSignatures().length > 0) return;
+    for (const p of t.getProperties()) { const vd = p.getValueDeclaration() ?? p.getDeclarations()[0]; if (vd !== undefined) literalsIn(vd.getType(), out, depth + 1); }
+  };
+  // CN-05: a module an adapter imports through a bare specifier (not relative, not a tsconfig paths alias into src/) is
+  // a vendor module wherever its declaration resolves: an ambient `declare module`, node_modules, or a `paths` mapping
+  // into a vendored folder (`vendor/<sdk>/index.d.ts`). The checker's tsconfig need not carry the tree's `paths` (the
+  // harness tsconfig does not), so a specifier the checker leaves unresolved is looked up in the tree's own
+  // tsconfig.json `paths`, then under node_modules, and the declaration file found is read for its exports.
+  const inSrc = (abs: string): boolean => { const r = rel(root, abs); return r === 'src' || r.startsWith('src/'); };
+  const treePaths = ((): { base: string; paths: Record<string, string[]> } | undefined => {
+    try {
+      // JSON with comments and trailing commas; comment markers inside strings (`"src/**/*"`) are kept
+      const src = fs.readFileSync(path.join(root, 'tsconfig.json'), 'utf8');
+      let raw = '';
+      for (let i = 0, str = false; i < src.length; i++) {
+        const ch = src[i]!;
+        if (str) { raw += ch; if (ch === '\\') raw += src[++i] ?? ''; else if (ch === '"') str = false; continue; }
+        if (ch === '"') { str = true; raw += ch; continue; }
+        if (ch === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') i++; raw += '\n'; continue; }
+        if (ch === '/' && src[i + 1] === '*') { i = src.indexOf('*/', i + 2); if (i < 0) break; i++; continue; }
+        raw += ch;
+      }
+      raw = raw.replace(/,(\s*[}\]])/g, '$1');
+      const co = (JSON.parse(raw) as { compilerOptions?: { baseUrl?: string; paths?: Record<string, string[]> } }).compilerOptions;
+      return co?.paths !== undefined ? { base: path.resolve(root, co.baseUrl ?? '.'), paths: co.paths } : undefined;
+    } catch { return undefined; }
+  })();
+  const declFile = (p: string): string | undefined => [p, `${p}.d.ts`, `${p}.ts`, path.join(p, 'index.d.ts'), path.join(p, 'index.ts')].find((c) => fs.existsSync(c) && fs.statSync(c).isFile());
+  /** The declaration file a bare specifier resolves to without the checker; `null` for a paths alias into src/. */
+  const vendorFileOf = (ms: string): string | null | undefined => {
+    for (const [k, targets] of Object.entries(treePaths?.paths ?? {})) {
+      const star = k.endsWith('/*') && ms.startsWith(k.slice(0, -1)) ? ms.slice(k.length - 1) : undefined;
+      if (k !== ms && star === undefined) continue;
+      for (const t of targets) {
+        const f = declFile(path.resolve(treePaths!.base, star !== undefined ? t.replace('*', star) : t));
+        if (f !== undefined) return inSrc(f) ? null : f;
+      }
+    }
+    const pkg = /^((?:@[^/]+\/)?[^/]+)(\/.*)?$/.exec(ms);
+    if (pkg === null) return undefined;
+    const dir = path.join(root, 'node_modules', pkg[1]!);
+    if (pkg[2] !== undefined) return declFile(path.join(dir, pkg[2]));
+    try {
+      const pj = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')) as { types?: string; typings?: string };
+      const t = pj.types ?? pj.typings;
+      if (t !== undefined) { const f = declFile(path.join(dir, t)); if (f !== undefined) return f; }
+    } catch { /* no package.json */ }
+    return declFile(dir);
+  };
+  const seenModules = new Set<string>();
+  for (const sf of files) {
+    if (spec.roleOf(fileOf(sf)) !== 'adapter') continue;
+    for (const imp of sf.getImportDeclarations()) {
+      const ms = imp.getModuleSpecifierValue();
+      if (ms.startsWith('.') || ms.startsWith('/') || ms.startsWith('node:')) continue;
+      let mod: string; let exportsOf: { name: string; decls: Node[] }[];
+      const msym = imp.getModuleSpecifier().getSymbol();
+      const mdecl = msym?.getDeclarations()[0];
+      if (msym !== undefined && mdecl !== undefined) {
+        // resolved by the checker: an alias into src/ is the tree's own code; anything else is the vendor's
+        if (Node.isSourceFile(mdecl) && !mdecl.isDeclarationFile() && inSrc(mdecl.getFilePath())) continue;
+        if (!Node.isModuleDeclaration(mdecl) && !Node.isSourceFile(mdecl)) continue;
+        mod = Node.isModuleDeclaration(mdecl) ? mdecl.getName().replace(/^['"]|['"]$/g, '') : externalModuleOf(mdecl) ?? ms;
+        exportsOf = msym.getExports().map((ex) => ({ name: ex.getName(), decls: ex.getDeclarations() }));
+      } else {
+        const vf = seenModules.has(ms) ? undefined : vendorFileOf(ms);
+        const vsf = vf !== undefined && vf !== null ? project.addSourceFileAtPathIfExists(vf) : undefined;
+        if (vsf === undefined) continue;
+        mod = ms;
+        exportsOf = [...vsf.getExportedDeclarations()].map(([name, decls]) => ({ name, decls }));
+      }
+      if (seenModules.has(mod)) continue;
+      seenModules.add(mod);
+      for (const ex of exportsOf) {
+        for (const d of ex.decls) {
+          const literals = new Set<string>(); const names = new Set<string>();
+          if (Node.isEnumDeclaration(d)) { for (const m of d.getMembers()) { const v = m.getValue(); if (typeof v === 'string') literals.add(v); names.add(m.getName()); } }
+          else if (Node.isInterfaceDeclaration(d) || Node.isClassDeclaration(d) || Node.isTypeAliasDeclaration(d)) {
+            const t = d.getType();
+            literalsIn(t, literals, 0);
+            if (t.isObject() && t.getCallSignatures().length === 0) for (const p of t.getProperties()) names.add(p.getName());
+          } else continue;
+          vocabs.push({ name: ex.name, module: mod, literals, names });
+        }
+      }
+    }
+  }
+  bump('vendorTypes', vocabs.length);
+  const pureLiterals = (t: Type): string[] | undefined => {
+    const parts = (t.isUnion() ? t.getUnionTypes() : [t]).filter((p) => !p.isUndefined() && !p.isNull()); // an optional field
+    return parts.length >= 2 && parts.every((p) => p.isStringLiteral()) ? parts.map((p) => String(p.getLiteralValue())) : undefined;
+  };
+  const unwrap = (e: Node): Node => { let x = e; while (Node.isAsExpression(x) || Node.isSatisfiesExpression(x) || Node.isParenthesizedExpression(x)) x = x.getExpression(); return x; };
+  const strings = (xs: Node[]): string[] | undefined => (xs.length >= 2 && xs.every((x) => Node.isStringLiteral(x) || Node.isNoSubstitutionTemplateLiteral(x)) ? xs.map((x) => (x as import('ts-morph').StringLiteral).getLiteralValue()) : undefined);
+  for (const sf of vocabs.length > 0 ? files : []) {
+    const f = fileOf(sf);
+    const role = spec.roleOf(f);
+    if (role !== 'domain' && role !== 'application' && role !== 'port') continue;
+    const cands: { core: string; line: number; values?: string[]; names?: string[] }[] = [];
+    const objectCands = (core: string, line: number, props: { name: string; type: Type; line: number }[]): void => {
+      cands.push({ core, line, names: props.map((p) => p.name) });
+      for (const p of props) { const v = pureLiterals(p.type); if (v) cands.push({ core: `${core}.${p.name}`, line: p.line, values: v }); }
+    };
+    for (const a of sf.getTypeAliases()) {
+      const t = a.getType();
+      const v = pureLiterals(t);
+      if (v) cands.push({ core: a.getName(), line: a.getStartLineNumber(), values: v });
+      else if (t.isObject() && !t.isArray() && t.getCallSignatures().length === 0) objectCands(a.getName(), a.getStartLineNumber(), t.getProperties().map((p) => { const vd = p.getValueDeclaration() ?? p.getDeclarations()[0]; return { name: p.getName(), type: vd?.getType() ?? t, line: vd?.getStartLineNumber() ?? a.getStartLineNumber() }; }));
+    }
+    for (const i of sf.getInterfaces()) objectCands(i.getName(), i.getStartLineNumber(), i.getProperties().map((p) => ({ name: p.getName(), type: p.getType(), line: p.getStartLineNumber() })));
+    for (const en of sf.getEnums()) {
+      const vals = en.getMembers().map((m) => m.getValue());
+      if (vals.length >= 2 && vals.every((v) => typeof v === 'string')) cands.push({ core: en.getName(), line: en.getStartLineNumber(), values: vals as string[] });
+    }
+    for (const vd of sf.getVariableDeclarations()) {
+      const init = vd.getVariableStatement()?.getDeclarationKind() === 'const' ? vd.getInitializer() : undefined;
+      if (init === undefined) continue;
+      const e = unwrap(init);
+      if (Node.isArrayLiteralExpression(e)) { const v = strings(e.getElements().map(unwrap)); if (v) cands.push({ core: vd.getName(), line: vd.getStartLineNumber(), values: v }); }
+      else if (Node.isObjectLiteralExpression(e)) {
+        const ps = e.getProperties();
+        if (!ps.every((p) => Node.isPropertyAssignment(p))) continue;
+        const v = strings(ps.map((p) => unwrap((p as import('ts-morph').PropertyAssignment).getInitializerOrThrow())));
+        if (v) cands.push({ core: vd.getName(), line: vd.getStartLineNumber(), values: v });
+        cands.push({ core: vd.getName(), line: vd.getStartLineNumber(), names: ps.map((p) => (p as import('ts-morph').PropertyAssignment).getName().replace(/^['"]|['"]$/g, '')) });
+      }
+    }
+    for (const c of cands) {
+      const names = c.names?.filter((x) => x !== 'id');
+      let hit: { v: Vocab; form: MirrorFact['form']; items: string[]; catchAll?: string } | undefined;
+      for (const v of vocabs) {
+        if (c.values !== undefined) {
+          const inVendor = c.values.filter((x) => v.literals.has(x));
+          const extra = c.values.filter((x) => !v.literals.has(x));
+          if (inVendor.length >= 2 && (extra.length === 0 || (extra.length === 1 && CATCH_ALL.test(extra[0]!)))) { hit = { v, form: 'values', items: inVendor, ...(extra.length === 1 ? { catchAll: extra[0]! } : {}) }; break; }
+        }
+        if (names !== undefined && names.length >= 3 && names.every((x) => v.names.has(x))) { hit = { v, form: 'names', items: names }; break; }
+      }
+      if (hit === undefined) continue;
+      mirrors.push({ file: f, line: c.line, role, core: c.core, vendor: hit.v.name, module: hit.v.module, form: hit.form, detail: `${hit.form === 'values' ? 'values' : 'fields'} ${hit.items.map((x) => `'${x}'`).join(', ')}${hit.catchAll !== undefined ? ` (plus the catch-all '${hit.catchAll}')` : ''}` });
+    }
+  }
+  bump('mirrors', mirrors.length);
+
   return {
     roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
-    locators, coreIo, entityOut, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
+    locators, coreIo, entityOut, adapterRules, mirrors, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
 

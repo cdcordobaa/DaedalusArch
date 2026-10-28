@@ -1,0 +1,112 @@
+diff --git a/step-01/src/adapters/outbound/routekit/RouteKitRouteTimes.ts b/step-02/src/adapters/outbound/routekit/RouteKitRouteTimes.ts
+index e5ffede99..63284b53e 100644
+--- a/step-01/src/adapters/outbound/routekit/RouteKitRouteTimes.ts
++++ b/step-02/src/adapters/outbound/routekit/RouteKitRouteTimes.ts
+@@ -1,16 +1,34 @@
+-import type { RouteKitClient } from 'routekit-sdk';
+-import type { RouteTimes } from '../../../application/outbound/RouteTimes';
++import { RouteKitQuotaError, type RouteKitClient } from 'routekit-sdk';
++import type { DriveTime, RouteTimes } from '../../../application/outbound/RouteTimes';
+ import type { Location } from '../../../domain/Location';
++import { StraightLineTimes } from '../../../domain/pooling/StraightLineTimes';
+ 
+-/** RouteKit's car routes, read as road times. */
++/** RouteKit's car routes, read as road times; straight-line estimates while the route quota is used up. */
+ export class RouteKitRouteTimes implements RouteTimes {
+-  constructor(private readonly client: RouteKitClient) {}
++  private pausedUntil = 0;
+ 
+-  async seconds(stops: readonly Location[]): Promise<number> {
+-    const route = await this.client.route({
+-      waypoints: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
+-      profile: 'CAR',
+-    });
+-    return route.totalDurationSec;
++  constructor(
++    private readonly client: RouteKitClient,
++    private readonly fallback: StraightLineTimes = new StraightLineTimes(),
++    private readonly now: () => number = Date.now,
++  ) {}
++
++  async seconds(stops: readonly Location[]): Promise<DriveTime> {
++    if (this.now() < this.pausedUntil) return this.estimate(stops);
++    try {
++      const route = await this.client.route({
++        waypoints: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
++        profile: 'CAR',
++      });
++      return { seconds: route.totalDurationSec, estimated: false };
++    } catch (e) {
++      if (!(e instanceof RouteKitQuotaError)) throw e;
++      this.pausedUntil = this.now() + e.retryAfterSec * 1000;
++      return this.estimate(stops);
++    }
++  }
++
++  private estimate(stops: readonly Location[]): DriveTime {
++    return { seconds: this.fallback.seconds(stops), estimated: true };
+   }
+ }
+diff --git a/step-01/src/application/RequestRide.ts b/step-02/src/application/RequestRide.ts
+index 8a045511b..c49ced437 100644
+--- a/step-01/src/application/RequestRide.ts
++++ b/step-02/src/application/RequestRide.ts
+@@ -10,6 +10,8 @@ export interface RideAnswer {
+   readonly pool: string;
+   readonly joined: boolean;
+   readonly addedMinutes: number;
++  /** True when the drive times were our straight-line estimate, not RouteKit's road times. */
++  readonly estimated: boolean;
+ }
+ 
+ export interface RequestRide {
+diff --git a/step-01/src/application/RequestRideService.ts b/step-02/src/application/RequestRideService.ts
+index a1919fd13..721749545 100644
+--- a/step-01/src/application/RequestRideService.ts
++++ b/step-02/src/application/RequestRideService.ts
+@@ -22,20 +22,22 @@ export class RequestRideService implements RequestRide {
+     await this.checkAreas(pickup, dropoff);
+ 
+     const candidates: Candidate[] = [];
++    let estimated = false;
+     for (const pool of this.pools.withFreeSeats()) {
+       const withRider = await this.times.seconds(pool.stopsWith(pickup, dropoff));
+       const without = await this.times.seconds(pool.stops());
+-      candidates.push({ pool, addedSeconds: withRider - without });
++      estimated ||= withRider.estimated || without.estimated;
++      candidates.push({ pool, addedSeconds: withRider.seconds - without.seconds });
+     }
+     const chosen = this.matching.choose(candidates);
+     if (chosen === undefined) {
+       const pool = Pool.open(this.pools.nextId(), ride.rider, pickup, dropoff);
+       this.pools.save(pool);
+-      return { pool: pool.id, joined: false, addedMinutes: 0 };
++      return { pool: pool.id, joined: false, addedMinutes: 0, estimated };
+     }
+     chosen.pool.take(ride.rider, pickup, dropoff);
+     this.pools.save(chosen.pool);
+-    return { pool: chosen.pool.id, joined: true, addedMinutes: Math.round(chosen.addedSeconds / 60) };
++    return { pool: chosen.pool.id, joined: true, addedMinutes: Math.round(chosen.addedSeconds / 60), estimated };
+   }
+ 
+   private async checkAreas(pickup: Location, dropoff: Location): Promise<void> {
+diff --git a/step-01/src/application/outbound/RouteTimes.ts b/step-02/src/application/outbound/RouteTimes.ts
+index 939faf216..613c67535 100644
+--- a/step-01/src/application/outbound/RouteTimes.ts
++++ b/step-02/src/application/outbound/RouteTimes.ts
+@@ -1,7 +1,13 @@
+ import type { Location } from '../../domain/Location';
+ 
++/** A drive time, and whether it is our own estimate rather than the road time. */
++export interface DriveTime {
++  readonly seconds: number;
++  readonly estimated: boolean;
++}
++
+ /** How long a car takes on the road. */
+ export interface RouteTimes {
+-  /** The road time in seconds through the stops, in the given order. */
+-  seconds(stops: readonly Location[]): Promise<number>;
++  /** The time through the stops, in the given order. */
++  seconds(stops: readonly Location[]): Promise<DriveTime>;
+ }
