@@ -44,7 +44,7 @@ interface Label { rule: string; label: 'violation' | 'clean'; file: string | nul
 interface Hit { rule: string; file: string; line: number | null }
 
 const TEMPLATE = 'experiments/puzzle-01/puzzles/p1-transfers/spec.yaml';
-function frozenSpec(spec: string, out: string): string {
+export function frozenSpec(spec: string, out: string): string {
   const d = YAML.parse(fs.readFileSync(spec, 'utf8')) as { architecture: { ddd: Record<string, unknown> }; scoring?: unknown };
   if (d.scoring !== undefined) { // already a full frozen-format spec: only the v1.5-only `invariants` field goes
     const full = YAML.parse(fs.readFileSync(spec, 'utf8')) as { architecture: { ddd?: Record<string, unknown> } };
