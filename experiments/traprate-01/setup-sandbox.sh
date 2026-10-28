@@ -21,6 +21,9 @@ chmod 755 /srv /srv/bin /srv/h /srv/h/bin /srv/w
 chmod 700 /srv/o /srv/vault
 chown 1500:1500 /srv/gh && chmod 700 /srv/gh
 
+# npm behind the cloud proxy: trust the container CA bundle when there is one (environment fix, as in the v1.3 pilot).
+if [ -f /root/.ccr/ca-bundle.crt ] && ! grep -q '^cafile=' /root/.npmrc 2>/dev/null; then echo 'cafile=/root/.ccr/ca-bundle.crt' >> /root/.npmrc; fi
+
 # The baseline wrapper, byte for byte.
 install -m 0755 -o root -g root results/v1.4-puzzle-01-baseline/isolation/gclaude.sh /srv/bin/gclaude
 
@@ -52,7 +55,17 @@ for (const v of Object.values(map)) pats.add(v.task);
 process.stdout.write([...pats].filter((p) => p.length >= 8).join('\n') + '\n');
 EOF
 chmod 600 /srv/vault/sweep-patterns.txt
-setpriv --reuid=1500 --regid=1500 --clear-groups sh -c "grep -rIlF -f /dev/stdin / --exclude-dir=proc --exclude-dir=sys --exclude-dir=dev 2>/dev/null" < /srv/vault/sweep-patterns.txt > "$EVID/sweep.txt" || true
+# The patterns are piped (`-f -`): as gen, reopening a root-owned stdin through /dev/stdin is denied and the search
+# would never run. grep exits 2 on any unreadable directory, so its code proves nothing; a positive control in the
+# generator home must be found instead.
+head -n 1 /srv/vault/sweep-patterns.txt > /srv/gh/sweep-control.txt && chown 1500:1500 /srv/gh/sweep-control.txt
+cat /srv/vault/sweep-patterns.txt | setpriv --reuid=1500 --regid=1500 --clear-groups sh -c "grep -rIlF -f - / --exclude-dir=proc --exclude-dir=sys --exclude-dir=dev 2>/dev/null" > "$EVID/sweep-raw.txt" || true
+rm -f /srv/gh/sweep-control.txt
+if ! grep -qx /srv/gh/sweep-control.txt "$EVID/sweep-raw.txt"; then
+  echo "SWEEP DID NOT RUN (positive control not found): plan §2: STOP" >&2; exit 1
+fi
+grep -vx /srv/gh/sweep-control.txt "$EVID/sweep-raw.txt" > "$EVID/sweep.txt" || true
+rm -f "$EVID/sweep-raw.txt"
 if grep -q READABLE "$EVID/listing.txt" || [ -s "$EVID/sweep.txt" ]; then
   echo "ISOLATION NOT ACHIEVED: see $EVID/listing.txt and $EVID/sweep.txt (plan §2: STOP)" >&2
   exit 3
