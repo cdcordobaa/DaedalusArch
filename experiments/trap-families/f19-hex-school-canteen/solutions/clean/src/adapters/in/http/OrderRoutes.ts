@@ -1,5 +1,5 @@
 import type { Ordering } from '../../../application/ports/in/Ordering';
-import { reply, type Reply } from '../shared/reply';
+import { reply, type Reply } from './reply';
 
 /** Parents ordering meals. */
 export class OrderRoutes {

@@ -1,6 +1,6 @@
 import type { Enrolment } from '../../../application/ports/in/Enrolment';
 import type { Menu } from '../../../application/ports/in/Menu';
-import { reply, type Reply } from '../shared/reply';
+import { reply, type Reply } from './reply';
 
 /** The school office: pupils, top-ups and the menu. */
 export class OfficeRoutes {

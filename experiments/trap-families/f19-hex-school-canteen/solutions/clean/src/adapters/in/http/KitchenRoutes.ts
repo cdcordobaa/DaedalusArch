@@ -1,5 +1,5 @@
 import type { KitchenTally } from '../../../application/ports/in/KitchenTally';
-import { reply, type Reply } from '../shared/reply';
+import { reply, type Reply } from './reply';
 
 /** The kitchen's morning screen. */
 export class KitchenRoutes {
