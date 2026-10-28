@@ -1,8 +1,8 @@
 # v1.5 final study pre-registration: combined delivery on DDD and Hexagonal trap tasks (Claude Sonnet)
 
-**Status: DRAFT, not registered.** Written 2026-10-28, before any final-study call. The placeholders in §9 are filled
-from TRAPRATE-01 (task screening, arm `none` only) and the Stage 1 pilot before the registration commit. After that
-commit, any change is a dated deviation (§6).
+**Status: REGISTERED 2026-10-29**, before any final-study call, by the commit that merges this file to `main`.
+Every change after it is a dated deviation (§6). The placeholders of §9 are filled from TRAPRATE-01 (task screening,
+arm `none` only) and the Stage 1 pilot.
 
 Sources: `ops/notes/v15-final-study-draft.md` (draft v0), `ops/notes/v15-combined-delivery-design-2026-10-26.md`,
 `Docs/DiagnosticRuns/v15-cal03-admission-2026-10-28.md`, `Docs/DiagnosticRuns/v15-hcal03-admission-2026-10-28.md`,
@@ -33,14 +33,17 @@ through Claude Code, from each task's fixed seed.
 > from the task seed and from every earlier step of that cell, summed over the steps. Identity: rule + file + subject,
 > under Study 2b's rename rule (ρ from `git diff -M50%`). Every snapshot is scored (ITT).
 
-Admitted rules (fixed by the sealed admissions; the study runs at rule hash `b39b8b67…`, `main` 1e74e90f0, the HCAL-03 seal; the CAL-03 record re-run under it is identical to its sealed record):
+Admitted rules (fixed by the sealed admissions; the study runs at `main` `ea0da2b61`, rule hash `761f37d9…`, the
+HCAL-05 seal; the CAL-03, HCAL-03 and HCAL-04 records re-run at it are identical to their sealed records on every
+admitted row):
 
-| Style | Rows | Rules counted |
-|---|---|---|
-| DDD | K01 K02 K03 K05 K10 K13 K14 K15 K16 | FF-DS02; FF-DT04, FF-S01, FF-S03, R-H5, R-PURE; R-D4; R-XCTX; **R-D5S only** for K10; R-H5; R-D9; R-INJ; R-REF |
-| Hexagonal | H01 H02 H03 H04 H05 H07 H09 H10 | FF-S01, FF-S03, FF-S04, FF-P01, FF-P02, FF-P03; R-INJ; R-AXA; R-H5; R-TRANSPORT; R-COREIO; R-ENTITY-OUT |
+| Style | Rows | Rules counted | Admission |
+|---|---|---|---|
+| DDD | K01 K02 K03 K05 K10 K13 K14 K15 K16 | FF-DS02; FF-DT04, FF-S01, FF-S03, R-H5, R-PURE; R-D4; R-XCTX; **R-D5S only** for K10; R-H5; R-D9; R-INJ; R-REF | CAL-03, 36/36 |
+| Hexagonal | H01 H02 H03 H04 H05 H07 H08 H09 H10 | FF-S01, FF-S03, FF-S04, FF-P01, FF-P02, FF-P03; R-INJ; R-AXA; R-H5; R-TRANSPORT; R-LOCATOR; R-COREIO; R-ENTITY-OUT | HCAL-03 32/32, HCAL-04 (H08) 4/4 |
 
-The rules of rows not admitted (DDD K04 K06 K07 K08 K09 K11 K12; Hexagonal H06 H08) run and are reported as
+The rules of rows not admitted (DDD K04 K06 K07 K08 K09 K11 K12; Hexagonal H06 R-ADAPTER-RULE, H11 R-MIRROR) run, are
+delivered by the tool like every rule, and are reported as
 exploratory. They never enter D_v15.
 
 ### Secondary outcomes (no confirmatory claim, no Holm)
@@ -189,12 +192,14 @@ Every change after the registration commit is dated in this file before the data
 |---|---|
 | r | 3 (DDD), 6 (Hexagonal): §3 |
 | Power at RR 0.5 and 0.25, per style | §3 |
-| CLI version pin | from Stage 1 |
-| `run-study.ts`, `score-study.ts`, analysis script sha256 | at the registration commit |
+| CLI version pin | 2.1.312 (TRAPRATE-01 and Stage 1); the driver stops on a change |
+| Script sha256 (first 16 hex) | `run-study.ts` c770618bb1fd5185; `make-input.ts` 2d5931676940c942; `score-study.ts` cbe12bb9d6d621e3; `scripts/v1.5/final-study-analyse.ts` 1d4bcdf7a83fac5f; its lib a57b8598f3b93a35 |
 | Caps per phase | turns × 1.06 (infrastructure redraws only) |
-| N1 call cap | 2 × trees × 1.5 |
-| Stage 1 exit (combined design §8 criteria 1–5) | pass / fail |
+| N1 call cap | CAL-03: 6 (`experiments/v15-n1/caps.json`); study snapshots: 2 × trees × 1.5, fixed by `--estimate` before the first call |
+| Stage 1 exit (combined design §8 criteria 1–5 and stage1-plan.md) | pass, all 7 (`results/v1.5-study/stage1/README.md`, branch `results/v15-stage1`) |
 
 ## Changelog
+
+- 2026-10-29: registered. Families final after CAL-03, HCAL-03, HCAL-04 and HCAL-05; size from TRAPRATE-01; Stage 1 passed.
 
 - 2026-10-28: draft written before any final-study call.
