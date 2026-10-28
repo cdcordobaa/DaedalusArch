@@ -20,7 +20,7 @@ npm ci
 |---|---|---|---|---|---|
 | Stage 1 | `stage1` | `t01,t13` | 1 | 12 | 13 / 16 |
 | Study, lane A (DDD) | `lane-a` | `t01,t02,t03,t04,t05,t06,t07,t08,t09,t10,t11,t12` | 3 | 216 | 229 / 232 |
-| Study, lane B (Hexagonal) | `lane-b` | `t13,t14,t15,t16,t17,t18,t19,t20,t21,t22,t23,t24,t25` | 3 | 234 | 249 / 252 |
+| Study, lane B (Hexagonal) | `lane-b` | `t13,t14,t15,t16,t17,t18,t19,t20,t21,t22,t23,t24,t25` | 6 | 468 | 497 / 500 (check against make-input) |
 
 - The neutral ids are those of the full set: t01–t12 are the confirmatory DDD tasks and t13–t25 the confirmatory
   Hexagonal tasks, in `study-set.json` order. `make-input.ts` prints the counts and caps; check them against this
@@ -31,7 +31,7 @@ npm ci
 ## 2. Command sequence (one phase; set `PH`, `R` and `TASKS` from the table)
 
 ```sh
-PH=stage1; R=1; TASKS=t01,t13          # lane A: PH=lane-a R=3 TASKS=t01,…,t12; lane B: PH=lane-b R=3 TASKS=t13,…,t25
+PH=stage1; R=1; TASKS=t01,t13          # lane A: PH=lane-a R=3 TASKS=t01,…,t12; lane B: PH=lane-b R=6 TASKS=t13,…,t25
 I=/srv/o/$PH/input.json
 D=experiments/v15-study
 RES=results/v1.5-study/$PH
