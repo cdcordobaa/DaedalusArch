@@ -54,6 +54,10 @@ exploratory. They never enter D_v15.
    both), from the hub's one ledger.
 5. **Exploratory rows:** per-row counts of the non-admitted rules, per arm.
 6. **Cost:** turns, calls, wall time, tool calls and hook events per cell.
+7. **Graph against imports (zero calls).** Every stored snapshot is scored twice: by the frozen v1.4 import-level
+   instrument (D_frozen, tag `v1.4-freeze-2026-10-20`) and by the admitted graph rules (D_v15). Reported per arm and
+   style: the identities only the graph rules see, only the import rules see, and both, with the share of the
+   `none` arm's oracle trap failures each instrument flags. No agent re-run.
 
 ## 2. Design
 
@@ -147,7 +151,7 @@ Every change after the registration commit is dated in this file before the data
 
 | Result | Owner |
 |---|---|
-| H1, H2 and the secondary outcomes 1–6 | AgentArch @ ICSA 2027 (spec and its delivery to agents); thesis Kap9, SO5 |
+| H1, H2 and the secondary outcomes 1–7 | AgentArch @ ICSA 2027 (spec and its delivery to agents); thesis Kap9, SO5 |
 | N1, N2 | ICSA 2027 NEMI (rules decide, models supply facts); thesis Kap6, SO3 |
 | TRAPRATE-01 (not this study) | AGENT @ ICSE 2027 |
 | SO4 hold-out | thesis Kap7, SO4 |
