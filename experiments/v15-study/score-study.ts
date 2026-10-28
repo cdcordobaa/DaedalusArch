@@ -410,10 +410,18 @@ async function main(): Promise<number> {
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
   }
+  // Per-turn wall time per arm (cost, secondary 6), from the driver's turns.jsonl, counted sessions only.
+  const countedSessions = new Set((runs as { session: string; counted: boolean }[]).filter((r) => r.counted).map((r) => r.session));
+  const turnLines = readLines<{ session: string; arm: string; wallMs: number | null; status: string }>(path.join(results, 'turns.jsonl')).filter((t) => countedSessions.has(t.session));
+  const wallOf = (arm: string): Record<string, number | null> => {
+    const xs = turnLines.filter((t) => t.arm === arm && typeof t.wallMs === 'number').map((t) => t.wallMs as number).sort((x, y) => x - y);
+    const med = xs.length === 0 ? null : xs.length % 2 === 1 ? (xs[(xs.length - 1) / 2] as number) : ((xs[xs.length / 2 - 1] as number) + (xs[xs.length / 2] as number)) / 2;
+    return { turns: xs.length, medianMs: med, meanMs: xs.length === 0 ? null : Math.round(xs.reduce((x, y) => x + y, 0) / xs.length), maxMs: xs.length === 0 ? null : (xs.at(-1) as number) };
+  };
   const byArm = (arm: string): Record<string, unknown> => {
     const rs = runs.filter((r) => r.arm === arm && r.counted === true) as { Y: number | null; trapFailed: boolean | null; functional: boolean | null }[];
     const ys = rs.map((r) => r.Y).filter((x): x is number => x !== null);
-    return { runs: rs.length, meanY: ys.length === 0 ? null : +(ys.reduce((a, b) => a + b, 0) / ys.length).toFixed(3), runsWithY0: ys.filter((y) => y === 0).length, trapFailed: rs.filter((r) => r.trapFailed === true).length, functional: rs.filter((r) => r.functional === true).length };
+    return { turnWallTime: wallOf(arm), runs: rs.length, meanY: ys.length === 0 ? null : +(ys.reduce((a, b) => a + b, 0) / ys.length).toFixed(3), runsWithY0: ys.filter((y) => y === 0).length, trapFailed: rs.filter((r) => r.trapFailed === true).length, functional: rs.filter((r) => r.functional === true).length };
   };
   const out = {
     schema: 'v15-study-scores/v1', modelCalls: 0, instrumentCommit: head,

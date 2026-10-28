@@ -3,11 +3,17 @@
  * TRAPRATE-01 sandbox layout (`experiments/traprate-01/make-input.ts`) extended with the delivery hub.
  *
  *   npx tsx experiments/v15-study/make-input.ts --o /srv/o --vault /srv/vault [--clone <repo>] [--replicates 3] [--srv /srv] [--sock /srv/m]
+ *       [--phase study|stage1|lane-a|lane-b|…] [--tasks t01,t13 | f1-ddd-two-aggregates,…]
+ *
+ * `--tasks` restricts the run to a subset (neutral ids or real task ids); the neutral ids stay those of the full set
+ * (t01…t25 in study-set order), so a subset run and the full run name every task the same. `--phase` (default `study`)
+ * gives the run its own input and out root (`<o>/<phase>/input.json`, `<o>/<phase>/out`), its own results directory
+ * (`results/v1.5-study/<phase>/`) and caps computed for the subset (turns × 1.06, smoke 2, probes 1).
  *
  * Writes (all root-only once `setup-sandbox.sh` closes them):
  * - `<o>/seeds/tNN/` (each task's `seed/`), `<o>/specs/tNN.yaml` (each task's `spec.yaml` with a canary comment as its
  *   first line), `<o>/seeds/d1`, `<o>/specs/d1.yaml`, `<o>/edits/d1.ts` (the edit-gate dummy, for the relay checks);
- * - `<o>/input.json`: neutral ids t01…t25, the steps verbatim, the seed tree sha256, the per-task spec path, the plan
+ * - `<o>/<phase>/input.json`: neutral ids t01…t25, the steps verbatim, the seed tree sha256, the per-task spec path, the plan
  *   parameters (order seed 20261029, replicates, arms `none` and `combined`) and the hard caps;
  * - `<vault>/private-id-map.json` (tNN → task, style, confirmatory), `<vault>/canary.txt`, `<o>/canary.txt`,
  *   `<vault>/sweep-patterns.txt` (the fingerprint patterns, root-only, piped to the sweep).
@@ -29,6 +35,10 @@ const R = Number(arg('--replicates', String(DEFAULT_REPLICATES)));
 // Unix socket paths are limited to ~104 bytes (macOS) / 108 (Linux): a local run passes a short directory.
 const SOCK = path.resolve(arg('--sock', path.join(SRV, 'm')));
 const FAM = 'experiments/trap-families';
+const PHASE = arg('--phase', 'study');
+if (!/^[a-z0-9][a-z0-9-]*$/.test(PHASE)) throw new Error(`--phase must match [a-z0-9-]+, got ${PHASE}`);
+const TASKS_ARG = process.argv.includes('--tasks') ? arg('--tasks').split(',').map((x) => x.trim()).filter(Boolean) : null;
+const PO = path.join(O, PHASE);
 
 const sha256 = (s: string | Buffer): string => createHash('sha256').update(s).digest('hex');
 // the driver's `filesOf` / `treeSha` (top-level node_modules skipped, regular files only, default sort)
@@ -73,8 +83,22 @@ for (const [i, task] of ids.entries()) {
   tasks.push({ id: tid, seedDir, seedTreeSha256: treeSha(seedDir), specPath, steps });
   map[tid] = { task, style: (JSON.parse(fs.readFileSync(path.join(dir, 'puzzle.json'), 'utf8')) as { style: string }).style, confirmatory: confirmatory.has(task) };
 }
-const firstOf = (style: string): string => Object.entries(map).find(([, v]) => v.style === style && v.confirmatory)![0];
-const dryTasks = [firstOf('ddd'), firstOf('hexagonal')];
+// The run's subset (all tasks when --tasks is absent); neutral ids are those of the full set.
+const resolveId = (x: string): string => {
+  if (map[x] !== undefined) return x;
+  const hit = Object.entries(map).find(([, v]) => v.task === x);
+  if (hit === undefined) throw new Error(`--tasks: unknown task ${x}`);
+  return hit[0];
+};
+const wanted = TASKS_ARG === null ? null : new Set(TASKS_ARG.map(resolveId));
+const runTasks = wanted === null ? tasks : tasks.filter((t) => wanted.has(t.id));
+if (runTasks.length === 0) throw new Error('--tasks selects no task');
+// Dry tasks: the first task of each style in the run; a one-style run takes its first two tasks.
+const styleOf = (tid: string): string => map[tid]!.style;
+const firstOf = (style: string): string | undefined => runTasks.find((t) => styleOf(t.id) === style)?.id;
+const dryTasks = [firstOf('ddd'), firstOf('hexagonal')].filter((x): x is string => x !== undefined);
+for (const t of runTasks) if (dryTasks.length < 2 && !dryTasks.includes(t.id)) dryTasks.push(t.id);
+while (dryTasks.length < 2) dryTasks.push(dryTasks[0] as string);
 
 // The edit-gate dummy (no study task text): the relay checks and the scripted S4 need one violating edit.
 const DUMMY = 'experiments/edit-gate/fixtures/dummy';
@@ -90,17 +114,19 @@ fs.writeFileSync(path.join(VAULT, 'private-id-map.json'), `${JSON.stringify(map,
 // READ probe (PUZZLE-01 isolation check 3): the first task's README at its clone path, both canaries, a spec copy.
 const probeTask = ids[0]!;
 const readmeFirst = fs.readFileSync(path.join(FAM, probeTask, 'README.md'), 'utf8').split('\n').find((l) => l.trim() !== '')!.replace(/^#+\s*/, '').trim();
-const probePaths = [path.join(CLONE, FAM, probeTask, 'README.md'), path.join(VAULT, 'canary.txt'), path.join(O, 'canary.txt'), tasks[0]!.specPath];
+const probePaths = [path.join(CLONE, FAM, probeTask, 'README.md'), path.join(VAULT, 'canary.txt'), path.join(O, 'canary.txt'), runTasks[0]!.specPath];
 const canaryStrings = Object.values(canaries).flatMap((c) => [`canary-${c}`, c]);
 // An id that is part of a probe path is echoed back in the agent's refusal ("cannot read …/<id>/README.md") and is
 // no leak; only file contents and the other ids count (the TRAPRATE-01 probe-id fix).
 const forbidden = [readmeFirst, ...canaryStrings, ...ids.filter((id) => !probePaths.some((p) => p.includes(id)))];
 
-const plan = buildPlan({ tasks: tasks.map((t) => ({ id: t.id, steps: t.steps.length })), arms: ARMS, replicates: R, orderSeed: ORDER_SEED });
+const plan = buildPlan({ tasks: runTasks.map((t) => ({ id: t.id, steps: t.steps.length })), arms: ARMS, replicates: R, orderSeed: ORDER_SEED });
 const caps = capsFor(plan, ARMS);
-const OUT = path.join(O, 'out');
+const OUT = path.join(PO, 'out');
+fs.mkdirSync(PO, { recursive: true });
 const input = {
   schema: 'v15-study-input/v1',
+  phase: PHASE, taskSubset: wanted === null ? null : runTasks.map((t) => t.id), resultsDir: path.join(CLONE, 'results', 'v1.5-study', PHASE),
   modelId: 'claude-sonnet-5-5', binary: path.join(SRV, 'bin', 'gclaude'), cliBinary: '/opt/claude-code/bin/claude', cliVersionPin: null,
   harnessRoot: path.join(SRV, 'h'), workRoot: path.join(SRV, 'w'), outRoot: OUT, vault: VAULT,
   genUid: 1500, genGid: 1500, genHome: path.join(SRV, 'gh'),
@@ -111,7 +137,7 @@ const input = {
     nodeBinary: process.execPath, gateRelay: path.join(SRV, 'h', 'bin', 'gate-relay.cjs'), mcpRelay: path.join(SRV, 'h', 'bin', 'mcp-relay.cjs'),
     socketDir: SOCK, logDir: path.join(OUT, 'hub'), layers: true,
   },
-  tasks,
+  tasks: runTasks,
   dryTasks,
   dummy: { seedDir: path.join(O, 'seeds', 'd1'), specPath: path.join(O, 'specs', 'd1.yaml'), editFile: 'src/billing/application/SettleInvoices.ts', editContent: path.join(O, 'edits', 'd1.ts') },
   probe: { outsideProject: path.join(SRV, 'w') },
@@ -119,8 +145,8 @@ const input = {
   isolation: {
     // §6 item 1: specs, canaries, hub code, hub and MCP logs, the task map, the design note, sealed roots, root's temp.
     denied: [
-      tasks[0]!.specPath, path.join(O, 'input.json'), path.join(O, 'canary.txt'), path.join(VAULT, 'canary.txt'), path.join(VAULT, 'private-id-map.json'),
-      path.join(O, 'seeds', tasks[0]!.id), path.join(OUT, 'hub'), path.join(OUT, 'sessions'),
+      runTasks[0]!.specPath, path.join(PO, 'input.json'), path.join(O, 'canary.txt'), path.join(VAULT, 'canary.txt'), path.join(VAULT, 'private-id-map.json'),
+      path.join(O, 'seeds', runTasks[0]!.id), path.join(OUT, 'hub'), path.join(OUT, 'sessions'),
       path.join(CLONE, 'src', 'v15-instrument', 'delivery', 'hub.ts'), path.join(CLONE, 'ops', 'notes', 'v15-combined-delivery-design-2026-10-26.md'),
       path.join(CLONE, FAM, 'study-set.json'), path.join(CLONE, 'experiments', 'hcal-03'), path.join(CLONE, 'experiments', 'v15-study', 'run-study.ts'),
       '/root', '/tmp/claude-0', '/tmp/tsx-0',
@@ -136,5 +162,5 @@ const pats = new Set<string>([...forbidden, 'trap-families', 'TRAP-FAMILIES', 'T
 for (const t of tasks) for (const s of t.steps.slice(1)) pats.add(s.slice(0, 40));
 for (const v of Object.values(map)) pats.add(v.task);
 fs.writeFileSync(path.join(VAULT, 'sweep-patterns.txt'), `${[...pats].filter((p) => p.length >= 8).join('\n')}\n`);
-fs.writeFileSync(path.join(O, 'input.json'), `${JSON.stringify(input, null, 1)}\n`);
-process.stdout.write(`input: ${String(tasks.length)} tasks × ${String(ARMS.length)} arms × ${String(R)} replicates = ${String(plan.length)} sessions, ${String(plannedTurns(plan))} turns planned; caps ${JSON.stringify(caps)}; dry tasks ${dryTasks.join(', ')}\n`);
+fs.writeFileSync(path.join(PO, 'input.json'), `${JSON.stringify(input, null, 1)}\n`);
+process.stdout.write(`input ${path.join(PO, 'input.json')} (phase ${PHASE}): ${String(runTasks.length)} tasks × ${String(ARMS.length)} arms × ${String(R)} replicates = ${String(plan.length)} sessions, ${String(plannedTurns(plan))} turns planned; caps ${JSON.stringify(caps)}; dry tasks ${dryTasks.join(', ')}\n`);

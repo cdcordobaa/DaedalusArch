@@ -1,28 +1,35 @@
 #!/bin/sh
 # v1.5 final study sandbox layout (run as root from the repository root; zero model calls).
-#   sh experiments/v15-study/setup-sandbox.sh [replicates]   set up /srv, the generator user, seeds, specs, canaries and
+#   sh experiments/v15-study/setup-sandbox.sh [replicates] [make-input args…]   set up /srv, the generator user, seeds, specs, canaries and
 #                                                            the input; close the clone (chmod 700, nothing moved); run
 #                                                            the listing check, the piped fingerprint sweep with a
 #                                                            positive control, and the scripted S4 checks (design §6)
 #   sh experiments/v15-study/setup-sandbox.sh --open         reopen the clone (755) after the run
+# Extra args go to make-input.ts, e.g. `sh setup-sandbox.sh 1 --tasks t01,t13 --phase stage1`: the input is then
+# /srv/o/<phase>/input.json, the out root /srv/o/<phase>/out, the evidence results/v1.5-study/<phase>/isolation/.
 # Layout: TRAPRATE-01's (experiments/traprate-01/setup-sandbox.sh, the PUZZLE-01 isolation method) plus the delivery
-# hub: the two relays in /srv/h/bin, the sockets in /srv/m, the hub logs in /srv/o/out/hub (root-only). The clone is
+# hub: the two relays in /srv/h/bin, the sockets in /srv/m, the hub logs in /srv/o/<phase>/out/hub (root-only). The clone is
 # never moved or removed (it holds the coordinating session's working directory); it is only closed with chmod 700.
-# Evidence: results/v1.5-study/isolation/ (listing.txt, sweep.txt, s4-result.json).
+# Evidence: results/v1.5-study/<phase>/isolation/ (listing.txt, sweep.txt, cli-version.txt, s4-result.json).
 set -eu
 REPO=$(pwd)
 [ -f "$REPO/experiments/v15-study/run-study.ts" ] || { echo "run from the repository root" >&2; exit 2; }
 if [ "${1:-}" = "--open" ]; then chmod 755 "$REPO"; echo "clone reopened"; exit 0; fi
 R="${1:-3}"
-EVID="$REPO/results/v1.5-study/isolation"
+[ $# -gt 0 ] && shift
+PHASE=study
+prev=""
+for a in "$@"; do [ "$prev" = "--phase" ] && PHASE="$a"; prev="$a"; done
+INPUT="/srv/o/$PHASE/input.json"
+EVID="$REPO/results/v1.5-study/$PHASE/isolation"
 mkdir -p "$EVID"
 
 getent group gen >/dev/null || groupadd -g 1500 gen
 id gen >/dev/null 2>&1 || useradd -u 1500 -g 1500 -M -d /srv/gh -s /bin/sh gen
 
-mkdir -p /srv/bin /srv/gh /srv/h/bin /srv/w /srv/m /srv/o/out/hub /srv/vault
+mkdir -p /srv/bin /srv/gh /srv/h/bin /srv/w /srv/m /srv/o /srv/vault
 chmod 755 /srv /srv/bin /srv/h /srv/h/bin /srv/w /srv/m
-chmod 700 /srv/o /srv/o/out /srv/o/out/hub /srv/vault
+chmod 700 /srv/o /srv/vault
 chown 1500:1500 /srv/gh && chmod 700 /srv/gh
 
 # npm behind the cloud proxy: trust the container CA bundle when there is one (environment fix, as in the v1.3 pilot).
@@ -43,7 +50,7 @@ CLI_REAL=$(readlink -f /opt/claude-code/bin/claude 2>/dev/null || echo /opt/clau
 } > "$EVID/cli-version.txt"
 
 # Input, seeds, specs, canaries, private map, sweep patterns (zero calls).
-npx tsx experiments/v15-study/make-input.ts --o /srv/o --vault /srv/vault --clone "$REPO" --replicates "$R" --srv /srv
+npx tsx experiments/v15-study/make-input.ts --o /srv/o --vault /srv/vault --clone "$REPO" --replicates "$R" --srv /srv "$@"
 chmod -R go-rwx /srv/o /srv/vault
 [ -d /tmp/tsx-0 ] && chmod 700 /tmp/tsx-0
 
@@ -52,7 +59,7 @@ chmod 700 "$REPO"
 
 # Check 1, listing: as gen, every closed path of design §6 item 1 must be unreadable (the input's list, plus the
 # clone, the input, the vault and /root).
-node -e 'const i=JSON.parse(require("fs").readFileSync("/srv/o/input.json","utf8")); process.stdout.write([...new Set([process.argv[1],"/srv/o","/srv/o/input.json","/srv/vault","/srv/o/out/hub","/root",...i.isolation.denied])].join("\n")+"\n")' "$REPO" > /srv/vault/listing-paths.txt
+node -e 'const i=JSON.parse(require("fs").readFileSync(process.argv[2],"utf8")); process.stdout.write([...new Set([process.argv[1],"/srv/o",process.argv[2],"/srv/vault",i.outRoot,i.delivery.logDir,"/root",...i.isolation.denied])].join("\n")+"\n")' "$REPO" "$INPUT" > /srv/vault/listing-paths.txt
 {
   while IFS= read -r p; do
     if setpriv --reuid=1500 --regid=1500 --clear-groups sh -c "cat '$p' >/dev/null 2>&1 || ls '$p' >/dev/null 2>&1"; then echo "READABLE $p"; else echo "denied $p"; fi
@@ -79,8 +86,8 @@ fi
 
 # Check 3, the scripted S4 (design §6 items 3–8; zero calls): hook relay refusals, MCP confinement, cross-channel
 # isolation, settings and overlay writes with no effect (the real CLI against the scripted API), no leak, argv.
-if ! npx tsx experiments/v15-study/run-study.ts --s4 --input /srv/o/input.json --evidence "$EVID"; then
+if ! npx tsx experiments/v15-study/run-study.ts --s4 --input "$INPUT" --evidence "$EVID"; then
   echo "S4 NOT CLEAN: see $EVID/s4-result.json (STOP)" >&2
   exit 4
 fi
-echo "sandbox ready; listing denied, sweep empty, S4 clean; clone closed (reopen with --open)"
+echo "sandbox ready ($PHASE, input $INPUT); listing denied, sweep empty, S4 clean; clone closed (reopen with --open)"

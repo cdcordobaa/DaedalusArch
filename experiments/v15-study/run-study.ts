@@ -58,6 +58,8 @@ const sha256 = (s: string | Buffer): string => createHash('sha256').update(s).di
 
 interface TaskInput { readonly id: string; readonly seedDir: string; readonly seedTreeSha256: string; readonly specPath: string; readonly steps: readonly string[] }
 export interface Input {
+  readonly phase?: string;
+  readonly resultsDir?: string;
   readonly modelId: string;
   readonly binary: string;
   readonly cliBinary: string;
@@ -961,7 +963,7 @@ async function main(argv: readonly string[]): Promise<number> {
   if (argv.includes('--dry') || local) return dry(ctx);
   if (argv.includes('--s4')) {
     const e = argv.indexOf('--evidence');
-    const dir = path.resolve(e >= 0 ? (argv[e + 1] as string) : path.join(REPO, 'results', 'v1.5-study', 'isolation'));
+    const dir = path.resolve(e >= 0 ? (argv[e + 1] as string) : path.join(input.resultsDir ?? path.join(REPO, 'results', 'v1.5-study', input.phase ?? 'study'), 'isolation'));
     const install = await harness(input);
     fs.mkdirSync(dir, { recursive: true });
     const res = await s4(ctx, install, path.join(input.outRoot, 's4'), { realCli: fs.existsSync(input.cliBinary) });
