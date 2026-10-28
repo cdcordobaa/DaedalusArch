@@ -55,6 +55,7 @@ import { buildPlan, capsFor, plannedTurns, redrawFits, type Arm, type Caps, type
 
 const REPO = process.cwd();
 const sha256 = (s: string | Buffer): string => createHash('sha256').update(s).digest('hex');
+const withoutSpend = <T extends object>(u: T): Omit<T, 'costUsd'> => { const { costUsd: _spend, ...rest } = u as T & { costUsd?: unknown }; return rest; };
 
 interface TaskInput { readonly id: string; readonly seedDir: string; readonly seedTreeSha256: string; readonly specPath: string; readonly steps: readonly string[] }
 export interface Input {
@@ -421,7 +422,8 @@ async function runSession(ctx: Ctx, install: SkeletonInstall, deps: SessionDeps,
       errors: r.success ? undefined : r.errors,
       attempts: r.success ? r.data.attempts.length : null,
       wallMs: r.success ? r.data.wallMs : null,
-      usage: r.success ? r.data.usage : null,
+      // Records never carry spend (repository privacy rule): token counts stay, `costUsd` is dropped.
+      usage: r.success ? withoutSpend(r.data.usage) : null,
       permissionDenials: r.success ? r.data.permissionDenials : null,
       modelUsageIds: r.success ? modelIds(envelopeOf(recordDir, turnId)) : [],
       typecheck: tc.success ? tc.data : { error: tc.errors },
