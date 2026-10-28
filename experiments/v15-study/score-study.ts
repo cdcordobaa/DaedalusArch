@@ -51,8 +51,8 @@ import { HEX_ROW_RULES, ROW_RULES, frozenSpec } from '../cal-01/score.js';
 // ── The admitted rules (CAL-03 for DDD, HCAL-03 for Hexagonal). Fixed before any study call. ──────────────────────
 /** DDD rows admitted by CAL-03. */
 export const ADMITTED_DDD_ROWS: readonly string[] = ['K01', 'K02', 'K03', 'K05', 'K10', 'K13', 'K14', 'K15', 'K16'];
-/** Hexagonal rows admitted by HCAL-03 (8 of 10). */
-export const ADMITTED_HEX_ROWS: readonly string[] = ['H01', 'H02', 'H03', 'H04', 'H05', 'H07', 'H09', 'H10'];
+/** Hexagonal rows admitted by HCAL-03 (8 of 10) and HCAL-04 (H08); H06 and H11 not admitted (HCAL-04, HCAL-05). */
+export const ADMITTED_HEX_ROWS: readonly string[] = ['H01', 'H02', 'H03', 'H04', 'H05', 'H07', 'H08', 'H09', 'H10'];
 /** Row-map exceptions: K10 is scored by R-D5S only (R-D5 stays exploratory). */
 export const ROW_OVERRIDES: Readonly<Record<string, readonly string[]>> = { K10: ['R-D5S'] };
 

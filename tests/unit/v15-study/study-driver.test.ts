@@ -198,14 +198,14 @@ describe('scorer on a tiny fixture (§4, outcome Y)', () => {
   const h = (rule: string, file: string, subject: string, line = 1): Hit => ({ rule, file, subject, line, source: rule.startsWith('FF-') ? 'frozen' : 'v15' });
   it('admits the registered rows only; K10 by R-D5S alone', () => {
     expect(ADMITTED_DDD_ROWS).toEqual(['K01', 'K02', 'K03', 'K05', 'K10', 'K13', 'K14', 'K15', 'K16']);
-    expect(ADMITTED_HEX_ROWS).toEqual(['H01', 'H02', 'H03', 'H04', 'H05', 'H07', 'H09', 'H10']);
+    expect(ADMITTED_HEX_ROWS).toEqual(['H01', 'H02', 'H03', 'H04', 'H05', 'H07', 'H08', 'H09', 'H10']);
     expect(admittedRules('ddd')).toEqual(expect.arrayContaining(['FF-DS02', 'R-D4', 'R-XCTX', 'R-D5S', 'R-H5', 'R-D9', 'R-INJ', 'R-REF']));
     expect(admittedRules('ddd')).not.toContain('R-D5');
     expect(exploratoryRules('ddd')).toEqual(expect.arrayContaining(['R-D5', 'R-RTX', 'R-LOCK', 'R-D3', 'R-D4R']));
     expect(admittedRules('hexagonal')).toEqual(expect.arrayContaining(['R-AXA', 'R-COREIO', 'R-ENTITY-OUT', 'R-TRANSPORT', 'FF-P03']));
-    expect(admittedRules('hexagonal')).not.toContain('R-LOCATOR');
-    // CN-04: H06 maps to R-ADAPTER-RULE (in place of R-D5, R-D3) and H11 to R-MIRROR, none admitted yet
-    expect(exploratoryRules('hexagonal')).toEqual(['R-ADAPTER-RULE', 'R-LOCATOR', 'R-MIRROR']);
+    expect(admittedRules('hexagonal')).toContain('R-LOCATOR');
+    // H08 admitted on HCAL-04; H06 (R-ADAPTER-RULE) and H11 (R-MIRROR) not admitted (HCAL-04, HCAL-05)
+    expect(exploratoryRules('hexagonal')).toEqual(['R-ADAPTER-RULE', 'R-MIRROR']);
   });
   it('Y counts admitted identities new against the seed; line shifts and exploratory rules do not count', () => {
     const seed = [h('R-D4', 'src/a.ts', 'A.run', 10), h('R-D5', 'src/b.ts', 'B.x')];
