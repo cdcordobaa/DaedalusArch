@@ -1,0 +1,243 @@
+# CAL-03 theatre domain: evaluator spec in the p1-transfers format (base tree and all cases).
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/*/domain/**
+        - src/shared-kernel/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/*/application/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/*/infrastructure/**
+        - src/*/acl/**
+      roles:
+        - repository
+        - anti-corruption-layer
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/*/api/**
+      roles:
+        - controller
+
+    # Composition root, outside every context. kind application is only a placeholder for the kind resolver.
+    - name: composition
+      kind: application
+      directories:
+        - src/main.ts
+      roles:
+        - composition-root
+
+  # Layering inside each context (`from` may import each layer in `to`); cross-context imports are FF-DS02's.
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: productions
+        root: src/productions/
+        public_api: [src/productions/index.ts, src/productions/contracts/**]
+        acl: []
+      - name: casting
+        root: src/casting/
+        public_api: [src/casting/index.ts, src/casting/contracts/**]
+        acl: []
+      - name: rehearsals
+        root: src/rehearsals/
+        public_api: [src/rehearsals/index.ts, src/rehearsals/contracts/**]
+        acl: []
+    outside_contexts: [src/shared-kernel/**, src/main.ts]
+    aggregates:
+      - name: Production
+        context: productions
+        module: src/productions/domain/production/**
+        root: src/productions/domain/production/Production.ts
+        inner_entities: []
+      - name: CastBooking
+        context: casting
+        module: src/casting/domain/cast-booking/**
+        root: src/casting/domain/cast-booking/CastBooking.ts
+        inner_entities: []
+      - name: Actor
+        context: casting
+        module: src/casting/domain/actor/**
+        root: src/casting/domain/actor/Actor.ts
+        inner_entities: []
+      - name: RehearsalRoom
+        context: rehearsals
+        module: src/rehearsals/domain/room/**
+        root: src/rehearsals/domain/room/RehearsalRoom.ts
+        inner_entities: [src/rehearsals/domain/room/RoomSlot.ts]
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/*/application/*.ts"]
+    invariants:
+      - { id: production-cast-capacity, kind: set, owner: Production, over: [CastBooking], terms: [maxCast, castIds, productionId], statement: "the cast of a production never exceeds its maximum cast size" }
+      - { id: booking-fee-positive, kind: single, owner: CastBooking, over: [CastBooking], terms: [fee, weeklyFee], statement: "a cast booking always has a positive fee" }
+      - { id: production-slug-unique, kind: uniqueness, over: [Production], terms: [slug], enforced_by: store }
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

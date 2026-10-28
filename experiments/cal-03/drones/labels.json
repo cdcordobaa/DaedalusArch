@@ -1,0 +1,482 @@
+{
+  "K01-pos1": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/pilots/application/PilotBriefingService.ts",
+    "note": "Pilot briefing service in pilots imports the surveys context repository interface straight from surveys/domain instead of its public API."
+  },
+  "K01-pos2": {
+    "rule": "K01",
+    "label": "violation",
+    "file": "src/permits/api/PermitSurveyController.ts",
+    "note": "Permit controller in permits type-imports the surveys application service file directly rather than going through surveys/index."
+  },
+  "K01-twin1": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Same pilot briefing feature, but pilots reaches the surveys context only through surveys/index and its DTO."
+  },
+  "K01-twin2": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Same permit-survey controller, but permits uses only the published SurveyDto from surveys/contracts via a lookup function."
+  },
+  "K01-legit": {
+    "rule": "K01",
+    "label": "clean",
+    "file": null,
+    "note": "Pilots application class imports the shared-kernel Money file directly; shared-kernel is not a bounded context so this is allowed."
+  },
+  "K02-pos1": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/permits/domain/permit/ReferencePolicy.ts",
+    "note": "A domain class in permits imports and instantiates the CAA infrastructure adapter to validate references."
+  },
+  "K02-pos2": {
+    "rule": "K02",
+    "label": "violation",
+    "file": "src/pilots/domain/pilot/value-objects/LicenceNumber.ts",
+    "note": "A pilots value object validates licence numbers with the class-validator package, a technical framework, inside the domain layer."
+  },
+  "K02-twin1": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Same licence number value object validated with plain TypeScript and no framework."
+  },
+  "K02-twin2": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "Same reference policy, but the domain depends on its own ReferenceFormat interface and the infrastructure adapter implements it."
+  },
+  "K02-legit": {
+    "rule": "K02",
+    "label": "clean",
+    "file": null,
+    "note": "An infrastructure exporter imports the domain aggregate it serialises, which is the allowed direction."
+  },
+  "K03-pos1": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/pilots/application/DroneDispatchService.ts",
+    "note": "One dispatch command mutates and saves both a Pilot and a Drone aggregate."
+  },
+  "K03-pos2": {
+    "rule": "K03",
+    "label": "violation",
+    "file": "src/pilots/application/PilotTransferService.ts",
+    "note": "One transfer command releases a survey from one Pilot, assigns it to another and saves both in a loop."
+  },
+  "K03-twin1": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "Dispatch split into two commands, each loading, changing and saving exactly one aggregate."
+  },
+  "K03-twin2": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "Transfer saves only the receiving Pilot and publishes an event; a handler releases the survey from the other pilot in its own command."
+  },
+  "K03-legit": {
+    "rule": "K03",
+    "label": "clean",
+    "file": null,
+    "note": "A roster query loads every pilot and maps them to DTOs but never saves anything."
+  },
+  "K04-pos1": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/pilots/infrastructure/InMemoryPilotRepository.ts",
+    "note": "PilotRepository gains saveBoth(first, second), which persists two Pilot aggregates in one call, and a transfer command calls it."
+  },
+  "K04-pos2": {
+    "rule": "K04",
+    "label": "violation",
+    "file": "src/permits/infrastructure/InMemoryPermitRepository.ts",
+    "note": "PermitRepository gains saveAll(permits), a bulk method that persists several FlightPermit aggregates in one call."
+  },
+  "K04-twin1": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "Repository gains a read-only findByLicence lookup; save still persists exactly one Pilot."
+  },
+  "K04-twin2": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "Survey repository gains findAllBooked and remove(id); each writes or reads a single aggregate."
+  },
+  "K04-legit": {
+    "rule": "K04",
+    "label": "clean",
+    "file": null,
+    "note": "Pilot repository save also writes the pilot assignments to a second table, but they are inner parts of the same Pilot aggregate."
+  },
+  "K05-pos1": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/pilots/application/PilotDispatchService.ts",
+    "note": "Pilot dispatch command saves the Pilot and then synchronously calls the surveys SurveyService to write the pilot id into the SurveyJob."
+  },
+  "K05-pos2": {
+    "rule": "K05",
+    "label": "violation",
+    "file": "src/permits/application/PermitApprovalService.ts",
+    "note": "Async permit approval command grants the permit and then directly calls SurveyService.markPermitted on the surveys context instead of publishing an event."
+  },
+  "K05-twin1": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "Same dispatch command, but it publishes PilotAssigned and lets the surveys handler update the SurveyJob."
+  },
+  "K05-twin2": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "Permit approval only reads the survey through the published SurveyService query and writes just its own permit."
+  },
+  "K05-legit": {
+    "rule": "K05",
+    "label": "clean",
+    "file": null,
+    "note": "Pilots reacts to the SurveyBooked event with a command on its own Pilot aggregate; the cross-context link is an event subscription."
+  },
+  "K06-pos1": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "The composition root builds a dispatchFacade function object that writes the Pilot and the SurveyJob in one call."
+  },
+  "K06-pos2": {
+    "rule": "K06",
+    "label": "violation",
+    "file": "src/main.ts",
+    "note": "The composition root defines an ApprovalFacade class that submits the permit and then marks the survey permitted."
+  },
+  "K06-twin1": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "The composition root builds an overview facade that only reads survey and pilot DTOs and writes nothing."
+  },
+  "K06-twin2": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "The composition root groups the four controllers in one app object without any cross-context logic."
+  },
+  "K06-legit": {
+    "rule": "K06",
+    "label": "clean",
+    "file": null,
+    "note": "The composition root subscribes an audit log to bus events; it records event names and writes no aggregate."
+  },
+  "K07-pos1": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/surveys/application/SurveyService.ts",
+    "note": "bookSurvey calls the client notifier (an outbound email port) from inside the unit-of-work transaction."
+  },
+  "K07-pos2": {
+    "rule": "K07",
+    "label": "violation",
+    "file": "src/permits/application/PermitService.ts",
+    "note": "submitToAuthority requests clearance from the external airspace authority inside the transaction and returns the reference out of it."
+  },
+  "K07-twin1": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "bookSurvey returns the job from the transaction and calls the notifier only after the transaction ends."
+  },
+  "K07-twin2": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "submitToAuthority calls the authority before opening the transaction and denies the permit when the call fails."
+  },
+  "K07-legit": {
+    "rule": "K07",
+    "label": "clean",
+    "file": null,
+    "note": "cancelSurvey publishes a SurveyCancelled event on the in-process bus inside the transaction; the bus is local, not a remote system."
+  },
+  "K08-pos1": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/surveys/application/SurveyAmendmentService.ts",
+    "note": "The amendment service enforces the at-most-four-deliverables rule by inspecting the SurveyJob before calling it; the aggregate has no such rule."
+  },
+  "K08-pos2": {
+    "rule": "K08",
+    "label": "violation",
+    "file": "src/surveys/api/SurveyController.ts",
+    "note": "The controller refuses new deliverables once a pilot is assigned by reading pilotId from the DTO and returning an error result; the aggregate does not enforce this."
+  },
+  "K08-twin1": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The at-most-four-deliverables rule lives inside SurveyJob.addDeliverable and the amendment service only delegates."
+  },
+  "K08-twin2": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "The frozen-scope rule lives in SurveyJob.addDeliverable; the controller only maps the thrown error to an error result."
+  },
+  "K08-legit": {
+    "rule": "K08",
+    "label": "clean",
+    "file": null,
+    "note": "A pilots service decides a rule that spans two aggregates (a pilot may not prefer a drone in maintenance), which belongs in a service, not in either aggregate."
+  },
+  "K09-pos1": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/surveys/application/SurveyScopeService.ts",
+    "note": "The scope service rejects removing the last deliverable before calling SurveyJob.removeDeliverable, which enforces the same rule inside the aggregate."
+  },
+  "K09-pos2": {
+    "rule": "K09",
+    "label": "violation",
+    "file": "src/pilots/application/PilotScheduleService.ts",
+    "note": "The schedule service pre-checks for a duplicate survey assignment through a local variable and returns a result, while Pilot.assign rejects duplicates too."
+  },
+  "K09-twin1": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "The scope service leaves the last-deliverable rule to the aggregate and converts its error into a result."
+  },
+  "K09-twin2": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "The schedule service only checks that the pilot exists and leaves the duplicate-assignment rule to Pilot.assign."
+  },
+  "K09-legit": {
+    "rule": "K09",
+    "label": "clean",
+    "file": null,
+    "note": "Pilot exposes canAssign as the single place that decides the rule; assign uses it and the service asks it instead of re-implementing the checks."
+  },
+  "K10-pos1": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/pilots/application/PilotRosterService.ts",
+    "note": "The roster service sums assignedHours against weeklyHourCap itself before assigning; Pilot no longer enforces the cap."
+  },
+  "K10-pos2": {
+    "rule": "K10",
+    "label": "violation",
+    "file": "src/pilots/api/PilotController.ts",
+    "note": "The controller checks the weekly cap from the PilotDto before assigning; Pilot no longer enforces the cap."
+  },
+  "K10-twin1": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "The roster service lets Pilot.assign enforce the cap and turns its error into a result."
+  },
+  "K10-twin2": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "The controller leaves the cap to Pilot (via the service) and maps a rejection to an error result."
+  },
+  "K10-legit": {
+    "rule": "K10",
+    "label": "clean",
+    "file": null,
+    "note": "A read-only utilisation report sums assigned hours and caps across pilots to show a ratio; it decides nothing and writes nothing."
+  },
+  "K11-pos1": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/pilots/application/GuardedPilotService.ts",
+    "note": "The service keeps an in-process Set of busy pilot ids to serialise assignments instead of relying on the Pilot aggregate."
+  },
+  "K11-pos2": {
+    "rule": "K11",
+    "label": "violation",
+    "file": "src/permits/application/PermitSubmissionQueue.ts",
+    "note": "An async mutex built from a Map of promise tails per survey serialises permit submissions inside an application class."
+  },
+  "K11-twin1": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "The service wraps load, assign and save in the unit of work instead of using an in-process lock."
+  },
+  "K11-twin2": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "Repeated assignments are made safe by the aggregate refusing duplicates; the service just treats that rejection as already done."
+  },
+  "K11-legit": {
+    "rule": "K11",
+    "label": "clean",
+    "file": null,
+    "note": "A read cache in a Map of PilotDto in front of PilotService; it speeds up reads and guards no write or invariant."
+  },
+  "K12-pos1": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/surveys/application/SurveyPricingService.ts",
+    "note": "The pricing service computes the volume discount from area and price in the service and hands the new Money back to SurveyJob.applyPrice."
+  },
+  "K12-pos2": {
+    "rule": "K12",
+    "label": "violation",
+    "file": "src/pilots/application/FlightLogService.ts",
+    "note": "The flight log service derives flown hours from the pilot assignments in a private helper and feeds the result to Pilot.logFlight."
+  },
+  "K12-twin1": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The volume discount is computed inside SurveyJob.applyVolumeDiscount; the service only loads, calls and saves."
+  },
+  "K12-twin2": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The flown-hours calculation lives in Pilot.completeSurvey; the service only loads, calls and saves."
+  },
+  "K12-legit": {
+    "rule": "K12",
+    "label": "clean",
+    "file": null,
+    "note": "The service converts acres from the command to hectares before delegating; the arithmetic is on command input, not on aggregate state."
+  },
+  "K13-pos1": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/surveys/application/ports/BookingMailer.ts",
+    "note": "The BookingMailer port takes the SendGrid MailDataRequired type in its send signature."
+  },
+  "K13-pos2": {
+    "rule": "K13",
+    "label": "violation",
+    "file": "src/permits/application/ports/PermitArchive.ts",
+    "note": "The PermitArchive port takes a pg PoolClient (a database transaction handle) as a parameter."
+  },
+  "K13-twin1": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The BookingMailer port uses its own neutral BookingMessage; only the SendGrid adapter in infrastructure builds the vendor type."
+  },
+  "K13-twin2": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The PermitArchive port takes only the permit id; the pg PoolClient is held by the infrastructure adapter."
+  },
+  "K13-legit": {
+    "rule": "K13",
+    "label": "clean",
+    "file": null,
+    "note": "The PaymentGateway port is typed with the shared-kernel Money and plain strings; the Stripe-named adapter keeps the vendor out of the signature."
+  },
+  "K14-pos1": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/surveys/contracts/SurveyEnvelope.ts",
+    "note": "A published contract type carries the SurveyJob aggregate itself."
+  },
+  "K14-pos2": {
+    "rule": "K14",
+    "label": "violation",
+    "file": "src/pilots/index.ts",
+    "note": "The pilots public API re-exports the Drone aggregate class."
+  },
+  "K14-twin1": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The published envelope carries the SurveyDto read model instead of the aggregate."
+  },
+  "K14-twin2": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "The pilots public API exports a PilotSummary read model defined in contracts, not an aggregate."
+  },
+  "K14-legit": {
+    "rule": "K14",
+    "label": "clean",
+    "file": null,
+    "note": "A contract declares its own literal status union that mirrors the domain statuses without importing any domain type."
+  },
+  "K15-pos1": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/surveys/application/SurveyService.ts",
+    "note": "SurveyService imports the concrete EmailClientNotifier and types its constructor parameter against it instead of the ClientNotifier port."
+  },
+  "K15-pos2": {
+    "rule": "K15",
+    "label": "violation",
+    "file": "src/permits/application/PermitService.ts",
+    "note": "PermitService defaults its authority parameter to a freshly constructed CaaAirspaceAuthority adapter inside the application layer."
+  },
+  "K15-twin1": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "A new reminder service is typed against the ClientNotifier port."
+  },
+  "K15-twin2": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "The reminder service depends on the port and the composition root is where the concrete EmailClientNotifier is constructed and injected."
+  },
+  "K15-legit": {
+    "rule": "K15",
+    "label": "clean",
+    "file": null,
+    "note": "A report service takes the concrete SurveyService class, but that is another application service in the same layer, not an adapter."
+  },
+  "K16-pos1": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/pilots/domain/pilot/Pilot.ts",
+    "note": "Pilot gains a field holding the Drone aggregate object and a useDrone(drone) method instead of keeping a drone id."
+  },
+  "K16-pos2": {
+    "rule": "K16",
+    "label": "violation",
+    "file": "src/pilots/domain/drone/Drone.ts",
+    "note": "Drone holds an array of Pilot aggregate objects as its operators."
+  },
+  "K16-twin1": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Drone keeps only the id of its operator pilot."
+  },
+  "K16-twin2": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Pilot keeps a DroneSpec value object snapshot (model and endurance) rather than the Drone aggregate."
+  },
+  "K16-legit": {
+    "rule": "K16",
+    "label": "clean",
+    "file": null,
+    "note": "Pilot holds a list of Endorsement value objects that belong to it, which are not another aggregate."
+  }
+}
