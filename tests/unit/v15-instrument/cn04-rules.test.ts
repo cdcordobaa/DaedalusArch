@@ -1,5 +1,5 @@
 /**
- * CN-04 (2026-10-28, development fixture; design `ops/notes/cn-04-hex-catalog.md`): R-ADAPTER-RULE (H06), R-LOCATOR
+ * CN-04 and CN-05 (2026-10-28, development fixture; design `ops/notes/cn-04-hex-catalog.md`, `ops/notes/cn-05-hex-h11.md`): R-ADAPTER-RULE (H06), R-LOCATOR
  * through one helper call (H08) and R-MIRROR (H11) on a small tool-library Hexagonal tree. Each case is the base with
  * the case folder overlaid. Zero model calls, no Neo4j.
  */
@@ -27,6 +27,10 @@ const CASES: Record<string, [string, string, string] | null> = {
   'mirror-pos3': ['R-MIRROR', 'src/domain/hold-refusal.ts', "values 'limit_exceeded', 'card_blocked' (plus the catch-all 'Other')"],
   'mirror-clean2': null,
   'mirror-clean3': null,
+  // CN-05: an SDK vendored into the project and resolved through the tree's tsconfig paths is a vendor module; a
+  // paths alias into src/ is the tree's own code
+  'mirror-paths-pos1': ['R-MIRROR', 'src/domain/tag-state.ts', "TagState mirrors TagbankScanState of tagbank-sdk: values 'TAG_OK', 'TAG_WORN', 'TAG_MISSING'"],
+  'mirror-paths-clean1': null,
 };
 
 describe('v1.5 instrument: CN-04 rules on the tool-library fixture', () => {
