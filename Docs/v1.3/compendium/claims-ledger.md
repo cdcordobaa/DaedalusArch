@@ -60,9 +60,10 @@
 | [2026-10-23 second sync: GRAPH-SCALE (v1.5 U1 groundwork), the Study 2b per-task mean D addendum and the sources-ledger counts](claims-ledger/v14-v-graph-scale-2b-means.md) | C10131–C10206 | 76 | 24 | 0 | 51 | 1 |
 | [2026-10-25 sync: the synthesis objective relabel and the bt audit triage](claims-ledger/v14-w-objective-relabel-audit.md) | C10207–C10209 | 3 | 3 | 0 | 0 | 0 |
 | [2026-10-27 sync: v1.5 calibration and admission (CAL-01, CAL-02, HCAL-01, HCAL-02), R-D5S unseen set, answer keys R6, Stage 0 re-score, C8 hint audit](claims-ledger/v15-a-calibration-admission.md) | C10210–C10299 | 90 | 27 | 15 | 48 | 0 |
-| **total** | C0001–C10299 | **10,025** | 5,349 | 1,081 | 3,212 | 383 |
+| [2026-10-28 sync: v1.5 CN-02 development revision and the CAL-03 admission design](claims-ledger/v15-b-cn02-cal03-design.md) | C10300–C10310 | 11 | 4 | 0 | 7 | 0 |
+| **total** | C0001–C10310 | **10,036** | 5,353 | 1,081 | 3,219 | 383 |
 
-By evidence type (recounted 2026-10-23 over all parts; +3 descriptive on 2026-10-25; +17 descriptive, +69 criterion and +4 correctness on 2026-10-27): descriptive 2,799, criterion 1,790, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,015, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
+By evidence type (recounted 2026-10-23 over all parts; +3 descriptive on 2026-10-25; +17 descriptive, +69 criterion and +4 correctness on 2026-10-27; +7 descriptive and +4 criterion on 2026-10-28): descriptive 2,806, criterion 1,794, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,015, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
 
 By set (recounted 2026-10-23; +2 none and +1 sealed-2b on 2026-10-25): development 5,342, external 1,507, none 1,403, wild 701, synthetic 638, sealed-2b 167, hold-out 101. (From part `v14-g` on, some `external` rows cover the 60 repositories of the Tier-A waves 1–3, not only the 15 of #133/#181/#232; the row says so.)
 

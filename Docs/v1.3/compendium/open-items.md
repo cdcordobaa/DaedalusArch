@@ -187,3 +187,13 @@ The readiness dashboard (`Docs/v1.3/study2-readiness-dashboard.md`) did not chan
 | Hold-out: one more attempt under a dated addendum (D1); rater booking by 2026-11-30 (D2) | author | `ops/decisions.md:35` |
 | `ops/01-instrument-map.md` was rewritten (PR #382); the earlier draft v3 is archived verbatim for the ledger rows that cite it | coordinator | `Docs/v1.3/compendium/archive/instrument-map-v3-2026-10-18.md` |
 
+
+## 13. State on 2026-10-28 (refresh after PRs #399–#403)
+
+The readiness dashboard did not change in this window. Changes to the items in section 12:
+
+| Item | Owner | Source |
+|---|---|---|
+| CAL-03 is now designed (160 cases, 2 new domains, 16 rows scored including the 7 admitted by CAL-02) but not built or scored; the confirmatory DDD family is open until it runs. Check that the thesis does not present the CAL-02 rows as the final family | author / agent | `ops/notes/cal-03-admission-design.md:25` |
+| CN-02 revised the DDD rules after reading the CAL-02 misses; CAL-02 is development evidence from now on. K06, K11, K13 still miss | agent | `Docs/DiagnosticRuns/v15-cn02-dev-2026-10-27.md:60` |
+| The pre-flight check of the frozen schema was changed (PR #403) without a report; the sealed rule hash changes with CN-02 | agent | `Docs/DiagnosticRuns/v15-cn02-dev-2026-10-27.md:73` |
