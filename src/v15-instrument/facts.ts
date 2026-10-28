@@ -1647,6 +1647,10 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   // imports. A core type alias, enum, interface or const object or array mirrors one when all its string-literal
   // values (at least 2) or all its property names (at least 3, `id` aside) are found in one vendor type. A string-
   // literal union in a property of an interface or object alias counts as its own type (`Payment.declineCode`).
+  // CN-04 decision: a value set may hold at most one value outside the vendor type, and only a generic catch-all
+  // (other, unknown, none, default, unspecified; any case) next to at least 2 vendor values: a vendor code set plus one
+  // catch-all is still the vendor's vocabulary.
+  const CATCH_ALL = /^(other|unknown|none|default|unspecified)$/i;
   const mirrors: MirrorFact[] = [];
   interface Vocab { readonly name: string; readonly module: string; readonly literals: Set<string>; readonly names: Set<string> }
   const vocabs: Vocab[] = [];
@@ -1725,13 +1729,17 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     }
     for (const c of cands) {
       const names = c.names?.filter((x) => x !== 'id');
-      let hit: { v: Vocab; form: MirrorFact['form']; items: string[] } | undefined;
+      let hit: { v: Vocab; form: MirrorFact['form']; items: string[]; catchAll?: string } | undefined;
       for (const v of vocabs) {
-        if (c.values !== undefined && c.values.every((x) => v.literals.has(x))) { hit = { v, form: 'values', items: c.values }; break; }
+        if (c.values !== undefined) {
+          const inVendor = c.values.filter((x) => v.literals.has(x));
+          const extra = c.values.filter((x) => !v.literals.has(x));
+          if (inVendor.length >= 2 && (extra.length === 0 || (extra.length === 1 && CATCH_ALL.test(extra[0]!)))) { hit = { v, form: 'values', items: inVendor, ...(extra.length === 1 ? { catchAll: extra[0]! } : {}) }; break; }
+        }
         if (names !== undefined && names.length >= 3 && names.every((x) => v.names.has(x))) { hit = { v, form: 'names', items: names }; break; }
       }
       if (hit === undefined) continue;
-      mirrors.push({ file: f, line: c.line, role, core: c.core, vendor: hit.v.name, module: hit.v.module, form: hit.form, detail: `${hit.form === 'values' ? 'values' : 'fields'} ${hit.items.map((x) => `'${x}'`).join(', ')}` });
+      mirrors.push({ file: f, line: c.line, role, core: c.core, vendor: hit.v.name, module: hit.v.module, form: hit.form, detail: `${hit.form === 'values' ? 'values' : 'fields'} ${hit.items.map((x) => `'${x}'`).join(', ')}${hit.catchAll !== undefined ? ` (plus the catch-all '${hit.catchAll}')` : ''}` });
     }
   }
   bump('mirrors', mirrors.length);

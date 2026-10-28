@@ -23,6 +23,10 @@ const CASES: Record<string, [string, string, string] | null> = {
   'mirror-pos1': ['R-MIRROR', 'src/domain/hold-refusal.ts', "HoldRefusal mirrors CoinvaultHold of coinvault-sdk: values 'limit_exceeded', 'card_blocked'"],
   'mirror-pos2': ['R-MIRROR', 'src/application/ports/out/hold-receipt.ts', "HoldReceipt mirrors CoinvaultHold of coinvault-sdk: fields 'holdId', 'amountCents', 'currency'"],
   'mirror-clean1': null,
+  // CN-04 decision: one generic catch-all next to at least 2 vendor values is still the vendor's set
+  'mirror-pos3': ['R-MIRROR', 'src/domain/hold-refusal.ts', "values 'limit_exceeded', 'card_blocked' (plus the catch-all 'Other')"],
+  'mirror-clean2': null,
+  'mirror-clean3': null,
 };
 
 describe('v1.5 instrument: CN-04 rules on the tool-library fixture', () => {
