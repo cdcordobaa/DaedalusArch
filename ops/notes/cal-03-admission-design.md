@@ -73,3 +73,8 @@ labelled it; it is never relabelled to pass.
 Scored once. The result goes to `Docs/DiagnosticRuns/v15-cal03-admission-<date>.md` and the matrix
 (`Docs/v1.5/ddd-detection-paths.md`), and the admitted rules become the DDD confirmatory outcome in the study
 registration.
+
+## Addendum (2026-10-27, before the seal, no CAL-03 case scored)
+
+- One more rule revision lands before the seal: K13 (technology in a port, R-H5), written from the CAL-02 K13 misses
+  only. No CAL-03 case is opened for it. The frozen rules are those on `main` at the seal commit, as stated above.
