@@ -31,7 +31,8 @@ session from `private-id-map.json` (DDD or Hexagonal). Only `src/**/*.ts` (not `
 `application` = role `application`; `adapter` = role `adapter` (`adapters/`, `infrastructure/`, `api/`, `acl/`).
 A **domain type** is a class, an interface, or a type alias of an object-literal type, declared in a file of role
 `domain` or `shared-kernel`. A value is **domain-typed** when its static type (ts-morph type checker, nullability
-removed, each union member checked) has a symbol or alias symbol declared as a domain type.
+removed, each union member checked) has a symbol or alias symbol declared as a domain type. Repository ports (domain
+types whose name ends in `Repository`) are not domain state and do not count (clarification committed before drawing).
 
 **Unit** (the enclosing member, also the excerpt): the nearest enclosing class member (method, constructor, accessor,
 property with an initializer) or top-level function, or top-level variable statement. Nested arrows and functions
