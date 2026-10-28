@@ -215,6 +215,21 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const t = node(['TransportConcept'], { form: x.form, detail: x.detail });
     rel('USES_TRANSPORT', u, t, { line: x.line });
   }
+  for (const x of facts.locators) {
+    const u = node(['CodeFile'], { file: x.file, role: x.role });
+    const d = node(['Lookup'], { form: x.form, detail: x.detail });
+    rel('LOCATES', u, d, { line: x.line });
+  }
+  for (const x of facts.coreIo) {
+    const u = node(['CoreFile'], { file: x.file, role: x.role });
+    const d = node(['IoAccess'], { form: x.form, detail: x.detail });
+    rel('CORE_IO', u, d, { line: x.line });
+  }
+  for (const x of facts.entityOut) {
+    const a = node(['InboundHandler'], { name: x.handler, file: x.file });
+    const b = node(['EntityType'], { name: x.entity, file: x.entityFile });
+    rel('ENTITY_OUT', a, b, { form: x.form, line: x.line });
+  }
   for (const x of facts.repoMulti) {
     const a = node(['RepositoryMethod'], { name: `${x.repo}.${x.method}`, file: x.file, line: x.line });
     const r = roots.get(x.root) ?? node(['Root'], { name: x.root });

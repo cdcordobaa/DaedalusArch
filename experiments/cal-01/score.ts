@@ -31,6 +31,7 @@ export const ROW_RULES: Record<string, readonly string[]> = {
 export const HEX_ROW_RULES: Record<string, readonly string[]> = {
   H01: ['FF-S01', 'FF-S04', 'FF-P01'], H02: ['FF-S01', 'FF-S03', 'FF-P02', 'R-INJ'], H03: ['FF-S01', 'FF-S03', 'FF-P03', 'R-AXA'],
   H04: ['R-H5'], H05: ['R-INJ', 'FF-P02'], H06: ['R-D5', 'R-D3'], H07: ['FF-P01', 'FF-S01', 'R-TRANSPORT'],
+  H08: ['R-LOCATOR'], H09: ['R-COREIO'], H10: ['R-ENTITY-OUT'],
 };
 const ROWS: Record<string, readonly string[]> = argOf('--rows') === 'hex' ? HEX_ROW_RULES : ROW_RULES;
 // Development runs: `--only K08,K12` scores those rows' cases (plus the base), `--out <file>` writes the record

@@ -54,6 +54,9 @@ export interface AdapterImportFact { readonly file: string; readonly line: numbe
 /** HCAL-01: a transport concept (an HTTP status code, an HTTP or SQL error type) in domain, application or port code (H07). */
 export interface RepoMultiFact { readonly file: string; readonly line: number; readonly repo: string; readonly method: string; readonly root: string; readonly form: 'two-params' | 'collection' }
 export interface DomainTechFact { readonly file: string; readonly line: number; readonly module: string; readonly category: string }
+export interface LocatorFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'container-call' | 'static-instance'; readonly detail: string }
+export interface CoreIoFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'io-import' | 'io-global'; readonly detail: string }
+export interface EntityOutFact { readonly file: string; readonly line: number; readonly handler: string; readonly entity: string; readonly entityFile: string; readonly form: 'returns' | 'accepts' | 'responds' }
 export interface TransportFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'status-code' | 'transport-type' | 'transport-import'; readonly detail: string }
 export interface ContractFact { readonly contract: string; readonly file: string; readonly line: number; readonly entity: string; readonly entityFile: string; readonly via: string; readonly form: 'type' | 'mirror' }
 export interface PortMechFact { readonly port: string; readonly method: string; readonly file: string; readonly line: number; readonly form: 'vendor-type' | 'adapter-type' | 'scope-callback'; readonly detail: string }
@@ -72,6 +75,9 @@ export interface Facts {
   readonly adapterImports: readonly AdapterImportFact[];
   readonly transports: readonly TransportFact[];
   readonly domainTech: readonly DomainTechFact[];
+  readonly locators: readonly LocatorFact[];
+  readonly coreIo: readonly CoreIoFact[];
+  readonly entityOut: readonly EntityOutFact[];
   readonly repoMulti: readonly RepoMultiFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
@@ -1310,9 +1316,152 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   }
   bump('transports', transports.length);
 
+  // ── LOCATES (CN-03 H08) ─────────────────────────────────────────────────────────────────────────────────────────
+  // Code outside the composition root pulls a dependency at run time: a container, injector or locator lookup
+  // (`container.get(…)`, `moduleRef.resolve(…)`), a registry lookup by class, token or type argument, or a static
+  // singleton accessor of an adapter (`SmtpMailer.getInstance()`). A Map, or a registry keyed by run-time data, is not.
+  const LOCATOR_RECV = /(container|injector|locator|serviceProvider|moduleRef|ioc)$/i;
+  const REGISTRY_RECV = /(registry|serviceRegistry)$/i;
+  const LOCATOR_TYPE = /(Container|Injector|Locator|ServiceProvider|ModuleRef|Registry)$/;
+  const LOCATOR_METHOD = /^(get|resolve|getService|getRequiredService|make|lookup|locate|inject|require)$/;
+  const MAP_TYPE = /^(Map|ReadonlyMap|WeakMap|Set|ReadonlySet)$/;
+  const locators: LocatorFact[] = [];
+  const declsOf = (n: Node): Node[] => { let sym = n.getSymbol(); if (sym?.isAlias()) sym = sym.getAliasedSymbol() ?? sym; return sym?.getDeclarations() ?? []; };
+  const isTokenArg = (a: Node): boolean => {
+    if (Node.isIdentifier(a)) {
+      const d = declsOf(a)[0];
+      if (d !== undefined && (Node.isClassDeclaration(d) || Node.isInterfaceDeclaration(d))) return true;
+      return /^[A-Z][A-Z0-9_]+$/.test(a.getText()) || /TOKEN$|Token$/.test(a.getText());
+    }
+    return Node.isCallExpression(a) && a.getExpression().getText() === 'Symbol';
+  };
+  for (const sf of files) {
+    const f = fileOf(sf);
+    const role = spec.roleOf(f);
+    if (role === 'composition' || role === 'other') continue;
+    sf.forEachDescendant((n) => {
+      if (!Node.isCallExpression(n)) return;
+      const callee = n.getExpression();
+      if (!Node.isPropertyAccessExpression(callee)) return;
+      const method = callee.getName();
+      const recv = callee.getExpression();
+      const recvName = Node.isPropertyAccessExpression(recv) ? recv.getName() : recv.getText();
+      const recvType = recv.getType();
+      const typeName = recvType.getSymbol()?.getName() ?? '';
+      if (MAP_TYPE.test(typeName)) return;
+      // A static accessor of an adapter class, called from another file.
+      if (/^(getInstance|instance|shared|default)$/.test(method) && Node.isIdentifier(recv)) {
+        const d = declsOf(recv).find((x) => Node.isClassDeclaration(x));
+        if (d !== undefined && inTree(d) && roleOfNode(d) === 'adapter' && fileOf(d) !== f) locators.push({ file: f, line: n.getStartLineNumber(), role, form: 'static-instance', detail: `${recv.getText()}.${method}()` });
+        return;
+      }
+      if (!LOCATOR_METHOD.test(method)) return;
+      const container = LOCATOR_RECV.test(recvName) || (LOCATOR_TYPE.test(typeName) && !REGISTRY_RECV.test(typeName));
+      const registry = REGISTRY_RECV.test(recvName) || /Registry$/.test(typeName);
+      if (!container && !registry) return;
+      // A registry is a locator only when it is asked for a type: a class or token argument, or a type argument.
+      const first = n.getArguments()[0];
+      if (!container && !(n.getTypeArguments().length > 0 || (first !== undefined && isTokenArg(first)))) return;
+      // A container's own implementation (`this.get` inside a Container class) is not a lookup.
+      if (Node.isThisExpression(recv)) return;
+      locators.push({ file: f, line: n.getStartLineNumber(), role, form: 'container-call', detail: `${recv.getText()}.${method}(${first?.getText() ?? ''})` });
+    });
+  }
+  bump('locators', locators.length);
+
+  // ── CORE_IO (CN-03 H09) ─────────────────────────────────────────────────────────────────────────────────────────
+  // Domain, application or port code reaches the outside world without a port: a value import of an I/O package (the
+  // shared classifier plus process, socket and cloud SDK packages), a dynamic `require`/`import` of one, `fetch`,
+  // `process.env`, or a browser/runtime I/O global. Web frameworks are R-TRANSPORT's (H07), not this rule's.
+  const EXTRA_IO = /^(child_process|net|tls|dgram|dns|http2|ws|socket\.io-client|ssh2|ftp|basic-ftp|mqtt|nats|memcached|aws-sdk|@aws-sdk\/.+|@google-cloud\/.+|@azure\/.+|firebase-admin|stripe|twilio)$/;
+  const ioOf = (mod: string): string | null => {
+    const m = mod.replace(/^node:/, '');
+    const c = categoryOfModule(m);
+    if (c !== null && c !== 'transport') return c;
+    if (/^fs\//.test(m)) return 'fs';
+    return EXTRA_IO.test(m) ? 'io' : null;
+  };
+  const coreIo: CoreIoFact[] = [];
+  const isGlobal = (id: Node): boolean => { const d = id.getSymbol()?.getDeclarations()[0]; return d === undefined || !inTree(d); };
+  for (const sf of files) {
+    const f = fileOf(sf);
+    const role = spec.roleOf(f);
+    if (role !== 'domain' && role !== 'application' && role !== 'port') continue;
+    for (const imp of sf.getImportDeclarations()) {
+      if (imp.isTypeOnly()) continue;
+      const mod = imp.getModuleSpecifierValue();
+      if (mod.startsWith('.') || mod.startsWith('/')) continue;
+      const c = ioOf(mod);
+      if (c !== null) coreIo.push({ file: f, line: imp.getStartLineNumber(), role, form: 'io-import', detail: `import from '${mod}' (${c})` });
+    }
+    sf.forEachDescendant((n) => {
+      if (Node.isCallExpression(n)) {
+        const e = n.getExpression();
+        const a = n.getArguments()[0];
+        if ((e.getText() === 'require' || e.getKind() === SyntaxKind.ImportKeyword) && a !== undefined && Node.isStringLiteral(a) && ioOf(a.getLiteralValue()) !== null) coreIo.push({ file: f, line: n.getStartLineNumber(), role, form: 'io-import', detail: `${e.getText()}('${a.getLiteralValue()}')` });
+        else if (Node.isIdentifier(e) && e.getText() === 'fetch' && isGlobal(e)) coreIo.push({ file: f, line: n.getStartLineNumber(), role, form: 'io-global', detail: 'fetch(…)' });
+        else if (Node.isPropertyAccessExpression(e) && e.getText() === 'globalThis.fetch') coreIo.push({ file: f, line: n.getStartLineNumber(), role, form: 'io-global', detail: 'globalThis.fetch(…)' });
+      }
+      if (Node.isPropertyAccessExpression(n) && n.getName() === 'env' && n.getExpression().getText() === 'process' && isGlobal(n.getExpression())) coreIo.push({ file: f, line: n.getStartLineNumber(), role, form: 'io-global', detail: 'process.env' });
+      if (Node.isNewExpression(n) && /^(XMLHttpRequest|WebSocket|EventSource)$/.test(n.getExpression().getText()) && isGlobal(n.getExpression())) coreIo.push({ file: f, line: n.getStartLineNumber(), role, form: 'io-global', detail: `new ${n.getExpression().getText()}(…)` });
+    });
+  }
+  bump('coreIo', coreIo.length);
+
+  // ── ENTITY_OUT (CN-03 H10) ──────────────────────────────────────────────────────────────────────────────────────
+  // An inbound adapter's handler uses a domain entity as its transport shape: a public handler returns it (directly,
+  // in a Promise, an array or an object literal's property, by type or by a return statement), takes it as a
+  // parameter, or passes it to a response
+  // writer (`res.json(order)`). Private helpers and mappers (`toDto(order)`) are the translation itself. Entities are
+  // classes or declared roots and inner entities.
+  const INBOUND = /(^|\/)adapters\/(in|inbound|driving|primary)\/|(^|\/)(api|controllers?|web|rest|graphql)\//;
+  const OUTBOUND = /(^|\/)adapters\/(out|outbound|driven|secondary)\//;
+  const MAPPER_NAME = /^(to|map|from|present|serialize|render|format)[A-Z_]|^(to|map)$/;
+  const RESPONDER = /^(json|send|end|write|status|code|body|ok|created|reply)$/;
+  const entityOut: EntityOutFact[] = [];
+  const entityIn = (t: Type): Node | undefined => {
+    const ds = new Set<Node>();
+    typeDecls(t, ds);
+    for (const d of [...ds]) if (Node.isInterfaceDeclaration(d) && !inTree(d)) ds.delete(d);
+    // one level into an anonymous object type (`{ body: Order }`)
+    if (t.isObject() && t.isAnonymous() && t.getCallSignatures().length === 0) for (const p of t.getProperties()) { const vd = p.getValueDeclaration(); if (vd) typeDecls(vd.getType(), ds); }
+    // an entity class or a declared root or inner entity; a domain read-model interface (`JobView`) is a DTO
+    return [...ds].find((d) => isEntity(d) && (Node.isClassDeclaration(d) || rootDecls.has(d) || entityDecls.has(d)));
+  };
+  for (const sf of files) {
+    const f = fileOf(sf);
+    if (spec.roleOf(f) !== 'adapter' || !INBOUND.test(f) || OUTBOUND.test(f)) continue;
+    const handlers: { name: string; node: Node; params: import('ts-morph').ParameterDeclaration[]; ret: Type; line: number; method: boolean }[] = [];
+    for (const c of sf.getClasses()) {
+      if (/(Mapper|Presenter|Serializer)$/.test(c.getName() ?? '')) continue;
+      for (const m of c.getMethods()) {
+        if (m.hasModifier(SyntaxKind.PrivateKeyword) || m.hasModifier(SyntaxKind.ProtectedKeyword) || m.getName().startsWith('#') || MAPPER_NAME.test(m.getName())) continue;
+        handlers.push({ name: `${c.getName() ?? '?'}.${m.getName()}`, node: m, params: m.getParameters(), ret: m.getReturnType(), line: m.getStartLineNumber(), method: true });
+      }
+    }
+    for (const fn of sf.getFunctions()) if (fn.isExported() && !MAPPER_NAME.test(fn.getName() ?? '')) handlers.push({ name: fn.getName() ?? 'default', node: fn, params: fn.getParameters(), ret: fn.getReturnType(), line: fn.getStartLineNumber(), method: false });
+    for (const h of handlers) {
+      const seen = new Set<string>();
+      const add = (line: number, d: Node, form: EntityOutFact['form']): void => { const k = `${form}|${entityName(d)}`; if (!seen.has(k)) { seen.add(k); entityOut.push({ file: f, line, handler: h.name, entity: entityName(d), entityFile: fileOf(d), form }); } };
+      let rt = h.ret; if (rt.getSymbol()?.getName() === 'Promise') rt = rt.getTypeArguments()[0] ?? rt;
+      const r = entityIn(rt); if (r) add(h.line, r, 'returns');
+      // a request typed as the entity: handler methods only; a free function taking the entity is a helper over it
+      if (h.method) for (const p of h.params) { const d = entityIn(p.getType()); if (d) add(p.getStartLineNumber(), d, 'accepts'); }
+      h.node.forEachDescendant((n) => {
+        // `return { status: 200, body: meter }` under a declared response type that hides the entity
+        if (Node.isReturnStatement(n)) { const ex = n.getExpression(); const d = ex ? entityIn(ex.getType()) : undefined; if (d) add(n.getStartLineNumber(), d, 'returns'); return; }
+        if (!Node.isCallExpression(n)) return;
+        const e = n.getExpression();
+        if (!Node.isPropertyAccessExpression(e) || !RESPONDER.test(e.getName())) return;
+        for (const a of n.getArguments()) { const d = entityIn(a.getType()); if (d) add(n.getStartLineNumber(), d, 'responds'); }
+      });
+    }
+  }
+  bump('entityOut', entityOut.length);
+
   return {
     roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
-    remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
+    locators, coreIo, entityOut, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
 
