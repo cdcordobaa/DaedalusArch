@@ -230,6 +230,16 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const b = node(['EntityType'], { name: x.entity, file: x.entityFile });
     rel('ENTITY_OUT', a, b, { form: x.form, line: x.line });
   }
+  for (const x of facts.adapterRules) {
+    const u = node(['AdapterUnit'], { name: x.unit, file: x.file });
+    const d = node(['Decision'], { cond: x.cond, reads: x.reads, effect: x.effect });
+    rel('ADAPTER_DECIDES', u, d, { line: x.line });
+  }
+  for (const x of facts.mirrors) {
+    const c = node(['CoreType'], { name: x.core, file: x.file, role: x.role });
+    const v = node(['VendorType'], { name: x.vendor, module: x.module });
+    rel('MIRRORS_VENDOR', c, v, { form: x.form, detail: x.detail, line: x.line });
+  }
   for (const x of facts.repoMulti) {
     const a = node(['RepositoryMethod'], { name: `${x.repo}.${x.method}`, file: x.file, line: x.line });
     const r = roots.get(x.root) ?? node(['Root'], { name: x.root });
