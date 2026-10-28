@@ -1,0 +1,102 @@
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index b4b2962a5..7c29ebec7 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -1,3 +1,4 @@
++import { ApproveOverrun } from './workshop/application/ApproveOverrun';
+ import { BookJob } from './workshop/application/BookJob';
+ import { CompleteJob, type FittedPart } from './workshop/application/CompleteJob';
+ import { EventRelay } from './workshop/application/EventRelay';
+@@ -30,6 +31,7 @@ export function createApp() {
+   return {
+     bookJob: (customer: string, bike: string): string => command(() => new BookJob(jobs).execute(customer, bike)),
+     logLabour: (jobId: string, hours: number): void => command(() => new LogLabour(jobs).execute(jobId, hours)),
++    approveOverrun: (jobId: string): void => command(() => new ApproveOverrun(jobs).execute(jobId)),
+     completeJob: (jobId: string, parts: ReadonlyArray<FittedPart>): void => command(() => new CompleteJob(jobs, stockrooms).execute(jobId, parts)),
+     receiveParts: (sku: string, quantity: number): void => command(() => new ReceiveParts(stockrooms).execute(sku, quantity)),
+     job: (jobId: string): JobView => new GetJob(jobs).execute(jobId),
+diff --git a/step-02/src/workshop/application/ApproveOverrun.ts b/step-02/src/workshop/application/ApproveOverrun.ts
+new file mode 100644
+index 000000000..fe08c3b3f
+--- /dev/null
++++ b/step-02/src/workshop/application/ApproveOverrun.ts
+@@ -0,0 +1,14 @@
++import type { JobRepository } from '../domain/job/JobRepository';
++import { JobId } from '../domain/job/value-objects/JobId';
++import { WorkshopError } from '../domain/WorkshopError';
++
++export class ApproveOverrun {
++  constructor(private readonly jobs: JobRepository) {}
++
++  execute(jobId: string): void {
++    const job = this.jobs.byId(JobId.of(jobId));
++    if (job === undefined) throw new WorkshopError(`no job ${jobId}`);
++    job.approveOverrun();
++    this.jobs.save(job);
++  }
++}
+diff --git a/step-01/src/workshop/domain/job/RepairJob.ts b/step-02/src/workshop/domain/job/RepairJob.ts
+index 2bc402e70..f356c9208 100644
+--- a/step-01/src/workshop/domain/job/RepairJob.ts
++++ b/step-02/src/workshop/domain/job/RepairJob.ts
+@@ -11,8 +11,11 @@ export interface RepairJobState {
+   readonly bike: string;
+   readonly status: JobStatus;
+   readonly labourMinutes: number;
++  readonly overrunApproved: boolean;
+ }
+ 
++const LABOUR_CAP_MINUTES = 4 * 60;
++
+ /** One bike booked in for repair. Labour is logged in positive amounts. */
+ export class RepairJob {
+   private pending: DomainEvent[] = [];
+@@ -23,16 +26,17 @@ export class RepairJob {
+     readonly bike: string,
+     private currentStatus: JobStatus,
+     private minutes: number,
++    private overrunApproved: boolean,
+   ) {}
+ 
+   static book(id: JobId, customer: string, bike: string): RepairJob {
+-    const job = new RepairJob(id, customer, bike, 'open', 0);
++    const job = new RepairJob(id, customer, bike, 'open', 0, false);
+     job.pending.push(new JobBooked(id.value, customer, bike));
+     return job;
+   }
+ 
+   static restore(state: RepairJobState): RepairJob {
+-    return new RepairJob(state.id, state.customer, state.bike, state.status, state.labourMinutes);
++    return new RepairJob(state.id, state.customer, state.bike, state.status, state.labourMinutes, state.overrunApproved);
+   }
+ 
+   get status(): JobStatus {
+@@ -45,9 +49,19 @@ export class RepairJob {
+ 
+   complete(): void {
+     if (this.currentStatus === 'completed') throw new WorkshopError(`job ${this.id.value} is already completed`);
++    if (this.minutes > LABOUR_CAP_MINUTES && !this.overrunApproved) {
++      throw new WorkshopError(
++        `labour cap exceeded: ${this.id.value} has ${(this.minutes / 60).toFixed(2)} h logged, ${(LABOUR_CAP_MINUTES / 60).toFixed(2)} h allowed without approval`,
++      );
++    }
+     this.currentStatus = 'completed';
+   }
+ 
++  approveOverrun(): void {
++    if (this.currentStatus === 'completed') throw new WorkshopError(`job ${this.id.value} is completed`);
++    this.overrunApproved = true;
++  }
++
+   logLabour(hours: number): void {
+     if (this.currentStatus === 'completed') throw new WorkshopError(`job ${this.id.value} is completed`);
+     const minutes = Math.round(hours * 60);
+@@ -56,7 +70,7 @@ export class RepairJob {
+   }
+ 
+   state(): RepairJobState {
+-    return { id: this.id, customer: this.customer, bike: this.bike, status: this.currentStatus, labourMinutes: this.minutes };
++    return { id: this.id, customer: this.customer, bike: this.bike, status: this.currentStatus, labourMinutes: this.minutes, overrunApproved: this.overrunApproved };
+   }
+ 
+   pullEvents(): DomainEvent[] {

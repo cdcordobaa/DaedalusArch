@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Members can now leave: resign(memberId) returns 'resigned' or 'refused'. A member whose feesDue is above 0 cannot leave: resign does not throw, it returns 'refused' and nothing changes. Otherwise member(id).status becomes 'resigned', and a berth the member holds is free again on its pontoon straight away, so pontoon(id).freeBerths shows it and the next contract can take it. Resigning a member who has already resigned returns 'resigned' and changes nothing; an unknown member throws an error with the message 'no member <id>'. Please keep the change small, it ships with today's release.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c33/tsconfig.json

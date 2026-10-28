@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The auctioneer can now bring the hammer down: closeLot(lotId), which returns nothing. If the lot's leading bid reaches its reserve, lot(id).status becomes 'sold' and lot(id).buyer is the leading bidder; the buyer's account(id).amountOwed goes up by the hammer price plus a 20% buyer's premium, rounded to the nearest whole amount, and the hammer price stays taken from the buyer's creditAvailable. Otherwise (no bids, or a leading bid under the reserve) lot(id).status becomes 'unsold', lot(id).buyer is null, and the leading bidder gets their amount back in creditAvailable straight away. account(id).amountOwed is 0 for a bidder who has bought nothing. Closing a lot that is already sold or unsold returns normally and changes nothing; closing an unknown lot throws an error with the message 'no lot <id>'. A bid on a closed lot throws an error with the message 'lot <id> is closed'. Please keep the change small, it ships with tonight's sale.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c31/tsconfig.json

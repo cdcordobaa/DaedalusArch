@@ -1,0 +1,121 @@
+diff --git a/step-01/src/adapters/in/http/KitchenRoutes.ts b/step-01/src/adapters/in/http/KitchenRoutes.ts
+new file mode 100644
+index 000000000..afbe31262
+--- /dev/null
++++ b/step-01/src/adapters/in/http/KitchenRoutes.ts
+@@ -0,0 +1,11 @@
++import type { Tally } from '../../../application/ports/in/Tally';
++import { reply, type Reply } from '../shared/reply';
++
++/** The kitchen's morning screens. */
++export class KitchenRoutes {
++  constructor(private readonly tallies: Tally) {}
++
++  tally(date: unknown): Reply {
++    return reply(() => this.tallies.tally(date));
++  }
++}
+diff --git a/step-00/src/adapters/out/memory/MemoryOrderStore.ts b/step-01/src/adapters/out/memory/MemoryOrderStore.ts
+index 097fe3a95..ef6be05cc 100644
+--- a/step-00/src/adapters/out/memory/MemoryOrderStore.ts
++++ b/step-01/src/adapters/out/memory/MemoryOrderStore.ts
+@@ -16,4 +16,8 @@ export class MemoryOrderStore implements OrderStore {
+   byId(id: string): MealOrder | null {
+     return this.db.orders.get(id) ?? null;
+   }
++
++  onDate(date: string): MealOrder[] {
++    return [...this.db.orders.values()].filter((o) => o.servingDate === date);
++  }
+ }
+diff --git a/step-01/src/application/ports/in/Tally.ts b/step-01/src/application/ports/in/Tally.ts
+new file mode 100644
+index 000000000..7747b674b
+--- /dev/null
++++ b/step-01/src/application/ports/in/Tally.ts
+@@ -0,0 +1,10 @@
++export interface TallyLine {
++  dish: string;
++  portions: number;
++  /** Portions for pupils with at least one allergy recorded. */
++  labelled: number;
++}
++
++export interface Tally {
++  tally(date: unknown): TallyLine[];
++}
+diff --git a/step-00/src/application/ports/out/OrderStore.ts b/step-01/src/application/ports/out/OrderStore.ts
+index 78d653ed7..cc3e006fd 100644
+--- a/step-00/src/application/ports/out/OrderStore.ts
++++ b/step-01/src/application/ports/out/OrderStore.ts
+@@ -4,4 +4,6 @@ export interface OrderStore {
+   nextId(): string;
+   save(order: MealOrder): void;
+   byId(id: string): MealOrder | null;
++  /** Every order served on the given day. */
++  onDate(date: string): MealOrder[];
+ }
+diff --git a/step-01/src/application/usecases/TallyService.ts b/step-01/src/application/usecases/TallyService.ts
+new file mode 100644
+index 000000000..0f7d808dc
+--- /dev/null
++++ b/step-01/src/application/usecases/TallyService.ts
+@@ -0,0 +1,31 @@
++import { requireDate } from '../../domain/model/SchoolDate';
++import type { Tally, TallyLine } from '../ports/in/Tally';
++import type { DishStore } from '../ports/out/DishStore';
++import type { OrderStore } from '../ports/out/OrderStore';
++import type { PupilStore } from '../ports/out/PupilStore';
++
++export class TallyService implements Tally {
++  constructor(
++    private readonly orders: OrderStore,
++    private readonly pupils: PupilStore,
++    private readonly dishes: DishStore,
++  ) {}
++
++  /** Most portions first, then by dish name. */
++  tally(date: unknown): TallyLine[] {
++    const day = requireDate(date);
++    const lines = new Map<string, TallyLine>();
++    for (const o of this.orders.onDate(day)) {
++      const dish = this.dishes.byId(o.dishId);
++      if (dish === null) continue;
++      let line = lines.get(dish.id);
++      if (line === undefined) {
++        line = { dish: dish.name, portions: 0, labelled: 0 };
++        lines.set(dish.id, line);
++      }
++      line.portions += 1;
++      if (this.pupils.byId(o.pupilId)?.hasAllergies()) line.labelled += 1;
++    }
++    return [...lines.values()].sort((a, b) => b.portions - a.portions || (a.dish < b.dish ? -1 : a.dish > b.dish ? 1 : 0));
++  }
++}
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index eccf0d32e..81410c71d 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -1,5 +1,6 @@
+ import { OfficeRoutes } from './adapters/in/http/OfficeRoutes';
+ import { OrderRoutes } from './adapters/in/http/OrderRoutes';
++import { KitchenRoutes } from './adapters/in/http/KitchenRoutes';
+ import { NightlyRun } from './adapters/in/scheduler/NightlyRun';
+ import { SystemToday } from './adapters/out/clock/SystemToday';
+ import { LetterTray } from './adapters/out/letters/LetterTray';
+@@ -11,6 +12,7 @@ import { EnrolmentService } from './application/usecases/EnrolmentService';
+ import { LowBalanceLettersService } from './application/usecases/LowBalanceLettersService';
+ import { MenuService } from './application/usecases/MenuService';
+ import { OrderingService } from './application/usecases/OrderingService';
++import { TallyService } from './application/usecases/TallyService';
+ 
+ export interface AppOptions {
+   /** Today's date as YYYY-MM-DD (the system date when left out). */
+@@ -29,6 +31,7 @@ export function createApp(options: AppOptions = {}) {
+   return {
+     office: new OfficeRoutes(new EnrolmentService(pupils), new MenuService(dishes)),
+     orders: new OrderRoutes(new OrderingService(orders, pupils, dishes, today)),
++    kitchen: new KitchenRoutes(new TallyService(orders, pupils, dishes)),
+     nightly: new NightlyRun(new LowBalanceLettersService(pupils, letterTray)),
+     /** The letters written so far, for whoever prints them. */
+     letters: { all: (): string[] => letterTray.all() },

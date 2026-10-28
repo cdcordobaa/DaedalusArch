@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+A reservation must now take its bays in the car park. When reserve is called and the car park has enough bays free, the bays are taken and reservation(id).status is 'confirmed'. When it has not, reserve does not throw: it returns the new reservation's id as usual, nothing is taken, and the status is 'rejected'. The refusals that exist today (an unknown car park, a bad number of bays) keep throwing as they do now. A car park must never give out more bays than it has, and drivers must know at once whether they have a bay: the status is final by the time reserve returns.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c01/tsconfig.json

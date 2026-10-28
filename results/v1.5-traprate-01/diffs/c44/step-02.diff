@@ -1,0 +1,273 @@
+diff --git a/step-01/src/berthing/application/HarbourMaster.ts b/step-02/src/berthing/application/HarbourMaster.ts
+index 091529a23..780522c9d 100644
+--- a/step-01/src/berthing/application/HarbourMaster.ts
++++ b/step-02/src/berthing/application/HarbourMaster.ts
+@@ -35,6 +35,12 @@ export class HarbourMaster {
+     this.pontoons.put(pontoon);
+   }
+ 
++  closePontoon(pontoonId: string): void {
++    const pontoon = this.load(pontoonId);
++    pontoon.close();
++    this.pontoons.put(pontoon);
++  }
++
+   private load(pontoonId: string): Pontoon {
+     const pontoon = this.pontoons.get(pontoonId);
+     if (pontoon === undefined) throw new BerthingError(`no pontoon ${pontoonId}`);
+diff --git a/step-02/src/berthing/contracts/messages.ts b/step-02/src/berthing/contracts/messages.ts
+new file mode 100644
+index 000000000..6f2416133
+--- /dev/null
++++ b/step-02/src/berthing/contracts/messages.ts
+@@ -0,0 +1,5 @@
++/** Messages berthing publishes for other parts of the system. */
++export interface PontoonClosedMessage {
++  readonly type: 'PontoonClosed';
++  readonly pontoonId: string;
++}
+diff --git a/step-01/src/berthing/domain/pontoon/Pontoon.ts b/step-02/src/berthing/domain/pontoon/Pontoon.ts
+index 6004b3f0d..7b90c42e9 100644
+--- a/step-01/src/berthing/domain/pontoon/Pontoon.ts
++++ b/step-02/src/berthing/domain/pontoon/Pontoon.ts
+@@ -1,6 +1,6 @@
+ import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
+ import { BerthingError } from '../BerthingError';
+-import { PontoonAdded } from './events';
++import { PontoonAdded, PontoonClosed } from './events';
+ import { Berth } from './value-objects/Berth';
+ 
+ export interface PontoonRecord {
+@@ -9,6 +9,7 @@ export interface PontoonRecord {
+   readonly berthLengthsM: readonly number[];
+   /** Occupant by berth number. */
+   readonly occupants: Readonly<Record<number, string>>;
++  readonly closed?: boolean;
+ }
+ 
+ /** A floating jetty with numbered berths. A berth has at most one occupant, and a boat only goes where it fits. */
+@@ -20,6 +21,7 @@ export class Pontoon {
+     readonly name: string,
+     private readonly berths: readonly Berth[],
+     private occupants: Map<number, string>,
++    private closed = false,
+   ) {}
+ 
+   static add(id: string, name: string, berthLengthsM: readonly number[]): Pontoon {
+@@ -33,11 +35,11 @@ export class Pontoon {
+ 
+   static fromRecord(r: PontoonRecord): Pontoon {
+     const berths = r.berthLengthsM.map((l, i) => Berth.of(i + 1, l));
+-    return new Pontoon(r.id, r.name, berths, new Map(Object.entries(r.occupants).map(([n, o]) => [Number(n), o])));
++    return new Pontoon(r.id, r.name, berths, new Map(Object.entries(r.occupants).map(([n, o]) => [Number(n), o])), r.closed ?? false);
+   }
+ 
+   toRecord(): PontoonRecord {
+-    return { id: this.id, name: this.name, berthLengthsM: this.berths.map((b) => b.lengthM), occupants: Object.fromEntries(this.occupants) };
++    return { id: this.id, name: this.name, berthLengthsM: this.berths.map((b) => b.lengthM), occupants: Object.fromEntries(this.occupants), closed: this.closed };
+   }
+ 
+   berthCount(): number {
+@@ -59,6 +61,7 @@ export class Pontoon {
+   tryMoor(occupant: string, boatLengthM: number): Berth | undefined {
+     if (!Number.isFinite(boatLengthM) || boatLengthM <= 0) throw new BerthingError('a boat length must be a positive number of metres');
+     if ([...this.occupants.values()].includes(occupant)) throw new BerthingError(`${occupant} already has a berth on ${this.name}`);
++    if (this.closed) return undefined;
+     const best = this.berths
+       .filter((b) => !this.occupants.has(b.number) && b.takes(boatLengthM))
+       .sort((a, b) => a.lengthM - b.lengthM || a.number - b.number)[0];
+@@ -75,6 +78,13 @@ export class Pontoon {
+     this.occupants = next;
+   }
+ 
++  /** Closed for a storm; closing again changes nothing. */
++  close(): void {
++    if (this.closed) return;
++    this.closed = true;
++    this.recorded.push(new PontoonClosed(this.id));
++  }
++
+   drainRecorded(): DomainEvent[] {
+     const out = this.recorded;
+     this.recorded = [];
+diff --git a/step-01/src/berthing/domain/pontoon/events.ts b/step-02/src/berthing/domain/pontoon/events.ts
+index 5e2dcf50b..480565170 100644
+--- a/step-01/src/berthing/domain/pontoon/events.ts
++++ b/step-02/src/berthing/domain/pontoon/events.ts
+@@ -1,5 +1,11 @@
+ import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
+ 
++export class PontoonClosed implements DomainEvent {
++  readonly type = 'PontoonClosed';
++
++  constructor(readonly pontoonId: string) {}
++}
++
+ export class PontoonAdded implements DomainEvent {
+   readonly type = 'PontoonAdded';
+ 
+diff --git a/step-01/src/berthing/index.ts b/step-02/src/berthing/index.ts
+index 67f8fc2e3..da5c57ad1 100644
+--- a/step-01/src/berthing/index.ts
++++ b/step-02/src/berthing/index.ts
+@@ -7,6 +7,7 @@ import type { GateRegister } from './application/ports/GateRegister';
+ import type { BerthGiven, PontoonView } from './contracts/PontoonView';
+ import type { PontoonRepository } from './domain/pontoon/PontoonRepository';
+ 
++export type { PontoonClosedMessage } from './contracts/messages';
+ export type { BerthGiven, PontoonView } from './contracts/PontoonView';
+ 
+ /** What the rest of the system may call. */
+@@ -18,6 +19,8 @@ export interface BerthingModule {
+   /** A seasonal berth; undefined, with nothing taken, when no free berth fits. */
+   reserveBerth(pontoonId: string, occupant: string, boatLengthM: number): BerthGiven | undefined;
+   vacateBerth(pontoonId: string, occupant: string): void;
++  /** Closes the pontoon for a storm; closing a closed pontoon changes nothing. */
++  closePontoon(pontoonId: string): void;
+   gateList(): string[];
+   /** Listeners berthing wants subscribed, by message type. */
+   readonly listensTo: Readonly<Record<string, (message: DomainEvent) => void>>;
+@@ -32,6 +35,7 @@ export function createBerthing(pontoons: PontoonRepository, gate: GateRegister):
+     assignBerth: (pontoonId, occupant, lengthM) => master.assignBerth(pontoonId, occupant, lengthM),
+     reserveBerth: (pontoonId, occupant, lengthM) => master.reserveBerth(pontoonId, occupant, lengthM),
+     vacateBerth: (pontoonId, occupant) => master.vacateBerth(pontoonId, occupant),
++    closePontoon: (pontoonId) => master.closePontoon(pontoonId),
+     gateList: () => queries.gateList(),
+     listensTo: membershipListeners(new GateKeeping(gate)),
+   };
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index aeb9f3074..4d7a70bcd 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -25,6 +25,7 @@ export function createApp() {
+     pontoon: (pontoonId: string) => berthing.pontoon(pontoonId),
+     moorVisitor: (pontoonId: string, boatName: string, boatLengthM: number): number => settled(berthing.assignBerth(pontoonId, boatName, boatLengthM).berth),
+     visitorLeaves: (pontoonId: string, boatName: string): void => settled(berthing.vacateBerth(pontoonId, boatName)),
++    closePontoon: (pontoonId: string): void => settled(berthing.closePontoon(pontoonId)),
+     gateList: (): string[] => berthing.gateList(),
+     join: (owner: string, boatName: string, boatLengthM: number): string => settled(membership.join(owner, boatName, boatLengthM)),
+     member: (memberId: string) => membership.member(memberId),
+diff --git a/step-01/src/membership/application/ContractDesk.ts b/step-02/src/membership/application/ContractDesk.ts
+index 6ff037666..f4d5dfc30 100644
+--- a/step-01/src/membership/application/ContractDesk.ts
++++ b/step-02/src/membership/application/ContractDesk.ts
+@@ -11,6 +11,13 @@ export class ContractDesk {
+     private readonly pontoons: PontoonLookup,
+   ) {}
+ 
++  stormClosed(pontoonId: string): void {
++    for (const m of this.members.onPontoon(pontoonId)) {
++      m.stormClose(pontoonId);
++      this.members.put(m);
++    }
++  }
++
+   signContract(memberId: string, pontoonId: string): void {
+     const m = this.members.get(memberId);
+     if (m === undefined) throw new MembershipError(`no member ${memberId}`);
+diff --git a/step-01/src/membership/domain/membership/Membership.ts b/step-02/src/membership/domain/membership/Membership.ts
+index 4bd7f9efb..7612e9b24 100644
+--- a/step-01/src/membership/domain/membership/Membership.ts
++++ b/step-02/src/membership/domain/membership/Membership.ts
+@@ -4,7 +4,7 @@ import { MemberJoined } from './events';
+ import { Boat } from './value-objects/Boat';
+ 
+ export type MemberStatus = 'member';
+-export type ContractStatus = 'none' | 'active' | 'waitlisted';
++export type ContractStatus = 'none' | 'active' | 'waitlisted' | 'storm-closed';
+ 
+ export interface MembershipRecord {
+   readonly id: string;
+@@ -16,6 +16,7 @@ export interface MembershipRecord {
+   readonly pontoonId: string | null;
+   readonly berth: number | null;
+   readonly feesDue: number;
++  readonly seasonFee?: number;
+ }
+ 
+ /** A boat owner's membership of the marina, with at most one seasonal berth contract and the fees owed. */
+@@ -31,6 +32,7 @@ export class Membership {
+     private pontoonId: string | null,
+     private feesDue: number,
+     private berth: number | null,
++    private seasonFee = 0,
+   ) {}
+ 
+   static join(id: string, owner: string, boat: Boat): Membership {
+@@ -41,13 +43,13 @@ export class Membership {
+   }
+ 
+   static fromRecord(r: MembershipRecord): Membership {
+-    return new Membership(r.id, r.owner, Boat.of(r.boatName, r.boatLengthM), r.status, r.contract, r.pontoonId, r.feesDue, r.berth);
++    return new Membership(r.id, r.owner, Boat.of(r.boatName, r.boatLengthM), r.status, r.contract, r.pontoonId, r.feesDue, r.berth, r.seasonFee ?? 0);
+   }
+ 
+   toRecord(): MembershipRecord {
+     return {
+       id: this.id, owner: this.owner, boatName: this.boat.name, boatLengthM: this.boat.lengthM,
+-      status: this.status, contract: this.contract, pontoonId: this.pontoonId, berth: this.berth, feesDue: this.feesDue,
++      status: this.status, contract: this.contract, pontoonId: this.pontoonId, berth: this.berth, feesDue: this.feesDue, seasonFee: this.seasonFee,
+     };
+   }
+ 
+@@ -63,6 +65,14 @@ export class Membership {
+     this.pontoonId = pontoonId;
+     this.berth = berth;
+     this.feesDue += seasonFee;
++    this.seasonFee = seasonFee;
++  }
++
++  /** The pontoon closed for a storm: an active contract ends, with a tenth of the season fee off. */
++  stormClose(pontoonId: string): void {
++    if (this.contract !== 'active' || this.pontoonId !== pontoonId) return;
++    this.contract = 'storm-closed';
++    this.feesDue -= Math.round(this.seasonFee / 10);
+   }
+ 
+   /** No berth fit: the member waits, with nothing taken or charged. */
+diff --git a/step-01/src/membership/domain/membership/MembershipRepository.ts b/step-02/src/membership/domain/membership/MembershipRepository.ts
+index 176634c48..3b1bb31e4 100644
+--- a/step-01/src/membership/domain/membership/MembershipRepository.ts
++++ b/step-02/src/membership/domain/membership/MembershipRepository.ts
+@@ -3,6 +3,7 @@ import type { Membership } from './Membership';
+ export interface MembershipRepository {
+   nextId(): string;
+   get(id: string): Membership | undefined;
++  onPontoon(pontoonId: string): Membership[];
+   /** Writes the membership and appends its recorded events to the log in one step. */
+   put(membership: Membership): void;
+ }
+diff --git a/step-01/src/membership/index.ts b/step-02/src/membership/index.ts
+index 481e59f94..82bda28d8 100644
+--- a/step-01/src/membership/index.ts
++++ b/step-02/src/membership/index.ts
+@@ -1,3 +1,4 @@
++import type { PontoonClosedMessage } from '../berthing';
+ import type { DomainEvent } from '../shared-kernel/DomainEvent';
+ import { ContractDesk } from './application/ContractDesk';
+ import { MemberOffice } from './application/MemberOffice';
+@@ -31,6 +32,8 @@ export function createMembership(members: MembershipRepository, pontoons: Pontoo
+     payFees: (id, amount) => office.payFees(id, amount),
+     adjustFees: (id, delta) => office.adjustFees(id, delta),
+     signContract: (memberId, pontoonId) => desk.signContract(memberId, pontoonId),
+-    listensTo: {},
++    listensTo: {
++      PontoonClosed: (message) => desk.stormClosed((message as PontoonClosedMessage).pontoonId),
++    },
+   };
+ }
+diff --git a/step-01/src/membership/infrastructure/InMemoryMembershipStore.ts b/step-02/src/membership/infrastructure/InMemoryMembershipStore.ts
+index bbf878be0..2d61a8445 100644
+--- a/step-01/src/membership/infrastructure/InMemoryMembershipStore.ts
++++ b/step-02/src/membership/infrastructure/InMemoryMembershipStore.ts
+@@ -18,6 +18,10 @@ export class InMemoryMembershipStore implements MembershipRepository {
+     return r === undefined ? undefined : Membership.fromRecord(r);
+   }
+ 
++  onPontoon(pontoonId: string): Membership[] {
++    return [...this.records.values()].filter((r) => r.pontoonId === pontoonId).map((r) => Membership.fromRecord(r));
++  }
++
+   put(membership: Membership): void {
+     const events = membership.drainRecorded();
+     this.records.set(membership.id, membership.toRecord());

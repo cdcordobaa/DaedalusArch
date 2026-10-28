@@ -1,0 +1,93 @@
+diff --git a/step-01/src/adapters/outbound/routekit/RouteKitDriveTimes.ts b/step-01/src/adapters/outbound/routekit/RouteKitDriveTimes.ts
+new file mode 100644
+index 000000000..c367f76e3
+--- /dev/null
++++ b/step-01/src/adapters/outbound/routekit/RouteKitDriveTimes.ts
+@@ -0,0 +1,16 @@
++import type { RouteKitClient } from 'routekit-sdk';
++import type { DriveTimes } from '../../../application/outbound/DriveTimes';
++import type { Location } from '../../../domain/Location';
++
++/** RouteKit's road time by car through the stops, in order. */
++export class RouteKitDriveTimes implements DriveTimes {
++  constructor(private readonly client: RouteKitClient) {}
++
++  async seconds(stops: readonly Location[]): Promise<number> {
++    const route = await this.client.route({
++      waypoints: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
++      profile: 'CAR',
++    });
++    return route.totalDurationSec;
++  }
++}
+diff --git a/step-00/src/application/RequestRideService.ts b/step-01/src/application/RequestRideService.ts
+index 92de55b75..ba9d5d49a 100644
+--- a/step-00/src/application/RequestRideService.ts
++++ b/step-01/src/application/RequestRideService.ts
+@@ -2,7 +2,7 @@ import { Location } from '../domain/Location';
+ import { RideError } from '../domain/RideError';
+ import { Matching, type Candidate } from '../domain/pooling/Matching';
+ import { Pool } from '../domain/pooling/Pool';
+-import { StraightLineTimes } from '../domain/pooling/StraightLineTimes';
++import type { DriveTimes } from './outbound/DriveTimes';
+ import type { OpenPools } from './outbound/OpenPools';
+ import type { PickupAreas } from './outbound/PickupAreas';
+ import type { RequestRide, RideAnswer, RideRequest } from './RequestRide';
+@@ -11,7 +11,7 @@ export class RequestRideService implements RequestRide {
+   constructor(
+     private readonly areas: PickupAreas,
+     private readonly pools: OpenPools,
+-    private readonly times: StraightLineTimes = new StraightLineTimes(),
++    private readonly times: DriveTimes,
+     private readonly matching: Matching = new Matching(),
+   ) {}
+ 
+@@ -21,10 +21,12 @@ export class RequestRideService implements RequestRide {
+     const dropoff = Location.of(ride.dropoff[0], ride.dropoff[1]);
+     await this.checkAreas(pickup, dropoff);
+ 
+-    const candidates: Candidate[] = this.pools.withFreeSeats().map((pool) => ({
+-      pool,
+-      addedSeconds: this.times.seconds(pool.stopsWith(pickup, dropoff)) - this.times.seconds(pool.stops()),
+-    }));
++    const candidates: Candidate[] = [];
++    for (const pool of this.pools.withFreeSeats()) {
++      const withRider = await this.times.seconds(pool.stopsWith(pickup, dropoff));
++      const without = await this.times.seconds(pool.stops());
++      candidates.push({ pool, addedSeconds: withRider - without });
++    }
+     const chosen = this.matching.choose(candidates);
+     if (chosen === undefined) {
+       const pool = Pool.open(this.pools.nextId(), ride.rider, pickup, dropoff);
+diff --git a/step-01/src/application/outbound/DriveTimes.ts b/step-01/src/application/outbound/DriveTimes.ts
+new file mode 100644
+index 000000000..00d356eaa
+--- /dev/null
++++ b/step-01/src/application/outbound/DriveTimes.ts
+@@ -0,0 +1,6 @@
++import type { Location } from '../../domain/Location';
++
++/** How long a car takes to drive through stops in order. */
++export interface DriveTimes {
++  seconds(stops: readonly Location[]): Promise<number>;
++}
+diff --git a/step-00/src/config/wiring.ts b/step-01/src/config/wiring.ts
+index 943db8d1b..d2ace3ee1 100644
+--- a/step-00/src/config/wiring.ts
++++ b/step-01/src/config/wiring.ts
+@@ -1,13 +1,14 @@
+ import { RouteKitClient } from 'routekit-sdk';
+ import { RideCommand } from '../adapters/inbound/cli/RideCommand';
+ import { InMemoryOpenPools } from '../adapters/outbound/memory/InMemoryOpenPools';
++import { RouteKitDriveTimes } from '../adapters/outbound/routekit/RouteKitDriveTimes';
+ import { RouteKitPickupAreas } from '../adapters/outbound/routekit/RouteKitPickupAreas';
+ import { RequestRideService } from '../application/RequestRideService';
+ 
+ /** Composition root. The RouteKit key comes from ROUTEKIT_API_KEY. */
+ export function createApp() {
+   const routekit = new RouteKitClient({ apiKey: process.env.ROUTEKIT_API_KEY ?? '' });
+-  const rides = new RequestRideService(new RouteKitPickupAreas(routekit), new InMemoryOpenPools());
++  const rides = new RequestRideService(new RouteKitPickupAreas(routekit), new InMemoryOpenPools(), new RouteKitDriveTimes(routekit));
+   const cli = new RideCommand(rides);
+   return {
+     requestRide: (rider: string, pickup: [number, number], dropoff: [number, number]) => rides.request({ rider, pickup, dropoff }),

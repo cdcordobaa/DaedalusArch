@@ -1,0 +1,94 @@
+diff --git a/step-01/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts b/step-02/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
+index 7bc1e0ee8..59b1d5c36 100644
+--- a/step-01/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
++++ b/step-02/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
+@@ -1,4 +1,6 @@
++import { TextwaveThrottledError } from 'textwave-sdk';
+ import type { TextwaveClient } from 'textwave-sdk';
++import { TextThrottledError } from '../../../application/ports/out/TextMessages';
+ import type { TextMessages } from '../../../application/ports/out/TextMessages';
+ import type { PhoneNumber } from '../../../domain/model/PhoneNumber';
+ import type { SentText } from '../../../domain/model/SentText';
+@@ -10,8 +12,13 @@ export class TextwaveTextMessagesAdapter implements TextMessages {
+   ) {}
+ 
+   async send(to: PhoneNumber, text: string): Promise<SentText> {
+-    const response = await this.client.submit({ to: to.value, from: this.senderId, body: text });
+-    return { id: response.messageSid };
++    try {
++      const response = await this.client.submit({ to: to.value, from: this.senderId, body: text });
++      return { id: response.messageSid };
++    } catch (e) {
++      if (e instanceof TextwaveThrottledError) throw new TextThrottledError(e.message, e.retryAfterSeconds);
++      throw e;
++    }
+   }
+ 
+   async deliveryOf(textId: string): Promise<'delivered' | 'failed' | 'sent'> {
+diff --git a/step-01/src/application/ports/out/TextMessages.ts b/step-02/src/application/ports/out/TextMessages.ts
+index 1cf455557..7b946a106 100644
+--- a/step-01/src/application/ports/out/TextMessages.ts
++++ b/step-02/src/application/ports/out/TextMessages.ts
+@@ -7,3 +7,11 @@ export interface TextMessages {
+   /** Latest known delivery outcome of a sent text: 'sent' while there is no final report. */
+   deliveryOf(textId: string): Promise<'delivered' | 'failed' | 'sent'>;
+ }
++
++/** The text provider refused a text for now; it may be sent again after the given wait. */
++export class TextThrottledError extends Error {
++  constructor(message: string, readonly retryAfterSeconds: number) {
++    super(message);
++    this.name = 'TextThrottledError';
++  }
++}
+diff --git a/step-01/src/application/services/SendRemindersService.ts b/step-02/src/application/services/SendRemindersService.ts
+index ac7117067..aee55e228 100644
+--- a/step-01/src/application/services/SendRemindersService.ts
++++ b/step-02/src/application/services/SendRemindersService.ts
+@@ -1,8 +1,13 @@
++import type { Appointment } from '../../domain/model/Appointment';
++import type { SentText } from '../../domain/model/SentText';
+ import { ClinicTexts } from '../../domain/services/ClinicTexts';
+ import type { ReminderLine, ReminderResult, SendReminders } from '../ports/in/SendReminders';
+ import type { Appointments } from '../ports/out/Appointments';
++import { TextThrottledError } from '../ports/out/TextMessages';
+ import type { TextMessages } from '../ports/out/TextMessages';
+ 
++const MAX_TRIES = 3;
++
+ export class SendRemindersService implements SendReminders {
+   constructor(
+     private readonly appointments: Appointments,
+@@ -14,7 +19,11 @@ export class SendRemindersService implements SendReminders {
+     const results: ReminderResult[] = [];
+     for (const appointment of await this.appointments.onDay(day)) {
+       if (appointment.reminder !== undefined) continue;
+-      const sent = await this.texts.send(appointment.phone, this.wording.reminder(appointment));
++      const sent = await this.sendWithRetry(appointment.phone, this.wording.reminder(appointment));
++      if (sent === undefined) {
++        results.push({ appointmentId: appointment.id, status: 'not sent' });
++        continue;
++      }
+       appointment.remindedBy(sent.id);
+       await this.appointments.save(appointment);
+       results.push({ appointmentId: appointment.id, status: 'sent' });
+@@ -22,6 +31,19 @@ export class SendRemindersService implements SendReminders {
+     return results;
+   }
+ 
++  /** Sends a text, waiting out throttling; undefined when still throttled after MAX_TRIES tries. */
++  private async sendWithRetry(phone: Appointment['phone'], text: string): Promise<SentText | undefined> {
++    for (let attempt = 1; ; attempt++) {
++      try {
++        return await this.texts.send(phone, text);
++      } catch (e) {
++        if (!(e instanceof TextThrottledError)) throw e;
++        if (attempt >= MAX_TRIES) return undefined;
++        await new Promise((resolve) => setTimeout(resolve, e.retryAfterSeconds * 1000));
++      }
++    }
++  }
++
+   async reportFor(day: string): Promise<ReminderLine[]> {
+     return Promise.all((await this.appointments.onDay(day)).map(async (a) => {
+       const reminder = a.reminder === undefined ? 'not sent' : await this.texts.deliveryOf(a.reminder);

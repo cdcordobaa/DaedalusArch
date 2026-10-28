@@ -1,0 +1,78 @@
+diff --git a/step-02/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts b/step-03/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+index c2ea290bd..e53ea3174 100644
+--- a/step-02/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
++++ b/step-03/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+@@ -10,7 +10,7 @@ export class RatewiseRatesAdapter implements ExchangeRates {
+     private readonly now: () => number = Date.now,
+   ) {}
+ 
+-  private readonly lastUsable = new Map<string, { mid: number; fixedAt: number }>();
++  private readonly lastUsable = new Map<string, { mid: number; minorUnits: number; fixedAt: number }>();
+ 
+   async fromEuro(currency: string): Promise<EuroRate | undefined> {
+     let result: RatewiseLatestResult;
+@@ -20,7 +20,7 @@ export class RatewiseRatesAdapter implements ExchangeRates {
+       if (e instanceof RatewiseUnavailableError) {
+         const last = this.lastUsable.get(currency);
+         if (last === undefined || this.now() - last.fixedAt > MAX_AGE_MS) return undefined;
+-        return { currency, mid: last.mid, estimated: true };
++        return { currency, mid: last.mid, minorUnits: last.minorUnits, estimated: true };
+       }
+       throw e;
+     }
+@@ -30,8 +30,9 @@ export class RatewiseRatesAdapter implements ExchangeRates {
+       const fixedAt = Date.parse(rate.asOf);
+       if (Number.isNaN(fixedAt) || this.now() - fixedAt > MAX_AGE_MS) continue;
+       if (!Number.isFinite(rate.mid) || rate.mid <= 0) continue;
+-      this.lastUsable.set(currency, { mid: rate.mid, fixedAt });
+-      return { currency, mid: rate.mid, estimated: false };
++      if (!Number.isInteger(rate.minorUnits) || rate.minorUnits < 0) continue;
++      this.lastUsable.set(currency, { mid: rate.mid, minorUnits: rate.minorUnits, fixedAt });
++      return { currency, mid: rate.mid, minorUnits: rate.minorUnits, estimated: false };
+     }
+     return undefined;
+   }
+diff --git a/step-02/src/application/ports/out/ExchangeRates.ts b/step-03/src/application/ports/out/ExchangeRates.ts
+index 272edc4bb..e94eecdee 100644
+--- a/step-02/src/application/ports/out/ExchangeRates.ts
++++ b/step-03/src/application/ports/out/ExchangeRates.ts
+@@ -2,6 +2,8 @@
+ export interface EuroRate {
+   readonly currency: string;
+   readonly mid: number;
++  /** Decimals the currency is written with, as given by Ratewise with the rate. */
++  readonly minorUnits: number;
+   /** True when taken from an earlier answer because Ratewise was unavailable. */
+   readonly estimated?: boolean;
+ }
+diff --git a/step-02/src/application/services/PriceProductService.ts b/step-03/src/application/services/PriceProductService.ts
+index 895a44acd..0a67c2a19 100644
+--- a/step-02/src/application/services/PriceProductService.ts
++++ b/step-03/src/application/services/PriceProductService.ts
+@@ -5,6 +5,15 @@ import type { ExchangeRates } from '../ports/out/ExchangeRates';
+ 
+ const UNAVAILABLE = 'Prices in this currency are not available right now.';
+ 
++/** Rounds an amount given in hundredths of the major unit; halves up, never zero. */
++function roundPrice(hundredths: number, currency: string, minorUnits: number): number {
++  // Steps per major unit: 20 for CHF (0.05), otherwise 10^minorUnits.
++  const steps = currency === 'CHF' ? 20 : 10 ** minorUnits;
++  // toPrecision absorbs float noise before rounding.
++  const scaled = Number(((hundredths / 100) * steps).toPrecision(12));
++  return Math.max(1, Math.round(scaled)) / steps;
++}
++
+ export class PriceProductService implements PriceProduct {
+   constructor(
+     private readonly rates: ExchangeRates,
+@@ -22,8 +31,7 @@ export class PriceProductService implements PriceProduct {
+     if (rate === undefined || rate.currency !== currency) {
+       return { sku: product.sku, name: product.name, currency, amount: null, reason: UNAVAILABLE };
+     }
+-    // euroCents * mid is the amount in hundredths; round halves up (toPrecision absorbs float noise).
+-    const hundredths = Math.round(Number((product.euroCents * rate.mid).toPrecision(12)));
+-    return { sku: product.sku, name: product.name, currency, amount: hundredths / 100, estimated: rate.estimated === true };
++    const amount = roundPrice(product.euroCents * rate.mid, currency, rate.minorUnits);
++    return { sku: product.sku, name: product.name, currency, amount, estimated: rate.estimated === true };
+   }
+ }

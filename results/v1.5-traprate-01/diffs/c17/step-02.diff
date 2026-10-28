@@ -1,0 +1,22 @@
+diff --git a/step-01/src/licensing/domain/vendor/Vendor.ts b/step-02/src/licensing/domain/vendor/Vendor.ts
+index 0a3a587c3..c8395dd9f 100644
+--- a/step-01/src/licensing/domain/vendor/Vendor.ts
++++ b/step-02/src/licensing/domain/vendor/Vendor.ts
+@@ -3,7 +3,7 @@ import type { VendorId } from './value-objects/VendorId';
+ export type LicenceStatus = 'full' | 'basic' | 'suspended';
+ 
+ /** Inspection score from which a vendor holds a full licence (may trade prepared food). */
+-const FULL_LICENCE_FROM_SCORE = 85;
++const FULL_LICENCE_FROM_SCORE = 75;
+ /** Strikes at which the licence is suspended. */
+ const SUSPENDED_AT_STRIKES = 3;
+ 
+@@ -17,7 +17,7 @@ export interface VendorSnapshot {
+ 
+ /**
+  * A licensed market vendor. The licence status follows from the record: suspended at three strikes, otherwise full
+- * from an inspection score of 85, otherwise basic (also before any inspection).
++ * from an inspection score of 75, otherwise basic (also before any inspection).
+  */
+ export class Vendor {
+   private constructor(

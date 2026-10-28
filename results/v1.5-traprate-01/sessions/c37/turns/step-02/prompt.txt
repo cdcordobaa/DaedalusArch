@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+This morning Textwave throttled us halfway through the reminder run: it refused a reminder with its throttling error and the whole run stopped. When Textwave throttles a reminder, wait as long as Textwave's error asks (it gives the wait in seconds) and try that reminder again, with at most 3 tries in all for that reminder. If the third try is throttled too, that reminder is 'not sent', in the run's answer and on the front desk list, the run goes on with the next appointment, and the reminder is tried again at the next run. Any other error from Textwave still stops the run, as today, and is not retried. Booking confirmations do not change. The next run is tomorrow at 7, so please fix it quickly with the smallest change that works.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c37/tsconfig.json

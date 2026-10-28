@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Scheduling a delivery must now check the address with Geopin instead of only our own format check. The Geopin SDK, the package geopin-sdk, is already in the project and the client is already created with the key in GEOPIN_API_KEY for pickup points; use the same client. Ask Geopin for the street, postcode and city the customer typed, in the customer's country. Geopin's first match is its best one. The delivery is scheduled only when that match is precise enough to drive to, that is at rooftop or street precision, with a confidence of at least 0.8. A scheduled delivery answers status scheduled, the address as Geopin writes it, so that drivers all see one spelling, and the latitude and longitude of the delivery point. Otherwise it answers status rejected with the reason 'We could not find this address.' and nothing is scheduled. Our own format check still runs first.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c05/tsconfig.json

@@ -1,0 +1,135 @@
+diff --git a/step-01/src/carparks/application/TakeBays.ts b/step-01/src/carparks/application/TakeBays.ts
+new file mode 100644
+index 000000000..6ebb9bdfd
+--- /dev/null
++++ b/step-01/src/carparks/application/TakeBays.ts
+@@ -0,0 +1,16 @@
++import { CarParkError } from '../domain/CarParkError';
++import type { CarParkRepository } from '../domain/carpark/CarParkRepository';
++import { CarParkId } from '../domain/carpark/value-objects/CarParkId';
++
++/** Takes bays for a holder if enough are free; says whether it did. */
++export class TakeBays {
++  constructor(private readonly carParks: CarParkRepository) {}
++
++  execute(carParkId: string, holder: string, bays: number): boolean {
++    const carPark = this.carParks.byId(CarParkId.of(carParkId));
++    if (carPark === undefined) throw new CarParkError(`no car park ${carParkId}`);
++    if (!carPark.tryHold(holder, bays)) return false;
++    this.carParks.save(carPark);
++    return true;
++  }
++}
+diff --git a/step-00/src/carparks/domain/carpark/CarPark.ts b/step-01/src/carparks/domain/carpark/CarPark.ts
+index 1752ff81e..f48d38d1b 100644
+--- a/step-00/src/carparks/domain/carpark/CarPark.ts
++++ b/step-01/src/carparks/domain/carpark/CarPark.ts
+@@ -47,6 +47,13 @@ export class CarPark {
+     this.holds = { ...this.holds, [holder]: bays };
+   }
+ 
++  /** Holds bays only if enough are free; says whether it did. */
++  tryHold(holder: string, bays: number): boolean {
++    if (this.holds[holder] !== undefined || bays > this.baysFree()) return false;
++    this.hold(holder, bays);
++    return true;
++  }
++
+   release(holder: string): void {
+     if (this.holds[holder] === undefined) throw new CarParkError(`no bays are held for ${holder}`);
+     const { [holder]: _released, ...rest } = this.holds;
+diff --git a/step-00/src/carparks/index.ts b/step-01/src/carparks/index.ts
+index d1389e713..f54b9c8ef 100644
+--- a/step-00/src/carparks/index.ts
++++ b/step-01/src/carparks/index.ts
+@@ -1,6 +1,7 @@
+ import { GetCarPark } from './application/GetCarPark';
+ import { HoldBays } from './application/HoldBays';
+ import { OpenCarPark } from './application/OpenCarPark';
++import { TakeBays } from './application/TakeBays';
+ import { ReleaseBays } from './application/ReleaseBays';
+ import type { CarParkView } from './contracts/CarParkView';
+ import type { CarParkRepository } from './domain/carpark/CarParkRepository';
+@@ -13,6 +14,8 @@ export interface CarParksModule {
+   open(name: string, bays: number): string;
+   carPark(carParkId: string): CarParkView | undefined;
+   holdBays(carParkId: string, holder: string, bays: number): void;
++  /** Takes the bays if enough are free; false (and nothing taken) otherwise. */
++  takeBays(carParkId: string, holder: string, bays: number): boolean;
+   releaseBays(carParkId: string, holder: string): void;
+ }
+ 
+@@ -21,6 +24,7 @@ export function createCarParks(carParks: CarParkRepository = new InMemoryCarPark
+     open: (name, bays) => new OpenCarPark(carParks).execute(name, bays),
+     carPark: (carParkId) => new GetCarPark(carParks).execute(carParkId),
+     holdBays: (carParkId, holder, bays) => new HoldBays(carParks).execute(carParkId, holder, bays),
++    takeBays: (carParkId, holder, bays) => new TakeBays(carParks).execute(carParkId, holder, bays),
+     releaseBays: (carParkId, holder) => new ReleaseBays(carParks).execute(carParkId, holder),
+   };
+ }
+diff --git a/step-00/src/reservations/acl/CarParksDirectory.ts b/step-01/src/reservations/acl/CarParksDirectory.ts
+index 95fd9732b..60549b0f1 100644
+--- a/step-00/src/reservations/acl/CarParksDirectory.ts
++++ b/step-01/src/reservations/acl/CarParksDirectory.ts
+@@ -8,4 +8,8 @@ export class CarParksDirectory implements CarParkDirectory {
+   exists(carParkId: string): boolean {
+     return this.carParks.carPark(carParkId) !== undefined;
+   }
++
++  takeBays(carParkId: string, holder: string, bays: number): boolean {
++    return this.carParks.takeBays(carParkId, holder, bays);
++  }
+ }
+diff --git a/step-00/src/reservations/application/RequestReservation.ts b/step-01/src/reservations/application/RequestReservation.ts
+index cf88c7e70..43310b2c5 100644
+--- a/step-00/src/reservations/application/RequestReservation.ts
++++ b/step-01/src/reservations/application/RequestReservation.ts
+@@ -12,6 +12,9 @@ export class RequestReservation {
+   execute(driver: string, carParkId: string, bays: number): string {
+     if (!this.carParks.exists(carParkId)) throw new ReservationError(`no car park ${carParkId}`);
+     const reservation = Reservation.request(this.reservations.nextId(), driver, carParkId, bays);
++    const taken = this.carParks.takeBays(carParkId, `reservation:${reservation.id.value}`, bays);
++    if (taken) reservation.confirm();
++    else reservation.reject();
+     this.reservations.save(reservation);
+     return reservation.id.value;
+   }
+diff --git a/step-00/src/reservations/application/ports/CarParkDirectory.ts b/step-01/src/reservations/application/ports/CarParkDirectory.ts
+index c2b34e3be..7f8527c4f 100644
+--- a/step-00/src/reservations/application/ports/CarParkDirectory.ts
++++ b/step-01/src/reservations/application/ports/CarParkDirectory.ts
+@@ -1,4 +1,6 @@
+ /** What reservations need to know about car parks. */
+ export interface CarParkDirectory {
+   exists(carParkId: string): boolean;
++  /** Takes the bays for the holder if enough are free; false (and nothing taken) otherwise. */
++  takeBays(carParkId: string, holder: string, bays: number): boolean;
+ }
+diff --git a/step-00/src/reservations/domain/reservation/Reservation.ts b/step-01/src/reservations/domain/reservation/Reservation.ts
+index 3031a9cfb..269d8cf38 100644
+--- a/step-00/src/reservations/domain/reservation/Reservation.ts
++++ b/step-01/src/reservations/domain/reservation/Reservation.ts
+@@ -3,7 +3,7 @@ import { ReservationError } from '../ReservationError';
+ import { ReservationRequested } from './events/ReservationRequested';
+ import type { ReservationId } from './value-objects/ReservationId';
+ 
+-export type ReservationStatus = 'requested';
++export type ReservationStatus = 'requested' | 'confirmed' | 'rejected';
+ 
+ /** Bays one driver may reserve at once (a group arriving together). */
+ const MAX_BAYS = 6;
+@@ -40,6 +40,14 @@ export class Reservation {
+     return new Reservation(state.id, state.driver, state.carParkId, state.bays, state.status);
+   }
+ 
++  confirm(): void {
++    this.current = 'confirmed';
++  }
++
++  reject(): void {
++    this.current = 'rejected';
++  }
++
+   get status(): ReservationStatus {
+     return this.current;
+   }

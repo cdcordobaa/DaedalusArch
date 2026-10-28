@@ -1,0 +1,112 @@
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index 06ee3c7f0..38933b26c 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -28,6 +28,7 @@ export function createApp() {
+     blockBays: (carParkId: string, company: string, bays: number): void => command(() => carParks.holdBays(carParkId, company, bays)),
+     releaseBlock: (carParkId: string, company: string): void => command(() => carParks.releaseBays(carParkId, company)),
+     reserve: (driver: string, carParkId: string, bays: number): string => command(() => reservations.reserve(driver, carParkId, bays)),
++    cancelReservation: (reservationId: string): void => command(() => reservations.cancel(reservationId)),
+     reservation: (reservationId: string) => reservations.reservation(reservationId),
+     attendantNotices: (): string[] => notices.all(),
+   };
+diff --git a/step-01/src/reservations/acl/CarParksDirectory.ts b/step-02/src/reservations/acl/CarParksDirectory.ts
+index 395933ef4..0d5ee72d9 100644
+--- a/step-01/src/reservations/acl/CarParksDirectory.ts
++++ b/step-02/src/reservations/acl/CarParksDirectory.ts
+@@ -12,4 +12,8 @@ export class CarParksDirectory implements CarParkDirectory {
+   takeBays(carParkId: string, holder: string, bays: number): boolean {
+     return this.carParks.tryHoldBays(carParkId, holder, bays);
+   }
++
++  returnBays(carParkId: string, holder: string): void {
++    this.carParks.releaseBays(carParkId, holder);
++  }
+ }
+diff --git a/step-02/src/reservations/application/CancelReservation.ts b/step-02/src/reservations/application/CancelReservation.ts
+new file mode 100644
+index 000000000..d26f2401f
+--- /dev/null
++++ b/step-02/src/reservations/application/CancelReservation.ts
+@@ -0,0 +1,20 @@
++import { ReservationError } from '../domain/ReservationError';
++import type { ReservationRepository } from '../domain/reservation/ReservationRepository';
++import { ReservationId } from '../domain/reservation/value-objects/ReservationId';
++import type { CarParkDirectory } from './ports/CarParkDirectory';
++
++export class CancelReservation {
++  constructor(
++    private readonly reservations: ReservationRepository,
++    private readonly carParks: CarParkDirectory,
++  ) {}
++
++  execute(reservationId: string): void {
++    const reservation = this.reservations.byId(ReservationId.of(reservationId));
++    if (reservation === undefined) throw new ReservationError(`no reservation ${reservationId}`);
++    if (reservation.status === 'cancelled' || reservation.status === 'rejected') return;
++    if (reservation.status === 'confirmed') this.carParks.returnBays(reservation.carParkId, `reservation:${reservation.id.value}`);
++    reservation.cancel();
++    this.reservations.save(reservation);
++  }
++}
+diff --git a/step-01/src/reservations/application/ports/CarParkDirectory.ts b/step-02/src/reservations/application/ports/CarParkDirectory.ts
+index 94db952da..76d42c95a 100644
+--- a/step-01/src/reservations/application/ports/CarParkDirectory.ts
++++ b/step-02/src/reservations/application/ports/CarParkDirectory.ts
+@@ -3,4 +3,6 @@ export interface CarParkDirectory {
+   exists(carParkId: string): boolean;
+   /** Takes the bays for a holder if they are all free; false otherwise. */
+   takeBays(carParkId: string, holder: string, bays: number): boolean;
++  /** Gives back the bays taken for a holder. */
++  returnBays(carParkId: string, holder: string): void;
+ }
+diff --git a/step-01/src/reservations/domain/reservation/Reservation.ts b/step-02/src/reservations/domain/reservation/Reservation.ts
+index 269d8cf38..7226b7c51 100644
+--- a/step-01/src/reservations/domain/reservation/Reservation.ts
++++ b/step-02/src/reservations/domain/reservation/Reservation.ts
+@@ -3,7 +3,7 @@ import { ReservationError } from '../ReservationError';
+ import { ReservationRequested } from './events/ReservationRequested';
+ import type { ReservationId } from './value-objects/ReservationId';
+ 
+-export type ReservationStatus = 'requested' | 'confirmed' | 'rejected';
++export type ReservationStatus = 'requested' | 'confirmed' | 'rejected' | 'cancelled';
+ 
+ /** Bays one driver may reserve at once (a group arriving together). */
+ const MAX_BAYS = 6;
+@@ -48,7 +48,11 @@ export class Reservation {
+     this.current = 'rejected';
+   }
+ 
+-  get status(): ReservationStatus {
++  cancel(): void {
++    this.current = 'cancelled';
++  }
++
++  get status():ReservationStatus {
+     return this.current;
+   }
+ 
+diff --git a/step-01/src/reservations/index.ts b/step-02/src/reservations/index.ts
+index 68f4e24ef..d8463b1fd 100644
+--- a/step-01/src/reservations/index.ts
++++ b/step-02/src/reservations/index.ts
+@@ -1,3 +1,4 @@
++import { CancelReservation } from './application/CancelReservation';
+ import { GetReservation } from './application/GetReservation';
+ import { RequestReservation } from './application/RequestReservation';
+ import type { CarParkDirectory } from './application/ports/CarParkDirectory';
+@@ -9,12 +10,14 @@ export type { ReservationView } from './contracts/ReservationView';
+ /** What the rest of the system may call. */
+ export interface ReservationsModule {
+   reserve(driver: string, carParkId: string, bays: number): string;
++  cancel(reservationId: string): void;
+   reservation(reservationId: string): ReservationView | undefined;
+ }
+ 
+ export function createReservations(reservations: ReservationRepository, carParks: CarParkDirectory): ReservationsModule {
+   return {
+     reserve: (driver, carParkId, bays) => new RequestReservation(reservations, carParks).execute(driver, carParkId, bays),
++    cancel: (reservationId) => new CancelReservation(reservations, carParks).execute(reservationId),
+     reservation: (reservationId) => new GetReservation(reservations).execute(reservationId),
+   };
+ }

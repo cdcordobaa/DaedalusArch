@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The brewers want to record brew day in the system. Add brew(batchId, uses), where uses is a list of { lotId, kg }: brewing a planned batch takes those kilos out of each lot, and the batch is 'fermenting' from today. Stock and batch must always agree: after a brew every kilo the batch used is gone from its lot, and a refused brew leaves every lot and the batch exactly as they were. Refuse it (throw) when the batch does not exist ('no batch B-9999') or is not planned ('batch B-0001 is already brewed'), when the list is empty, when the same lot is listed twice, when a lot does not exist ('no lot L-9999'), when a lot does not have enough left (the message write-offs already give, for example 'not enough in lot L-0002: 3.50 kg left'), and when today is after a lot's best-before date ('lot L-0001 is past its best-before date 2026-10-20'). A lot can still be used on its best-before day.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c35/tsconfig.json

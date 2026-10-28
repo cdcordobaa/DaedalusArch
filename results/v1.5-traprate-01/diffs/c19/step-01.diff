@@ -1,0 +1,99 @@
+diff --git a/step-01/src/adapters/out/calendar/TempoLessonCalendar.ts b/step-01/src/adapters/out/calendar/TempoLessonCalendar.ts
+new file mode 100644
+index 000000000..ed5da6322
+--- /dev/null
++++ b/step-01/src/adapters/out/calendar/TempoLessonCalendar.ts
+@@ -0,0 +1,23 @@
++import type { Lesson } from '../../../domain/lessons/Lesson';
++import { formatTime } from '../../../domain/time/TimeOfDay';
++import type { LessonCalendar } from '../../../application/ports/out/LessonCalendar';
++import type { TempoCalendarClient } from './TempoCalendarClient';
++
++/** Lessons are APPOINTMENT events in the teacher's Tempo calendar, so teaching hours are untouched. */
++export class TempoLessonCalendar implements LessonCalendar {
++  constructor(private readonly tempo: TempoCalendarClient) {}
++
++  add(calendarId: string, lesson: Lesson, studentName: string): string {
++    return this.tempo.createEvent(calendarId, {
++      summary: `${lesson.instrument} lesson: ${studentName}`,
++      day: lesson.date,
++      startsAt: formatTime(lesson.slot.start),
++      endsAt: formatTime(lesson.slot.end),
++      category: 'APPOINTMENT',
++    });
++  }
++
++  remove(calendarId: string, reference: string): void {
++    this.tempo.deleteEvent(calendarId, reference);
++  }
++}
+diff --git a/step-01/src/application/ports/out/LessonCalendar.ts b/step-01/src/application/ports/out/LessonCalendar.ts
+new file mode 100644
+index 000000000..4a3bdaf07
+--- /dev/null
++++ b/step-01/src/application/ports/out/LessonCalendar.ts
+@@ -0,0 +1,8 @@
++import type { Lesson } from '../../../domain/lessons/Lesson';
++
++/** Puts booked lessons into the teacher's own calendar. */
++export interface LessonCalendar {
++  /** Adds the lesson to the calendar and answers a reference for removing it again. */
++  add(calendarId: string, lesson: Lesson, studentName: string): string;
++  remove(calendarId: string, reference: string): void;
++}
+diff --git a/step-00/src/application/workflows/BookingWorkflow.ts b/step-01/src/application/workflows/BookingWorkflow.ts
+index 0dddf4252..275679392 100644
+--- a/step-00/src/application/workflows/BookingWorkflow.ts
++++ b/step-01/src/application/workflows/BookingWorkflow.ts
+@@ -7,6 +7,7 @@ import { parseDate } from '../../domain/time/LessonDate';
+ import { parseTime } from '../../domain/time/TimeOfDay';
+ import type { BookingRequest, LessonDesk, LessonView } from '../ports/in/LessonDesk';
+ import type { Clock } from '../ports/out/Clock';
++import type { LessonCalendar } from '../ports/out/LessonCalendar';
+ import type { LessonLedger } from '../ports/out/LessonLedger';
+ import type { StudentRoll } from '../ports/out/StudentRoll';
+ import type { TeacherBook } from '../ports/out/TeacherBook';
+@@ -24,6 +25,7 @@ export class BookingWorkflow implements LessonDesk {
+     private readonly students: StudentRoll,
+     private readonly hours: TeachingHours,
+     private readonly clock: Clock,
++    private readonly calendar: LessonCalendar,
+   ) {}
+ 
+   book(request: BookingRequest): LessonView {
+@@ -41,7 +43,13 @@ export class BookingWorkflow implements LessonDesk {
+       throw new SchoolError(`${teacher.name} already has a lesson at ${date} ${request.start}`);
+     }
+     const lesson = Lesson.book(this.lessons.nextId(), student.id, teacher.id, instrument, date, start, request.minutes);
+-    this.lessons.save(lesson);
++    const eventId = this.calendar.add(teacher.calendarId, lesson, student.name);
++    try {
++      this.lessons.save(lesson);
++    } catch (e) {
++      this.calendar.remove(teacher.calendarId, eventId);
++      throw e;
++    }
+     return lessonView(lesson);
+   }
+ 
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index a26c1eac7..e2a4d4d5b 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -12,6 +12,7 @@ import { MemoryLessonLedger } from './adapters/out/memory/MemoryLessonLedger';
+ import { TempoCloud } from './adapters/out/calendar/TempoCloud';
+ import { TempoCalendarClient } from './adapters/out/calendar/TempoCalendarClient';
+ import { TempoTeachingHours } from './adapters/out/calendar/TempoTeachingHours';
++import { TempoLessonCalendar } from './adapters/out/calendar/TempoLessonCalendar';
+ import { SchoolClock } from './adapters/out/clock/SchoolClock';
+ import { TeacherWorkflow } from './application/workflows/TeacherWorkflow';
+ import { StudentWorkflow } from './application/workflows/StudentWorkflow';
+@@ -34,7 +35,7 @@ export function createApp(options: AppOptions = {}) {
+   return {
+     staff: new StaffRoutes(new TeacherWorkflow(teachers, hours)),
+     students: new StudentRoutes(new StudentWorkflow(students)),
+-    lessons: new LessonRoutes(new BookingWorkflow(lessons, teachers, students, hours, clock)),
++    lessons: new LessonRoutes(new BookingWorkflow(lessons, teachers, students, hours, clock, new TempoLessonCalendar(tempo))),
+     calendar: {
+       addHours: (calendarId: string, date: string, from: string, to: string): void => {
+         cloud.insert({ calendarId, summary: 'Teaching hours', day: date, startsAt: from, endsAt: to, category: 'TEACHING_HOURS' });

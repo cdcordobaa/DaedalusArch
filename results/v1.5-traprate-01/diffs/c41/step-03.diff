@@ -1,0 +1,169 @@
+diff --git a/step-02/src/enrolment/acl/PlacementGateway.ts b/step-03/src/enrolment/acl/PlacementGateway.ts
+index 335c4c9db..088d4a3d3 100644
+--- a/step-02/src/enrolment/acl/PlacementGateway.ts
++++ b/step-03/src/enrolment/acl/PlacementGateway.ts
+@@ -10,6 +10,10 @@ export class PlacementGateway implements StudentRegistry {
+     return this.desk.sheet(studentId) !== undefined;
+   }
+ 
++  creditCompletion(studentId: string, runId: string): void {
++    this.desk.creditCompletion(studentId, runId);
++  }
++
+   levelOf(studentId: string): Cefr | undefined {
+     return this.desk.sheet(studentId)?.level;
+   }
+diff --git a/step-03/src/enrolment/application/RaiseStanding.ts b/step-03/src/enrolment/application/RaiseStanding.ts
+new file mode 100644
+index 000000000..a61c05942
+--- /dev/null
++++ b/step-03/src/enrolment/application/RaiseStanding.ts
+@@ -0,0 +1,13 @@
++import type { SchoolEvent } from '../../shared-kernel/SchoolEvent';
++import type { CourseCompleted } from '../domain/course-run/events/CourseCompleted';
++import type { StudentRegistry } from './ports/StudentRegistry';
++
++/** Listener: a completed run adds to the student's standing. */
++export class RaiseStanding {
++  constructor(private readonly registry: StudentRegistry) {}
++
++  on(fact: SchoolEvent): void {
++    const done = fact as CourseCompleted;
++    this.registry.creditCompletion(done.studentId, done.runId);
++  }
++}
+diff --git a/step-02/src/enrolment/application/ports/StudentRegistry.ts b/step-03/src/enrolment/application/ports/StudentRegistry.ts
+index d0ae6ef36..13e848673 100644
+--- a/step-02/src/enrolment/application/ports/StudentRegistry.ts
++++ b/step-03/src/enrolment/application/ports/StudentRegistry.ts
+@@ -3,6 +3,8 @@ import type { Cefr } from '../../../shared-kernel/Cefr';
+ /** What the course desk needs to know about students. */
+ export interface StudentRegistry {
+   isRegistered(studentId: string): boolean;
++  /** Adds a completed run to the student's standing; repeating the same run changes nothing. */
++  creditCompletion(studentId: string, runId: string): void;
+   /** The level on the student's progress sheet, or undefined when the student is unknown. */
+   levelOf(studentId: string): Cefr | undefined;
+ }
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 80a019efb..e6a5ea781 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -5,6 +5,7 @@ import { EventPump } from './enrolment/application/EventPump';
+ import { IssueCertificate } from './enrolment/application/IssueCertificate';
+ import { JoinCourse, type JoinConfirmation } from './enrolment/application/JoinCourse';
+ import { OpenCourse } from './enrolment/application/OpenCourse';
++import { RaiseStanding } from './enrolment/application/RaiseStanding';
+ import { MemoryCertificateBook } from './enrolment/infrastructure/MemoryCertificateBook';
+ import { MemoryCourseRunStore } from './enrolment/infrastructure/MemoryCourseRunStore';
+ import { MemoryLearnerStore } from './placement/infrastructure/MemoryLearnerStore';
+@@ -18,8 +19,10 @@ export function createApp() {
+   const book = new MemoryCertificateBook();
+   const pump = new EventPump(runs);
+   const certificates = new IssueCertificate(book, new CertificateWording(learners));
+-  pump.subscribe('CourseCompleted', (fact) => certificates.on(fact));
+   const registry = new PlacementGateway(desk);
++  const standing = new RaiseStanding(registry);
++  pump.subscribe('CourseCompleted', (fact) => standing.on(fact));
++  pump.subscribe('CourseCompleted', (fact) => certificates.on(fact));
+   const thenHandOn = <R>(work: () => R): R => {
+     const out = work();
+     pump.drain();
+diff --git a/step-03/src/placement/application/creditCompletion.ts b/step-03/src/placement/application/creditCompletion.ts
+new file mode 100644
+index 000000000..a4dd30486
+--- /dev/null
++++ b/step-03/src/placement/application/creditCompletion.ts
+@@ -0,0 +1,9 @@
++import type { LearnerStore } from '../domain/learner/LearnerStore';
++import { StudentId } from '../domain/learner/value-objects/StudentId';
++
++export function creditCompletion(learners: LearnerStore, studentId: string, runId: string): void {
++  const learner = learners.find(StudentId.from(studentId));
++  if (learner === undefined) throw new Error(`no student ${studentId}`);
++  learner.creditCompletion(runId);
++  learners.put(learner);
++}
+diff --git a/step-02/src/placement/domain/learner/Learner.ts b/step-03/src/placement/domain/learner/Learner.ts
+index 7801054f2..baa7db330 100644
+--- a/step-02/src/placement/domain/learner/Learner.ts
++++ b/step-03/src/placement/domain/learner/Learner.ts
+@@ -6,10 +6,12 @@ export interface LearnerSnapshot {
+   readonly id: string;
+   readonly name: string;
+   readonly bestScore: number | null;
++  /** Runs whose completion has already been added to the standing. */
++  readonly credited?: readonly string[];
+ }
+ 
+ /**
+- * A student as the placement office knows them. The standing is the best placement test score (0 before any test);
++ * A student as the placement office knows them. The standing is the best placement test score (0 before any test), plus 5 for each completed course, at most 100;
+  * the CEFR level follows from the standing and nothing else decides it.
+  */
+ export class Learner {
+@@ -17,6 +19,7 @@ export class Learner {
+     readonly id: StudentId,
+     readonly name: string,
+     private bestScore: number | null,
++    private credited: readonly string[] = [],
+   ) {}
+ 
+   static register(id: StudentId, name: string): Learner {
+@@ -26,7 +29,7 @@ export class Learner {
+   }
+ 
+   static fromSnapshot(s: LearnerSnapshot): Learner {
+-    return new Learner(StudentId.from(s.id), s.name, s.bestScore);
++    return new Learner(StudentId.from(s.id), s.name, s.bestScore, s.credited ?? []);
+   }
+ 
+   /** A placement test result: a whole number from 0 to 100. Only the best result counts. */
+@@ -35,6 +38,13 @@ export class Learner {
+     if (this.bestScore === null || score > this.bestScore) this.bestScore = score;
+   }
+ 
++  /** A completed course run adds 5 to the standing, up to 100. A run is credited only once. */
++  creditCompletion(runId: string): void {
++    if (this.credited.includes(runId)) return;
++    this.credited = [...this.credited, runId];
++    this.bestScore = Math.min(100, this.standing() + 5);
++  }
++
+   standing(): number {
+     return this.bestScore ?? 0;
+   }
+@@ -44,6 +54,6 @@ export class Learner {
+   }
+ 
+   snapshot(): LearnerSnapshot {
+-    return { id: this.id.raw, name: this.name, bestScore: this.bestScore };
++    return { id: this.id.raw, name: this.name, bestScore: this.bestScore, credited: [...this.credited] };
+   }
+ }
+diff --git a/step-02/src/placement/published/PlacementDesk.ts b/step-03/src/placement/published/PlacementDesk.ts
+index fa6342e86..b1bfd8ca1 100644
+--- a/step-02/src/placement/published/PlacementDesk.ts
++++ b/step-03/src/placement/published/PlacementDesk.ts
+@@ -1,3 +1,4 @@
++import { creditCompletion } from '../application/creditCompletion';
+ import { readProgressSheet } from '../application/readProgressSheet';
+ import { recordTestScore } from '../application/recordTestScore';
+ import { registerStudent } from '../application/registerStudent';
+@@ -11,6 +12,8 @@ export type { ProgressSheet } from './ProgressSheet';
+ export interface PlacementDesk {
+   register(name: string): string;
+   recordTest(studentId: string, score: number): void;
++  /** Adds a completed course run to the student's standing; crediting the same run again changes nothing. */
++  creditCompletion(studentId: string, runId: string): void;
+   sheet(studentId: string): ProgressSheet | undefined;
+ }
+ 
+@@ -18,6 +21,7 @@ export function openPlacementDesk(learners: LearnerStore = new MemoryLearnerStor
+   return {
+     register: (name) => registerStudent(learners, name),
+     recordTest: (studentId, score) => recordTestScore(learners, studentId, score),
++    creditCompletion: (studentId, runId) => creditCompletion(learners, studentId, runId),
+     sheet: (studentId) => readProgressSheet(learners, studentId),
+   };
+ }

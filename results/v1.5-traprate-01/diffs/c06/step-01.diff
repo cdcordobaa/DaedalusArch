@@ -1,0 +1,155 @@
+diff --git a/step-00/src/adapters/in/desk/DispatchDesk.ts b/step-01/src/adapters/in/desk/DispatchDesk.ts
+index 739bf8fd1..93e8cb041 100644
+--- a/step-00/src/adapters/in/desk/DispatchDesk.ts
++++ b/step-01/src/adapters/in/desk/DispatchDesk.ts
+@@ -1,4 +1,4 @@
+-import type { AssignRider, PostJob, RecordPickup, RiderShifts, ViewJob } from '../../../application/ports/in/Dispatching';
++import type { AssignRider, PostJob, RecordPickup, RiderShifts, RiderSuggestion, SuggestRider, ViewJob } from '../../../application/ports/in/Dispatching';
+ import type { JobView } from '../../../domain/DeliveryJob';
+ import type { LatLng } from '../../../domain/geo';
+ import type { RiderView } from '../../../domain/Rider';
+@@ -9,6 +9,7 @@ export interface DeskOperations {
+   readonly pickup: RecordPickup;
+   readonly view: ViewJob;
+   readonly shifts: RiderShifts;
++  readonly suggest: SuggestRider;
+ }
+ 
+ /** What the dispatchers' screen calls. Refusals are thrown as errors whose message the screen shows. */
+@@ -38,4 +39,8 @@ export class DispatchDesk {
+   job(jobId: string): JobView {
+     return this.ops.view.run(jobId);
+   }
++
++  suggestRider(jobId: string): Promise<RiderSuggestion | null> {
++    return this.ops.suggest.run(jobId);
++  }
+ }
+diff --git a/step-01/src/adapters/out/gps/TrackpointPositions.ts b/step-01/src/adapters/out/gps/TrackpointPositions.ts
+new file mode 100644
+index 000000000..cceb19a68
+--- /dev/null
++++ b/step-01/src/adapters/out/gps/TrackpointPositions.ts
+@@ -0,0 +1,13 @@
++import type { RiderPosition, RiderPositions } from '../../../application/ports/out/RiderPositions';
++import type { TrackpointClient } from './TrackpointClient';
++
++/** Reads rider positions from Trackpoint, converting 1e-7 degrees and epoch milliseconds. */
++export class TrackpointPositions implements RiderPositions {
++  constructor(private readonly client: TrackpointClient) {}
++
++  async latest(trackerId: string): Promise<RiderPosition | null> {
++    const fix = await this.client.lastFix(trackerId);
++    if (fix === null) return null;
++    return { point: { lat: fix.latE7 / 1e7, lng: fix.lonE7 / 1e7 }, at: new Date(fix.fixedAtMs) };
++  }
++}
+diff --git a/step-00/src/application/ports/in/Dispatching.ts b/step-01/src/application/ports/in/Dispatching.ts
+index 0279a96a4..6995706d3 100644
+--- a/step-00/src/application/ports/in/Dispatching.ts
++++ b/step-01/src/application/ports/in/Dispatching.ts
+@@ -18,6 +18,15 @@ export interface ViewJob {
+   run(jobId: string): JobView;
+ }
+ 
++export interface RiderSuggestion {
++  readonly riderId: string;
++  readonly distanceMeters: number;
++}
++
++export interface SuggestRider {
++  run(jobId: string): Promise<RiderSuggestion | null>;
++}
++
+ export interface RiderShifts {
+   register(request: { name: string; trackerId: string }): RiderView;
+   clockOff(riderId: string): RiderView;
+diff --git a/step-01/src/application/ports/out/RiderPositions.ts b/step-01/src/application/ports/out/RiderPositions.ts
+new file mode 100644
+index 000000000..490207d27
+--- /dev/null
++++ b/step-01/src/application/ports/out/RiderPositions.ts
+@@ -0,0 +1,11 @@
++import type { LatLng } from '../../../domain/geo';
++
++export interface RiderPosition {
++  readonly point: LatLng;
++  readonly at: Date;
++}
++
++export interface RiderPositions {
++  /** The tracker's latest known position, or null when there is none. */
++  latest(trackerId: string): Promise<RiderPosition | null>;
++}
+diff --git a/step-01/src/application/usecases/SuggestRiderCase.ts b/step-01/src/application/usecases/SuggestRiderCase.ts
+new file mode 100644
+index 000000000..923cdb2da
+--- /dev/null
++++ b/step-01/src/application/usecases/SuggestRiderCase.ts
+@@ -0,0 +1,39 @@
++import { DispatchRefusal } from '../../domain/DispatchRefusal';
++import { metersBetween } from '../../domain/geo';
++import type { RiderSuggestion, SuggestRider } from '../ports/in/Dispatching';
++import type { Clock } from '../ports/out/Clock';
++import type { JobLedger } from '../ports/out/JobLedger';
++import type { RiderPositions } from '../ports/out/RiderPositions';
++import type { RiderRoster } from '../ports/out/RiderRoster';
++import { jobHeldBy, requireJob } from './lookups';
++
++const MAX_POSITION_AGE_MS = 10 * 60 * 1000;
++
++/** Suggests the free, on-shift rider with a fresh position closest to a waiting job's pickup. */
++export class SuggestRiderCase implements SuggestRider {
++  constructor(
++    private readonly ledger: JobLedger,
++    private readonly roster: RiderRoster,
++    private readonly positions: RiderPositions,
++    private readonly clock: Clock,
++  ) {}
++
++  async run(jobId: string): Promise<RiderSuggestion | null> {
++    const job = requireJob(this.ledger, jobId);
++    if (job.currentStatus !== 'waiting') throw new DispatchRefusal(`job ${job.id} is not waiting`);
++    const nowMs = this.clock.now().getTime();
++    let best: RiderSuggestion | null = null;
++    let bestMeters = Infinity;
++    for (const rider of this.roster.list()) {
++      if (!rider.isOnShift || jobHeldBy(this.ledger, rider.id) !== undefined) continue;
++      const position = await this.positions.latest(rider.trackerId);
++      if (position === null || nowMs - position.at.getTime() > MAX_POSITION_AGE_MS) continue;
++      const meters = metersBetween(job.pickup, position.point);
++      if (meters < bestMeters) {
++        bestMeters = meters;
++        best = { riderId: rider.id, distanceMeters: Math.round(meters) };
++      }
++    }
++    return best;
++  }
++}
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index 5fb225127..3bb37aae6 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -1,4 +1,6 @@
+ import { DispatchDesk } from './adapters/in/desk/DispatchDesk';
++import { TrackpointClient } from './adapters/out/gps/TrackpointClient';
++import { TrackpointPositions } from './adapters/out/gps/TrackpointPositions';
+ import { MemoryJobLedger } from './adapters/out/memory/MemoryJobLedger';
+ import { MemoryRiderRoster } from './adapters/out/memory/MemoryRiderRoster';
+ import { FixedClock, SystemClock } from './adapters/out/time/clocks';
+@@ -7,6 +9,7 @@ import { AssignRiderCase } from './application/usecases/AssignRiderCase';
+ import { PostJobCase } from './application/usecases/PostJobCase';
+ import { RecordPickupCase } from './application/usecases/RecordPickupCase';
+ import { RiderShiftsCase } from './application/usecases/RiderShiftsCase';
++import { SuggestRiderCase } from './application/usecases/SuggestRiderCase';
+ import { ViewJobCase } from './application/usecases/ViewJobCase';
+ 
+ export interface AppOptions {
+@@ -25,6 +28,7 @@ export function createApp(options: AppOptions = {}) {
+     pickup: new RecordPickupCase(ledger, clock),
+     view: new ViewJobCase(ledger),
+     shifts: new RiderShiftsCase(roster),
++    suggest: new SuggestRiderCase(ledger, roster, new TrackpointPositions(new TrackpointClient()), clock),
+   });
+   return { dispatch };
+ }

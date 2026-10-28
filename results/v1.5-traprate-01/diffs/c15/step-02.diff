@@ -1,0 +1,81 @@
+diff --git a/step-01/src/adapters/in/http/OrderRoutes.ts b/step-02/src/adapters/in/http/OrderRoutes.ts
+index a87e4fd67..4306a70cc 100644
+--- a/step-01/src/adapters/in/http/OrderRoutes.ts
++++ b/step-02/src/adapters/in/http/OrderRoutes.ts
+@@ -12,4 +12,8 @@ export class OrderRoutes {
+   order(orderId: string): Reply {
+     return reply(() => this.ordering.order(orderId));
+   }
++
++  cancelOrder(orderId: string): Reply {
++    return reply(() => this.ordering.cancelOrder(orderId));
++  }
+ }
+diff --git a/step-01/src/application/ports/in/Ordering.ts b/step-02/src/application/ports/in/Ordering.ts
+index 8d46a23c0..265602a04 100644
+--- a/step-01/src/application/ports/in/Ordering.ts
++++ b/step-02/src/application/ports/in/Ordering.ts
+@@ -10,4 +10,5 @@ export interface OrderView {
+ export interface Ordering {
+   place(pupilId: string, dishId: string, date: unknown): OrderView;
+   order(orderId: string): OrderView;
++  cancelOrder(orderId: string): OrderView;
+ }
+diff --git a/step-01/src/application/usecases/KitchenService.ts b/step-02/src/application/usecases/KitchenService.ts
+index d80d5533a..db46ee0f1 100644
+--- a/step-01/src/application/usecases/KitchenService.ts
++++ b/step-02/src/application/usecases/KitchenService.ts
+@@ -17,6 +17,7 @@ export class KitchenService implements Kitchen {
+     const day = requireDate(date);
+     const byDish = new Map<string, TallyLine>();
+     for (const o of this.orders.onDate(day)) {
++      if (o.status === 'cancelled') continue;
+       let line = byDish.get(o.dishId);
+       if (line === undefined) {
+         const dish = this.dishes.byId(o.dishId);
+diff --git a/step-01/src/application/usecases/OrderingService.ts b/step-02/src/application/usecases/OrderingService.ts
+index 25e2d3efb..8d09347d1 100644
+--- a/step-01/src/application/usecases/OrderingService.ts
++++ b/step-02/src/application/usecases/OrderingService.ts
+@@ -40,4 +40,19 @@ export class OrderingService implements Ordering {
+     if (o === null) throw new CanteenError(`no order ${orderId}`);
+     return view(o);
+   }
++
++  /** Cancelling closes, like ordering, at the end of the day before the meal. */
++  cancelOrder(orderId: string): OrderView {
++    const o = this.orders.byId(orderId);
++    if (o === null) throw new CanteenError(`no order ${orderId}`);
++    if (o.status === 'cancelled') throw new CanteenError(`order ${o.id} is cancelled`);
++    if (o.servingDate <= this.today.date()) throw new CanteenError(`order ${o.id} can no longer be cancelled`);
++    const pupil = this.pupils.byId(o.pupilId);
++    if (pupil === null) throw new CanteenError(`no pupil ${o.pupilId}`);
++    pupil.credit(o.price);
++    o.cancel();
++    this.pupils.save(pupil);
++    this.orders.save(o);
++    return view(o);
++  }
+ }
+diff --git a/step-01/src/domain/model/MealOrder.ts b/step-02/src/domain/model/MealOrder.ts
+index cfa23b179..231a20724 100644
+--- a/step-01/src/domain/model/MealOrder.ts
++++ b/step-02/src/domain/model/MealOrder.ts
+@@ -1,7 +1,7 @@
+ import type { Pence } from './Pence';
+ import type { SchoolDate } from './SchoolDate';
+ 
+-export type OrderStatus = 'placed';
++export type OrderStatus = 'placed' | 'cancelled';
+ 
+ /** One meal ordered for one pupil on one serving day, paid when placed. */
+ export class MealOrder {
+@@ -18,4 +18,8 @@ export class MealOrder {
+   get status(): OrderStatus {
+     return this.currentStatus;
+   }
++
++  cancel(): void {
++    this.currentStatus = 'cancelled';
++  }
+ }

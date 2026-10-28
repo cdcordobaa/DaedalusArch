@@ -1,0 +1,122 @@
+diff --git a/step-01/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts b/step-02/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts
+index 2ae21a728..650a6b44a 100644
+--- a/step-01/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts
++++ b/step-02/src/adapters/outbound/geopin/GeopinAddressGeocoder.ts
+@@ -1,5 +1,5 @@
+-import type { GeopinClient } from 'geopin-sdk';
+-import type { AddressGeocoder } from '../../../application/ports/out/AddressGeocoder';
++import { GeopinUnavailableError, type GeopinClient } from 'geopin-sdk';
++import { GeocoderUnavailableError, type AddressGeocoder } from '../../../application/ports/out/AddressGeocoder';
+ import type { DeliveryAddress } from '../../../domain/model/DeliveryAddress';
+ import type { GeocodedAddress } from '../../../domain/model/GeocodedAddress';
+ 
+@@ -7,10 +7,16 @@ export class GeopinAddressGeocoder implements AddressGeocoder {
+   constructor(private readonly client: GeopinClient) {}
+ 
+   async geocode(address: DeliveryAddress): Promise<GeocodedAddress | undefined> {
+-    const result = await this.client.geocode({
+-      query: { addressLine: address.street, postalCode: address.postcode, locality: address.city },
+-      countryIso: address.country,
+-    });
++    let result;
++    try {
++      result = await this.client.geocode({
++        query: { addressLine: address.street, postalCode: address.postcode, locality: address.city },
++        countryIso: address.country,
++      });
++    } catch (e) {
++      if (e instanceof GeopinUnavailableError) throw new GeocoderUnavailableError();
++      throw e;
++    }
+     const best = result.matches[0];
+     if (!best) return undefined;
+     return {
+diff --git a/step-01/src/application/ports/in/ScheduleDelivery.ts b/step-02/src/application/ports/in/ScheduleDelivery.ts
+index efc06eafc..ea329f0f6 100644
+--- a/step-01/src/application/ports/in/ScheduleDelivery.ts
++++ b/step-02/src/application/ports/in/ScheduleDelivery.ts
+@@ -13,7 +13,8 @@ export type DeliveryView =
+       readonly orderId: string;
+       readonly status: 'scheduled';
+       readonly address: string;
+-      readonly point: GeoPoint;
++      readonly point?: GeoPoint;
++      readonly unverified: boolean;
+     }
+   | {
+       readonly orderId: string;
+diff --git a/step-01/src/application/ports/out/AddressGeocoder.ts b/step-02/src/application/ports/out/AddressGeocoder.ts
+index cf145d8d3..c9cb99da4 100644
+--- a/step-01/src/application/ports/out/AddressGeocoder.ts
++++ b/step-02/src/application/ports/out/AddressGeocoder.ts
+@@ -1,6 +1,9 @@
+ import type { DeliveryAddress } from '../../../domain/model/DeliveryAddress';
+ import type { GeocodedAddress } from '../../../domain/model/GeocodedAddress';
+ 
++/** Thrown by a geocoder that cannot be reached. */
++export class GeocoderUnavailableError extends Error {}
++
+ /** Looks up an address; resolves to the best match, or undefined when there is none. */
+ export interface AddressGeocoder {
+   geocode(address: DeliveryAddress): Promise<GeocodedAddress | undefined>;
+diff --git a/step-01/src/application/services/ScheduleDeliveryService.ts b/step-02/src/application/services/ScheduleDeliveryService.ts
+index f3297cdec..ac790383d 100644
+--- a/step-01/src/application/services/ScheduleDeliveryService.ts
++++ b/step-02/src/application/services/ScheduleDeliveryService.ts
+@@ -1,7 +1,7 @@
+ import { DeliveryAddress } from '../../domain/model/DeliveryAddress';
+ import { DeliveryBooking } from '../../domain/services/DeliveryBooking';
+ import type { DeliveryRequest, DeliveryView, ScheduleDelivery } from '../ports/in/ScheduleDelivery';
+-import type { AddressGeocoder } from '../ports/out/AddressGeocoder';
++import { GeocoderUnavailableError, type AddressGeocoder } from '../ports/out/AddressGeocoder';
+ 
+ export class ScheduleDeliveryService implements ScheduleDelivery {
+   constructor(
+@@ -11,7 +11,12 @@ export class ScheduleDeliveryService implements ScheduleDelivery {
+ 
+   async schedule(request: DeliveryRequest): Promise<DeliveryView> {
+     const address = DeliveryAddress.of(request.street, request.postcode, request.city, request.country);
+-    const match = await this.geocoder.geocode(address);
+-    return this.booking.book(request.orderId, match);
++    try {
++      const match = await this.geocoder.geocode(address);
++      return this.booking.book(request.orderId, match);
++    } catch (e) {
++      if (e instanceof GeocoderUnavailableError) return this.booking.bookUnverified(request.orderId, address.oneLine());
++      throw e;
++    }
+   }
+ }
+diff --git a/step-01/src/domain/model/Delivery.ts b/step-02/src/domain/model/Delivery.ts
+index 0594edca6..3a648a7ee 100644
+--- a/step-01/src/domain/model/Delivery.ts
++++ b/step-02/src/domain/model/Delivery.ts
+@@ -5,7 +5,10 @@ export interface ScheduledDelivery {
+   readonly orderId: string;
+   readonly status: 'scheduled';
+   readonly address: string;
+-  readonly point: GeoPoint;
++  /** Absent when the address could not be verified. */
++  readonly point?: GeoPoint;
++  /** True when the address was not checked by the geocoder. */
++  readonly unverified: boolean;
+ }
+ 
+ /** An order whose address could not be located precisely enough; nothing is scheduled. */
+diff --git a/step-01/src/domain/services/DeliveryBooking.ts b/step-02/src/domain/services/DeliveryBooking.ts
+index 2f1e302a9..0d8a2e684 100644
+--- a/step-01/src/domain/services/DeliveryBooking.ts
++++ b/step-02/src/domain/services/DeliveryBooking.ts
+@@ -13,6 +13,11 @@ export class DeliveryBooking {
+     ) {
+       return { orderId, status: 'rejected', reason: 'We could not find this address.' };
+     }
+-    return { orderId, status: 'scheduled', address: match.address, point: match.point };
++    return { orderId, status: 'scheduled', address: match.address, point: match.point, unverified: false };
++  }
++
++  /** Books to the address as typed, when the geocoder is unavailable. */
++  bookUnverified(orderId: string, address: string): Delivery {
++    return { orderId, status: 'scheduled', address, unverified: true };
+   }
+ }

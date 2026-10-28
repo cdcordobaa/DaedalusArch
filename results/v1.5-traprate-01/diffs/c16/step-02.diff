@@ -1,0 +1,87 @@
+diff --git a/step-01/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts b/step-02/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
+index d3208b159..99cdcb6d5 100644
+--- a/step-01/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
++++ b/step-02/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
+@@ -1,5 +1,5 @@
+-import type { PaystreamClient } from 'paystream-sdk';
+-import type { Charges, ChargeReceipt } from '../../../application/ports/out/Charges';
++import { PaystreamUnavailableError, type PaystreamClient } from 'paystream-sdk';
++import { ChargesUnavailableError, type Charges, type ChargeReceipt } from '../../../application/ports/out/Charges';
+ import { PaymentError } from '../../../domain/errors/PaymentError';
+ import type { Money } from '../../../domain/model/Money';
+ 
+@@ -7,13 +7,19 @@ export class PaystreamChargesAdapter implements Charges {
+   constructor(private readonly client: PaystreamClient) {}
+ 
+   async charge(cardToken: string, amount: Money, orderId: string): Promise<ChargeReceipt> {
+-    const charge = await this.client.charge({
+-      amountMinor: amount.cents,
+-      currency: amount.currency,
+-      source: { token: cardToken },
+-      captureMethod: 'automatic',
+-      merchantReference: orderId,
+-    });
++    let charge;
++    try {
++      charge = await this.client.charge({
++        amountMinor: amount.cents,
++        currency: amount.currency,
++        source: { token: cardToken },
++        captureMethod: 'automatic',
++        merchantReference: orderId,
++      });
++    } catch (e) {
++      if (e instanceof PaystreamUnavailableError) throw new ChargesUnavailableError(e.message);
++      throw e;
++    }
+     if (charge.state !== 'SUCCEEDED') {
+       throw new PaymentError(`card payment declined${charge.declineCode ? `: ${charge.declineCode}` : ''}`);
+     }
+diff --git a/step-01/src/application/ports/out/Charges.ts b/step-02/src/application/ports/out/Charges.ts
+index df3a9cab4..fbcbb1ceb 100644
+--- a/step-01/src/application/ports/out/Charges.ts
++++ b/step-02/src/application/ports/out/Charges.ts
+@@ -4,7 +4,11 @@ export interface ChargeReceipt {
+   readonly reference: string;
+ }
+ 
+-/** Takes a card payment, in the application's own terms. Throws PaymentError when the card is refused. */
++/** Thrown when the payment provider cannot be reached or is down. */
++export class ChargesUnavailableError extends Error {}
++
++/** Takes a card payment, in the application's own terms. Throws PaymentError when the card is refused,
++ * ChargesUnavailableError when the provider is unavailable. */
+ export interface Charges {
+   charge(cardToken: string, amount: Money, orderId: string): Promise<ChargeReceipt>;
+ }
+diff --git a/step-01/src/application/services/CheckoutService.ts b/step-02/src/application/services/CheckoutService.ts
+index 7fe79df24..87377f1ab 100644
+--- a/step-01/src/application/services/CheckoutService.ts
++++ b/step-02/src/application/services/CheckoutService.ts
+@@ -2,7 +2,8 @@ import { PaymentError } from '../../domain/errors/PaymentError';
+ import { Money } from '../../domain/model/Money';
+ import { Order } from '../../domain/model/Order';
+ import type { Checkout, CheckoutRequest, CheckoutView } from '../ports/in/Checkout';
+-import type { Charges } from '../ports/out/Charges';
++import { Invoicing } from '../../domain/services/Invoicing';
++import { ChargesUnavailableError, type Charges } from '../ports/out/Charges';
+ 
+ /** Card surcharge of 1.5%, expressed per thousand so the calculation stays in integers. */
+ const SURCHARGE_PER_THOUSAND = 15;
+@@ -16,7 +17,15 @@ export class CheckoutService implements Checkout {
+     // Rounds half up to the nearest cent.
+     const surcharge = Math.floor((order.total.cents * SURCHARGE_PER_THOUSAND + 500) / 1000);
+     const charged = order.total.plus(Money.ofCents(surcharge, order.total.currency));
+-    const receipt = await this.charges.charge(request.cardToken, charged, order.id);
++    let receipt;
++    try {
++      receipt = await this.charges.charge(request.cardToken, charged, order.id);
++    } catch (e) {
++      if (!(e instanceof ChargesUnavailableError)) throw e;
++      // Provider down: fall back to an invoice for the plain order total, no surcharge.
++      const invoice = new Invoicing().invoiceFor(order);
++      return { orderId: order.id, status: invoice.status, amount: invoice.amount.amount(), currency: invoice.amount.currency, reference: invoice.reference };
++    }
+     return { orderId: order.id, status: 'paid', amount: charged.amount(), currency: charged.currency, reference: receipt.reference };
+   }
+ }

@@ -1,0 +1,91 @@
+diff --git a/step-02/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts b/step-03/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
+index 99cdcb6d5..fb3c8ce6e 100644
+--- a/step-02/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
++++ b/step-03/src/adapters/outbound/paystream/PaystreamChargesAdapter.ts
+@@ -1,6 +1,5 @@
+ import { PaystreamUnavailableError, type PaystreamClient } from 'paystream-sdk';
+-import { ChargesUnavailableError, type Charges, type ChargeReceipt } from '../../../application/ports/out/Charges';
+-import { PaymentError } from '../../../domain/errors/PaymentError';
++import { ChargesDeclinedError, ChargesUnavailableError, type Charges, type ChargeReceipt } from '../../../application/ports/out/Charges';
+ import type { Money } from '../../../domain/model/Money';
+ 
+ export class PaystreamChargesAdapter implements Charges {
+@@ -21,7 +20,11 @@ export class PaystreamChargesAdapter implements Charges {
+       throw e;
+     }
+     if (charge.state !== 'SUCCEEDED') {
+-      throw new PaymentError(`card payment declined${charge.declineCode ? `: ${charge.declineCode}` : ''}`);
++      const reason =
++        charge.declineCode === 'insufficient_funds' ? 'insufficient_funds'
++        : charge.declineCode === 'expired_card' ? 'expired_card'
++        : 'other';
++      throw new ChargesDeclinedError(reason, `card payment declined${charge.declineCode ? `: ${charge.declineCode}` : ''}`);
+     }
+     return { reference: charge.chargeId };
+   }
+diff --git a/step-02/src/application/ports/in/Checkout.ts b/step-03/src/application/ports/in/Checkout.ts
+index d118cac95..47002e8bd 100644
+--- a/step-02/src/application/ports/in/Checkout.ts
++++ b/step-03/src/application/ports/in/Checkout.ts
+@@ -12,6 +12,8 @@ export interface CheckoutView {
+   readonly amount: number;
+   readonly currency: string;
+   readonly reference: string;
++  /** A message for the customer, set when the card was declined. */
++  readonly message?: string;
+ }
+ 
+ export interface Checkout {
+diff --git a/step-02/src/application/ports/out/Charges.ts b/step-03/src/application/ports/out/Charges.ts
+index fbcbb1ceb..478ac7b58 100644
+--- a/step-02/src/application/ports/out/Charges.ts
++++ b/step-03/src/application/ports/out/Charges.ts
+@@ -7,7 +7,17 @@ export interface ChargeReceipt {
+ /** Thrown when the payment provider cannot be reached or is down. */
+ export class ChargesUnavailableError extends Error {}
+ 
+-/** Takes a card payment, in the application's own terms. Throws PaymentError when the card is refused,
++export type DeclineReason = 'insufficient_funds' | 'expired_card' | 'other';
++
++/** Thrown when the card is refused by the payment provider. */
++export class ChargesDeclinedError extends Error {
++  constructor(readonly reason: DeclineReason, message?: string) {
++    super(message ?? `card payment declined: ${reason}`);
++    this.name = 'ChargesDeclinedError';
++  }
++}
++
++/** Takes a card payment, in the application's own terms. Throws ChargesDeclinedError when the card is refused,
+  * ChargesUnavailableError when the provider is unavailable. */
+ export interface Charges {
+   charge(cardToken: string, amount: Money, orderId: string): Promise<ChargeReceipt>;
+diff --git a/step-02/src/application/services/CheckoutService.ts b/step-03/src/application/services/CheckoutService.ts
+index 87377f1ab..4a146b5fb 100644
+--- a/step-02/src/application/services/CheckoutService.ts
++++ b/step-03/src/application/services/CheckoutService.ts
+@@ -3,7 +3,13 @@ import { Money } from '../../domain/model/Money';
+ import { Order } from '../../domain/model/Order';
+ import type { Checkout, CheckoutRequest, CheckoutView } from '../ports/in/Checkout';
+ import { Invoicing } from '../../domain/services/Invoicing';
+-import { ChargesUnavailableError, type Charges } from '../ports/out/Charges';
++import { ChargesDeclinedError, ChargesUnavailableError, type Charges, type DeclineReason } from '../ports/out/Charges';
++
++const DECLINE_MESSAGES: Record<DeclineReason, string> = {
++  insufficient_funds: 'Your card has insufficient funds.',
++  expired_card: 'Your card has expired.',
++  other: 'Your card was declined.',
++};
+ 
+ /** Card surcharge of 1.5%, expressed per thousand so the calculation stays in integers. */
+ const SURCHARGE_PER_THOUSAND = 15;
+@@ -21,6 +27,10 @@ export class CheckoutService implements Checkout {
+     try {
+       receipt = await this.charges.charge(request.cardToken, charged, order.id);
+     } catch (e) {
++      if (e instanceof ChargesDeclinedError) {
++        // Declined card: no order, no invoice.
++        return { orderId: order.id, status: 'declined', amount: 0, currency: order.total.currency, reference: '', message: DECLINE_MESSAGES[e.reason] };
++      }
+       if (!(e instanceof ChargesUnavailableError)) throw e;
+       // Provider down: fall back to an invoice for the plain order total, no surcharge.
+       const invoice = new Invoicing().invoiceFor(order);

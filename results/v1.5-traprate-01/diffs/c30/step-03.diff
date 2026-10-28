@@ -1,0 +1,137 @@
+diff --git a/step-02/src/adapters/outbound/routekit/RouteKitDriveTimes.ts b/step-03/src/adapters/outbound/routekit/RouteKitDriveTimes.ts
+index 7542b32c7..a58a1b49c 100644
+--- a/step-02/src/adapters/outbound/routekit/RouteKitDriveTimes.ts
++++ b/step-03/src/adapters/outbound/routekit/RouteKitDriveTimes.ts
+@@ -1,5 +1,5 @@
+ import { RouteKitQuotaError, type RouteKitClient } from 'routekit-sdk';
+-import { DriveTimesQuotaExhausted, type DriveTimes } from '../../../application/outbound/DriveTimes';
++import { DriveTimesQuotaExhausted, type Drive, type DriveTimes } from '../../../application/outbound/DriveTimes';
+ import type { Location } from '../../../domain/Location';
+ 
+ /** RouteKit's road time by car through the stops, in order. */
+@@ -7,12 +7,19 @@ export class RouteKitDriveTimes implements DriveTimes {
+   constructor(private readonly client: RouteKitClient) {}
+ 
+   async seconds(stops: readonly Location[]): Promise<number> {
++    return (await this.drive(stops)).seconds;
++  }
++
++  async drive(stops: readonly Location[]): Promise<Drive> {
+     try {
+       const route = await this.client.route({
+         waypoints: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
+         profile: 'CAR',
+       });
+-      return route.totalDurationSec;
++      return {
++        seconds: route.totalDurationSec,
++        usesFerry: route.legs.some((leg) => leg.features.includes('FERRY')),
++      };
+     } catch (e) {
+       if (e instanceof RouteKitQuotaError) throw new DriveTimesQuotaExhausted(e.retryAfterSec);
+       throw e;
+diff --git a/step-02/src/application/RequestRideService.ts b/step-03/src/application/RequestRideService.ts
+index 6dff360db..304339d8e 100644
+--- a/step-02/src/application/RequestRideService.ts
++++ b/step-03/src/application/RequestRideService.ts
+@@ -3,7 +3,7 @@ import { RideError } from '../domain/RideError';
+ import { Matching, type Candidate } from '../domain/pooling/Matching';
+ import { Pool } from '../domain/pooling/Pool';
+ import { StraightLineTimes } from '../domain/pooling/StraightLineTimes';
+-import { DriveTimesQuotaExhausted, type DriveTimes } from './outbound/DriveTimes';
++import { DriveTimesQuotaExhausted, type Drive, type DriveTimes } from './outbound/DriveTimes';
+ import type { OpenPools } from './outbound/OpenPools';
+ import type { PickupAreas } from './outbound/PickupAreas';
+ import type { RequestRide, RideAnswer, RideRequest } from './RequestRide';
+@@ -32,14 +32,14 @@ export class RequestRideService implements RequestRide {
+     let candidates: Candidate[] = [];
+     if (!estimated) {
+       try {
+-        candidates = await this.candidates(open, pickup, dropoff, (s) => this.times.seconds(s));
++        candidates = await this.candidates(open, pickup, dropoff, (s) => this.times.drive(s));
+       } catch (e) {
+         if (!(e instanceof DriveTimesQuotaExhausted)) throw e;
+         this.pausedUntil = this.now() + e.retryAfterSeconds * 1000;
+         estimated = true;
+       }
+     }
+-    if (estimated) candidates = await this.candidates(open, pickup, dropoff, (s) => Promise.resolve(this.estimate.seconds(s)));
++    if (estimated) candidates = await this.candidates(open, pickup, dropoff, (s) => Promise.resolve({ seconds: this.estimate.seconds(s), usesFerry: false }));
+     const chosen = this.matching.choose(candidates);
+     if (chosen === undefined) {
+       const pool = Pool.open(this.pools.nextId(), ride.rider, pickup, dropoff);
+@@ -55,13 +55,18 @@ export class RequestRideService implements RequestRide {
+     open: readonly Pool[],
+     pickup: Location,
+     dropoff: Location,
+-    seconds: (stops: readonly Location[]) => Promise<number>,
++    drive: (stops: readonly Location[]) => Promise<Drive>,
+   ): Promise<Candidate[]> {
+     const candidates: Candidate[] = [];
+     for (const pool of open) {
+-      const withRider = await seconds(pool.stopsWith(pickup, dropoff));
+-      const without = await seconds(pool.stops());
+-      candidates.push({ pool, addedSeconds: withRider - without });
++      const withRider = await drive(pool.stopsWith(pickup, dropoff));
++      const without = await drive(pool.stops());
++      candidates.push({
++        pool,
++        addedSeconds: withRider.seconds - without.seconds,
++        withoutSeconds: without.seconds,
++        usesFerry: withRider.usesFerry,
++      });
+     }
+     return candidates;
+   }
+diff --git a/step-02/src/application/outbound/DriveTimes.ts b/step-03/src/application/outbound/DriveTimes.ts
+index a0042e07e..8fbb03904 100644
+--- a/step-02/src/application/outbound/DriveTimes.ts
++++ b/step-03/src/application/outbound/DriveTimes.ts
+@@ -11,4 +11,11 @@ export class DriveTimesQuotaExhausted extends Error {
+ /** How long a car takes to drive through stops in order. */
+ export interface DriveTimes {
+   seconds(stops: readonly Location[]): Promise<number>;
++  /** The drive through stops in order: its time and whether the route uses a ferry anywhere. */
++  drive(stops: readonly Location[]): Promise<Drive>;
++}
++
++export interface Drive {
++  readonly seconds: number;
++  readonly usesFerry: boolean;
+ }
+diff --git a/step-02/src/domain/pooling/Matching.ts b/step-03/src/domain/pooling/Matching.ts
+index 23cb44bcd..490c0f1e1 100644
+--- a/step-02/src/domain/pooling/Matching.ts
++++ b/step-03/src/domain/pooling/Matching.ts
+@@ -1,12 +1,19 @@
+ import type { Pool } from './Pool';
+ 
+-/** The most a rider may add to a pool's drive. */
++/** The most a rider may add to a pool's drive of up to LONG_DRIVE_SECONDS. */
+ export const DETOUR_LIMIT_SECONDS = 8 * 60;
++/** Pools whose drive without the rider is longer than this allow the longer detour. */
++export const LONG_DRIVE_SECONDS = 40 * 60;
++export const LONG_DETOUR_LIMIT_SECONDS = 12 * 60;
+ 
+ /** An open pool the rider could join, and how much longer its drive becomes with the rider. */
+ export interface Candidate {
+   readonly pool: Pool;
+   readonly addedSeconds: number;
++  /** The pool's drive time without the rider. */
++  readonly withoutSeconds: number;
++  /** True when the route with the rider uses a ferry (always false for estimates, which cannot know). */
++  readonly usesFerry: boolean;
+ }
+ 
+ export class Matching {
+@@ -14,7 +21,9 @@ export class Matching {
+   choose(candidates: readonly Candidate[]): Candidate | undefined {
+     let best: Candidate | undefined;
+     for (const c of candidates) {
+-      if (c.addedSeconds > DETOUR_LIMIT_SECONDS) continue;
++      if (c.usesFerry) continue;
++      const limit = c.withoutSeconds > LONG_DRIVE_SECONDS ? LONG_DETOUR_LIMIT_SECONDS : DETOUR_LIMIT_SECONDS;
++      if (c.addedSeconds > limit) continue;
+       if (best === undefined || c.addedSeconds < best.addedSeconds) best = c;
+     }
+     return best;

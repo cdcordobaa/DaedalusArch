@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Product prices must now be shown in the shopper's currency using Ratewise's exchange rates, instead of only in euros. The Ratewise SDK, the package ratewise-sdk, is already in the project and the client is already created with the key in RATEWISE_API_KEY for the currency list; use the same client. Ask Ratewise for its latest rate from EUR to the shopper's currency only. The price is our euro price times Ratewise's mid rate, rounded to two decimals with halves rounded up, and it answers the currency and the amount. Three rates must never be used: a rate Ratewise marks as indicative, a rate fixed more than 24 hours ago by Ratewise's own as-of time, and a rate for any other currency than the one asked. When Ratewise has no rate it may use, the price answers no amount and the reason 'Prices in this currency are not available right now.' instead of failing. Euro prices stay as they are and Ratewise is not asked for them. Our own checks on the currency code and the product still run first and still refuse a bad request as before.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c43/tsconfig.json

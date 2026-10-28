@@ -1,0 +1,132 @@
+diff --git a/step-01/src/adapters/in/http/LaundryRoutes.ts b/step-02/src/adapters/in/http/LaundryRoutes.ts
+index 1ee82a5f4..65cc2ab1f 100644
+--- a/step-01/src/adapters/in/http/LaundryRoutes.ts
++++ b/step-02/src/adapters/in/http/LaundryRoutes.ts
+@@ -1,9 +1,13 @@
+ import type { AcceptDrops } from '../../../application/ports/in/AcceptDrops';
++import type { ReturnDrops } from '../../../application/ports/in/ReturnDrops';
+ import { reply, type Reply } from './reply';
+ 
+ /** Routes for the laundry's van drivers: POST /drops, GET /drops/:id. */
+ export class LaundryRoutes {
+-  constructor(private readonly intake: AcceptDrops) {}
++  constructor(
++    private readonly intake: AcceptDrops,
++    private readonly returns: ReturnDrops,
++  ) {}
+ 
+   dropOff(buildingId: string, apartment: string, size: string): Reply {
+     return reply(() => this.intake.dropOff(buildingId, apartment, size));
+@@ -12,4 +16,8 @@ export class LaundryRoutes {
+   drop(dropId: string): Reply {
+     return reply(() => this.intake.drop(dropId));
+   }
++
++  takeBack(dropId: string): Reply {
++    return reply(() => this.returns.takeBack(dropId));
++  }
+ }
+diff --git a/step-02/src/application/ports/in/ReturnDrops.ts b/step-02/src/application/ports/in/ReturnDrops.ts
+new file mode 100644
+index 000000000..0c7a19b5e
+--- /dev/null
++++ b/step-02/src/application/ports/in/ReturnDrops.ts
+@@ -0,0 +1,6 @@
++import type { Collected } from './CollectDrops';
++
++/** What the laundry's van driver does with laundry nobody collected: take it back to the shop. */
++export interface ReturnDrops {
++  takeBack(dropId: string): Collected;
++}
+diff --git a/step-02/src/application/services/ReturnService.ts b/step-02/src/application/services/ReturnService.ts
+new file mode 100644
+index 000000000..c56d26549
+--- /dev/null
++++ b/step-02/src/application/services/ReturnService.ts
+@@ -0,0 +1,31 @@
++import { LockerError } from '../../domain/LockerError';
++import type { Collected } from '../ports/in/CollectDrops';
++import type { ReturnDrops } from '../ports/in/ReturnDrops';
++import type { Clock } from '../ports/out/Clock';
++import type { DoorLatch } from '../ports/out/DoorLatch';
++import type { Drops } from '../ports/out/Drops';
++import type { Lockers } from '../ports/out/Lockers';
++
++export class ReturnService implements ReturnDrops {
++  constructor(
++    private readonly drops: Drops,
++    private readonly lockers: Lockers,
++    private readonly clock: Clock,
++    private readonly latch: DoorLatch,
++  ) {}
++
++  takeBack(dropId: string): Collected {
++    const drop = this.drops.byId(dropId);
++    if (drop === undefined) throw new LockerError(`no drop ${dropId}`);
++    const now = this.clock.now();
++    drop.assertReturnable(now);
++    const locker = this.lockers.byId(drop.lockerId);
++    if (locker === undefined) throw new LockerError(`no locker ${drop.lockerId}`);
++    if (!this.latch.open(locker.buildingId, locker.bay)) throw new LockerError(`locker ${locker.id} did not open`);
++    drop.takeBack(now);
++    locker.empty();
++    this.drops.save(drop);
++    this.lockers.save(locker);
++    return { dropId: drop.id, lockerId: locker.id, bay: locker.bay };
++  }
++}
+diff --git a/step-01/src/domain/Drop.ts b/step-02/src/domain/Drop.ts
+index 058793e9d..adf0f194b 100644
+--- a/step-01/src/domain/Drop.ts
++++ b/step-02/src/domain/Drop.ts
+@@ -1,7 +1,8 @@
++import { hoursBetween } from './Instant';
+ import { LockerError } from './LockerError';
+ import type { LockerSize } from './LockerSize';
+ 
+-export type DropStatus = 'waiting' | 'collected';
++export type DropStatus = 'waiting' | 'collected' | 'returned';
+ 
+ /** A bag of finished laundry left in a locker for one apartment, released by its pickup code. */
+ export class Drop {
+@@ -44,4 +45,16 @@ export class Drop {
+     this.state = 'collected';
+     this.ended = at;
+   }
++
++  /** Refuses unless this drop is still waiting and has waited at least 72 hours. */
++  assertReturnable(at: string): void {
++    if (this.state !== 'waiting') throw new LockerError(`drop ${this.id} is no longer waiting`);
++    if (hoursBetween(this.droppedAt, at) < 72) throw new LockerError(`drop ${this.id} has waited less than 72 hours`);
++  }
++
++  takeBack(at: string): void {
++    this.assertReturnable(at);
++    this.state = 'returned';
++    this.ended = at;
++  }
+ }
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index ee518ad15..357c35f7d 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -12,6 +12,7 @@ import { MemoryLockers } from './adapters/out/memory/MemoryLockers';
+ import { BuildingService } from './application/services/BuildingService';
+ import { DropOffService } from './application/services/DropOffService';
+ import { PickupService } from './application/services/PickupService';
++import { ReturnService } from './application/services/ReturnService';
+ 
+ export interface AppOptions {
+   /** Now, as YYYY-MM-DDTHH:MM; defaults to the system clock (UTC). */
+@@ -34,9 +35,10 @@ export function createApp(options: AppOptions = {}) {
+   const admin = new BuildingService(buildings, lockers);
+   const intake = new DropOffService(buildings, lockers, drops, new SeededCodes(options.codeSeed ?? 271828), clock);
+   const pickups = new PickupService(drops, lockers, clock, new LockBankDoorLatch(lockbank));
++  const returns = new ReturnService(drops, lockers, clock, new LockBankDoorLatch(lockbank));
+   return {
+     managers: new ManagerRoutes(admin, lockers, lockbank),
+-    laundry: new LaundryRoutes(intake),
++    laundry: new LaundryRoutes(intake, returns),
+     residents: new ResidentRoutes(pickups),
+     hardware: {
+       jam: (hubId: string, bay: number) => hub.jam(hubId, bay),

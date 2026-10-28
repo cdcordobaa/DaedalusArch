@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The harbour master can now close a pontoon when a storm is coming: closePontoon(pontoonId), which returns nothing. From then on member(id).contract is 'storm-closed' for every member whose contract on that pontoon is active, and each of them gets a tenth of their season fee off member(id).feesDue straight away, rounded to the nearest whole amount (feesDue may go below 0, which is credit). Waitlisted members and contracts on other pontoons do not change. A new contract on a closed pontoon is waitlisted; signContract does not throw for it. Closing a pontoon that is already closed returns normally and changes nothing; closing an unknown pontoon throws an error with the message 'no pontoon <id>'. It is urgent, the storm is due tonight, so keep it small.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c44/tsconfig.json

@@ -1,0 +1,167 @@
+diff --git a/step-02/src/cellar/application/batchCommands.ts b/step-03/src/cellar/application/batchCommands.ts
+index 5e5e1b4e2..25983ea25 100644
+--- a/step-02/src/cellar/application/batchCommands.ts
++++ b/step-03/src/cellar/application/batchCommands.ts
+@@ -30,7 +30,7 @@ export function batchCommands(deps: { readonly batches: BatchStore; readonly lot
+         if (seen.has(use.lotId)) throw new CellarRefusal(`lot ${use.lotId} is listed twice`);
+         seen.add(use.lotId);
+       }
+-      const updated: IngredientLot[] = uses.map((use) => useInBrew(lotOrRefuse(deps.lots, use.lotId), gramsFromKg(use.kg), today));
++      const updated: IngredientLot[] = uses.map((use) => useInBrew(lotOrRefuse(deps.lots, use.lotId), gramsFromKg(use.kg), today, batchId));
+       for (const lot of updated) deps.lots.keep(lot);
+       deps.batches.record(brewed);
+     },
+diff --git a/step-03/src/cellar/application/logLotUse.ts b/step-03/src/cellar/application/logLotUse.ts
+new file mode 100644
+index 000000000..482b8697f
+--- /dev/null
++++ b/step-03/src/cellar/application/logLotUse.ts
+@@ -0,0 +1,8 @@
++import type { CellarEvent } from '../domain/events';
++import type { LotUsageBook } from './ports';
++
++/** Reaction to a kept brew: notes which batch used the lot. */
++export const logLotUse = (book: LotUsageBook) => (fact: CellarEvent): void => {
++  if (fact.kind !== 'lot-used') return;
++  book.add(fact.lotId, fact.batchId, fact.grams);
++};
+diff --git a/step-02/src/cellar/application/ports.ts b/step-03/src/cellar/application/ports.ts
+index 6c4777977..edb3f314a 100644
+--- a/step-02/src/cellar/application/ports.ts
++++ b/step-03/src/cellar/application/ports.ts
+@@ -6,6 +6,12 @@ export interface Mailbox {
+   collect(): CellarEvent[];
+ }
+ 
++/** Where each lot went: one entry per lot use in a brew, in the order the brews happened. */
++export interface LotUsageBook {
++  add(lotId: string, batchId: string, grams: number): void;
++  entriesFor(lotId: string): { batchId: string; grams: number }[];
++}
++
+ /** The goods-in book at the cellar door. */
+ export interface ReceivingLog {
+   write(line: string): void;
+diff --git a/step-02/src/cellar/application/readings.ts b/step-03/src/cellar/application/readings.ts
+index a768bbd48..1cee3701f 100644
+--- a/step-02/src/cellar/application/readings.ts
++++ b/step-03/src/cellar/application/readings.ts
+@@ -3,9 +3,18 @@ import type { BatchStore } from '../domain/batch/BatchStore';
+ import type { LotStore } from '../domain/lot/LotStore';
+ import { kgFromGrams } from '../domain/value-objects/weight';
+ import { lotOrRefuse } from './lotCommands';
++import type { LotUsageBook } from './ports';
+ 
+-export function readings(deps: { readonly lots: LotStore; readonly batches: BatchStore }) {
++export function readings(deps: { readonly lots: LotStore; readonly batches: BatchStore; readonly usage: LotUsageBook }) {
+   return {
++    /** Every brew that used the lot, newest first. Write-offs are not listed. */
++    lotUsage(lotId: string): { batchId: string; kg: number }[] {
++      lotOrRefuse(deps.lots, lotId);
++      return deps.usage
++        .entriesFor(lotId)
++        .reverse()
++        .map((entry) => ({ batchId: entry.batchId, kg: kgFromGrams(entry.grams) }));
++    },
+     lotStock: (lotId: string): number => kgFromGrams(lotOrRefuse(deps.lots, lotId).gramsLeft),
+     batchStatus(batchId: string): string {
+       const batch = deps.batches.lookup(batchId);
+diff --git a/step-02/src/cellar/domain/events.ts b/step-03/src/cellar/domain/events.ts
+index a06de15da..d72dd44d0 100644
+--- a/step-02/src/cellar/domain/events.ts
++++ b/step-03/src/cellar/domain/events.ts
+@@ -1,7 +1,14 @@
+ /** Facts the cellar records when a change is kept. Each store hands them to the mailbox in the same step. */
+-export type CellarEvent = {
+-  readonly kind: 'lot-received';
+-  readonly lotId: string;
+-  readonly ingredient: string;
+-  readonly grams: number;
+-};
++export type CellarEvent =
++  | {
++      readonly kind: 'lot-received';
++      readonly lotId: string;
++      readonly ingredient: string;
++      readonly grams: number;
++    }
++  | {
++      readonly kind: 'lot-used';
++      readonly lotId: string;
++      readonly batchId: string;
++      readonly grams: number;
++    };
+diff --git a/step-02/src/cellar/domain/lot/ingredientLot.ts b/step-03/src/cellar/domain/lot/ingredientLot.ts
+index 2ca307cff..727fd2aa0 100644
+--- a/step-02/src/cellar/domain/lot/ingredientLot.ts
++++ b/step-03/src/cellar/domain/lot/ingredientLot.ts
+@@ -31,10 +31,10 @@ export function takeFromLot(lot: IngredientLot, grams: number): IngredientLot {
+ }
+ 
+ /** Takes grams out of the lot for a brew; a lot may still be used on its best-before day. */
+-export function useInBrew(lot: IngredientLot, grams: number, today: string): IngredientLot {
++export function useInBrew(lot: IngredientLot, grams: number, today: string, batchId: string): IngredientLot {
+   const taken = takeFromLot(lot, grams);
+   if (isEarlier(lot.bestBefore, today)) throw new CellarRefusal(`lot ${lot.id} is past its best-before date ${lot.bestBefore}`);
+-  return taken;
++  return { ...taken, raised: [{ kind: 'lot-used', lotId: lot.id, batchId, grams }] };
+ }
+ 
+ export const withoutRaised = (lot: IngredientLot): IngredientLot => ({ ...lot, raised: [] });
+diff --git a/step-03/src/cellar/infrastructure/MemoryLotUsageBook.ts b/step-03/src/cellar/infrastructure/MemoryLotUsageBook.ts
+new file mode 100644
+index 000000000..6476ecc08
+--- /dev/null
++++ b/step-03/src/cellar/infrastructure/MemoryLotUsageBook.ts
+@@ -0,0 +1,9 @@
++import type { LotUsageBook } from '../application/ports';
++
++export function memoryLotUsageBook(): LotUsageBook {
++  const rows: { lotId: string; batchId: string; grams: number }[] = [];
++  return {
++    add: (lotId, batchId, grams) => { rows.push({ lotId, batchId, grams }); },
++    entriesFor: (lotId) => rows.filter((row) => row.lotId === lotId).map(({ batchId, grams }) => ({ batchId, grams })),
++  };
++}
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index ef89f6cc1..8b0225a35 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -1,4 +1,5 @@
+ import { batchCommands, type LotUse } from './cellar/application/batchCommands';
++import { logLotUse } from './cellar/application/logLotUse';
+ import { logReceipt } from './cellar/application/logReceipt';
+ import { lotCommands } from './cellar/application/lotCommands';
+ import { readings } from './cellar/application/readings';
+@@ -6,6 +7,7 @@ import { createRelay } from './cellar/application/relay';
+ import { memoryBatchStore } from './cellar/infrastructure/MemoryBatchStore';
+ import { memoryLotStore } from './cellar/infrastructure/MemoryLotStore';
+ import { memoryMailbox } from './cellar/infrastructure/MemoryMailbox';
++import { memoryLotUsageBook } from './cellar/infrastructure/MemoryLotUsageBook';
+ import { memoryReceivingLog } from './cellar/infrastructure/MemoryReceivingLog';
+ 
+ export interface BreweryOptions {
+@@ -20,12 +22,14 @@ export function createApp(options: BreweryOptions = {}) {
+   const lots = memoryLotStore(mailbox);
+   const batches = memoryBatchStore(mailbox);
+   const goodsIn = memoryReceivingLog();
++  const usage = memoryLotUsageBook();
+   const relay = createRelay(mailbox);
+   relay.when('lot-received', logReceipt(goodsIn));
++  relay.when('lot-used', logLotUse(usage));
+ 
+   const lot = lotCommands({ lots, today });
+   const batch = batchCommands({ batches, lots, today });
+-  const read = readings({ lots, batches });
++  const read = readings({ lots, batches, usage });
+   const delivered = <T>(command: () => T): T => {
+     const result = command();
+     relay.flush();
+@@ -38,6 +42,7 @@ export function createApp(options: BreweryOptions = {}) {
+     planBatch: (beer: string, fermentationDays: number): string => delivered(() => batch.plan(beer, fermentationDays)),
+     brew: (batchId: string, uses: readonly LotUse[]): void => delivered(() => batch.brew(batchId, uses)),
+     lotStock: (lotId: string): number => read.lotStock(lotId),
++    lotUsage: (lotId: string): { batchId: string; kg: number }[] => read.lotUsage(lotId),
+     batchStatus: (batchId: string): string => read.batchStatus(batchId),
+     receivingLog: (): string[] => goodsIn.lines(),
+   };

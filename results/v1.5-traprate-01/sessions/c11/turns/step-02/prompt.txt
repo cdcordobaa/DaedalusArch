@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Students can now cancel a lesson: lessons.cancel(lessonId). Afterwards lesson(lessonId) shows status 'cancelled', the event is gone from the teacher's Tempo calendar, and the time can be booked again. Cancelling closes at the end of the day before the lesson. Refusals, as 400 { error } like the other calls, checked in this order: an unknown lesson ('no lesson L-0999'), a lesson already cancelled ('lesson L-0001 is cancelled'), and a lesson whose day has come ('lesson L-0001 can no longer be cancelled'). A refused cancellation changes nothing.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c11/tsconfig.json

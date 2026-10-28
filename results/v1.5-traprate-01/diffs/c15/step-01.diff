@@ -1,0 +1,123 @@
+diff --git a/step-01/src/adapters/in/http/KitchenRoutes.ts b/step-01/src/adapters/in/http/KitchenRoutes.ts
+new file mode 100644
+index 000000000..59516c3c2
+--- /dev/null
++++ b/step-01/src/adapters/in/http/KitchenRoutes.ts
+@@ -0,0 +1,11 @@
++import type { Kitchen } from '../../../application/ports/in/Kitchen';
++import { reply, type Reply } from '../shared/reply';
++
++/** The kitchen's morning screens. */
++export class KitchenRoutes {
++  constructor(private readonly kitchen: Kitchen) {}
++
++  tally(date: unknown): Reply {
++    return reply(() => this.kitchen.tally(date));
++  }
++}
+diff --git a/step-00/src/adapters/out/memory/MemoryOrderStore.ts b/step-01/src/adapters/out/memory/MemoryOrderStore.ts
+index 097fe3a95..ef6be05cc 100644
+--- a/step-00/src/adapters/out/memory/MemoryOrderStore.ts
++++ b/step-01/src/adapters/out/memory/MemoryOrderStore.ts
+@@ -16,4 +16,8 @@ export class MemoryOrderStore implements OrderStore {
+   byId(id: string): MealOrder | null {
+     return this.db.orders.get(id) ?? null;
+   }
++
++  onDate(date: string): MealOrder[] {
++    return [...this.db.orders.values()].filter((o) => o.servingDate === date);
++  }
+ }
+diff --git a/step-01/src/application/ports/in/Kitchen.ts b/step-01/src/application/ports/in/Kitchen.ts
+new file mode 100644
+index 000000000..9ad5f7a33
+--- /dev/null
++++ b/step-01/src/application/ports/in/Kitchen.ts
+@@ -0,0 +1,9 @@
++export interface TallyLine {
++  dish: string;
++  portions: number;
++  labelled: number;
++}
++
++export interface Kitchen {
++  tally(date: unknown): TallyLine[];
++}
+diff --git a/step-00/src/application/ports/out/OrderStore.ts b/step-01/src/application/ports/out/OrderStore.ts
+index 78d653ed7..cc3e006fd 100644
+--- a/step-00/src/application/ports/out/OrderStore.ts
++++ b/step-01/src/application/ports/out/OrderStore.ts
+@@ -4,4 +4,6 @@ export interface OrderStore {
+   nextId(): string;
+   save(order: MealOrder): void;
+   byId(id: string): MealOrder | null;
++  /** Every order served on the given day. */
++  onDate(date: string): MealOrder[];
+ }
+diff --git a/step-01/src/application/usecases/KitchenService.ts b/step-01/src/application/usecases/KitchenService.ts
+new file mode 100644
+index 000000000..d80d5533a
+--- /dev/null
++++ b/step-01/src/application/usecases/KitchenService.ts
+@@ -0,0 +1,34 @@
++import { CanteenError } from '../../domain/errors/CanteenError';
++import { requireDate } from '../../domain/model/SchoolDate';
++import type { Kitchen, TallyLine } from '../ports/in/Kitchen';
++import type { DishStore } from '../ports/out/DishStore';
++import type { OrderStore } from '../ports/out/OrderStore';
++import type { PupilStore } from '../ports/out/PupilStore';
++
++export class KitchenService implements Kitchen {
++  constructor(
++    private readonly orders: OrderStore,
++    private readonly pupils: PupilStore,
++    private readonly dishes: DishStore,
++  ) {}
++
++  /** Every dish ordered for the date: most portions first, then by name. */
++  tally(date: unknown): TallyLine[] {
++    const day = requireDate(date);
++    const byDish = new Map<string, TallyLine>();
++    for (const o of this.orders.onDate(day)) {
++      let line = byDish.get(o.dishId);
++      if (line === undefined) {
++        const dish = this.dishes.byId(o.dishId);
++        if (dish === null) throw new CanteenError(`no dish ${o.dishId}`);
++        line = { dish: dish.name, portions: 0, labelled: 0 };
++        byDish.set(o.dishId, line);
++      }
++      line.portions += 1;
++      if (this.pupils.byId(o.pupilId)?.hasAllergies()) line.labelled += 1;
++    }
++    return [...byDish.values()].sort(
++      (a, b) => b.portions - a.portions || (a.dish < b.dish ? -1 : a.dish > b.dish ? 1 : 0),
++    );
++  }
++}
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index eccf0d32e..769dc7f38 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -1,5 +1,6 @@
+ import { OfficeRoutes } from './adapters/in/http/OfficeRoutes';
+ import { OrderRoutes } from './adapters/in/http/OrderRoutes';
++import { KitchenRoutes } from './adapters/in/http/KitchenRoutes';
+ import { NightlyRun } from './adapters/in/scheduler/NightlyRun';
+ import { SystemToday } from './adapters/out/clock/SystemToday';
+ import { LetterTray } from './adapters/out/letters/LetterTray';
+@@ -8,6 +9,7 @@ import { MemoryDishStore } from './adapters/out/memory/MemoryDishStore';
+ import { MemoryOrderStore } from './adapters/out/memory/MemoryOrderStore';
+ import { MemoryPupilStore } from './adapters/out/memory/MemoryPupilStore';
+ import { EnrolmentService } from './application/usecases/EnrolmentService';
++import { KitchenService } from './application/usecases/KitchenService';
+ import { LowBalanceLettersService } from './application/usecases/LowBalanceLettersService';
+ import { MenuService } from './application/usecases/MenuService';
+ import { OrderingService } from './application/usecases/OrderingService';
+@@ -29,6 +31,7 @@ export function createApp(options: AppOptions = {}) {
+   return {
+     office: new OfficeRoutes(new EnrolmentService(pupils), new MenuService(dishes)),
+     orders: new OrderRoutes(new OrderingService(orders, pupils, dishes, today)),
++    kitchen: new KitchenRoutes(new KitchenService(orders, pupils, dishes)),
+     nightly: new NightlyRun(new LowBalanceLettersService(pupils, letterTray)),
+     /** The letters written so far, for whoever prints them. */
+     letters: { all: (): string[] => letterTray.all() },

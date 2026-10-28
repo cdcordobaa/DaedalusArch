@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Guests can now report a pass lost: reportLost(passNo). pass(no).status becomes 'blocked', and at once every place that pass holds in a lesson that was not called off is given up: placeOf(lessonId, passNo) is 'released', lesson(id).placesLeft counts the place as free, and the price of each paid place goes back on the pass credit (the office moves the credit to the new card). A blocked pass that tries to enrol gets no error: placeOf is 'declined' and nothing is taken. Reporting the same pass again returns quietly and changes nothing; reporting an unknown pass throws. Please keep the change small.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c29/tsconfig.json

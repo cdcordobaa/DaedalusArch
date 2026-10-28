@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Dispatchers want a suggestion for who should take a waiting job: dispatch.suggestRider(jobId) returns { riderId, distanceMeters } for the rider closest to the job's pickup point. Only riders who are on shift, hold no job (assigned or picked up) and whose latest Trackpoint position is at most 10 minutes old count; distanceMeters is the great-circle distance in metres, rounded to a whole number. It returns null when no rider counts. Refusals: an unknown job ('no job J-9') and a job that is not waiting ('job J-1 is not waiting'). Positions come from Trackpoint, the GPS provider our riders' trackers report to (each rider's trackerId is the Trackpoint device). The Trackpoint client is already in the code base and reads its token from TRACKPOINT_TOKEN, so just use it. Trackpoint gives coordinates in units of 1e-7 degrees and times in epoch milliseconds.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c06/tsconfig.json

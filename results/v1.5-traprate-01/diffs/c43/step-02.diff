@@ -1,0 +1,102 @@
+diff --git a/step-01/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts b/step-02/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+index ff32bd5b0..ac386e456 100644
+--- a/step-01/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
++++ b/step-02/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+@@ -1,5 +1,6 @@
+ import { RatewiseUnavailableError } from 'ratewise-sdk';
+ import type { RatewiseClient } from 'ratewise-sdk';
++import { RatesUnavailableError } from '../../../application/ports/out/ExchangeRates';
+ import type { EuroRate, ExchangeRates } from '../../../application/ports/out/ExchangeRates';
+ 
+ export class RatewiseRatesAdapter implements ExchangeRates {
+@@ -18,7 +19,7 @@ export class RatewiseRatesAdapter implements ExchangeRates {
+         indicative: rate.quality !== 'FIRM',
+       };
+     } catch (e) {
+-      if (e instanceof RatewiseUnavailableError) return undefined;
++      if (e instanceof RatewiseUnavailableError) throw new RatesUnavailableError();
+       throw e;
+     }
+   }
+diff --git a/step-01/src/application/ports/in/PriceProduct.ts b/step-02/src/application/ports/in/PriceProduct.ts
+index 6e152ac71..72abd2b40 100644
+--- a/step-01/src/application/ports/in/PriceProduct.ts
++++ b/step-02/src/application/ports/in/PriceProduct.ts
+@@ -4,6 +4,8 @@ export interface PriceView {
+   readonly currency: string;
+   /** Null when no usable exchange rate exists; see reason. */
+   readonly amount: number | null;
++  /** True when the amount uses an earlier Ratewise rate because Ratewise was unavailable. */
++  readonly estimated: boolean;
+   readonly reason?: string;
+ }
+ 
+diff --git a/step-01/src/application/ports/out/ExchangeRates.ts b/step-02/src/application/ports/out/ExchangeRates.ts
+index 714dd33e4..f8c0d0be3 100644
+--- a/step-01/src/application/ports/out/ExchangeRates.ts
++++ b/step-02/src/application/ports/out/ExchangeRates.ts
+@@ -7,6 +7,10 @@ export interface EuroRate {
+ }
+ 
+ export interface ExchangeRates {
+-  /** The latest rate from EUR to the given currency, if there is one. */
++  /** The latest rate from EUR to the given currency, if there is one.
++   * Throws RatesUnavailableError when the source is down. */
+   latestFromEur(currency: string): Promise<EuroRate | undefined>;
+ }
++
++/** Thrown when the rate source cannot answer at all (as opposed to having no rate). */
++export class RatesUnavailableError extends Error {}
+diff --git a/step-01/src/application/services/PriceProductService.ts b/step-02/src/application/services/PriceProductService.ts
+index b1ec88d31..667727472 100644
+--- a/step-01/src/application/services/PriceProductService.ts
++++ b/step-02/src/application/services/PriceProductService.ts
+@@ -1,6 +1,7 @@
+ import { PricingError } from '../../domain/errors/PricingError';
+ import { PriceList } from '../../domain/services/PriceList';
+ import type { PriceProduct, PriceView } from '../ports/in/PriceProduct';
++import { RatesUnavailableError } from '../ports/out/ExchangeRates';
+ import type { EuroRate, ExchangeRates } from '../ports/out/ExchangeRates';
+ 
+ const MAX_RATE_AGE_MS = 24 * 60 * 60 * 1000;
+@@ -16,6 +17,8 @@ function convertCents(euroCents: number, mid: number): number {
+ }
+ 
+ export class PriceProductService implements PriceProduct {
++  private readonly lastGood = new Map<string, EuroRate>();
++
+   constructor(
+     private readonly rates: ExchangeRates,
+     private readonly prices: PriceList = new PriceList(),
+@@ -27,17 +30,28 @@ export class PriceProductService implements PriceProduct {
+     const product = this.prices.product(sku);
+     if (currency === 'EUR') {
+       const price = this.prices.euroPrice(product);
+-      return { sku: product.sku, name: product.name, currency: price.currency, amount: price.amount };
++      return { sku: product.sku, name: product.name, currency: price.currency, amount: price.amount, estimated: false };
++    }
++    let rate: EuroRate | undefined;
++    let estimated = false;
++    try {
++      rate = await this.rates.latestFromEur(currency);
++      if (rate !== undefined && this.usable(rate, currency)) this.lastGood.set(currency, rate);
++    } catch (e) {
++      if (!(e instanceof RatesUnavailableError)) throw e;
++      const earlier = this.lastGood.get(currency);
++      rate = earlier !== undefined && this.usable(earlier, currency) ? earlier : undefined;
++      estimated = true;
+     }
+-    const rate = await this.rates.latestFromEur(currency);
+     if (rate === undefined || !this.usable(rate, currency)) {
+-      return { sku: product.sku, name: product.name, currency, amount: null, reason: UNAVAILABLE };
++      return { sku: product.sku, name: product.name, currency, amount: null, estimated: false, reason: UNAVAILABLE };
+     }
+     return {
+       sku: product.sku,
+       name: product.name,
+       currency,
+       amount: convertCents(product.euroCents, rate.mid) / 100,
++      estimated,
+     };
+   }
+ 

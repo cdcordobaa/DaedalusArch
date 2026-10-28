@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Two changes to when a rider may join a pool. First, our drivers do not take ferries: a rider may not join a pool when RouteKit's route through the pool's stops with the rider added uses a ferry anywhere, however small the added time. Second, long drives allow longer detours: when the pool's time without the rider is more than 40 minutes, the rider may join with up to 12 minutes added; at 40 minutes or less the limit stays 8 minutes. Exactly at a limit is still allowed. Everything else stays as it is: among the pools that allow it, the smallest added time wins, then the pool opened first. When a decision uses the straight-line estimate, the 40-minute rule uses the estimated time, and ferries cannot be known then, so they are not checked.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c30/tsconfig.json

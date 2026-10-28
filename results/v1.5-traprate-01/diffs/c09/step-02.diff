@@ -1,0 +1,24 @@
+diff --git a/step-01/src/seedbank/domain/lot/SeedLot.ts b/step-02/src/seedbank/domain/lot/SeedLot.ts
+index 3e8b833e1..5657ac9b2 100644
+--- a/step-01/src/seedbank/domain/lot/SeedLot.ts
++++ b/step-02/src/seedbank/domain/lot/SeedLot.ts
+@@ -6,6 +6,9 @@ import { Germination } from './values/Germination';
+ import { Grams } from './values/Grams';
+ import { LotNumber } from './values/LotNumber';
+ 
++const QUARANTINE_DAYS = 30;
++const MIN_SHARE_GERMINATION = 70;
++
+ /** What the shelf keeps of a lot between requests. */
+ export interface LotSnapshot {
+   readonly number: string;
+@@ -88,6 +91,9 @@ export class SeedLot {
+     if (!amount.isPositive()) throw new LibraryRefusal('share at least 1 g');
+     if (target === this.kept) throw new LibraryRefusal(`${this.number.text} is already at ${target}`);
+     if (amount.exceeds(this.weight)) throw new LibraryRefusal(`not enough seed: ${this.number.text} holds ${this.weight.toString()}`);
++    const free = this.intake.addDays(QUARANTINE_DAYS);
++    if (on.daysSince(free) < 0) throw new LibraryRefusal(`lot ${this.number.text} is in quarantine until ${free.text}`);
++    if (this.germination.percent < MIN_SHARE_GERMINATION) throw new LibraryRefusal(`germination ${this.germination.percent}% is below ${MIN_SHARE_GERMINATION}%`);
+     const lot = new SeedLot(nextNumber(), this.variety, target, amount, this.germination, on, this.number);
+     this.weight = this.weight.minus(amount);
+     return lot;

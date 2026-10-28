@@ -1,0 +1,104 @@
+diff --git a/step-02/src/backers/application/BackerAccounts.ts b/step-03/src/backers/application/BackerAccounts.ts
+index 8a6d8d892..a3597f87b 100644
+--- a/step-02/src/backers/application/BackerAccounts.ts
++++ b/step-03/src/backers/application/BackerAccounts.ts
+@@ -25,6 +25,15 @@ export class BackerAccounts {
+     this.backers.save(backer);
+   }
+ 
++  /** Adds the collected pledges of a funded campaign to the backed totals of the backers who made them. */
++  creditCollectedPledges(pledges: readonly { pledgeId: string; backerId: string; amountCents: number }[]): void {
++    for (const p of pledges) {
++      const backer = this.load(p.backerId);
++      backer.creditCollectedPledge(p.pledgeId, Amount.ofCents(p.amountCents));
++      this.backers.save(backer);
++    }
++  }
++
+   private load(backerId: string): Backer {
+     const backer = this.backers.find(BackerId.of(backerId));
+     if (backer === undefined) throw new Error(`no backer ${backerId}`);
+diff --git a/step-02/src/backers/domain/backer/Backer.ts b/step-03/src/backers/domain/backer/Backer.ts
+index 89ff83f64..8acb1fc1e 100644
+--- a/step-02/src/backers/domain/backer/Backer.ts
++++ b/step-03/src/backers/domain/backer/Backer.ts
+@@ -14,6 +14,7 @@ export interface BackerSnapshot {
+   readonly handle: string;
+   readonly backedCents: number;
+   readonly missedPayments: number;
++  readonly creditedPledges?: readonly string[];
+ }
+ 
+ /**
+@@ -26,6 +27,7 @@ export class Backer {
+     readonly handle: string,
+     private backedCents: number,
+     private missed: number,
++    private readonly credited: Set<string> = new Set(),
+   ) {}
+ 
+   static register(id: BackerId, handle: string): Backer {
+@@ -34,7 +36,7 @@ export class Backer {
+   }
+ 
+   static fromSnapshot(s: BackerSnapshot): Backer {
+-    return new Backer(s.id, s.handle, s.backedCents, s.missedPayments);
++    return new Backer(s.id, s.handle, s.backedCents, s.missedPayments, new Set(s.creditedPledges ?? []));
+   }
+ 
+   get backedTotal(): Amount {
+@@ -58,11 +60,18 @@ export class Backer {
+     this.backedCents += amount.cents;
+   }
+ 
++  /** A collected pledge joins the backed total; a pledge already credited is not counted twice. */
++  creditCollectedPledge(pledgeId: string, amount: Amount): void {
++    if (this.credited.has(pledgeId)) return;
++    this.credited.add(pledgeId);
++    this.backedCents += amount.cents;
++  }
++
+   missPayment(): void {
+     this.missed += 1;
+   }
+ 
+   snapshot(): BackerSnapshot {
+-    return { id: this.id, handle: this.handle, backedCents: this.backedCents, missedPayments: this.missed };
++    return { id: this.id, handle: this.handle, backedCents: this.backedCents, missedPayments: this.missed, creditedPledges: [...this.credited] };
+   }
+ }
+diff --git a/step-02/src/backers/index.ts b/step-03/src/backers/index.ts
+index 3b911b5d9..43a812f95 100644
+--- a/step-02/src/backers/index.ts
++++ b/step-03/src/backers/index.ts
+@@ -28,6 +28,10 @@ export class BackersFacade {
+     this.accounts.recordMissedPayment(backerId);
+   }
+ 
++  creditCollectedPledges(pledges: readonly { pledgeId: string; backerId: string; amountCents: number }[]): void {
++    this.accounts.creditCollectedPledges(pledges);
++  }
++
+   profile(backerId: string): BackerProfile | undefined {
+     return this.profiles.profile(backerId);
+   }
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 6e77e1346..037f47494 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -7,6 +7,7 @@ import { CreatorMessages } from './campaigns/application/CreatorMessages';
+ import { LaunchCampaign } from './campaigns/application/LaunchCampaign';
+ import { OutboxDispatcher } from './campaigns/application/OutboxDispatcher';
+ import { PlacePledge, type PledgeReceipt } from './campaigns/application/PlacePledge';
++import type { CampaignClosed } from './campaigns/domain/campaign/events/CampaignClosed';
+ import { InMemoryCampaignRepository } from './campaigns/infrastructure/InMemoryCampaignRepository';
+ import { InMemoryCreatorInbox } from './campaigns/infrastructure/InMemoryCreatorInbox';
+ import { InMemoryOutboxTable } from './campaigns/infrastructure/InMemoryOutboxTable';
+@@ -20,6 +21,7 @@ export function createApp() {
+   const inbox = new InMemoryCreatorInbox();
+   const dispatcher = new OutboxDispatcher(outbox);
+   const messages = new CreatorMessages(inbox, new BackerHandles(backerStore));
++  dispatcher.subscribe('CampaignClosed', (e) => backers.creditCollectedPledges((e as CampaignClosed).collected));
+   dispatcher.subscribe('PledgeMade', (e) => messages.onPledgeMade(e));
+   dispatcher.subscribe('CampaignClosed', (e) => messages.onCampaignClosed(e));
+   const lookup = new BackersAdapter(backers);

@@ -1,0 +1,74 @@
+diff --git a/step-02/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts b/step-03/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+index ac386e456..70e5a3120 100644
+--- a/step-02/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
++++ b/step-03/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+@@ -17,6 +17,7 @@ export class RatewiseRatesAdapter implements ExchangeRates {
+         mid: rate.mid,
+         asOf: new Date(rate.asOf),
+         indicative: rate.quality !== 'FIRM',
++        minorUnits: rate.minorUnits,
+       };
+     } catch (e) {
+       if (e instanceof RatewiseUnavailableError) throw new RatesUnavailableError();
+diff --git a/step-02/src/application/ports/out/ExchangeRates.ts b/step-03/src/application/ports/out/ExchangeRates.ts
+index f8c0d0be3..2e4c0e0cc 100644
+--- a/step-02/src/application/ports/out/ExchangeRates.ts
++++ b/step-03/src/application/ports/out/ExchangeRates.ts
+@@ -4,6 +4,8 @@ export interface EuroRate {
+   readonly mid: number;
+   readonly asOf: Date;
+   readonly indicative: boolean;
++  /** Decimals the currency is written with, as given by Ratewise. */
++  readonly minorUnits: number;
+ }
+ 
+ export interface ExchangeRates {
+diff --git a/step-02/src/application/services/PriceProductService.ts b/step-03/src/application/services/PriceProductService.ts
+index 667727472..21d21f13b 100644
+--- a/step-02/src/application/services/PriceProductService.ts
++++ b/step-03/src/application/services/PriceProductService.ts
+@@ -8,12 +8,18 @@ const MAX_RATE_AGE_MS = 24 * 60 * 60 * 1000;
+ const UNAVAILABLE = 'Prices in this currency are not available right now.';
+ const SCALE = 10;
+ 
+-/** euroCents * mid, in cents, rounded to the nearest cent with halves up (exact decimal arithmetic). */
+-function convertCents(euroCents: number, mid: number): number {
++/**
++ * euroCents * mid, rounded half up to a multiple of `step` units of 10^-decimals,
++ * never below one step (exact decimal arithmetic).
++ */
++function convert(euroCents: number, mid: number, decimals: number, step: number): number {
+   const scaled = BigInt(mid.toFixed(SCALE).replace('.', ''));
+   const unit = 10n ** BigInt(SCALE);
+-  const numerator = BigInt(euroCents) * scaled;
+-  return Number((numerator * 2n + unit) / (unit * 2n));
++  const denominator = 100n * unit * BigInt(step);
++  const numerator = BigInt(euroCents) * scaled * 10n ** BigInt(decimals);
++  let steps = (numerator * 2n + denominator) / (denominator * 2n);
++  if (steps < 1n) steps = 1n;
++  return Number(steps * BigInt(step)) / 10 ** decimals;
+ }
+ 
+ export class PriceProductService implements PriceProduct {
+@@ -50,14 +56,20 @@ export class PriceProductService implements PriceProduct {
+       sku: product.sku,
+       name: product.name,
+       currency,
+-      amount: convertCents(product.euroCents, rate.mid) / 100,
++      amount: this.convert(product.euroCents, rate),
+       estimated,
+     };
+   }
+ 
++  private convert(euroCents: number, rate: EuroRate): number {
++    if (rate.currency === 'CHF') return convert(euroCents, rate.mid, 2, 5);
++    return convert(euroCents, rate.mid, rate.minorUnits, 1);
++  }
++
+   private usable(rate: EuroRate, currency: string): boolean {
+     if (rate.currency !== currency || rate.indicative) return false;
+     if (!Number.isFinite(rate.mid) || rate.mid <= 0) return false;
++    if (!Number.isInteger(rate.minorUnits) || rate.minorUnits < 0 || rate.minorUnits > 8) return false;
+     const fixedAt = rate.asOf.getTime();
+     if (Number.isNaN(fixedAt)) return false;
+     return this.now().getTime() - fixedAt <= MAX_RATE_AGE_MS;

@@ -1,0 +1,97 @@
+diff --git a/step-00/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts b/step-01/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
+index f8b2cc2c8..d218b1d81 100644
+--- a/step-00/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
++++ b/step-01/src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts
+@@ -1,7 +1,7 @@
+ import type { TextwaveClient } from 'textwave-sdk';
+ import type { TextMessages } from '../../../application/ports/out/TextMessages';
+ import type { PhoneNumber } from '../../../domain/model/PhoneNumber';
+-import type { SentText } from '../../../domain/model/SentText';
++import type { DeliveryStatus, SentText } from '../../../domain/model/SentText';
+ 
+ export class TextwaveTextMessagesAdapter implements TextMessages {
+   constructor(
+@@ -13,4 +13,17 @@ export class TextwaveTextMessagesAdapter implements TextMessages {
+     const response = await this.client.submit({ to: to.value, from: this.senderId, body: text });
+     return { id: response.messageSid };
+   }
++
++  async deliveryOf(textId: string): Promise<DeliveryStatus> {
++    const report = await this.client.deliveryReport(textId);
++    switch (report.deliveryState) {
++      case 'DELIVERED':
++        return 'delivered';
++      case 'UNDELIVERED':
++      case 'EXPIRED':
++        return 'failed';
++      default:
++        return 'sent';
++    }
++  }
+ }
+diff --git a/step-00/src/application/ports/in/SendReminders.ts b/step-01/src/application/ports/in/SendReminders.ts
+index 44369db19..053f5c7da 100644
+--- a/step-00/src/application/ports/in/SendReminders.ts
++++ b/step-01/src/application/ports/in/SendReminders.ts
+@@ -10,6 +10,8 @@ export interface ReminderLine {
+   readonly phone: string;
+   readonly time: string;
+   readonly reminder: string;
++  /** True when the front desk should phone the patient. */
++  readonly callPatient: boolean;
+ }
+ 
+ export interface SendReminders {
+diff --git a/step-00/src/application/ports/out/TextMessages.ts b/step-01/src/application/ports/out/TextMessages.ts
+index d29458d4d..7a371ef58 100644
+--- a/step-00/src/application/ports/out/TextMessages.ts
++++ b/step-01/src/application/ports/out/TextMessages.ts
+@@ -1,7 +1,9 @@
+ import type { PhoneNumber } from '../../../domain/model/PhoneNumber';
+-import type { SentText } from '../../../domain/model/SentText';
++import type { DeliveryStatus, SentText } from '../../../domain/model/SentText';
+ 
+ /** Sends a text message to a patient's phone, in the application's own terms. */
+ export interface TextMessages {
+   send(to: PhoneNumber, text: string): Promise<SentText>;
++  /** The latest delivery status of a text we sent, by its id. */
++  deliveryOf(textId: string): Promise<DeliveryStatus>;
+ }
+diff --git a/step-00/src/application/services/SendRemindersService.ts b/step-01/src/application/services/SendRemindersService.ts
+index 07478d107..ac7117067 100644
+--- a/step-00/src/application/services/SendRemindersService.ts
++++ b/step-01/src/application/services/SendRemindersService.ts
+@@ -23,12 +23,16 @@ export class SendRemindersService implements SendReminders {
+   }
+ 
+   async reportFor(day: string): Promise<ReminderLine[]> {
+-    return (await this.appointments.onDay(day)).map((a) => ({
+-      appointmentId: a.id,
+-      patientName: a.patientName,
+-      phone: a.phone.value,
+-      time: a.time,
+-      reminder: a.reminder === undefined ? 'not sent' : 'sent',
++    return Promise.all((await this.appointments.onDay(day)).map(async (a) => {
++      const reminder = a.reminder === undefined ? 'not sent' : await this.texts.deliveryOf(a.reminder);
++      return {
++        appointmentId: a.id,
++        patientName: a.patientName,
++        phone: a.phone.value,
++        time: a.time,
++        reminder,
++        callPatient: reminder === 'failed' || reminder === 'not sent',
++      };
+     }));
+   }
+ }
+diff --git a/step-00/src/domain/model/SentText.ts b/step-01/src/domain/model/SentText.ts
+index a3f90165a..72801c000 100644
+--- a/step-00/src/domain/model/SentText.ts
++++ b/step-01/src/domain/model/SentText.ts
+@@ -1,4 +1,6 @@
+ /** A text message we handed over for sending, known by the id we can ask about it later. */
++export type DeliveryStatus = 'delivered' | 'failed' | 'sent';
++
+ export interface SentText {
+   readonly id: string;
+ }

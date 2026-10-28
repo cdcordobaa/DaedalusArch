@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Partner airlines can now set an evening cut-off for guests. desk.addPartner takes an optional guestCutoff, a whole hour from 12 to 23, for example { airline: 'LU', guests: 2, guestCutoff: 21 }; any other value is refused with status 400 and 'guest cut-off must be a whole hour from 12 to 23'. From the cut-off hour until 05:00, in local time at the lounge's airport, a holder of that airline's pass may still enter alone, but entering with one or more guests is refused with status 422 and 'no guests between 21:00 and 05:00 at ZRH' (the partner's cut-off hour and the lounge's airport code). At 05:00 guests are welcome again. Partners without a cut-off and day passes are unchanged, and every existing refusal keeps its order, status and wording; the cut-off is checked after the guest allowance. Local time means the wall clock at that airport, not the server's: at 20:30 UTC on 27 October 2026 it is 21:30 in Zurich and 16:30 in New York.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c47/tsconfig.json

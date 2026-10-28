@@ -1,0 +1,152 @@
+diff --git a/step-01/src/adapters/outbound/haemalink/HaemalinkSupplier.ts b/step-02/src/adapters/outbound/haemalink/HaemalinkSupplier.ts
+index 3a0450cc1..cf0477e77 100644
+--- a/step-01/src/adapters/outbound/haemalink/HaemalinkSupplier.ts
++++ b/step-02/src/adapters/outbound/haemalink/HaemalinkSupplier.ts
+@@ -1,4 +1,5 @@
+-import type { HaemalinkClient, HlAboGroup, HlProductCode } from 'haemalink-sdk';
++import { HaemalinkEmbargoError } from 'haemalink-sdk';
++import type { HaemalinkClient, HlAboGroup, HlOrderReceipt, HlProductCode } from 'haemalink-sdk';
+ import type { Supplier, SupplierConfirmation, SupplierOrder } from '../../../application/needs/Supplier';
+ import { isRhesusNegative, letters } from '../../../domain/BloodGroup';
+ import type { Component } from '../../../domain/Component';
+@@ -14,17 +15,26 @@ export class HaemalinkSupplier implements Supplier {
+   constructor(private readonly client: HaemalinkClient) {}
+ 
+   async order(order: SupplierOrder): Promise<SupplierConfirmation> {
+-    const receipt = await this.client.submitOrder({
+-      priority: order.urgent ? 'STAT' : 'ROUTINE',
+-      lines: [
+-        {
+-          product: PRODUCT[order.component],
+-          abo: letters(order.group) as HlAboGroup,
+-          rhd: isRhesusNegative(order.group) ? 'NEG' : 'POS',
+-          qty: order.units,
+-        },
+-      ],
+-    });
++    let receipt: HlOrderReceipt;
++    try {
++      receipt = await this.client.submitOrder({
++        priority: order.urgent ? 'STAT' : 'ROUTINE',
++        lines: [
++          {
++            product: PRODUCT[order.component],
++            abo: letters(order.group) as HlAboGroup,
++            rhd: isRhesusNegative(order.group) ? 'NEG' : 'POS',
++            qty: order.units,
++          },
++        ],
++      });
++    } catch (e) {
++      if (e instanceof HaemalinkEmbargoError) {
++        const reason = e.embargoCode === 'TTI_QUARANTINE' ? 'quarantine' : 'shortage';
++        return { orderNumber: '', units: 0, hold: { reason, until: e.liftsAt } };
++      }
++      throw e;
++    }
+     const allocated = receipt.allocations.reduce((sum, a) => sum + a.qtyAllocated, 0);
+     return { orderNumber: receipt.orderRef, units: Math.max(0, Math.min(order.units, allocated)) };
+   }
+diff --git a/step-01/src/application/RequestUnits.ts b/step-02/src/application/RequestUnits.ts
+index d066aa018..5d181406b 100644
+--- a/step-01/src/application/RequestUnits.ts
++++ b/step-02/src/application/RequestUnits.ts
+@@ -14,6 +14,8 @@ export interface RequestAnswer {
+   readonly supplierOrder: string | null;
+   readonly outstanding: number;
+   readonly status: FulfilmentStatus;
++  readonly holdReason: 'shortage' | 'quarantine' | null;
++  readonly holdUntil: string | null;
+ }
+ 
+ /** A ward asks the blood bank for units of one component and blood group. */
+diff --git a/step-01/src/application/RequestUnitsService.ts b/step-02/src/application/RequestUnitsService.ts
+index f949a2f6f..5898f3501 100644
+--- a/step-01/src/application/RequestUnitsService.ts
++++ b/step-02/src/application/RequestUnitsService.ts
+@@ -1,7 +1,7 @@
+ import { Fulfilment } from '../domain/Fulfilment';
+ import { UnitRequest } from '../domain/UnitRequest';
+ import type { Fridge } from './needs/Fridge';
+-import type { Supplier } from './needs/Supplier';
++import type { Supplier, SupplierHold } from './needs/Supplier';
+ import type { RequestAnswer, RequestUnits, UnitRequestInput } from './RequestUnits';
+ 
+ export class RequestUnitsService implements RequestUnits {
+@@ -10,13 +10,22 @@ export class RequestUnitsService implements RequestUnits {
+     private readonly supplier: Supplier,
+   ) {}
+ 
++  private readonly holds = new Map<string, SupplierHold>();
++
+   async request(input: UnitRequestInput): Promise<RequestAnswer> {
+     const request = UnitRequest.of(input);
+     const fromStock = Math.min(request.units, this.fridge.onHand(request.component, request.group));
+     const missing = request.units - fromStock;
+     let fromSupplier = 0;
+     let supplierOrder: string | null = null;
++    let hold: SupplierHold | null = null;
++    const key = `${request.component}|${request.group}`;
+     if (missing > 0) {
++      const active = this.holds.get(key);
++      if (active && Date.now() < Date.parse(active.until)) hold = active;
++      else this.holds.delete(key);
++    }
++    if (missing > 0 && !hold) {
+       // Ordered before anything is taken, so a failing supplier leaves our stock untouched.
+       const confirmation = await this.supplier.order({
+         component: request.component,
+@@ -25,7 +34,12 @@ export class RequestUnitsService implements RequestUnits {
+         urgent: request.urgent,
+       });
+       fromSupplier = confirmation.units;
+-      supplierOrder = confirmation.orderNumber;
++      if (confirmation.hold) {
++        hold = confirmation.hold;
++        if (!Number.isNaN(Date.parse(hold.until))) this.holds.set(key, hold);
++      } else {
++        supplierOrder = confirmation.orderNumber;
++      }
+     }
+     if (fromStock > 0) this.fridge.take(request.component, request.group, fromStock);
+     const fulfilment = Fulfilment.of(request.units, fromStock, fromSupplier);
+@@ -34,7 +48,9 @@ export class RequestUnitsService implements RequestUnits {
+       fromSupplier: fulfilment.fromSupplier,
+       supplierOrder,
+       outstanding: fulfilment.outstanding,
+-      status: fulfilment.status(),
++      status: fulfilment.outstanding === 0 ? 'filled' : hold ? 'on hold' : fulfilment.status(),
++      holdReason: hold ? hold.reason : null,
++      holdUntil: hold ? hold.until : null,
+     };
+   }
+ }
+diff --git a/step-01/src/application/needs/Supplier.ts b/step-02/src/application/needs/Supplier.ts
+index 39aea18b1..4606636c6 100644
+--- a/step-01/src/application/needs/Supplier.ts
++++ b/step-02/src/application/needs/Supplier.ts
+@@ -13,6 +13,14 @@ export interface SupplierConfirmation {
+   readonly orderNumber: string;
+   /** Units the supplier confirmed, possibly fewer than ordered or none. */
+   readonly units: number;
++  /** Set when the supplier refused because of an embargo; nothing was ordered. */
++  readonly hold?: SupplierHold;
++}
++
++export interface SupplierHold {
++  readonly reason: 'shortage' | 'quarantine';
++  /** ISO 8601 time the embargo lifts. */
++  readonly until: string;
+ }
+ 
+ /** The regional blood supplier, asked for units our own fridge cannot give. */
+diff --git a/step-01/src/domain/Fulfilment.ts b/step-02/src/domain/Fulfilment.ts
+index 8f9ae9069..415a2749b 100644
+--- a/step-01/src/domain/Fulfilment.ts
++++ b/step-02/src/domain/Fulfilment.ts
+@@ -1,4 +1,4 @@
+-export type FulfilmentStatus = 'filled' | 'partly filled' | 'unfilled';
++export type FulfilmentStatus = 'filled' | 'partly filled' | 'unfilled' | 'on hold';
+ 
+ /** How a request was met: units given from our own fridge and from the supplier, and units still missing. */
+ export class Fulfilment {

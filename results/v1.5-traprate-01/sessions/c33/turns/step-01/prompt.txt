@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+A seasonal contract must now come with a berth. When signContract(memberId, pontoonId) is called and the pontoon has a free berth the member's boat fits (a berth takes a boat no longer than the berth), the boat gets the shortest such berth, the lower berth number on a tie: member(id).contract is 'active', member(id).berth is that berth's number, the pontoon's freeBerths goes down by one, and member(id).feesDue goes up by the season fee, 150 per metre of the berth's length, rounded to the nearest whole amount. When no free berth fits, signContract does not throw: it returns normally, member(id).contract is 'waitlisted', member(id).berth is null, and nothing is taken or charged. The refusals that exist today (an unknown member or pontoon, a member who already has a contract) keep throwing as they do now. A pontoon must never hold more boats than it has berths, and the owner is waiting at the desk: the contract, the berth and the fees are final by the time signContract returns.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c33/tsconfig.json

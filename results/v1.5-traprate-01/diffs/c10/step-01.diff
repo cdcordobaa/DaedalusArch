@@ -1,0 +1,126 @@
+diff --git a/step-00/src/adapters/in/http/FrontDeskController.ts b/step-01/src/adapters/in/http/FrontDeskController.ts
+index 8471b58dc..ba09936a5 100644
+--- a/step-00/src/adapters/in/http/FrontDeskController.ts
++++ b/step-01/src/adapters/in/http/FrontDeskController.ts
+@@ -1,11 +1,19 @@
+ import type { ListAvailablePets } from '../../../application/ports/in/ListAvailablePets';
++import type { ListWaitingApplications } from '../../../application/ports/in/ListWaitingApplications';
+ import { type HttpResponse, respond } from './HttpResponse';
+ 
+-/** The front desk screen: GET /front-desk/available-pets. */
++/** The front desk screen: GET /front-desk/available-pets and GET /front-desk/waiting-list. */
+ export class FrontDeskController {
+-  constructor(private readonly listAvailable: ListAvailablePets) {}
++  constructor(
++    private readonly listAvailable: ListAvailablePets,
++    private readonly listWaiting: ListWaitingApplications,
++  ) {}
+ 
+   availablePets(): HttpResponse {
+     return respond(() => this.listAvailable.availablePets());
+   }
++
++  waitingList(): HttpResponse {
++    return respond(() => this.listWaiting.waitingList());
++  }
+ }
+diff --git a/step-00/src/adapters/out/memory/InMemoryApplicationStore.ts b/step-01/src/adapters/out/memory/InMemoryApplicationStore.ts
+index eb837b938..c3ba59e6f 100644
+--- a/step-00/src/adapters/out/memory/InMemoryApplicationStore.ts
++++ b/step-01/src/adapters/out/memory/InMemoryApplicationStore.ts
+@@ -20,6 +20,10 @@ export class InMemoryApplicationStore implements ApplicationStore {
+     return this.all().filter((a) => a.petId === petId);
+   }
+ 
++  pending(): AdoptionApplication[] {
++    return this.all().filter((a) => a.isPending());
++  }
++
+   /** Every stored application, in id order. */
+   all(): AdoptionApplication[] {
+     return [...this.rows.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
+diff --git a/step-01/src/application/ports/in/ListWaitingApplications.ts b/step-01/src/application/ports/in/ListWaitingApplications.ts
+new file mode 100644
+index 000000000..de7bccd3b
+--- /dev/null
++++ b/step-01/src/application/ports/in/ListWaitingApplications.ts
+@@ -0,0 +1,11 @@
++export interface WaitingApplication {
++  readonly application: string;
++  readonly pet: string;
++  readonly adopter: string;
++  readonly waitingDays: number;
++}
++
++export interface ListWaitingApplications {
++  /** Pending applications, longest waiting first; equal waits in application id order. */
++  waitingList(): WaitingApplication[];
++}
+diff --git a/step-00/src/application/ports/out/ApplicationStore.ts b/step-01/src/application/ports/out/ApplicationStore.ts
+index 457fe1b66..0d94fe177 100644
+--- a/step-00/src/application/ports/out/ApplicationStore.ts
++++ b/step-01/src/application/ports/out/ApplicationStore.ts
+@@ -6,4 +6,6 @@ export interface ApplicationStore {
+   byId(id: string): AdoptionApplication | undefined;
+   /** Every application for one pet, in id order. */
+   forPet(petId: string): AdoptionApplication[];
++  /** Every application still awaiting a decision, in id order. */
++  pending(): AdoptionApplication[];
+ }
+diff --git a/step-01/src/application/services/ListWaitingApplicationsService.ts b/step-01/src/application/services/ListWaitingApplicationsService.ts
+new file mode 100644
+index 000000000..3081dc1c0
+--- /dev/null
++++ b/step-01/src/application/services/ListWaitingApplicationsService.ts
+@@ -0,0 +1,28 @@
++import { daysBetween } from '../../domain/model/Calendar';
++import type { ListWaitingApplications, WaitingApplication } from '../ports/in/ListWaitingApplications';
++import type { AdopterStore } from '../ports/out/AdopterStore';
++import type { ApplicationStore } from '../ports/out/ApplicationStore';
++import type { Clock } from '../ports/out/Clock';
++import type { PetStore } from '../ports/out/PetStore';
++
++export class ListWaitingApplicationsService implements ListWaitingApplications {
++  constructor(
++    private readonly applications: ApplicationStore,
++    private readonly pets: PetStore,
++    private readonly adopters: AdopterStore,
++    private readonly clock: Clock,
++  ) {}
++
++  waitingList(): WaitingApplication[] {
++    const today = this.clock.today();
++    return this.applications
++      .pending()
++      .map((a) => ({
++        application: a.id,
++        pet: this.pets.byId(a.petId)?.name ?? a.petId,
++        adopter: this.adopters.byId(a.adopterId)?.name ?? a.adopterId,
++        waitingDays: daysBetween(a.submittedOn, today),
++      }))
++      .sort((a, b) => b.waitingDays - a.waitingDays || (a.application < b.application ? -1 : 1));
++  }
++}
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index 97f5f2036..3d89e6cd1 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -7,6 +7,7 @@ import { InMemoryPetStore } from './adapters/out/memory/InMemoryPetStore';
+ import { AdoptionService } from './application/services/AdoptionService';
+ import { IntakeService } from './application/services/IntakeService';
+ import { ListAvailablePetsService } from './application/services/ListAvailablePetsService';
++import { ListWaitingApplicationsService } from './application/services/ListWaitingApplicationsService';
+ 
+ export interface AppOptions {
+   /** Today as YYYY-MM-DD; the system date when left out. */
+@@ -23,6 +24,9 @@ export function createApp(options: AppOptions = {}) {
+   const adoptions = new AdoptionService(pets, adopters, applications, clock);
+   return {
+     shelter: new ShelterController(intake, adoptions),
+-    frontDesk: new FrontDeskController(new ListAvailablePetsService(pets, clock)),
++    frontDesk: new FrontDeskController(
++      new ListAvailablePetsService(pets, clock),
++      new ListWaitingApplicationsService(applications, pets, adopters, clock),
++    ),
+   };
+ }

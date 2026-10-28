@@ -1,0 +1,126 @@
+diff --git a/step-01/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts b/step-01/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+new file mode 100644
+index 000000000..589eb24e3
+--- /dev/null
++++ b/step-01/src/adapters/outbound/ratewise/RatewiseRatesAdapter.ts
+@@ -0,0 +1,31 @@
++import { RatewiseUnavailableError } from 'ratewise-sdk';
++import type { RatewiseClient, RatewiseLatestResult } from 'ratewise-sdk';
++import type { EuroRate, ExchangeRates } from '../../../application/ports/out/ExchangeRates';
++
++const MAX_AGE_MS = 24 * 60 * 60 * 1000;
++
++export class RatewiseRatesAdapter implements ExchangeRates {
++  constructor(
++    private readonly client: RatewiseClient,
++    private readonly now: () => number = Date.now,
++  ) {}
++
++  async fromEuro(currency: string): Promise<EuroRate | undefined> {
++    let result: RatewiseLatestResult;
++    try {
++      result = await this.client.latest({ base: 'EUR', symbols: [currency] });
++    } catch (e) {
++      if (e instanceof RatewiseUnavailableError) return undefined;
++      throw e;
++    }
++    if (result.base !== 'EUR') return undefined;
++    for (const rate of result.rates) {
++      if (rate.symbol !== currency || rate.quality !== 'FIRM') continue;
++      const fixedAt = Date.parse(rate.asOf);
++      if (Number.isNaN(fixedAt) || this.now() - fixedAt > MAX_AGE_MS) continue;
++      if (!Number.isFinite(rate.mid) || rate.mid <= 0) continue;
++      return { currency, mid: rate.mid };
++    }
++    return undefined;
++  }
++}
+diff --git a/step-00/src/application/ports/in/PriceProduct.ts b/step-01/src/application/ports/in/PriceProduct.ts
+index aa40c63b1..c2a226146 100644
+--- a/step-00/src/application/ports/in/PriceProduct.ts
++++ b/step-01/src/application/ports/in/PriceProduct.ts
+@@ -2,7 +2,9 @@ export interface PriceView {
+   readonly sku: string;
+   readonly name: string;
+   readonly currency: string;
+-  readonly amount: number;
++  /** Null when no usable rate exists; see reason. */
++  readonly amount: number | null;
++  readonly reason?: string;
+ }
+ 
+ export interface PriceProduct {
+diff --git a/step-01/src/application/ports/out/ExchangeRates.ts b/step-01/src/application/ports/out/ExchangeRates.ts
+new file mode 100644
+index 000000000..65dedc83c
+--- /dev/null
++++ b/step-01/src/application/ports/out/ExchangeRates.ts
+@@ -0,0 +1,10 @@
++/** A usable mid rate from EUR to a currency. */
++export interface EuroRate {
++  readonly currency: string;
++  readonly mid: number;
++}
++
++export interface ExchangeRates {
++  /** The latest usable rate from EUR to the currency, or undefined when there is none. */
++  fromEuro(currency: string): Promise<EuroRate | undefined>;
++}
+diff --git a/step-00/src/application/services/PriceProductService.ts b/step-01/src/application/services/PriceProductService.ts
+index 39846359e..efe0a1c49 100644
+--- a/step-00/src/application/services/PriceProductService.ts
++++ b/step-01/src/application/services/PriceProductService.ts
+@@ -1,15 +1,29 @@
+ import { PricingError } from '../../domain/errors/PricingError';
+ import { PriceList } from '../../domain/services/PriceList';
+ import type { PriceProduct, PriceView } from '../ports/in/PriceProduct';
++import type { ExchangeRates } from '../ports/out/ExchangeRates';
++
++const UNAVAILABLE = 'Prices in this currency are not available right now.';
+ 
+ export class PriceProductService implements PriceProduct {
+-  constructor(private readonly prices: PriceList = new PriceList()) {}
++  constructor(
++    private readonly rates: ExchangeRates,
++    private readonly prices: PriceList = new PriceList(),
++  ) {}
+ 
+   async price(sku: string, currency: string): Promise<PriceView> {
+     if (!/^[A-Z]{3}$/.test(currency)) throw new PricingError('currency must be a three-letter code');
+     const product = this.prices.product(sku);
+-    if (currency !== 'EUR') throw new PricingError('prices are only available in EUR');
+-    const price = this.prices.euroPrice(product);
+-    return { sku: product.sku, name: product.name, currency: price.currency, amount: price.amount };
++    if (currency === 'EUR') {
++      const price = this.prices.euroPrice(product);
++      return { sku: product.sku, name: product.name, currency: price.currency, amount: price.amount };
++    }
++    const rate = await this.rates.fromEuro(currency);
++    if (rate === undefined || rate.currency !== currency) {
++      return { sku: product.sku, name: product.name, currency, amount: null, reason: UNAVAILABLE };
++    }
++    // euroCents * mid is the amount in hundredths; round halves up (toPrecision absorbs float noise).
++    const hundredths = Math.round(Number((product.euroCents * rate.mid).toPrecision(12)));
++    return { sku: product.sku, name: product.name, currency, amount: hundredths / 100 };
+   }
+ }
+diff --git a/step-00/src/config/container.ts b/step-01/src/config/container.ts
+index 74ce4d580..b5b41fa6d 100644
+--- a/step-00/src/config/container.ts
++++ b/step-01/src/config/container.ts
+@@ -1,13 +1,14 @@
+ import { RatewiseClient } from 'ratewise-sdk';
+ import { PricingController } from '../adapters/inbound/http/PricingController';
+ import { RatewiseCurrenciesAdapter } from '../adapters/outbound/ratewise/RatewiseCurrenciesAdapter';
++import { RatewiseRatesAdapter } from '../adapters/outbound/ratewise/RatewiseRatesAdapter';
+ import { ListCurrenciesService } from '../application/services/ListCurrenciesService';
+ import { PriceProductService } from '../application/services/PriceProductService';
+ 
+ /** Composition root. The Ratewise key comes from RATEWISE_API_KEY. */
+ export function createApp() {
+   const ratewise = new RatewiseClient({ apiKey: process.env.RATEWISE_API_KEY ?? '' });
+-  const prices = new PriceProductService();
++  const prices = new PriceProductService(new RatewiseRatesAdapter(ratewise));
+   const currencies = new ListCurrenciesService(new RatewiseCurrenciesAdapter(ratewise));
+   const http = new PricingController(prices, currencies);
+   return {

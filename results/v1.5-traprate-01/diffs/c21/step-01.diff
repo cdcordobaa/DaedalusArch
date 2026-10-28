@@ -1,0 +1,87 @@
+diff --git a/step-00/src/campaigns/acl/BackersAdapter.ts b/step-01/src/campaigns/acl/BackersAdapter.ts
+index 711e2d9f0..cac554896 100644
+--- a/step-00/src/campaigns/acl/BackersAdapter.ts
++++ b/step-01/src/campaigns/acl/BackersAdapter.ts
+@@ -8,4 +8,8 @@ export class BackersAdapter implements BackerLookup {
+   isRegistered(backerId: string): boolean {
+     return this.backers.profile(backerId) !== undefined;
+   }
++
++  standingOf(backerId: string): string | undefined {
++    return this.backers.profile(backerId)?.standing;
++  }
+ }
+diff --git a/step-00/src/campaigns/application/PlacePledge.ts b/step-01/src/campaigns/application/PlacePledge.ts
+index df660542c..ca66cac16 100644
+--- a/step-00/src/campaigns/application/PlacePledge.ts
++++ b/step-01/src/campaigns/application/PlacePledge.ts
+@@ -6,8 +6,19 @@ import type { BackerLookup } from './ports/BackerLookup';
+ export interface PledgeReceipt {
+   readonly pledgeId: string;
+   readonly campaignTotal: number;
++  /** Room the backer has left on this campaign after the pledge. */
++  readonly remaining: number;
+ }
+ 
++const NEWCOMER_LIMIT_CENTS = 25_000;
++
++/** Most a backer may have pledged on one campaign, by standing. */
++const LIMIT_CENTS: Readonly<Record<string, number>> = {
++  trusted: 500_000,
++  established: 100_000,
++  newcomer: NEWCOMER_LIMIT_CENTS,
++};
++
+ export class PlacePledge {
+   constructor(
+     private readonly campaigns: CampaignRepository,
+@@ -17,9 +28,16 @@ export class PlacePledge {
+   execute(campaignId: string, backerId: string, amount: number): PledgeReceipt {
+     const campaign = this.campaigns.find(CampaignId.of(campaignId));
+     if (campaign === undefined) throw new Error(`no campaign ${campaignId}`);
+-    if (!this.backers.isRegistered(backerId)) throw new Error(`no backer ${backerId}`);
+-    const pledge = campaign.takePledge(backerId, Amount.ofUnits(amount));
++    const standing = this.backers.standingOf(backerId);
++    if (standing === undefined) throw new Error(`no backer ${backerId}`);
++    if (standing === 'blocked') throw new Error(`backer ${backerId} is blocked`);
++    const limit = Amount.ofCents(LIMIT_CENTS[standing] ?? NEWCOMER_LIMIT_CENTS);
++    const pledge = campaign.takePledge(backerId, Amount.ofUnits(amount), limit);
+     this.campaigns.save(campaign);
+-    return { pledgeId: pledge.pledgeId, campaignTotal: campaign.raised().units() };
++    return {
++      pledgeId: pledge.pledgeId,
++      campaignTotal: campaign.raised().units(),
++      remaining: limit.subtract(campaign.pledgedBy(backerId)).units(),
++    };
+   }
+ }
+diff --git a/step-00/src/campaigns/application/ports/BackerLookup.ts b/step-01/src/campaigns/application/ports/BackerLookup.ts
+index 0b684b409..7b3e36450 100644
+--- a/step-00/src/campaigns/application/ports/BackerLookup.ts
++++ b/step-01/src/campaigns/application/ports/BackerLookup.ts
+@@ -1,4 +1,6 @@
+ /** What campaigns need to know about the people who pledge. */
+ export interface BackerLookup {
+   isRegistered(backerId: string): boolean;
++  /** The backer's standing as their profile shows it; undefined when there is no such backer. */
++  standingOf(backerId: string): string | undefined;
+ }
+diff --git a/step-00/src/campaigns/domain/campaign/Campaign.ts b/step-01/src/campaigns/domain/campaign/Campaign.ts
+index 221d2cb54..4d8218e6c 100644
+--- a/step-00/src/campaigns/domain/campaign/Campaign.ts
++++ b/step-01/src/campaigns/domain/campaign/Campaign.ts
+@@ -58,9 +58,13 @@ export class Campaign {
+     return this.pledges.filter((p) => p.status === 'collected');
+   }
+ 
+-  takePledge(backerId: string, amount: Amount): Pledge {
++  /** `limit` caps the backer's total over all their live pledges on this campaign, this one included. */
++  takePledge(backerId: string, amount: Amount, limit: Amount): Pledge {
+     if (this.status !== 'open') throw new Error(`campaign ${this.id.value} is closed`);
+     if (!amount.isPositive()) throw new Error('a pledge must be a positive amount');
++    if (this.pledgedBy(backerId).add(amount).exceeds(limit)) {
++      throw new Error(`pledge is over the limit of ${limit.label()} for backer ${backerId}`);
++    }
+     const pledge = new Pledge(`${this.id.value}/${String(this.pledges.length + 1)}`, backerId, amount);
+     this.pledges.push(pledge);
+     this.outbox.push(new PledgeMade(this.id.value, pledge.pledgeId, backerId, amount.cents));

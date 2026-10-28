@@ -1,0 +1,330 @@
+diff --git a/step-01/src/accounts/acl/SaleroomFeed.ts b/step-02/src/accounts/acl/SaleroomFeed.ts
+index edd5b5155..827d5c419 100644
+--- a/step-01/src/accounts/acl/SaleroomFeed.ts
++++ b/step-02/src/accounts/acl/SaleroomFeed.ts
+@@ -1,4 +1,4 @@
+-import type { BidderOutbidMessage, BidPlacedMessage } from '../../saleroom/contracts/SaleroomMessages';
++import type { BidderOutbidMessage, BidPlacedMessage, LotUnsoldMessage } from '../../saleroom/contracts/SaleroomMessages';
+ import type { DomainEvent } from '../../shared-kernel/DomainEvent';
+ 
+ /** Reads what accounts need from the messages the saleroom publishes. */
+@@ -12,6 +12,9 @@ export const SaleroomFeed = {
+   amountOf(event: DomainEvent): number {
+     return (event as unknown as BidPlacedMessage).amount;
+   },
++  unsoldBidderOf(event: DomainEvent): string | null {
++    return (event as unknown as LotUnsoldMessage).bidderId;
++  },
+   outbidBidderOf(event: DomainEvent): string {
+     return (event as unknown as BidderOutbidMessage).bidderId;
+   },
+diff --git a/step-01/src/accounts/api/AccountsFacade.ts b/step-02/src/accounts/api/AccountsFacade.ts
+index 7d2113938..8d4f039ae 100644
+--- a/step-01/src/accounts/api/AccountsFacade.ts
++++ b/step-02/src/accounts/api/AccountsFacade.ts
+@@ -19,6 +19,8 @@ export interface AccountsApi {
+   readonly reactions: {
+     bidPlaced(event: DomainEvent): void;
+     bidderOutbid(event: DomainEvent): void;
++    lotSold(event: DomainEvent): void;
++    lotUnsold(event: DomainEvent): void;
+   };
+ }
+ 
+@@ -33,6 +35,11 @@ export function createAccounts(store: AccountStore): AccountsApi {
+     reactions: {
+       bidPlaced: (event) => new CountBid(store).handle(SaleroomFeed.bidderOf(event), SaleroomFeed.lotOf(event), SaleroomFeed.amountOf(event)),
+       bidderOutbid: (event) => new CountBid(store).outbid(SaleroomFeed.outbidBidderOf(event), SaleroomFeed.lotOf(event)),
++      lotSold: (event) => new CountBid(store).sold(SaleroomFeed.bidderOf(event), SaleroomFeed.amountOf(event)),
++      lotUnsold: (event) => {
++        const bidderId = SaleroomFeed.unsoldBidderOf(event);
++        if (bidderId !== null) new CountBid(store).outbid(bidderId, SaleroomFeed.lotOf(event));
++      },
+     },
+   };
+ }
+diff --git a/step-01/src/accounts/application/AccountQueries.ts b/step-02/src/accounts/application/AccountQueries.ts
+index af53f2430..d833b2fd1 100644
+--- a/step-01/src/accounts/application/AccountQueries.ts
++++ b/step-02/src/accounts/application/AccountQueries.ts
+@@ -8,6 +8,6 @@ export class AccountQueries {
+     const account = this.store.find(accountId);
+     if (account === undefined) return undefined;
+     const r = account.toRecord();
+-    return { id: r.id, name: r.name, creditLimit: r.creditLimit, creditAvailable: account.creditAvailable(), bidsPlaced: r.bidsPlaced, status: r.status };
++    return { id: r.id, name: r.name, creditLimit: r.creditLimit, creditAvailable: account.creditAvailable(), bidsPlaced: r.bidsPlaced, amountOwed: r.amountOwed, status: r.status };
+   }
+ }
+diff --git a/step-01/src/accounts/application/CountBid.ts b/step-02/src/accounts/application/CountBid.ts
+index 47aebc263..1c8e8e781 100644
+--- a/step-01/src/accounts/application/CountBid.ts
++++ b/step-02/src/accounts/application/CountBid.ts
+@@ -12,6 +12,14 @@ export class CountBid {
+     this.store.save(account);
+   }
+ 
++  /** The hammer came down on the bidder's leading bid. */
++  sold(accountId: string, amount: number): void {
++    const account = this.store.find(accountId);
++    if (account === undefined) return;
++    account.recordPurchase(amount);
++    this.store.save(account);
++  }
++
+   /** The bidder was outbid on the lot: the amount comes back. */
+   outbid(accountId: string, lotId: string): void {
+     const account = this.store.find(accountId);
+diff --git a/step-01/src/accounts/contracts/AccountView.ts b/step-02/src/accounts/contracts/AccountView.ts
+index 9fc332852..55582eb70 100644
+--- a/step-01/src/accounts/contracts/AccountView.ts
++++ b/step-02/src/accounts/contracts/AccountView.ts
+@@ -5,5 +5,6 @@ export interface AccountView {
+   readonly creditLimit: number;
+   readonly creditAvailable: number;
+   readonly bidsPlaced: number;
++  readonly amountOwed: number;
+   readonly status: string;
+ }
+diff --git a/step-01/src/accounts/domain/BidderAccount.ts b/step-02/src/accounts/domain/BidderAccount.ts
+index c02418472..64cd13929 100644
+--- a/step-01/src/accounts/domain/BidderAccount.ts
++++ b/step-02/src/accounts/domain/BidderAccount.ts
+@@ -13,6 +13,8 @@ export interface AccountRecord {
+   /** Credit taken by the bid that leads each lot, by lot id. */
+   readonly bidHolds: Readonly<Record<string, number>>;
+   readonly bidsPlaced: number;
++  /** Hammer prices plus buyer's premium for the lots this bidder has bought. */
++  readonly amountOwed: number;
+   readonly status: AccountStatus;
+ }
+ 
+@@ -27,17 +29,18 @@ export class BidderAccount {
+     private deskHolds: Record<string, number>,
+     private bidHolds: Record<string, number>,
+     private bidsPlaced: number,
++    private amountOwed: number,
+     private status: AccountStatus,
+   ) {}
+ 
+   static register(id: string, name: string, creditLimit: number): [BidderAccount, DomainEvent[]] {
+     if (name.trim() === '') throw new AccountsError('a bidder needs a name');
+     if (!whole(creditLimit)) throw new AccountsError('the credit limit must be a positive whole amount');
+-    return [new BidderAccount(id, name, creditLimit, {}, {}, 0, 'active'), [new BidderRegistered(id, name, creditLimit)]];
++    return [new BidderAccount(id, name, creditLimit, {}, {}, 0, 0, 'active'), [new BidderRegistered(id, name, creditLimit)]];
+   }
+ 
+   static fromRecord(r: AccountRecord): BidderAccount {
+-    return new BidderAccount(r.id, r.name, r.creditLimit, { ...r.deskHolds }, { ...r.bidHolds }, r.bidsPlaced, r.status);
++    return new BidderAccount(r.id, r.name, r.creditLimit, { ...r.deskHolds }, { ...r.bidHolds }, r.bidsPlaced, r.amountOwed, r.status);
+   }
+ 
+   creditAvailable(): number {
+@@ -56,6 +59,11 @@ export class BidderAccount {
+     this.bidHolds = rest;
+   }
+ 
++  /** The lot was bought: the hammer price stays held, and the price plus a 20% buyer's premium is owed. */
++  recordPurchase(hammer: number): void {
++    this.amountOwed += Math.round((hammer * 6) / 5);
++  }
++
+   /** The finance desk sets credit aside under a reference. */
+   holdCredit(ref: string, amount: number): void {
+     if (!whole(amount)) throw new AccountsError('the amount must be a positive whole amount');
+@@ -77,6 +85,6 @@ export class BidderAccount {
+   }
+ 
+   toRecord(): AccountRecord {
+-    return { id: this.id, name: this.name, creditLimit: this.creditLimit, deskHolds: { ...this.deskHolds }, bidHolds: { ...this.bidHolds }, bidsPlaced: this.bidsPlaced, status: this.status };
++    return { id: this.id, name: this.name, creditLimit: this.creditLimit, deskHolds: { ...this.deskHolds }, bidHolds: { ...this.bidHolds }, bidsPlaced: this.bidsPlaced, amountOwed: this.amountOwed, status: this.status };
+   }
+ }
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index 900879612..a5d0505d6 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -16,6 +16,8 @@ export function createApp() {
+ 
+   dispatcher.subscribe('BidPlaced', accounts.reactions.bidPlaced);
+   dispatcher.subscribe('BidderOutbid', accounts.reactions.bidderOutbid);
++  dispatcher.subscribe('LotSold', accounts.reactions.lotSold);
++  dispatcher.subscribe('LotUnsold', accounts.reactions.lotUnsold);
+ 
+   const command = deliverAfter(dispatcher);
+   return {
+@@ -28,5 +30,6 @@ export function createApp() {
+     openLot: command((title: string, openingBid: number, reserve: number) => saleroom.openLot(title, openingBid, reserve)),
+     lot: (lotId: string) => saleroom.lot(lotId),
+     placeBid: command((lotId: string, bidderId: string, amount: number) => saleroom.placeBid(lotId, bidderId, amount)),
++    closeLot: command((lotId: string) => saleroom.closeLot(lotId)),
+   };
+ }
+diff --git a/step-01/src/saleroom/api/SaleroomFacade.ts b/step-02/src/saleroom/api/SaleroomFacade.ts
+index 3294bd491..d29f7794c 100644
+--- a/step-01/src/saleroom/api/SaleroomFacade.ts
++++ b/step-02/src/saleroom/api/SaleroomFacade.ts
+@@ -5,13 +5,14 @@ import type { LotView } from '../contracts/LotView';
+ import type { LotStore } from '../domain/LotStore';
+ 
+ export type { LotView } from '../contracts/LotView';
+-export type { BidPlacedMessage, BidderOutbidMessage } from '../contracts/SaleroomMessages';
++export type { BidPlacedMessage, BidderOutbidMessage, LotSoldMessage, LotUnsoldMessage } from '../contracts/SaleroomMessages';
+ 
+ /** What the rest of the house may call in the saleroom. */
+ export interface SaleroomApi {
+   openLot(title: string, openingBid: number, reserve: number): string;
+   lot(lotId: string): LotView | undefined;
+   placeBid(lotId: string, bidderId: string, amount: number): 'accepted' | 'refused';
++  closeLot(lotId: string): void;
+ }
+ 
+ export function createSaleroom(store: LotStore, bidders: Bidders): SaleroomApi {
+@@ -21,5 +22,6 @@ export function createSaleroom(store: LotStore, bidders: Bidders): SaleroomApi {
+     openLot: (title, openingBid, reserve) => commands.open(title, openingBid, reserve),
+     lot: (lotId) => queries.view(lotId),
+     placeBid: (lotId, bidderId, amount) => commands.placeBid(lotId, bidderId, amount),
++    closeLot: (lotId) => commands.close(lotId),
+   };
+ }
+diff --git a/step-01/src/saleroom/application/LotCommands.ts b/step-02/src/saleroom/application/LotCommands.ts
+index b27f14b52..2cd29d72f 100644
+--- a/step-01/src/saleroom/application/LotCommands.ts
++++ b/step-02/src/saleroom/application/LotCommands.ts
+@@ -23,4 +23,11 @@ export class LotCommands {
+     if (outcome === 'accepted') this.store.save(lot, events);
+     return outcome;
+   }
++
++  close(lotId: string): void {
++    const lot = this.store.find(lotId);
++    if (lot === undefined) throw new SaleroomError(`no lot ${lotId}`);
++    const events = lot.close();
++    if (events.length > 0) this.store.save(lot, events);
++  }
+ }
+diff --git a/step-01/src/saleroom/application/LotQueries.ts b/step-02/src/saleroom/application/LotQueries.ts
+index 35b50798b..6839f903d 100644
+--- a/step-01/src/saleroom/application/LotQueries.ts
++++ b/step-02/src/saleroom/application/LotQueries.ts
+@@ -8,6 +8,6 @@ export class LotQueries {
+     const lot = this.store.find(lotId);
+     if (lot === undefined) return undefined;
+     const r = lot.toRecord();
+-    return { id: r.id, title: r.title, openingBid: r.openingBid, status: r.status, leadingBid: r.leading?.amount ?? null, leader: r.leading?.bidderId ?? null, nextMinimum: lot.nextMinimum() };
++    return { id: r.id, title: r.title, openingBid: r.openingBid, status: r.status, leadingBid: r.leading?.amount ?? null, leader: r.leading?.bidderId ?? null, buyer: r.status === 'sold' ? (r.leading?.bidderId ?? null) : null, nextMinimum: lot.nextMinimum() };
+   }
+ }
+diff --git a/step-01/src/saleroom/contracts/LotView.ts b/step-02/src/saleroom/contracts/LotView.ts
+index 8609f32de..a864f855a 100644
+--- a/step-01/src/saleroom/contracts/LotView.ts
++++ b/step-02/src/saleroom/contracts/LotView.ts
+@@ -6,5 +6,6 @@ export interface LotView {
+   readonly status: string;
+   readonly leadingBid: number | null;
+   readonly leader: string | null;
++  readonly buyer: string | null;
+   readonly nextMinimum: number;
+ }
+diff --git a/step-01/src/saleroom/contracts/SaleroomMessages.ts b/step-02/src/saleroom/contracts/SaleroomMessages.ts
+index c9688e9df..58a8eca56 100644
+--- a/step-01/src/saleroom/contracts/SaleroomMessages.ts
++++ b/step-02/src/saleroom/contracts/SaleroomMessages.ts
+@@ -6,6 +6,21 @@ export interface BidPlacedMessage {
+   readonly amount: number;
+ }
+ 
++/** The hammer came down on the lot with its leading bid at or above the reserve. */
++export interface LotSoldMessage {
++  readonly type: 'LotSold';
++  readonly lotId: string;
++  readonly bidderId: string;
++  readonly amount: number;
++}
++
++/** The lot closed without a sale; the leading bidder, if any, is named. */
++export interface LotUnsoldMessage {
++  readonly type: 'LotUnsold';
++  readonly lotId: string;
++  readonly bidderId: string | null;
++}
++
+ /** The bidder who led the lot until now no longer does. */
+ export interface BidderOutbidMessage {
+   readonly type: 'BidderOutbid';
+diff --git a/step-01/src/saleroom/domain/Lot.ts b/step-02/src/saleroom/domain/Lot.ts
+index b06bad80f..b85b1d984 100644
+--- a/step-01/src/saleroom/domain/Lot.ts
++++ b/step-02/src/saleroom/domain/Lot.ts
+@@ -2,10 +2,12 @@ import type { DomainEvent } from '../../shared-kernel/DomainEvent';
+ import { BidPlaced } from './events/BidPlaced';
+ import { BidderOutbid } from './events/BidderOutbid';
+ import { LotOpened } from './events/LotOpened';
++import { LotSold } from './events/LotSold';
++import { LotUnsold } from './events/LotUnsold';
+ import { SaleroomError } from './SaleroomError';
+ import { BidLadder } from './value-objects/BidLadder';
+ 
+-export type LotStatus = 'open';
++export type LotStatus = 'open' | 'sold' | 'unsold';
+ 
+ export interface LeadingBid {
+   readonly bidderId: string;
+@@ -54,6 +56,7 @@ export class Lot {
+ 
+   /** A bid the bidder's credit does not cover is refused and leaves the lot as it was. */
+   bid(bidderId: string, amount: number, creditAvailable: number): { outcome: 'accepted' | 'refused'; events: DomainEvent[] } {
++    if (this.status !== 'open') throw new SaleroomError(`lot ${this.id} is closed`);
+     if (this.isLedBy(bidderId)) throw new SaleroomError(`${bidderId} already leads lot ${this.id}`);
+     const minimum = this.nextMinimum();
+     if (!Number.isInteger(amount) || amount < minimum) throw new SaleroomError(`bid must be at least ${String(minimum)}`);
+@@ -65,6 +68,17 @@ export class Lot {
+     return { outcome: 'accepted', events };
+   }
+ 
++  /** Closing a lot that is already closed changes nothing. */
++  close(): DomainEvent[] {
++    if (this.status !== 'open') return [];
++    if (this.leading !== null && this.leading.amount >= this.reserve) {
++      this.status = 'sold';
++      return [new LotSold(this.id, this.leading.bidderId, this.leading.amount)];
++    }
++    this.status = 'unsold';
++    return [new LotUnsold(this.id, this.leading?.bidderId ?? null)];
++  }
++
+   toRecord(): LotRecord {
+     return { id: this.id, title: this.title, openingBid: this.openingBid, reserve: this.reserve, status: this.status, leading: this.leading === null ? null : { ...this.leading } };
+   }
+diff --git a/step-02/src/saleroom/domain/events/LotSold.ts b/step-02/src/saleroom/domain/events/LotSold.ts
+new file mode 100644
+index 000000000..5e1597ba5
+--- /dev/null
++++ b/step-02/src/saleroom/domain/events/LotSold.ts
+@@ -0,0 +1,11 @@
++import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
++
++export class LotSold implements DomainEvent {
++  readonly type = 'LotSold';
++
++  constructor(
++    readonly lotId: string,
++    readonly bidderId: string,
++    readonly amount: number,
++  ) {}
++}
+diff --git a/step-02/src/saleroom/domain/events/LotUnsold.ts b/step-02/src/saleroom/domain/events/LotUnsold.ts
+new file mode 100644
+index 000000000..e5fc73f79
+--- /dev/null
++++ b/step-02/src/saleroom/domain/events/LotUnsold.ts
+@@ -0,0 +1,10 @@
++import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
++
++export class LotUnsold implements DomainEvent {
++  readonly type = 'LotUnsold';
++
++  constructor(
++    readonly lotId: string,
++    readonly bidderId: string | null,
++  ) {}
++}
