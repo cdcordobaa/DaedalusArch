@@ -69,7 +69,8 @@ exploratory. They never enter D_v15.
 | Steps | each task's `tasks.json` steps, verbatim, one step per turn, 0 repair turns |
 | Replicates | **r** per task and arm (§9) |
 | Block | task × replicate: one `none` cell and one `combined` cell from the same seed |
-| Order | mulberry32 shuffle, seed `20261029`, interleaved by replicate round (every task and arm once before the next round) |
+| Lanes | two cloud containers run in parallel, one per style: lane A the 12 DDD tasks (H1), lane B the 13 Hexagonal tasks (H2). One phase per container (`experiments/v15-study/RUNBOOK.md`) |
+| Order | per lane, mulberry32 shuffle, seed `20261029`, interleaved by replicate round (every task and arm of the lane once before the next round) |
 | Generator | `claude-sonnet-5-5`; CLI version read before every turn, a change is a stop |
 | Isolation | TRAPRATE-01's: uid 1500 generator, root-only clone and records, listing check and fingerprint sweep with a positive control, the one READ probe; plus the scripted S4 checks of the combined design §6. No escape or tamper prompt to any model |
 | Driver | `experiments/v15-study/run-study.ts` (§9: sha256) |
