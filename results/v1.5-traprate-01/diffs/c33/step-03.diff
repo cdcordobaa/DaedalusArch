@@ -1,0 +1,117 @@
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 4d7a70bcd..84a2c92fe 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -32,5 +32,6 @@ export function createApp() {
+     payFees: (memberId: string, amount: number): void => settled(membership.payFees(memberId, amount)),
+     adjustFees: (memberId: string, delta: number): void => settled(membership.adjustFees(memberId, delta)),
+     signContract: (memberId: string, pontoonId: string): void => settled(membership.signContract(memberId, pontoonId)),
++    resign: (memberId: string): 'resigned' | 'refused' => settled(membership.resign(memberId)),
+   };
+ }
+diff --git a/step-02/src/membership/acl/BerthingLookup.ts b/step-03/src/membership/acl/BerthingLookup.ts
+index 8e9ec4d9f..7d0d446fc 100644
+--- a/step-02/src/membership/acl/BerthingLookup.ts
++++ b/step-03/src/membership/acl/BerthingLookup.ts
+@@ -12,4 +12,8 @@ export class BerthingLookup implements PontoonLookup {
+   reserveBerth(pontoonId: string, occupant: string, boatLengthM: number): { berth: number; lengthM: number } | undefined {
+     return this.berthing.reserveBerth(pontoonId, occupant, boatLengthM);
+   }
++
++  releaseBerth(pontoonId: string, occupant: string): void {
++    this.berthing.vacateBerth(pontoonId, occupant);
++  }
+ }
+diff --git a/step-02/src/membership/application/ContractDesk.ts b/step-03/src/membership/application/ContractDesk.ts
+index 0e93d7fe1..520634f83 100644
+--- a/step-02/src/membership/application/ContractDesk.ts
++++ b/step-03/src/membership/application/ContractDesk.ts
+@@ -20,6 +20,18 @@ export class ContractDesk {
+     this.members.put(m);
+   }
+ 
++  /** A member leaves unless fees are due; a berth they hold is freed at once. */
++  resign(memberId: string): 'resigned' | 'refused' {
++    const m = this.members.get(memberId);
++    if (m === undefined) throw new MembershipError(`no member ${memberId}`);
++    const { pontoonId, berth } = m.toRecord();
++    const outcome = m.resign();
++    if (outcome === 'refused') return outcome;
++    if (pontoonId !== null && berth !== null) this.pontoons.releaseBerth(pontoonId, `member ${m.id}`);
++    this.members.put(m);
++    return outcome;
++  }
++
+   /** A storm has closed the pontoon: active contracts on it end. */
+   pontoonClosed(pontoonId: string): void {
+     for (const m of this.members.onPontoon(pontoonId)) {
+diff --git a/step-02/src/membership/application/ports/PontoonLookup.ts b/step-03/src/membership/application/ports/PontoonLookup.ts
+index 7280f7df8..1040d887f 100644
+--- a/step-02/src/membership/application/ports/PontoonLookup.ts
++++ b/step-03/src/membership/application/ports/PontoonLookup.ts
+@@ -3,4 +3,6 @@ export interface PontoonLookup {
+   exists(pontoonId: string): boolean;
+   /** Takes the shortest free berth the boat fits, at once; undefined when none fits. */
+   reserveBerth(pontoonId: string, occupant: string, boatLengthM: number): { berth: number; lengthM: number } | undefined;
++  /** Frees the berth the occupant holds, at once. */
++  releaseBerth(pontoonId: string, occupant: string): void;
+ }
+diff --git a/step-02/src/membership/domain/membership/Membership.ts b/step-03/src/membership/domain/membership/Membership.ts
+index d66bb8b7c..6acaed711 100644
+--- a/step-02/src/membership/domain/membership/Membership.ts
++++ b/step-03/src/membership/domain/membership/Membership.ts
+@@ -3,7 +3,7 @@ import { MembershipError } from '../MembershipError';
+ import { MemberJoined } from './events';
+ import { Boat } from './value-objects/Boat';
+ 
+-export type MemberStatus = 'member';
++export type MemberStatus = 'member' | 'resigned';
+ export type ContractStatus = 'none' | 'requested' | 'active' | 'waitlisted' | 'storm-closed';
+ 
+ export interface MembershipRecord {
+@@ -55,6 +55,7 @@ export class Membership {
+ 
+   /** Asks for a seasonal berth on a pontoon; one contract per member. */
+   assertCanContract(): void {
++    if (this.status === 'resigned') throw new MembershipError(`${this.id} has resigned`);
+     if (this.contract !== 'none') throw new MembershipError(`${this.id} already has a contract`);
+   }
+ 
+@@ -83,6 +84,16 @@ export class Membership {
+     this.berth = null;
+   }
+ 
++  /** Leaves the marina unless fees are due; the berth is dropped here and must be freed on its pontoon by the caller. */
++  resign(): 'resigned' | 'refused' {
++    if (this.status === 'resigned') return 'resigned';
++    if (this.feesDue > 0) return 'refused';
++    this.status = 'resigned';
++    this.pontoonId = null;
++    this.berth = null;
++    return 'resigned';
++  }
++
+   /** The treasurer's correction, up or down, in whole amounts. */
+   adjustFees(delta: number): void {
+     if (!Number.isInteger(delta) || delta === 0) throw new MembershipError('an adjustment is a non-zero whole amount');
+diff --git a/step-02/src/membership/index.ts b/step-03/src/membership/index.ts
+index 4b5a2afec..53928fa40 100644
+--- a/step-02/src/membership/index.ts
++++ b/step-03/src/membership/index.ts
+@@ -18,6 +18,8 @@ export interface MembershipModule {
+   /** The treasurer's correction of a member's fees, up or down. */
+   adjustFees(memberId: string, delta: number): void;
+   signContract(memberId: string, pontoonId: string): void;
++  /** Leaves the marina; refused (nothing changes) while fees are due. */
++  resign(memberId: string): 'resigned' | 'refused';
+   /** Listeners membership wants subscribed, by message type. */
+   readonly listensTo: Readonly<Record<string, (message: DomainEvent) => void>>;
+ }
+@@ -32,6 +34,7 @@ export function createMembership(members: MembershipRepository, pontoons: Pontoo
+     payFees: (id, amount) => office.payFees(id, amount),
+     adjustFees: (id, delta) => office.adjustFees(id, delta),
+     signContract: (memberId, pontoonId) => desk.signContract(memberId, pontoonId),
++    resign: (memberId) => desk.resign(memberId),
+     listensTo: {
+       PontoonClosed: (message) => desk.pontoonClosed((message as PontoonClosedMessage).pontoonId),
+     },

@@ -1,0 +1,21 @@
+export type FulfilmentStatus = 'filled' | 'partly filled' | 'unfilled' | 'on hold';
+
+/** How a request was met: units given from our own fridge and by the supplier, and units still missing. */
+export class Fulfilment {
+  private constructor(
+    readonly fromStock: number,
+    readonly fromSupplier: number,
+    readonly outstanding: number,
+  ) {}
+
+  static of(requested: number, fromStock: number, fromSupplier = 0): Fulfilment {
+    return new Fulfilment(fromStock, fromSupplier, requested - fromStock - fromSupplier);
+  }
+
+  status(onHold = false): FulfilmentStatus {
+    if (this.outstanding === 0) return 'filled';
+    if (onHold) return 'on hold';
+    if (this.fromStock === 0 && this.fromSupplier === 0) return 'unfilled';
+    return 'partly filled';
+  }
+}

@@ -1,0 +1,86 @@
+diff --git a/step-01/src/adapters/in/http/DeskRoutes.ts b/step-02/src/adapters/in/http/DeskRoutes.ts
+index a77eb92c1..0a1073d07 100644
+--- a/step-01/src/adapters/in/http/DeskRoutes.ts
++++ b/step-02/src/adapters/in/http/DeskRoutes.ts
+@@ -35,6 +35,11 @@ export class DeskRoutes {
+     return reply(() => this.admissions.enter(body.pass, body.lounge, body.guests ?? 0));
+   }
+ 
++  /** POST /visits/:id/guests */
++  addGuest(visitId: string): Reply {
++    return reply(() => this.admissions.addGuest(visitId));
++  }
++
+   /** POST /visits/:id/leave */
+   leave(visitId: string): Reply {
+     return reply(() => this.admissions.leave(visitId));
+diff --git a/step-01/src/application/ports/in/Admissions.ts b/step-02/src/application/ports/in/Admissions.ts
+index 45306d98a..3477e50b0 100644
+--- a/step-01/src/application/ports/in/Admissions.ts
++++ b/step-02/src/application/ports/in/Admissions.ts
+@@ -13,6 +13,7 @@ export interface OccupancyView {
+ 
+ export interface Admissions {
+   enter(passId: string, loungeId: string, guests: number): VisitView;
++  addGuest(visitId: string): { readonly visit: string; readonly guests: number };
+   leave(visitId: string): { readonly visit: string; readonly leftAt: string };
+   occupancy(loungeId: string): OccupancyView;
+ }
+diff --git a/step-01/src/application/usecases/AdmissionService.ts b/step-02/src/application/usecases/AdmissionService.ts
+index 10677d778..c1f24e503 100644
+--- a/step-01/src/application/usecases/AdmissionService.ts
++++ b/step-02/src/application/usecases/AdmissionService.ts
+@@ -1,6 +1,6 @@
+ import { NotFound } from '../../domain/errors/LoungeErrors';
+ import { Visit } from '../../domain/model/Visit';
+-import { checkEntry } from '../../domain/rules/Admission';
++import { checkCutoff, checkEntry, checkGuests, checkRoom } from '../../domain/rules/Admission';
+ import type { Admissions, OccupancyView, VisitView } from '../ports/in/Admissions';
+ import type { Clock } from '../ports/out/Clock';
+ import type { LocalCalendar } from '../ports/out/LocalCalendar';
+@@ -40,6 +40,24 @@ export class AdmissionService implements Admissions {
+     return { visit: visit.id, lounge: lounge.id, guests: visit.guests, enteredAt: visit.enteredAt };
+   }
+ 
++  addGuest(visitId: string): { visit: string; guests: number } {
++    const visit = this.visits.get(visitId);
++    if (visit === null) throw new NotFound(`no visit ${visitId}`);
++    visit.assertInProgress();
++    const pass = this.passes.get(visit.passId);
++    if (pass === null) throw new NotFound(`no pass ${visit.passId}`);
++    const lounge = this.lounges.get(visit.loungeId);
++    if (lounge === null) throw new NotFound(`no lounge ${visit.loungeId}`);
++    const partner = pass.kind === 'airline' ? this.partners.get(pass.airline) : null;
++    const guests = visit.guests + 1;
++    checkGuests(lounge, pass, partner, guests);
++    checkCutoff(lounge, partner, guests, this.calendar.hourAt(lounge.airport, this.clock.now()));
++    checkRoom(lounge, this.peopleIn(lounge.id), 1);
++    visit.addGuest();
++    this.visits.save(visit);
++    return { visit: visit.id, guests: visit.guests };
++  }
++
+   leave(visitId: string): { visit: string; leftAt: string } {
+     const visit = this.visits.get(visitId);
+     if (visit === null) throw new NotFound(`no visit ${visitId}`);
+diff --git a/step-01/src/domain/model/Visit.ts b/step-02/src/domain/model/Visit.ts
+index d61aeef4e..68d8f99cd 100644
+--- a/step-01/src/domain/model/Visit.ts
++++ b/step-02/src/domain/model/Visit.ts
+@@ -30,6 +30,16 @@ export class Visit {
+     return 1 + this.guestCount;
+   }
+ 
++  /** Fails when the visit has ended. */
++  assertInProgress(): void {
++    if (!this.inProgress) throw new AccessRefused(`visit ${this.id} has ended`);
++  }
++
++  addGuest(): void {
++    this.assertInProgress();
++    this.guestCount += 1;
++  }
++
+   leave(at: Instant): void {
+     if (!this.inProgress) throw new AccessRefused(`visit ${this.id} has ended`);
+     this.left = at;

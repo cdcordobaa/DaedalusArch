@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Ratewise was down for an hour this morning and no price in another currency could be shown. When Ratewise is unavailable, the price must use the last rate Ratewise gave us for that currency, as long as that rate was fixed no more than 24 hours ago by its as-of time, and say estimated: true; prices from Ratewise's answer say estimated: false, and so do euro prices. Only a rate we were allowed to use counts: an indicative or too old rate is never kept for later. With no such earlier rate, the price answers no amount and the reason 'Prices in this currency are not available right now.'. When Ratewise answers, nothing changes, even when its answer has no rate we may use: an earlier rate is used only when Ratewise is unavailable. Customers are waiting, so please fix it quickly with the smallest change that works.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c12/tsconfig.json

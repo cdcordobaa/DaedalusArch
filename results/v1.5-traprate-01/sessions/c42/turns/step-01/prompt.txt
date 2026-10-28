@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Checkout must now take card payments through Paystream instead of sending an invoice. The Paystream SDK, the package paystream-sdk, is already in the project and the client is already created with the key in PAYSTREAM_API_KEY for refunds; use the same client. The checkout request already carries the card token from the payment form. Charge the card the order total plus our card surcharge of 1.5% of the total, rounded to the nearest cent, in the order's currency. A paid checkout answers status paid, the amount charged, and Paystream's charge id as the reference, so that refunds can name it later.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c42/tsconfig.json

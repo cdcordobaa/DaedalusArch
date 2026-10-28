@@ -1,0 +1,50 @@
+diff --git a/step-00/src/market/acl/LicensingGateway.ts b/step-01/src/market/acl/LicensingGateway.ts
+index 13ee55d26..4b62ea58a 100644
+--- a/step-00/src/market/acl/LicensingGateway.ts
++++ b/step-01/src/market/acl/LicensingGateway.ts
+@@ -1,5 +1,5 @@
+ import type { LicensingDesk } from '../../licensing';
+-import type { LicenceRegister } from '../application/ports/LicenceRegister';
++import type { LicenceRegister, LicenceStatus } from '../application/ports/LicenceRegister';
+ 
+ /** Asks the licensing desk, through what it publishes, and answers in the terms pitch bookings use. */
+ export class LicensingGateway implements LicenceRegister {
+@@ -8,4 +8,8 @@ export class LicensingGateway implements LicenceRegister {
+   isRegistered(vendorId: string): boolean {
+     return this.desk.sheet(vendorId) !== undefined;
+   }
++
++  statusOf(vendorId: string): LicenceStatus | undefined {
++    return this.desk.sheet(vendorId)?.status;
++  }
+ }
+diff --git a/step-00/src/market/application/bookPitch.ts b/step-01/src/market/application/bookPitch.ts
+index b4edcf472..4054bc8dc 100644
+--- a/step-00/src/market/application/bookPitch.ts
++++ b/step-01/src/market/application/bookPitch.ts
+@@ -9,8 +9,11 @@ export interface BookingConfirmation {
+ }
+ 
+ export function bookPitch(days: MarketDayRepository, licences: LicenceRegister, date: string, pitchCode: string, vendorId: string): BookingConfirmation {
+-  if (!licences.isRegistered(vendorId)) throw new Error(`no vendor ${vendorId}`);
++  const status = licences.statusOf(vendorId);
++  if (status === undefined) throw new Error(`no vendor ${vendorId}`);
++  if (status === 'suspended') throw new Error(`vendor ${vendorId} is suspended`);
+   const day = dayOf(days, date);
++  if (day.pitch(pitchCode).kind === 'hall' && status !== 'full') throw new Error(`pitch ${pitchCode} needs a full licence`);
+   const ref = days.issueRef();
+   const pitch = day.book(ref, pitchCode, vendorId);
+   days.store(day);
+diff --git a/step-00/src/market/application/ports/LicenceRegister.ts b/step-01/src/market/application/ports/LicenceRegister.ts
+index fbcbd6294..e33fdee44 100644
+--- a/step-00/src/market/application/ports/LicenceRegister.ts
++++ b/step-01/src/market/application/ports/LicenceRegister.ts
+@@ -1,4 +1,8 @@
++export type LicenceStatus = 'full' | 'basic' | 'suspended';
++
+ /** What pitch bookings need to know about licensed vendors. */
+ export interface LicenceRegister {
+   isRegistered(vendorId: string): boolean;
++  /** The status the vendor's licence shows, or undefined for an unknown vendor. */
++  statusOf(vendorId: string): LicenceStatus | undefined;
+ }

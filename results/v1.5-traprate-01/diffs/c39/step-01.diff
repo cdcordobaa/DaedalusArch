@@ -1,0 +1,175 @@
+diff --git a/step-01/src/adapters/outbound/haemalink/HaemalinkSupplier.ts b/step-01/src/adapters/outbound/haemalink/HaemalinkSupplier.ts
+new file mode 100644
+index 000000000..e650270d3
+--- /dev/null
++++ b/step-01/src/adapters/outbound/haemalink/HaemalinkSupplier.ts
+@@ -0,0 +1,31 @@
++import type { HaemalinkClient, HlAboGroup, HlProductCode, HlRhD } from 'haemalink-sdk';
++import type { Supplier, SupplyConfirmation, SupplyOrder } from '../../../application/needs/Supplier';
++import { isRhesusNegative, letters } from '../../../domain/BloodGroup';
++import type { Component } from '../../../domain/Component';
++
++const PRODUCT: Record<Component, HlProductCode> = {
++  'red cells': 'RBC',
++  platelets: 'PLT',
++  plasma: 'FFP',
++};
++
++/** Orders missing units from Haemalink and tells the answer in our words. */
++export class HaemalinkSupplier implements Supplier {
++  constructor(private readonly client: HaemalinkClient) {}
++
++  async order(order: SupplyOrder): Promise<SupplyConfirmation> {
++    const receipt = await this.client.submitOrder({
++      priority: order.urgent ? 'STAT' : 'ROUTINE',
++      lines: [
++        {
++          product: PRODUCT[order.component],
++          abo: letters(order.group) as HlAboGroup,
++          rhd: (isRhesusNegative(order.group) ? 'NEG' : 'POS') satisfies HlRhD,
++          qty: order.units,
++        },
++      ],
++    });
++    const allocated = receipt.allocations.reduce((sum, a) => sum + a.qtyAllocated, 0);
++    return { orderNumber: receipt.orderRef, confirmed: Math.max(0, Math.min(order.units, allocated)) };
++  }
++}
+diff --git a/step-00/src/application/RequestUnits.ts b/step-01/src/application/RequestUnits.ts
+index 576b6d160..6a5871e81 100644
+--- a/step-00/src/application/RequestUnits.ts
++++ b/step-01/src/application/RequestUnits.ts
+@@ -10,6 +10,9 @@ export interface UnitRequestInput {
+ 
+ export interface RequestAnswer {
+   readonly fromStock: number;
++  readonly fromSupplier: number;
++  /** Haemalink's order number, or null when the supplier was not asked. */
++  readonly supplierOrder: string | null;
+   readonly outstanding: number;
+   readonly status: FulfilmentStatus;
+ }
+diff --git a/step-00/src/application/RequestUnitsService.ts b/step-01/src/application/RequestUnitsService.ts
+index eceaea1b2..75f069eeb 100644
+--- a/step-00/src/application/RequestUnitsService.ts
++++ b/step-01/src/application/RequestUnitsService.ts
+@@ -1,16 +1,40 @@
+ import { Fulfilment } from '../domain/Fulfilment';
+ import { UnitRequest } from '../domain/UnitRequest';
+ import type { Fridge } from './needs/Fridge';
++import type { Supplier } from './needs/Supplier';
+ import type { RequestAnswer, RequestUnits, UnitRequestInput } from './RequestUnits';
+ 
+ export class RequestUnitsService implements RequestUnits {
+-  constructor(private readonly fridge: Fridge) {}
++  constructor(
++    private readonly fridge: Fridge,
++    private readonly supplier: Supplier,
++  ) {}
+ 
+   async request(input: UnitRequestInput): Promise<RequestAnswer> {
+     const request = UnitRequest.of(input);
+     const fromStock = Math.min(request.units, this.fridge.onHand(request.component, request.group));
++    const missing = request.units - fromStock;
++    let fromSupplier = 0;
++    let supplierOrder: string | null = null;
++    // Ordered before the fridge is touched, so a failing supplier takes none of our stock.
++    if (missing > 0) {
++      const confirmation = await this.supplier.order({
++        component: request.component,
++        group: request.group,
++        units: missing,
++        urgent: request.urgent,
++      });
++      fromSupplier = confirmation.confirmed;
++      supplierOrder = confirmation.orderNumber;
++    }
+     if (fromStock > 0) this.fridge.take(request.component, request.group, fromStock);
+-    const fulfilment = Fulfilment.of(request.units, fromStock);
+-    return { fromStock: fulfilment.fromStock, outstanding: fulfilment.outstanding, status: fulfilment.status() };
++    const fulfilment = Fulfilment.of(request.units, fromStock, fromSupplier);
++    return {
++      fromStock: fulfilment.fromStock,
++      fromSupplier: fulfilment.fromSupplier,
++      supplierOrder,
++      outstanding: fulfilment.outstanding,
++      status: fulfilment.status(),
++    };
+   }
+ }
+diff --git a/step-01/src/application/needs/Supplier.ts b/step-01/src/application/needs/Supplier.ts
+new file mode 100644
+index 000000000..fc7f2569a
+--- /dev/null
++++ b/step-01/src/application/needs/Supplier.ts
+@@ -0,0 +1,20 @@
++import type { BloodGroup } from '../../domain/BloodGroup';
++import type { Component } from '../../domain/Component';
++
++export interface SupplyOrder {
++  readonly component: Component;
++  readonly group: BloodGroup;
++  readonly units: number;
++  readonly urgent: boolean;
++}
++
++export interface SupplyConfirmation {
++  readonly orderNumber: string;
++  /** Units the supplier confirmed; may be fewer than ordered, or none. */
++  readonly confirmed: number;
++}
++
++/** The regional supplier we order missing units from. Rejects when the supplier does not answer. */
++export interface Supplier {
++  order(order: SupplyOrder): Promise<SupplyConfirmation>;
++}
+diff --git a/step-00/src/config/bootstrap.ts b/step-01/src/config/bootstrap.ts
+index 440085a46..d404339cd 100644
+--- a/step-00/src/config/bootstrap.ts
++++ b/step-01/src/config/bootstrap.ts
+@@ -1,6 +1,7 @@
+ import { HaemalinkClient } from 'haemalink-sdk';
+ import { WardTerminal } from '../adapters/inbound/terminal/WardTerminal';
+ import { HaemalinkDeliveries } from '../adapters/outbound/haemalink/HaemalinkDeliveries';
++import { HaemalinkSupplier } from '../adapters/outbound/haemalink/HaemalinkSupplier';
+ import { ShelfFridge, type ShelfLine } from '../adapters/outbound/memory/ShelfFridge';
+ import { FollowDelivery } from '../application/FollowDelivery';
+ import type { UnitRequestInput } from '../application/RequestUnits';
+@@ -9,7 +10,7 @@ import { RequestUnitsService } from '../application/RequestUnitsService';
+ /** Composition root. The Haemalink key comes from HAEMALINK_API_KEY and our site code from HAEMALINK_SITE. */
+ export function createApp(options: { stock?: readonly ShelfLine[] } = {}) {
+   const haemalink = new HaemalinkClient({ apiKey: process.env.HAEMALINK_API_KEY ?? '', siteCode: process.env.HAEMALINK_SITE ?? '' });
+-  const units = new RequestUnitsService(new ShelfFridge(options.stock));
++  const units = new RequestUnitsService(new ShelfFridge(options.stock), new HaemalinkSupplier(haemalink));
+   const deliveries = new FollowDelivery(new HaemalinkDeliveries(haemalink));
+   const terminal = new WardTerminal(units, deliveries);
+   return {
+diff --git a/step-00/src/domain/Fulfilment.ts b/step-01/src/domain/Fulfilment.ts
+index 526c3f953..5e658f56b 100644
+--- a/step-00/src/domain/Fulfilment.ts
++++ b/step-01/src/domain/Fulfilment.ts
+@@ -1,19 +1,20 @@
+ export type FulfilmentStatus = 'filled' | 'partly filled' | 'unfilled';
+ 
+-/** How a request was met: units given from our own fridge, and units still missing. */
++/** How a request was met: units given from our own fridge and by the supplier, and units still missing. */
+ export class Fulfilment {
+   private constructor(
+     readonly fromStock: number,
++    readonly fromSupplier: number,
+     readonly outstanding: number,
+   ) {}
+ 
+-  static of(requested: number, fromStock: number): Fulfilment {
+-    return new Fulfilment(fromStock, requested - fromStock);
++  static of(requested: number, fromStock: number, fromSupplier = 0): Fulfilment {
++    return new Fulfilment(fromStock, fromSupplier, requested - fromStock - fromSupplier);
+   }
+ 
+   status(): FulfilmentStatus {
+     if (this.outstanding === 0) return 'filled';
+-    if (this.fromStock === 0) return 'unfilled';
++    if (this.fromStock === 0 && this.fromSupplier === 0) return 'unfilled';
+     return 'partly filled';
+   }
+ }

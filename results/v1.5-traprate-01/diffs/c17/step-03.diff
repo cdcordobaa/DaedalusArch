@@ -1,0 +1,24 @@
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 7d3f3391c..f000bf051 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -6,6 +6,7 @@ import { bookPitch, type BookingConfirmation } from './market/application/bookPi
+ import { openMarketDay, type PitchLayout } from './market/application/marketDays';
+ import { NoticeCourier } from './market/application/NoticeCourier';
+ import { PitchPlan } from './market/application/PitchPlan';
++import type { NoShowReported } from './market/domain/day/events/NoShowReported';
+ import type { VendorCheckedIn } from './market/domain/day/events/VendorCheckedIn';
+ import { InMemoryMarketDayStore } from './market/infrastructure/InMemoryMarketDayStore';
+ 
+@@ -23,6 +24,11 @@ export function createApp() {
+     licensing.vendorTraded(arrived.vendorId, arrived.date);
+   });
+ 
++  // A reported no-show strikes the licence exactly like a manager's strike, before the report command returns.
++  courier.subscribe('NoShowReported', (n) => {
++    licensing.strike((n as NoShowReported).vendorId);
++  });
++
+   const marketCommand = <T>(run: () => T): T => {
+     const result = run();
+     courier.deliverPendingNotices();

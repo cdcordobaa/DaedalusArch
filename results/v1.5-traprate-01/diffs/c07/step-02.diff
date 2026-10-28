@@ -1,0 +1,97 @@
+diff --git a/step-01/src/enrolment/application/SwitchSection.ts b/step-02/src/enrolment/application/SwitchSection.ts
+index b1c47217a..c437b2de5 100644
+--- a/step-01/src/enrolment/application/SwitchSection.ts
++++ b/step-02/src/enrolment/application/SwitchSection.ts
+@@ -3,7 +3,7 @@ import { SectionId } from '../domain/section/value-objects/SectionId';
+ import { EnrolmentError } from '../domain/EnrolmentError';
+ 
+ export class SwitchSection {
+-  constructor(private readonly sections: SectionRepository) {}
++  constructor(private readonly sections: SectionRepository, private readonly today: () => string) {}
+ 
+   /** Moves a student between two sections of one course; both sections are stored together or not at all. */
+   execute(studentId: string, fromSectionId: string, toSectionId: string): void {
+@@ -16,7 +16,7 @@ export class SwitchSection {
+     }
+     if (!from.has(studentId)) throw new EnrolmentError(`${studentId} is not enrolled in ${fromSectionId}`);
+     if (fromSectionId === toSectionId) throw new EnrolmentError(`${studentId} is already enrolled in ${toSectionId}`);
+-    to.enrol(studentId);
++    to.enrolBySwitch(studentId, this.today());
+     from.drop(studentId);
+     this.sections.saveAll([from, to]);
+   }
+diff --git a/step-01/src/enrolment/domain/section/Section.ts b/step-02/src/enrolment/domain/section/Section.ts
+index 231d751d6..601b9a738 100644
+--- a/step-01/src/enrolment/domain/section/Section.ts
++++ b/step-02/src/enrolment/domain/section/Section.ts
+@@ -8,8 +8,13 @@ export interface SectionState {
+   readonly courseCode: string;
+   readonly capacity: number;
+   readonly students: readonly string[];
++  /** Day (YYYY-MM-DD) of the latest switch into the section, and how many switches came in that day. */
++  readonly switchInDay?: string;
++  readonly switchInCount?: number;
+ }
+ 
++export const DAILY_SWITCH_LIMIT = 3;
++
+ /** One teaching section of a course. It never holds more students than it has seats, and each student only once. */
+ export class Section {
+   private pending: DomainEvent[] = [];
+@@ -19,6 +24,8 @@ export class Section {
+     readonly courseCode: string,
+     readonly capacity: number,
+     private students: string[],
++    private switchInDay = '',
++    private switchInCount = 0,
+   ) {}
+ 
+   static open(id: SectionId, courseCode: string, capacity: number): Section {
+@@ -29,7 +36,7 @@ export class Section {
+   }
+ 
+   static restore(state: SectionState): Section {
+-    return new Section(state.id, state.courseCode, state.capacity, [...state.students]);
++    return new Section(state.id, state.courseCode, state.capacity, [...state.students], state.switchInDay ?? '', state.switchInCount ?? 0);
+   }
+ 
+   roster(): string[] {
+@@ -47,13 +54,24 @@ export class Section {
+     this.students.push(studentId);
+   }
+ 
++  /** Enrols a student who switches in from another section; at most DAILY_SWITCH_LIMIT per calendar day. */
++  enrolBySwitch(studentId: string, today: string): void {
++    const taken = this.switchInDay === today ? this.switchInCount : 0;
++    if (taken >= DAILY_SWITCH_LIMIT) {
++      throw new EnrolmentError(`daily switch limit reached: ${this.id.value} already took ${String(taken)} students by switch today`);
++    }
++    this.enrol(studentId);
++    this.switchInDay = today;
++    this.switchInCount = taken + 1;
++  }
++
+   drop(studentId: string): void {
+     if (!this.has(studentId)) throw new EnrolmentError(`${studentId} is not enrolled in ${this.id.value}`);
+     this.students = this.students.filter((s) => s !== studentId);
+   }
+ 
+   state(): SectionState {
+-    return { id: this.id, courseCode: this.courseCode, capacity: this.capacity, students: [...this.students] };
++    return { id: this.id, courseCode: this.courseCode, capacity: this.capacity, students: [...this.students], switchInDay: this.switchInDay, switchInCount: this.switchInCount };
+   }
+ 
+   pullEvents(): DomainEvent[] {
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index cb4cb7258..51d1b6e94 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -31,7 +31,7 @@ export function createApp(options: AppOptions = {}) {
+     enrol: (sectionId: string, studentId: string): void => command(() => new Enrol(sections).execute(sectionId, studentId)),
+     drop: (sectionId: string, studentId: string): void => command(() => new Drop(sections).execute(sectionId, studentId)),
+     switchSection: (studentId: string, fromSectionId: string, toSectionId: string): void =>
+-      command(() => new SwitchSection(sections).execute(studentId, fromSectionId, toSectionId)),
++      command(() => new SwitchSection(sections, today).execute(studentId, fromSectionId, toSectionId)),
+     rosterOf: (sectionId: string): string[] => new GetRoster(sections).execute(sectionId),
+     notices: (): string[] => notices.all(),
+   };

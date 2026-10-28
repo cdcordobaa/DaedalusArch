@@ -1,0 +1,198 @@
+diff --git a/step-03/src/carparks/application/CloseCarPark.ts b/step-03/src/carparks/application/CloseCarPark.ts
+new file mode 100644
+index 000000000..f53eb8f59
+--- /dev/null
++++ b/step-03/src/carparks/application/CloseCarPark.ts
+@@ -0,0 +1,14 @@
++import { CarParkError } from '../domain/CarParkError';
++import type { CarParkRepository } from '../domain/carpark/CarParkRepository';
++import { CarParkId } from '../domain/carpark/value-objects/CarParkId';
++
++export class CloseCarPark {
++  constructor(private readonly carParks: CarParkRepository) {}
++
++  execute(carParkId: string): void {
++    const carPark = this.carParks.byId(CarParkId.of(carParkId));
++    if (carPark === undefined) throw new CarParkError(`no car park ${carParkId}`);
++    carPark.close();
++    this.carParks.save(carPark);
++  }
++}
+diff --git a/step-02/src/carparks/application/GetCarPark.ts b/step-03/src/carparks/application/GetCarPark.ts
+index 56d54f971..ac169ef5e 100644
+--- a/step-02/src/carparks/application/GetCarPark.ts
++++ b/step-03/src/carparks/application/GetCarPark.ts
+@@ -8,6 +8,6 @@ export class GetCarPark {
+   execute(carParkId: string): CarParkView | undefined {
+     const carPark = this.carParks.byId(CarParkId.of(carParkId));
+     if (carPark === undefined) return undefined;
+-    return { id: carPark.id.value, name: carPark.name, bays: carPark.bays, baysFree: carPark.baysFree() };
++    return { id: carPark.id.value, name: carPark.name, bays: carPark.bays, baysFree: carPark.baysFree(), closed: carPark.isClosed() };
+   }
+ }
+diff --git a/step-02/src/carparks/contracts/CarParkView.ts b/step-03/src/carparks/contracts/CarParkView.ts
+index 477cfd5de..2cd66be20 100644
+--- a/step-02/src/carparks/contracts/CarParkView.ts
++++ b/step-03/src/carparks/contracts/CarParkView.ts
+@@ -4,4 +4,5 @@ export interface CarParkView {
+   readonly name: string;
+   readonly bays: number;
+   readonly baysFree: number;
++  readonly closed: boolean;
+ }
+diff --git a/step-02/src/carparks/domain/carpark/CarPark.ts b/step-03/src/carparks/domain/carpark/CarPark.ts
+index f48d38d1b..fe30f3503 100644
+--- a/step-02/src/carparks/domain/carpark/CarPark.ts
++++ b/step-03/src/carparks/domain/carpark/CarPark.ts
+@@ -9,6 +9,7 @@ export interface CarParkState {
+   readonly bays: number;
+   /** Bays held, by holder. */
+   readonly holds: Readonly<Record<string, number>>;
++  readonly closed: boolean;
+ }
+ 
+ /** One car park with a fixed number of bays. The bays held never add up to more than it has. */
+@@ -20,6 +21,7 @@ export class CarPark {
+     readonly name: string,
+     readonly bays: number,
+     private holds: Record<string, number>,
++    private closed = false,
+   ) {}
+ 
+   static open(id: CarParkId, name: string, bays: number): CarPark {
+@@ -31,7 +33,15 @@ export class CarPark {
+   }
+ 
+   static restore(state: CarParkState): CarPark {
+-    return new CarPark(state.id, state.name, state.bays, { ...state.holds });
++    return new CarPark(state.id, state.name, state.bays, { ...state.holds }, state.closed);
++  }
++
++  isClosed(): boolean {
++    return this.closed;
++  }
++
++  close(): void {
++    this.closed = true;
+   }
+ 
+   baysFree(): number {
+@@ -49,7 +59,7 @@ export class CarPark {
+ 
+   /** Holds bays only if enough are free; says whether it did. */
+   tryHold(holder: string, bays: number): boolean {
+-    if (this.holds[holder] !== undefined || bays > this.baysFree()) return false;
++    if (this.closed || this.holds[holder] !== undefined || bays > this.baysFree()) return false;
+     this.hold(holder, bays);
+     return true;
+   }
+@@ -61,7 +71,7 @@ export class CarPark {
+   }
+ 
+   state(): CarParkState {
+-    return { id: this.id, name: this.name, bays: this.bays, holds: { ...this.holds } };
++    return { id: this.id, name: this.name, bays: this.bays, holds: { ...this.holds }, closed: this.closed };
+   }
+ 
+   pullEvents(): DomainEvent[] {
+diff --git a/step-02/src/carparks/index.ts b/step-03/src/carparks/index.ts
+index f54b9c8ef..557656f79 100644
+--- a/step-02/src/carparks/index.ts
++++ b/step-03/src/carparks/index.ts
+@@ -1,3 +1,4 @@
++import { CloseCarPark } from './application/CloseCarPark';
+ import { GetCarPark } from './application/GetCarPark';
+ import { HoldBays } from './application/HoldBays';
+ import { OpenCarPark } from './application/OpenCarPark';
+@@ -17,6 +18,7 @@ export interface CarParksModule {
+   /** Takes the bays if enough are free; false (and nothing taken) otherwise. */
+   takeBays(carParkId: string, holder: string, bays: number): boolean;
+   releaseBays(carParkId: string, holder: string): void;
++  close(carParkId: string): void;
+ }
+ 
+ export function createCarParks(carParks: CarParkRepository = new InMemoryCarParkRepository()): CarParksModule {
+@@ -26,5 +28,6 @@ export function createCarParks(carParks: CarParkRepository = new InMemoryCarPark
+     holdBays: (carParkId, holder, bays) => new HoldBays(carParks).execute(carParkId, holder, bays),
+     takeBays: (carParkId, holder, bays) => new TakeBays(carParks).execute(carParkId, holder, bays),
+     releaseBays: (carParkId, holder) => new ReleaseBays(carParks).execute(carParkId, holder),
++    close: (carParkId) => new CloseCarPark(carParks).execute(carParkId),
+   };
+ }
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 38933b26c..1a8c41427 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -24,6 +24,7 @@ export function createApp() {
+   };
+   return {
+     openCarPark: (name: string, bays: number): string => command(() => carParks.open(name, bays)),
++    closeCarPark: (carParkId: string): void => command(() => carParks.close(carParkId)),
+     carPark: (carParkId: string) => carParks.carPark(carParkId),
+     blockBays: (carParkId: string, company: string, bays: number): void => command(() => carParks.holdBays(carParkId, company, bays)),
+     releaseBlock: (carParkId: string, company: string): void => command(() => carParks.releaseBays(carParkId, company)),
+diff --git a/step-02/src/reservations/acl/CarParksDirectory.ts b/step-03/src/reservations/acl/CarParksDirectory.ts
+index c2d95a9bb..d9c8a7224 100644
+--- a/step-02/src/reservations/acl/CarParksDirectory.ts
++++ b/step-03/src/reservations/acl/CarParksDirectory.ts
+@@ -9,6 +9,10 @@ export class CarParksDirectory implements CarParkDirectory {
+     return this.carParks.carPark(carParkId) !== undefined;
+   }
+ 
++  isClosed(carParkId: string): boolean {
++    return this.carParks.carPark(carParkId)?.closed === true;
++  }
++
+   takeBays(carParkId: string, holder: string, bays: number): boolean {
+     return this.carParks.takeBays(carParkId, holder, bays);
+   }
+diff --git a/step-02/src/reservations/application/GetReservation.ts b/step-03/src/reservations/application/GetReservation.ts
+index 1d850d58a..ef3f26459 100644
+--- a/step-02/src/reservations/application/GetReservation.ts
++++ b/step-03/src/reservations/application/GetReservation.ts
+@@ -1,13 +1,18 @@
+ import type { ReservationView } from '../contracts/ReservationView';
+ import type { ReservationRepository } from '../domain/reservation/ReservationRepository';
+ import { ReservationId } from '../domain/reservation/value-objects/ReservationId';
++import type { CarParkDirectory } from './ports/CarParkDirectory';
+ 
+ export class GetReservation {
+-  constructor(private readonly reservations: ReservationRepository) {}
++  constructor(
++    private readonly reservations: ReservationRepository,
++    private readonly carParks: CarParkDirectory,
++  ) {}
+ 
+   execute(reservationId: string): ReservationView | undefined {
+     const reservation = this.reservations.byId(ReservationId.of(reservationId));
+     if (reservation === undefined) return undefined;
+-    return { id: reservation.id.value, driver: reservation.driver, carParkId: reservation.carParkId, bays: reservation.bays, status: reservation.status };
++    const closed = reservation.status === 'confirmed' && this.carParks.isClosed(reservation.carParkId);
++    return { id: reservation.id.value, driver: reservation.driver, carParkId: reservation.carParkId, bays: reservation.bays, status: closed ? 'car-park-closed' : reservation.status };
+   }
+ }
+diff --git a/step-02/src/reservations/application/ports/CarParkDirectory.ts b/step-03/src/reservations/application/ports/CarParkDirectory.ts
+index d0bb8b490..63912e411 100644
+--- a/step-02/src/reservations/application/ports/CarParkDirectory.ts
++++ b/step-03/src/reservations/application/ports/CarParkDirectory.ts
+@@ -1,6 +1,7 @@
+ /** What reservations need to know about car parks. */
+ export interface CarParkDirectory {
+   exists(carParkId: string): boolean;
++  isClosed(carParkId: string): boolean;
+   /** Takes the bays for the holder if enough are free; false (and nothing taken) otherwise. */
+   takeBays(carParkId: string, holder: string, bays: number): boolean;
+   releaseBays(carParkId: string, holder: string): void;
+diff --git a/step-02/src/reservations/index.ts b/step-03/src/reservations/index.ts
+index 3cc63b2c3..4c8d0c622 100644
+--- a/step-02/src/reservations/index.ts
++++ b/step-03/src/reservations/index.ts
+@@ -17,7 +17,7 @@ export interface ReservationsModule {
+ export function createReservations(reservations: ReservationRepository, carParks: CarParkDirectory): ReservationsModule {
+   return {
+     reserve: (driver, carParkId, bays) => new RequestReservation(reservations, carParks).execute(driver, carParkId, bays),
+-    reservation: (reservationId) => new GetReservation(reservations).execute(reservationId),
++    reservation: (reservationId) => new GetReservation(reservations, carParks).execute(reservationId),
+     cancel: (reservationId) => new CancelReservation(reservations, carParks).execute(reservationId),
+   };
+ }

@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The front desk list of a day's reminders must show whether each reminder reached the patient's phone. Textwave keeps a delivery report for every message it sends. The Textwave SDK, the package textwave-sdk, is already in the project and the client is already created with the key in TEXTWAVE_API_KEY for sending texts; use the same client, and ask for the report by the message id Textwave gave when the reminder was sent. Each time the list is shown it uses Textwave's latest report. A reminder Textwave reports as delivered shows 'delivered'; one it reports as undelivered or expired shows 'failed'; one with no final report yet (accepted) still shows 'sent'. A reminder that was never sent still shows 'not sent', and Textwave is not asked about it. Never ask Textwave about booking confirmations. Every line of the list also says callPatient: true when its reminder shows 'failed' or 'not sent', so that the front desk phones that patient, and callPatient: false otherwise.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c37/tsconfig.json

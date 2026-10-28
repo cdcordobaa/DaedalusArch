@@ -1,0 +1,115 @@
+diff --git a/step-00/src/bookings/acl/MembershipDirectory.ts b/step-01/src/bookings/acl/MembershipDirectory.ts
+index 4d86fc47e..6e2771690 100644
+--- a/step-00/src/bookings/acl/MembershipDirectory.ts
++++ b/step-01/src/bookings/acl/MembershipDirectory.ts
+@@ -8,4 +8,15 @@ export class MembershipDirectory implements MemberDirectory {
+   exists(memberId: string): boolean {
+     return this.membership.card(memberId) !== undefined;
+   }
++
++  discountPercent(memberId: string): number {
++    switch (this.membership.card(memberId)?.level) {
++      case 'premium':
++        return 20;
++      case 'plus':
++        return 10;
++      default:
++        return 0;
++    }
++  }
+ }
+diff --git a/step-00/src/bookings/application/BookClass.ts b/step-01/src/bookings/application/BookClass.ts
+index 916a342c5..592342e3a 100644
+--- a/step-00/src/bookings/application/BookClass.ts
++++ b/step-01/src/bookings/application/BookClass.ts
+@@ -12,6 +12,7 @@ export interface BookingRequest {
+ export interface MadeBooking {
+   readonly bookingId: string;
+   readonly total: number;
++  readonly discount: number;
+ }
+ 
+ export class BookClass {
+@@ -22,8 +23,9 @@ export class BookClass {
+ 
+   execute(memberId: string | null, classes: readonly BookingRequest[], currency = 'EUR'): MadeBooking {
+     if (memberId !== null && !this.directory.exists(memberId)) throw new Error(`no member ${memberId}`);
+-    const booking = Booking.make(this.bookings.nextId(), memberId, classes.map((c) => ({ classCode: c.classCode, sessions: c.sessions, fee: Money.of(c.fee, currency) })));
++    const discountPercent = memberId === null ? 0 : this.directory.discountPercent(memberId);
++    const booking = Booking.make(this.bookings.nextId(), memberId, classes.map((c) => ({ classCode: c.classCode, sessions: c.sessions, fee: Money.of(c.fee, currency) })), discountPercent);
+     this.bookings.save(booking);
+-    return { bookingId: booking.id.value, total: booking.total().amount() };
++    return { bookingId: booking.id.value, total: booking.total().amount(), discount: booking.discount().amount() };
+   }
+ }
+diff --git a/step-00/src/bookings/application/ports/MemberDirectory.ts b/step-01/src/bookings/application/ports/MemberDirectory.ts
+index 1599e10ff..47b3184c3 100644
+--- a/step-00/src/bookings/application/ports/MemberDirectory.ts
++++ b/step-01/src/bookings/application/ports/MemberDirectory.ts
+@@ -1,4 +1,6 @@
+ /** What class bookings need to know about gym members. */
+ export interface MemberDirectory {
+   exists(memberId: string): boolean;
++  /** Percentage taken off every booking by this member; 0 when there is no discount. */
++  discountPercent(memberId: string): number;
+ }
+diff --git a/step-00/src/bookings/domain/booking/Booking.ts b/step-01/src/bookings/domain/booking/Booking.ts
+index c67d9b606..15f6e50b7 100644
+--- a/step-00/src/bookings/domain/booking/Booking.ts
++++ b/step-01/src/bookings/domain/booking/Booking.ts
+@@ -13,6 +13,7 @@ export interface BookingState {
+   readonly id: BookingId;
+   readonly memberId: string | null;
+   readonly classes: readonly BookedClass[];
++  readonly discountPercent: number;
+ }
+ 
+ /** A class booking. Every class has a positive whole number of sessions and a non-negative fee per session. */
+@@ -23,30 +24,42 @@ export class Booking {
+     readonly id: BookingId,
+     readonly memberId: string | null,
+     readonly classes: readonly BookedClass[],
++    readonly discountPercent: number = 0,
+   ) {}
+ 
+-  static make(id: BookingId, memberId: string | null, classes: readonly BookedClass[]): Booking {
++  static make(id: BookingId, memberId: string | null, classes: readonly BookedClass[], discountPercent = 0): Booking {
++    if (!(discountPercent >= 0 && discountPercent <= 100)) throw new Error('discount must be between 0 and 100 percent');
+     if (classes.length === 0) throw new Error('a booking needs at least one class');
+     for (const c of classes) {
+       if (!Number.isInteger(c.sessions) || c.sessions <= 0) throw new Error(`class ${c.classCode}: sessions must be a positive whole number`);
+       if (c.fee.isNegative()) throw new Error(`class ${c.classCode}: fee must not be negative`);
+     }
+-    const booking = new Booking(id, memberId, classes);
++    const booking = new Booking(id, memberId, classes, discountPercent);
+     booking.pending.push(new BookingMade(id.value, memberId, booking.total().cents, booking.total().currency));
+     return booking;
+   }
+ 
+   static restore(state: BookingState): Booking {
+-    return new Booking(state.id, state.memberId, state.classes);
++    return new Booking(state.id, state.memberId, state.classes, state.discountPercent);
+   }
+ 
+-  total(): Money {
++  /** The full price before any discount. */
++  gross(): Money {
+     const currency = this.classes[0]?.fee.currency ?? 'EUR';
+     return this.classes.reduce((sum, c) => sum.plus(c.fee.times(c.sessions)), Money.zero(currency));
+   }
+ 
++  discount(): Money {
++    return this.gross().times(this.discountPercent / 100);
++  }
++
++  /** The amount to pay, after the discount. */
++  total(): Money {
++    return this.gross().minus(this.discount());
++  }
++
+   state(): BookingState {
+-    return { id: this.id, memberId: this.memberId, classes: this.classes };
++    return { id: this.id, memberId: this.memberId, classes: this.classes, discountPercent: this.discountPercent };
+   }
+ 
+   pullEvents(): DomainEvent[] {

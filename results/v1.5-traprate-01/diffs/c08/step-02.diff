@@ -1,0 +1,61 @@
+diff --git a/step-01/src/cellar/application/batchCommands.ts b/step-02/src/cellar/application/batchCommands.ts
+index dd4e97edb..ef1d4184f 100644
+--- a/step-01/src/cellar/application/batchCommands.ts
++++ b/step-02/src/cellar/application/batchCommands.ts
+@@ -1,5 +1,5 @@
+ import { CellarRefusal } from '../domain/CellarRefusal';
+-import { planBatch, startFermenting } from '../domain/batch/brewBatch';
++import { bottleBatch, planBatch, startFermenting } from '../domain/batch/brewBatch';
+ import type { BatchStore } from '../domain/batch/BatchStore';
+ import { useInBrew } from '../domain/lot/ingredientLot';
+ import type { LotStore } from '../domain/lot/LotStore';
+@@ -35,5 +35,10 @@ export function batchCommands(deps: { readonly batches: BatchStore; readonly lot
+       for (const lot of taken) deps.lots.keep(lot);
+       deps.batches.record(brewed);
+     },
++    bottle(batchId: string): void {
++      const batch = deps.batches.lookup(batchId);
++      if (batch === undefined) throw new CellarRefusal(`no batch ${batchId}`);
++      deps.batches.record(bottleBatch(batch, deps.today()));
++    },
+   };
+ }
+diff --git a/step-01/src/cellar/domain/batch/brewBatch.ts b/step-02/src/cellar/domain/batch/brewBatch.ts
+index eb6181923..e805ddae1 100644
+--- a/step-01/src/cellar/domain/batch/brewBatch.ts
++++ b/step-02/src/cellar/domain/batch/brewBatch.ts
+@@ -1,7 +1,8 @@
+ import { CellarRefusal } from '../CellarRefusal';
+ import type { CellarEvent } from '../events';
++import { addDays, isEarlier } from '../value-objects/calendar';
+ 
+-export type BatchStatus = 'planned' | 'fermenting';
++export type BatchStatus = 'planned' | 'fermenting' | 'bottled';
+ 
+ /** One run of one beer through the brewhouse. */
+ export interface BrewBatch {
+@@ -26,4 +27,11 @@ export function startFermenting(batch: BrewBatch, today: string): BrewBatch {
+   return { ...batch, status: 'fermenting', brewedOn: today, raised: [] };
+ }
+ 
++export function bottleBatch(batch: BrewBatch, today: string): BrewBatch {
++  if (batch.status !== 'fermenting' || batch.brewedOn === undefined) throw new CellarRefusal(`batch ${batch.id} is not fermenting`);
++  const readyOn = addDays(batch.brewedOn, batch.fermentationDays);
++  if (isEarlier(today, readyOn)) throw new CellarRefusal(`batch ${batch.id} cannot be bottled before ${readyOn}`);
++  return { ...batch, status: 'bottled', raised: [] };
++}
++
+ export const batchWithoutRaised = (batch: BrewBatch): BrewBatch => ({ ...batch, raised: [] });
+diff --git a/step-01/src/cellar/domain/value-objects/calendar.ts b/step-02/src/cellar/domain/value-objects/calendar.ts
+index ef2ad61d4..a5e635561 100644
+--- a/step-01/src/cellar/domain/value-objects/calendar.ts
++++ b/step-02/src/cellar/domain/value-objects/calendar.ts
+@@ -1,2 +1,8 @@
+ /** Calendar days as YYYY-MM-DD strings. */
++export function addDays(day: string, days: number): string {
++  const d = new Date(`${day}T00:00:00Z`);
++  d.setUTCDate(d.getUTCDate() + days);
++  return d.toISOString().slice(0, 10);
++}
++
+ export const isEarlier = (day: string, than: string): boolean => day < than;

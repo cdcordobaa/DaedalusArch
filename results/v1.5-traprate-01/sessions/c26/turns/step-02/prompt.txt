@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Riders now close a job at the door: dispatch.confirmDelivery(jobId, riderId, { signedBy, photoRef }). The job becomes delivered, the rider is free again for new jobs and for suggestions, and job(jobId) shows proof: { signedBy, photoRef, deliveredAt }, with signedBy and photoRef trimmed and deliveredAt the current time as an ISO string; proof is null until then. Refusals, checked in this order: 'no job J-9'; 'no rider R-9'; 'job J-1 is already delivered'; 'job J-1 has not been picked up' (still waiting or assigned); 'job J-1 is with another rider' (the rider is not the one the job is assigned to); 'a delivery needs the name of the person who signed' (blank signedBy); 'a delivery needs a photo' (blank photoRef). Picking up a delivered job is refused with 'job J-1 is already delivered'.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c26/tsconfig.json

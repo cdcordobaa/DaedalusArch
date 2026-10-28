@@ -1,0 +1,214 @@
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 497feeaf0..4744aad6a 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -29,6 +29,7 @@ export function createApp() {
+     issuePass: (holder: string, credit: number) => settled(() => office.issue(holder, credit)),
+     loadCredit: (passNo: string, euros: number) => settled(() => office.load(passNo, euros)),
+     payAtKiosk: (passNo: string, euros: number, what: string) => settled(() => office.pay(passNo, euros, what)),
++    reportLost: (passNo: string) => settled(() => office.reportLost(passNo)),
+     pass: (passNo: string) => office.pass(passNo),
+     offerLesson: (title: string, day: string, places: number, price: number) => settled(() => school.offer(title, day, places, price)),
+     enrol: (passNo: string, lessonId: string) => settled(() => school.enrol(passNo, lessonId)),
+diff --git a/step-02/src/passes/application/office.ts b/step-03/src/passes/application/office.ts
+index 44739d9f4..cae378128 100644
+--- a/step-02/src/passes/application/office.ts
++++ b/step-03/src/passes/application/office.ts
+@@ -38,6 +38,12 @@ export function refundLessonFee(book: PassBook, passNo: string, euros: number, l
+   book.put(pass, pass.load(euros, `refund lesson ${lessonId}`));
+ }
+ 
++/** The guest reports a pass lost; it is blocked. */
++export function reportPassLost(book: PassBook, passNo: string): void {
++  const pass = mustFind(book, passNo);
++  book.put(pass, pass.reportLost());
++}
++
+ export function viewPass(book: PassBook, passNo: string): PassView | undefined {
+   const pass = book.find(passNo);
+   return pass === undefined ? undefined : { passNo: pass.passNo, holder: pass.holder, credit: pass.credit, status: pass.status };
+diff --git a/step-02/src/passes/contracts.ts b/step-03/src/passes/contracts.ts
+index b73712b2f..f1f89d9c2 100644
+--- a/step-02/src/passes/contracts.ts
++++ b/step-03/src/passes/contracts.ts
+@@ -13,6 +13,11 @@ export interface PassIssuedNotice {
+   readonly holder: string;
+ }
+ 
++export interface PassBlockedNotice {
++  readonly kind: 'PassBlocked';
++  readonly passNo: string;
++}
++
+ export interface FeePaidNotice {
+   readonly kind: 'FeePaid';
+   readonly passNo: string;
+diff --git a/step-02/src/passes/domain/SkiPass.ts b/step-03/src/passes/domain/SkiPass.ts
+index 2542da2c8..27c2cb0bc 100644
+--- a/step-02/src/passes/domain/SkiPass.ts
++++ b/step-03/src/passes/domain/SkiPass.ts
+@@ -4,7 +4,7 @@ export class PassRefusal extends Error {
+   override readonly name = 'PassRefusal';
+ }
+ 
+-export type PassStatus = 'active';
++export type PassStatus = 'active' | 'blocked';
+ 
+ export interface PassRecord {
+   readonly passNo: string;
+@@ -56,9 +56,16 @@ export class SkiPass {
+     return [{ kind: 'CreditChanged', passNo: this.passNo, by: -euros, note }];
+   }
+ 
+-  /** Takes a lesson fee if the credit covers it; otherwise takes nothing and says so. */
++  /** The guest reported the pass lost. Reporting again changes nothing. */
++  reportLost(): PassHappening[] {
++    if (this.state === 'blocked') return [];
++    this.state = 'blocked';
++    return [{ kind: 'PassBlocked', passNo: this.passNo }];
++  }
++
++  /** Takes a lesson fee if the credit covers it; otherwise (or if the pass is blocked) takes nothing and says so. */
+   payFee(euros: number, lessonId: string): PassHappening[] {
+-    if (euros > this.balance) return [{ kind: 'FeeDeclined', passNo: this.passNo, lessonId }];
++    if (this.state === 'blocked' || euros > this.balance) return [{ kind: 'FeeDeclined', passNo: this.passNo, lessonId }];
+     this.balance -= euros;
+     const paid: PassHappening = { kind: 'FeePaid', passNo: this.passNo, lessonId };
+     return euros === 0 ? [paid] : [{ kind: 'CreditChanged', passNo: this.passNo, by: -euros, note: `lesson ${lessonId}` }, paid];
+diff --git a/step-02/src/passes/domain/happenings.ts b/step-03/src/passes/domain/happenings.ts
+index 1a40f1a30..8b319a1bc 100644
+--- a/step-02/src/passes/domain/happenings.ts
++++ b/step-03/src/passes/domain/happenings.ts
+@@ -1,5 +1,6 @@
+ export type PassHappening =
+   | { readonly kind: 'PassIssued'; readonly passNo: string; readonly holder: string }
+   | { readonly kind: 'CreditChanged'; readonly passNo: string; readonly by: number; readonly note: string }
++  | { readonly kind: 'PassBlocked'; readonly passNo: string }
+   | { readonly kind: 'FeePaid'; readonly passNo: string; readonly lessonId: string }
+   | { readonly kind: 'FeeDeclined'; readonly passNo: string; readonly lessonId: string };
+diff --git a/step-02/src/passes/index.ts b/step-03/src/passes/index.ts
+index 6f386c308..f5533c904 100644
+--- a/step-02/src/passes/index.ts
++++ b/step-03/src/passes/index.ts
+@@ -1,10 +1,10 @@
+ import type { FeeRefundDueNotice, FeeRequestedNotice } from '../school/contracts';
+ import type { Reactions } from '../wiring/mailroom';
+-import { issuePass, loadCredit, payAtKiosk, refundLessonFee, takeLessonFee, viewPass } from './application/office';
++import { issuePass, loadCredit, payAtKiosk, refundLessonFee, reportPassLost, takeLessonFee, viewPass } from './application/office';
+ import type { PassView } from './contracts';
+ import type { PassBook } from './domain/PassBook';
+ 
+-export type { FeeDeclinedNotice, FeePaidNotice, PassIssuedNotice, PassView } from './contracts';
++export type { FeeDeclinedNotice, FeePaidNotice, PassBlockedNotice, PassIssuedNotice, PassView } from './contracts';
+ 
+ /** What the pass office does when something happens elsewhere in the resort. */
+ export function passReactions(book: PassBook): Reactions {
+@@ -26,6 +26,7 @@ export function openPassOffice(book: PassBook) {
+     issue: (holder: string, credit: number): string => issuePass(book, holder, credit),
+     load: (passNo: string, euros: number): void => loadCredit(book, passNo, euros),
+     pay: (passNo: string, euros: number, what: string): void => payAtKiosk(book, passNo, euros, what),
++    reportLost: (passNo: string): void => reportPassLost(book, passNo),
+     pass: (passNo: string): PassView | undefined => viewPass(book, passNo),
+   };
+ }
+diff --git a/step-02/src/school/application/listening.ts b/step-03/src/school/application/listening.ts
+index 58406feb3..11127d922 100644
+--- a/step-02/src/school/application/listening.ts
++++ b/step-03/src/school/application/listening.ts
+@@ -1,4 +1,4 @@
+-import type { PassIssuedNotice } from '../../passes';
++import type { PassBlockedNotice, PassIssuedNotice } from '../../passes';
+ import type { FeeDeclinedNotice, FeePaidNotice } from '../../passes';
+ import type { LessonBook } from '../domain/LessonBook';
+ import type { PupilCards } from './ports';
+@@ -15,6 +15,14 @@ export function onFeeDeclined(lessons: LessonBook, notice: FeeDeclinedNotice): v
+   if (lesson !== undefined) lessons.put(lesson, lesson.feeDeclined(notice.passNo));
+ }
+ 
++/** The pass was reported lost: every place it holds is given up. */
++export function onPassBlocked(lessons: LessonBook, notice: PassBlockedNotice): void {
++  for (const lesson of lessons.all()) {
++    const said = lesson.release(notice.passNo);
++    if (lesson.placeOf(notice.passNo) === 'released') lessons.put(lesson, said);
++  }
++}
++
+ /** A new pass was issued: the school notes the holder's name for its lists. */
+ export function onPassIssued(cards: PupilCards, notice: PassIssuedNotice): void {
+   cards.remember(notice.passNo, notice.holder);
+diff --git a/step-02/src/school/domain/Lesson.ts b/step-03/src/school/domain/Lesson.ts
+index c41c59a0e..56b732bc8 100644
+--- a/step-02/src/school/domain/Lesson.ts
++++ b/step-03/src/school/domain/Lesson.ts
+@@ -5,7 +5,7 @@ export class SchoolRefusal extends Error {
+ }
+ 
+ /** `requested`: the fee is asked of the pass office and the place is kept meanwhile. */
+-export type PlaceState = 'requested' | 'paid' | 'declined';
++export type PlaceState = 'requested' | 'paid' | 'declined' | 'released';
+ export type LessonStatus = 'open' | 'called-off';
+ 
+ export interface LessonRecord {
+@@ -92,6 +92,14 @@ export class Lesson {
+     return [];
+   }
+ 
++  /** The pass was lost: its place is given up and a paid fee goes back. Called-off lessons are left alone. */
++  release(passNo: string): SchoolHappening[] {
++    const now = this.seats[passNo];
++    if (this.phase === 'called-off' || now === undefined || !TAKES_A_PLACE.includes(now)) return [];
++    this.seats = { ...this.seats, [passNo]: 'released' };
++    return now === 'paid' && this.price > 0 ? [{ kind: 'FeeRefundDue', passNo, lessonId: this.lessonId, euros: this.price }] : [];
++  }
++
+   /** The desk takes a pupil off the list (they changed their mind before the lesson). */
+   withdraw(passNo: string): SchoolHappening[] {
+     if (this.phase === 'called-off') throw new SchoolRefusal(`lesson ${this.lessonId} is called off`);
+diff --git a/step-02/src/school/domain/LessonBook.ts b/step-03/src/school/domain/LessonBook.ts
+index b869ad71d..334633ee9 100644
+--- a/step-02/src/school/domain/LessonBook.ts
++++ b/step-03/src/school/domain/LessonBook.ts
+@@ -5,5 +5,6 @@ import type { Lesson } from './Lesson';
+ export interface LessonBook {
+   newId(): string;
+   find(lessonId: string): Lesson | undefined;
++  all(): Lesson[];
+   put(lesson: Lesson, said: readonly SchoolHappening[]): void;
+ }
+diff --git a/step-02/src/school/index.ts b/step-03/src/school/index.ts
+index 699f348db..4a078e869 100644
+--- a/step-02/src/school/index.ts
++++ b/step-03/src/school/index.ts
+@@ -1,7 +1,7 @@
+-import type { FeeDeclinedNotice, FeePaidNotice, PassIssuedNotice } from '../passes';
++import type { FeeDeclinedNotice, FeePaidNotice, PassBlockedNotice, PassIssuedNotice } from '../passes';
+ import type { Reactions } from '../wiring/mailroom';
+ import { callOffLesson, enrolPupil, offerLesson, placeOf, pupilList, viewLesson, withdrawPupil, type SchoolParts } from './application/desk';
+-import { onFeeDeclined, onFeePaid, onPassIssued } from './application/listening';
++import { onFeeDeclined, onFeePaid, onPassBlocked, onPassIssued } from './application/listening';
+ import type { LessonView } from './contracts';
+ 
+ export type { FeeRefundDueNotice, FeeRequestedNotice, LessonView } from './contracts';
+@@ -24,6 +24,7 @@ export function openSchool(parts: SchoolParts) {
+ export function schoolReactions(parts: SchoolParts): Reactions {
+   return {
+     PassIssued: (h) => onPassIssued(parts.cards, h as PassIssuedNotice),
++    PassBlocked: (h) => onPassBlocked(parts.lessons, h as PassBlockedNotice),
+     FeePaid: (h) => onFeePaid(parts.lessons, h as FeePaidNotice),
+     FeeDeclined: (h) => onFeeDeclined(parts.lessons, h as FeeDeclinedNotice),
+   };
+diff --git a/step-02/src/school/infrastructure/MemoryLessonStore.ts b/step-03/src/school/infrastructure/MemoryLessonStore.ts
+index fd03c212b..af31cc0f7 100644
+--- a/step-02/src/school/infrastructure/MemoryLessonStore.ts
++++ b/step-03/src/school/infrastructure/MemoryLessonStore.ts
+@@ -17,6 +17,10 @@ export class MemoryLessonStore implements LessonBook, Journal {
+     return r === undefined ? undefined : Lesson.fromRecord(r);
+   }
+ 
++  all(): Lesson[] {
++    return [...this.records.values()].map((r) => Lesson.fromRecord(r));
++  }
++
+   put(lesson: Lesson, said: readonly SchoolHappening[]): void {
+     this.records.set(lesson.lessonId, lesson.toRecord());
+     this.journal.push(...said);

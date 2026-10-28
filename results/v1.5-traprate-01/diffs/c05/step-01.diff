@@ -1,0 +1,191 @@
+diff --git a/step-01/src/adapters/outbound/geopin/GeopinAddressLookup.ts b/step-01/src/adapters/outbound/geopin/GeopinAddressLookup.ts
+new file mode 100644
+index 000000000..feb9f465d
+--- /dev/null
++++ b/step-01/src/adapters/outbound/geopin/GeopinAddressLookup.ts
+@@ -0,0 +1,23 @@
++import type { GeopinClient } from 'geopin-sdk';
++import type { AddressLookup } from '../../../application/ports/out/AddressLookup';
++import type { AddressMatch } from '../../../domain/model/AddressMatch';
++import type { DeliveryAddress } from '../../../domain/model/DeliveryAddress';
++
++export class GeopinAddressLookup implements AddressLookup {
++  constructor(private readonly client: GeopinClient) {}
++
++  async bestMatch(address: DeliveryAddress): Promise<AddressMatch | undefined> {
++    const result = await this.client.geocode({
++      query: { addressLine: address.street, postalCode: address.postcode, locality: address.city },
++      countryIso: address.country,
++    });
++    const m = result.matches[0];
++    if (!m) return undefined;
++    return {
++      address: m.formattedAddress,
++      point: { latitude: m.location.lat, longitude: m.location.lng },
++      precision: m.precision,
++      confidence: m.confidence,
++    };
++  }
++}
+diff --git a/step-00/src/application/ports/in/ScheduleDelivery.ts b/step-01/src/application/ports/in/ScheduleDelivery.ts
+index d54b25508..6a1ce4e43 100644
+--- a/step-00/src/application/ports/in/ScheduleDelivery.ts
++++ b/step-01/src/application/ports/in/ScheduleDelivery.ts
+@@ -6,11 +6,19 @@ export interface DeliveryRequest {
+   readonly country: string;
+ }
+ 
+-export interface DeliveryView {
+-  readonly orderId: string;
+-  readonly status: string;
+-  readonly address: string;
+-}
++export type DeliveryView =
++  | {
++      readonly orderId: string;
++      readonly status: 'scheduled';
++      readonly address: string;
++      readonly latitude: number;
++      readonly longitude: number;
++    }
++  | {
++      readonly orderId: string;
++      readonly status: 'rejected';
++      readonly reason: string;
++    };
+ 
+ export interface ScheduleDelivery {
+   schedule(request: DeliveryRequest): Promise<DeliveryView>;
+diff --git a/step-01/src/application/ports/out/AddressLookup.ts b/step-01/src/application/ports/out/AddressLookup.ts
+new file mode 100644
+index 000000000..e53ab3105
+--- /dev/null
++++ b/step-01/src/application/ports/out/AddressLookup.ts
+@@ -0,0 +1,7 @@
++import type { AddressMatch } from '../../../domain/model/AddressMatch';
++import type { DeliveryAddress } from '../../../domain/model/DeliveryAddress';
++
++/** Finds the best match for an address, or undefined when there is none. */
++export interface AddressLookup {
++  bestMatch(address: DeliveryAddress): Promise<AddressMatch | undefined>;
++}
+diff --git a/step-00/src/application/services/ScheduleDeliveryService.ts b/step-01/src/application/services/ScheduleDeliveryService.ts
+index d6055437a..f255da61c 100644
+--- a/step-00/src/application/services/ScheduleDeliveryService.ts
++++ b/step-01/src/application/services/ScheduleDeliveryService.ts
+@@ -1,13 +1,25 @@
+ import { DeliveryAddress } from '../../domain/model/DeliveryAddress';
+ import { DeliveryBooking } from '../../domain/services/DeliveryBooking';
+ import type { DeliveryRequest, DeliveryView, ScheduleDelivery } from '../ports/in/ScheduleDelivery';
++import type { AddressLookup } from '../ports/out/AddressLookup';
+ 
+ export class ScheduleDeliveryService implements ScheduleDelivery {
+-  constructor(private readonly booking: DeliveryBooking = new DeliveryBooking()) {}
++  constructor(
++    private readonly addresses: AddressLookup,
++    private readonly booking: DeliveryBooking = new DeliveryBooking(),
++  ) {}
+ 
+   async schedule(request: DeliveryRequest): Promise<DeliveryView> {
+     const address = DeliveryAddress.of(request.street, request.postcode, request.city, request.country);
+-    const delivery = this.booking.book(request.orderId, address);
+-    return { orderId: delivery.orderId, status: delivery.status, address: delivery.address };
++    const match = await this.addresses.bestMatch(address);
++    const delivery = this.booking.book(request.orderId, match);
++    if (delivery.status === 'rejected') return { orderId: delivery.orderId, status: 'rejected', reason: delivery.reason };
++    return {
++      orderId: delivery.orderId,
++      status: 'scheduled',
++      address: delivery.address,
++      latitude: delivery.point.latitude,
++      longitude: delivery.point.longitude,
++    };
+   }
+ }
+diff --git a/step-00/src/config/container.ts b/step-01/src/config/container.ts
+index 85343630c..23730eb37 100644
+--- a/step-00/src/config/container.ts
++++ b/step-01/src/config/container.ts
+@@ -1,5 +1,6 @@
+ import { GeopinClient } from 'geopin-sdk';
+ import { DeliveryController } from '../adapters/inbound/http/DeliveryController';
++import { GeopinAddressLookup } from '../adapters/outbound/geopin/GeopinAddressLookup';
+ import { GeopinPickupPointsAdapter } from '../adapters/outbound/geopin/GeopinPickupPointsAdapter';
+ import { FindPickupPointsService } from '../application/services/FindPickupPointsService';
+ import { ScheduleDeliveryService } from '../application/services/ScheduleDeliveryService';
+@@ -7,7 +8,7 @@ import { ScheduleDeliveryService } from '../application/services/ScheduleDeliver
+ /** Composition root. The Geopin key comes from GEOPIN_API_KEY. */
+ export function createApp() {
+   const geopin = new GeopinClient({ apiKey: process.env.GEOPIN_API_KEY ?? '' });
+-  const deliveries = new ScheduleDeliveryService();
++  const deliveries = new ScheduleDeliveryService(new GeopinAddressLookup(geopin));
+   const pickupPoints = new FindPickupPointsService(new GeopinPickupPointsAdapter(geopin));
+   const http = new DeliveryController(deliveries, pickupPoints);
+   return {
+diff --git a/step-01/src/domain/model/AddressMatch.ts b/step-01/src/domain/model/AddressMatch.ts
+new file mode 100644
+index 000000000..fbb90286f
+--- /dev/null
++++ b/step-01/src/domain/model/AddressMatch.ts
+@@ -0,0 +1,9 @@
++import type { GeoPoint } from './GeoPoint';
++
++/** The best match an address lookup found for a typed address. */
++export interface AddressMatch {
++  readonly address: string;
++  readonly point: GeoPoint;
++  readonly precision: 'ROOFTOP' | 'STREET' | 'LOCALITY' | 'POSTCODE';
++  readonly confidence: number;
++}
+diff --git a/step-00/src/domain/model/Delivery.ts b/step-01/src/domain/model/Delivery.ts
+index 4c5cb3370..594626f4d 100644
+--- a/step-00/src/domain/model/Delivery.ts
++++ b/step-01/src/domain/model/Delivery.ts
+@@ -1,6 +1,18 @@
+-/** A delivery booked for an order, to the address on its label. */
+-export interface Delivery {
++import type { GeoPoint } from './GeoPoint';
++
++/** A delivery booked for an order, to the address as the lookup writes it. */
++export interface ScheduledDelivery {
+   readonly orderId: string;
+   readonly status: 'scheduled';
+   readonly address: string;
++  readonly point: GeoPoint;
+ }
++
++/** A delivery that was not booked because the address could not be found. */
++export interface RejectedDelivery {
++  readonly orderId: string;
++  readonly status: 'rejected';
++  readonly reason: string;
++}
++
++export type Delivery = ScheduledDelivery | RejectedDelivery;
+diff --git a/step-00/src/domain/services/DeliveryBooking.ts b/step-01/src/domain/services/DeliveryBooking.ts
+index 25e428256..a5dd7798f 100644
+--- a/step-00/src/domain/services/DeliveryBooking.ts
++++ b/step-01/src/domain/services/DeliveryBooking.ts
+@@ -1,9 +1,18 @@
++import type { AddressMatch } from '../model/AddressMatch';
+ import type { Delivery } from '../model/Delivery';
+-import type { DeliveryAddress } from '../model/DeliveryAddress';
+ 
+-/** Books a delivery for an order to an address whose format we have checked. */
++const MIN_CONFIDENCE = 0.8;
++
++/** Books a delivery for an order when the address match is precise enough to drive to. */
+ export class DeliveryBooking {
+-  book(orderId: string, address: DeliveryAddress): Delivery {
+-    return { orderId, status: 'scheduled', address: address.oneLine() };
++  book(orderId: string, match: AddressMatch | undefined): Delivery {
++    if (
++      match === undefined
++      || (match.precision !== 'ROOFTOP' && match.precision !== 'STREET')
++      || !(match.confidence >= MIN_CONFIDENCE)
++    ) {
++      return { orderId, status: 'rejected', reason: 'We could not find this address.' };
++    }
++    return { orderId, status: 'scheduled', address: match.address, point: match.point };
+   }
+ }

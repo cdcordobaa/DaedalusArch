@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The finance desk can now suspend a bidder, for example when a deposit is not paid: suspendAccount(accountId), which returns nothing. From then on account(id).status is 'suspended', and any placeBid by that bidder throws an error with the message 'account <id> is suspended' and changes nothing. Every open lot that the bidder leads loses that bid at once: the lot has no leader and no leading bid, it can be bid on again from its opening bid (earlier bids by others are not brought back), and the amount goes back to the bidder's creditAvailable. Credit the finance desk holds, lots already sold to the bidder and the amount owed stay as they are. Suspending a bidder who is already suspended returns normally and changes nothing; suspending an unknown account throws an error with the message 'no account <id>'. It is urgent, so keep it small.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c31/tsconfig.json

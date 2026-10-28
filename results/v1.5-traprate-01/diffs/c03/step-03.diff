@@ -1,0 +1,161 @@
+diff --git a/step-02/src/adapters/in/scheduler/NightlyRun.ts b/step-03/src/adapters/in/scheduler/NightlyRun.ts
+index 5cf5d69e8..4c8755525 100644
+--- a/step-02/src/adapters/in/scheduler/NightlyRun.ts
++++ b/step-03/src/adapters/in/scheduler/NightlyRun.ts
+@@ -1,11 +1,19 @@
++import type { FinanceExport } from '../../../application/ports/in/FinanceExport';
+ import type { LowBalanceLetters } from '../../../application/ports/in/LowBalanceLetters';
+ import { reply, type Reply } from '../shared/reply';
+ 
+ /** What the scheduler starts every night after the canteen closes. */
+ export class NightlyRun {
+-  constructor(private readonly letters: LowBalanceLetters) {}
++  constructor(
++    private readonly letters: LowBalanceLetters,
++    private readonly finance: FinanceExport,
++  ) {}
+ 
+   lowBalanceLetters(): Reply {
+     return reply(() => ({ letters: this.letters.send() }));
+   }
++
++  financeExport(date: unknown): Reply {
++    return reply(() => this.finance.financeExport(date));
++  }
+ }
+diff --git a/step-03/src/adapters/out/memory/MemoryFinanceFolder.ts b/step-03/src/adapters/out/memory/MemoryFinanceFolder.ts
+new file mode 100644
+index 000000000..1e3a94fbd
+--- /dev/null
++++ b/step-03/src/adapters/out/memory/MemoryFinanceFolder.ts
+@@ -0,0 +1,17 @@
++import type { FinanceFolder } from '../../../application/ports/out/FinanceFolder';
++
++export class MemoryFinanceFolder implements FinanceFolder {
++  private readonly files = new Map<string, string>();
++
++  write(name: string, text: string): void {
++    this.files.set(name, text);
++  }
++
++  read(name: string): string | null {
++    return this.files.get(name) ?? null;
++  }
++
++  names(): string[] {
++    return [...this.files.keys()].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
++  }
++}
+diff --git a/step-03/src/application/ports/in/FinanceExport.ts b/step-03/src/application/ports/in/FinanceExport.ts
+new file mode 100644
+index 000000000..19b7c0e67
+--- /dev/null
++++ b/step-03/src/application/ports/in/FinanceExport.ts
+@@ -0,0 +1,9 @@
++export interface FinanceExportResult {
++  file: string;
++  /** The number of class lines. */
++  classes: number;
++}
++
++export interface FinanceExport {
++  financeExport(date: unknown): FinanceExportResult;
++}
+diff --git a/step-03/src/application/ports/out/FinanceFolder.ts b/step-03/src/application/ports/out/FinanceFolder.ts
+new file mode 100644
+index 000000000..22b8c8145
+--- /dev/null
++++ b/step-03/src/application/ports/out/FinanceFolder.ts
+@@ -0,0 +1,8 @@
++export interface FinanceFolder {
++  /** Creates the file, or replaces it when the name is already there. */
++  write(name: string, text: string): void;
++  /** The file text, or null when there is no such file. */
++  read(name: string): string | null;
++  /** The file names in name order. */
++  names(): string[];
++}
+diff --git a/step-03/src/application/usecases/FinanceExportService.ts b/step-03/src/application/usecases/FinanceExportService.ts
+new file mode 100644
+index 000000000..28b35a590
+--- /dev/null
++++ b/step-03/src/application/usecases/FinanceExportService.ts
+@@ -0,0 +1,42 @@
++import { plainPence } from '../../domain/model/Pence';
++import { requireDate } from '../../domain/model/SchoolDate';
++import type { FinanceExport, FinanceExportResult } from '../ports/in/FinanceExport';
++import type { FinanceFolder } from '../ports/out/FinanceFolder';
++import type { OrderStore } from '../ports/out/OrderStore';
++import type { PupilStore } from '../ports/out/PupilStore';
++
++export class FinanceExportService implements FinanceExport {
++  constructor(
++    private readonly orders: OrderStore,
++    private readonly pupils: PupilStore,
++    private readonly folder: FinanceFolder,
++  ) {}
++
++  financeExport(date: unknown): FinanceExportResult {
++    const day = requireDate(date);
++    const byClass = new Map<string, { meals: number; amount: number }>();
++    for (const o of this.orders.onDate(day)) {
++      if (o.status === 'cancelled') continue;
++      const pupil = this.pupils.byId(o.pupilId);
++      if (pupil === null) continue;
++      const row = byClass.get(pupil.className) ?? { meals: 0, amount: 0 };
++      row.meals += 1;
++      row.amount += o.price;
++      byClass.set(pupil.className, row);
++    }
++    const names = [...byClass.keys()].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
++    let meals = 0;
++    let amount = 0;
++    let text = 'class,meals,amount\n';
++    for (const name of names) {
++      const row = byClass.get(name)!;
++      meals += row.meals;
++      amount += row.amount;
++      text += `${name},${String(row.meals)},${plainPence(row.amount)}\n`;
++    }
++    text += `total,${String(meals)},${plainPence(amount)}\n`;
++    const file = `takings-${day}.csv`;
++    this.folder.write(file, text);
++    return { file, classes: names.length };
++  }
++}
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 81410c71d..d1cb5f163 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -6,9 +6,11 @@ import { SystemToday } from './adapters/out/clock/SystemToday';
+ import { LetterTray } from './adapters/out/letters/LetterTray';
+ import { CanteenDatabase } from './adapters/out/memory/CanteenDatabase';
+ import { MemoryDishStore } from './adapters/out/memory/MemoryDishStore';
++import { MemoryFinanceFolder } from './adapters/out/memory/MemoryFinanceFolder';
+ import { MemoryOrderStore } from './adapters/out/memory/MemoryOrderStore';
+ import { MemoryPupilStore } from './adapters/out/memory/MemoryPupilStore';
+ import { EnrolmentService } from './application/usecases/EnrolmentService';
++import { FinanceExportService } from './application/usecases/FinanceExportService';
+ import { LowBalanceLettersService } from './application/usecases/LowBalanceLettersService';
+ import { MenuService } from './application/usecases/MenuService';
+ import { OrderingService } from './application/usecases/OrderingService';
+@@ -27,12 +29,18 @@ export function createApp(options: AppOptions = {}) {
+   const orders = new MemoryOrderStore(db);
+   const today = new SystemToday(options.today);
+   const letterTray = new LetterTray();
++  const financeFolder = new MemoryFinanceFolder();
+ 
+   return {
+     office: new OfficeRoutes(new EnrolmentService(pupils), new MenuService(dishes)),
+     orders: new OrderRoutes(new OrderingService(orders, pupils, dishes, today)),
+     kitchen: new KitchenRoutes(new TallyService(orders, pupils, dishes)),
+-    nightly: new NightlyRun(new LowBalanceLettersService(pupils, letterTray)),
++    nightly: new NightlyRun(new LowBalanceLettersService(pupils, letterTray), new FinanceExportService(orders, pupils, financeFolder)),
++    /** The files written for the finance office. */
++    financeFolder: {
++      read: (name: string): string | null => financeFolder.read(name),
++      names: (): string[] => financeFolder.names(),
++    },
+     /** The letters written so far, for whoever prints them. */
+     letters: { all: (): string[] => letterTray.all() },
+   };

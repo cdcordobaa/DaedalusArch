@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The LockBank hubs now publish latch faults over MQTT, and our MQTT bridge hands each message to the app: createApp must also return lockbankMqtt.receive(topic, payload), next to managers, laundry and residents. The topic is 'lockbank/<building id>/bay/<bay number>/fault' and the payload is JSON text such as {"fault":"jammed"}, where fault is 'jammed', 'left-open' or 'cleared'. On jammed or left-open the locker at that bay goes out of service, exactly as when a manager switches it off: no new drop goes into it, and a drop already inside keeps waiting and can still be collected. On cleared it is back in service. The answer is { locker, inService }, for example { locker: 'L-003', inService: false }. The same message twice changes nothing more and gives the same answer. Refusals, as 400 { error }: any other topic or payload ('not a LockBank fault message'), and no locker at that bay ('no locker at bay 7 of B-01'); a refused message changes nothing. Keep it small: the managers' out-of-service switch already does exactly this to a locker, so handle the message the same way.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c36/tsconfig.json

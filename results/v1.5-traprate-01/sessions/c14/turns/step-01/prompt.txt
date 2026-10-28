@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Every bid must now be covered by the bidder's credit. When placeBid is called and the amount is no more than account(bidderId).creditAvailable, the bid leads as today and placeBid returns 'accepted'; the amount is then taken from that bidder's creditAvailable, and the bidder who was leading the lot until then gets their amount back. Credit the finance desk holds counts as used. When the amount is more than the credit available, placeBid does not throw: it returns 'refused', and the lot, the bidder's creditAvailable and the bidder's bidsPlaced stay as they were. The refusals that exist today (an unknown lot or account, a bid under the next minimum, a bid by the bidder who already leads) keep throwing as they do now. Bidders in the room watch their credit on the screen, so creditAvailable must be up to date by the time placeBid returns.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c14/tsconfig.json

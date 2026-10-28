@@ -1,0 +1,173 @@
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 741c49fb4..532ae88de 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -3,7 +3,8 @@ import { donateLot } from './seedbank/application/donateLot';
+ import { shareSeed } from './seedbank/application/shareSeed';
+ import { takeSeed } from './seedbank/application/takeSeed';
+ import { thankDonor } from './seedbank/application/thankDonor';
+-import { lotsAt, viewLot, type LotView } from './seedbank/application/viewLot';
++import { lotLog, lotsAt, viewLot, type LotView } from './seedbank/application/viewLot';
++import type { LogEntry } from './seedbank/domain/lot/SeedLot';
+ import { MemoryNoticeboard } from './seedbank/infrastructure/MemoryNoticeboard';
+ import { MemoryShelf } from './seedbank/infrastructure/MemoryShelf';
+ 
+@@ -32,6 +33,7 @@ export function createApp(options: LibraryOptions = {}) {
+     share: (lotNumber: string, garden: string, grams: number): string =>
+       settled(shareSeed(shelf, today(), lotNumber, garden, grams)),
+     lot: (lotNumber: string): LotView => viewLot(shelf, lotNumber),
++    lotLog: (lotNumber: string): LogEntry[] => lotLog(shelf, lotNumber),
+     lotsAt: (garden: string): string[] => lotsAt(shelf, garden),
+     thanks: (): string[] => board.notes(),
+   };
+diff --git a/step-02/src/seedbank/application/viewLot.ts b/step-03/src/seedbank/application/viewLot.ts
+index cfa75274a..2534c0c56 100644
+--- a/step-02/src/seedbank/application/viewLot.ts
++++ b/step-03/src/seedbank/application/viewLot.ts
+@@ -1,5 +1,5 @@
+ import type { LotShelf } from '../domain/lot/LotShelf';
+-import type { LotSnapshot } from '../domain/lot/SeedLot';
++import type { LogEntry, LotSnapshot } from '../domain/lot/SeedLot';
+ import { requireLot } from './lookup';
+ 
+ export type LotView = LotSnapshot;
+@@ -8,6 +8,10 @@ export function viewLot(shelf: LotShelf, number: string): LotView {
+   return requireLot(shelf, number).snapshot();
+ }
+ 
++export function lotLog(shelf: LotShelf, number: string): LogEntry[] {
++  return shelf.logOf(requireLot(shelf, number).number);
++}
++
+ export function lotsAt(shelf: LotShelf, garden: string): string[] {
+   return shelf.atGarden(garden).map((lot) => lot.number.text);
+ }
+diff --git a/step-02/src/seedbank/domain/lot/LotShelf.ts b/step-03/src/seedbank/domain/lot/LotShelf.ts
+index 057cf6517..ad1945dd0 100644
+--- a/step-02/src/seedbank/domain/lot/LotShelf.ts
++++ b/step-03/src/seedbank/domain/lot/LotShelf.ts
+@@ -1,10 +1,12 @@
+-import type { SeedLot } from './SeedLot';
++import type { LogEntry, SeedLot } from './SeedLot';
+ import type { LotNumber } from './values/LotNumber';
+ 
+ export interface LotShelf {
+   nextNumber(): LotNumber;
+   find(number: LotNumber): SeedLot | undefined;
+   atGarden(garden: string): SeedLot[];
++  /** The history of one lot, oldest first. */
++  logOf(number: LotNumber): LogEntry[];
+   /** Keeps the lot and the events it raised in one step. */
+   keep(lot: SeedLot): void;
+   /** Keeps several lots in one step: all of them or none. */
+diff --git a/step-02/src/seedbank/domain/lot/SeedLot.ts b/step-03/src/seedbank/domain/lot/SeedLot.ts
+index 5657ac9b2..343b4da01 100644
+--- a/step-02/src/seedbank/domain/lot/SeedLot.ts
++++ b/step-03/src/seedbank/domain/lot/SeedLot.ts
+@@ -21,6 +21,14 @@ export interface LotSnapshot {
+   readonly cameFrom: string | null;
+ }
+ 
++/** One line in a lot's history. */
++export interface LogEntry {
++  readonly entry: 'donated' | 'taken' | 'shared-out' | 'shared-in';
++  readonly grams: number;
++  /** The lot the seed went to (shared-out) or came from (shared-in); null otherwise. */
++  readonly otherLot: string | null;
++}
++
+ export interface Donation {
+   readonly donor: string;
+   readonly variety: string;
+@@ -33,6 +41,7 @@ export interface Donation {
+ /** A batch of one seed variety kept at one garden. It never holds less than nothing. */
+ export class SeedLot {
+   private unsent: LibraryEvent[] = [];
++  private unlogged: LogEntry[] = [];
+ 
+   private constructor(
+     readonly number: LotNumber,
+@@ -50,6 +59,7 @@ export class SeedLot {
+     if (!d.grams.isPositive()) throw new LibraryRefusal('a donation must weigh at least 1 g');
+     const lot = new SeedLot(number, d.variety.trim(), d.garden.trim(), d.grams, d.germination, d.on);
+     lot.unsent.push(new LotDonated(number.text, d.donor, lot.variety, d.grams.value));
++    lot.unlogged.push({ entry: 'donated', grams: d.grams.value, otherLot: null });
+     return lot;
+   }
+ 
+@@ -71,6 +81,7 @@ export class SeedLot {
+     if (!amount.isPositive()) throw new LibraryRefusal('take at least 1 g');
+     if (amount.exceeds(this.weight)) throw new LibraryRefusal(`not enough seed: ${this.number.text} holds ${this.weight.toString()}`);
+     this.weight = this.weight.minus(amount);
++    this.unlogged.push({ entry: 'taken', grams: amount.value, otherLot: null });
+   }
+ 
+   snapshot(): LotSnapshot {
+@@ -96,9 +107,18 @@ export class SeedLot {
+     if (this.germination.percent < MIN_SHARE_GERMINATION) throw new LibraryRefusal(`germination ${this.germination.percent}% is below ${MIN_SHARE_GERMINATION}%`);
+     const lot = new SeedLot(nextNumber(), this.variety, target, amount, this.germination, on, this.number);
+     this.weight = this.weight.minus(amount);
++    this.unlogged.push({ entry: 'shared-out', grams: amount.value, otherLot: lot.number.text });
++    lot.unlogged.push({ entry: 'shared-in', grams: amount.value, otherLot: this.number.text });
+     return lot;
+   }
+ 
++  /** Hands over the history entries made since the last call, once. */
++  takeUnlogged(): LogEntry[] {
++    const out = this.unlogged;
++    this.unlogged = [];
++    return out;
++  }
++
+   /** Hands over the events raised since the last call, once. */
+   takeUnsent(): LibraryEvent[] {
+     const out = this.unsent;
+diff --git a/step-02/src/seedbank/infrastructure/MemoryShelf.ts b/step-03/src/seedbank/infrastructure/MemoryShelf.ts
+index f378db4f8..e12cb00f2 100644
+--- a/step-02/src/seedbank/infrastructure/MemoryShelf.ts
++++ b/step-03/src/seedbank/infrastructure/MemoryShelf.ts
+@@ -1,12 +1,13 @@
+ import type { LibraryEvent } from '../../shared-kernel/LibraryEvent';
+ import type { PendingEvents } from '../application/ports/PendingEvents';
+ import type { LotShelf } from '../domain/lot/LotShelf';
+-import { SeedLot, type LotSnapshot } from '../domain/lot/SeedLot';
++import { SeedLot, type LogEntry, type LotSnapshot } from '../domain/lot/SeedLot';
+ import { LotNumber } from '../domain/lot/values/LotNumber';
+ 
+ /** Lots and their unsent events in one place: keeping a lot queues its events in the same step. */
+ export class MemoryShelf implements LotShelf, PendingEvents {
+   private readonly lots = new Map<string, LotSnapshot>();
++  private readonly logs = new Map<string, LogEntry[]>();
+   private queue: LibraryEvent[] = [];
+   private issued = 0;
+ 
+@@ -24,15 +25,27 @@ export class MemoryShelf implements LotShelf, PendingEvents {
+     return [...this.lots.values()].filter((s) => s.garden === garden).map((s) => SeedLot.fromSnapshot(s));
+   }
+ 
++  logOf(number: LotNumber): LogEntry[] {
++    return [...(this.logs.get(number.text) ?? [])];
++  }
++
++  private append(number: string, entries: LogEntry[]): void {
++    this.logs.set(number, [...(this.logs.get(number) ?? []), ...entries]);
++  }
++
+   keep(lot: SeedLot): void {
+     const raised = lot.takeUnsent();
++    this.append(lot.number.text, lot.takeUnlogged());
+     this.lots.set(lot.number.text, lot.snapshot());
+     this.queue.push(...raised);
+   }
+ 
+   keepAll(lots: SeedLot[]): void {
+-    const kept = lots.map((lot) => ({ raised: lot.takeUnsent(), snap: lot.snapshot() }));
+-    kept.forEach(({ snap }) => this.lots.set(snap.number, snap));
++    const kept = lots.map((lot) => ({ raised: lot.takeUnsent(), entries: lot.takeUnlogged(), snap: lot.snapshot() }));
++    kept.forEach(({ snap, entries }) => {
++      this.lots.set(snap.number, snap);
++      this.append(snap.number, entries);
++    });
+     kept.forEach(({ raised }) => this.queue.push(...raised));
+   }
+ 

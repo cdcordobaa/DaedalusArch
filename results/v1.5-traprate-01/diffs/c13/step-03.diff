@@ -1,0 +1,228 @@
+diff --git a/step-02/src/backers/application/BackerAccounts.ts b/step-03/src/backers/application/BackerAccounts.ts
+index 8a6d8d892..dfd57e94b 100644
+--- a/step-02/src/backers/application/BackerAccounts.ts
++++ b/step-03/src/backers/application/BackerAccounts.ts
+@@ -19,6 +19,15 @@ export class BackerAccounts {
+     this.backers.save(backer);
+   }
+ 
++  /** Adds each collected pledge to its backer's backed total, once per pledge. */
++  recordCollectedPledges(pledges: readonly { pledgeId: string; backerId: string; amountCents: number }[]): void {
++    for (const p of pledges) {
++      const backer = this.load(p.backerId);
++      backer.recordCollectedPledge(p.pledgeId, Amount.ofCents(p.amountCents));
++      this.backers.save(backer);
++    }
++  }
++
+   recordMissedPayment(backerId: string): void {
+     const backer = this.load(backerId);
+     backer.missPayment();
+diff --git a/step-02/src/backers/domain/backer/Backer.ts b/step-03/src/backers/domain/backer/Backer.ts
+index 89ff83f64..39c6dfad0 100644
+--- a/step-02/src/backers/domain/backer/Backer.ts
++++ b/step-03/src/backers/domain/backer/Backer.ts
+@@ -14,6 +14,7 @@ export interface BackerSnapshot {
+   readonly handle: string;
+   readonly backedCents: number;
+   readonly missedPayments: number;
++  readonly collectedPledges?: readonly string[];
+ }
+ 
+ /**
+@@ -26,6 +27,7 @@ export class Backer {
+     readonly handle: string,
+     private backedCents: number,
+     private missed: number,
++    private readonly collected: Set<string> = new Set(),
+   ) {}
+ 
+   static register(id: BackerId, handle: string): Backer {
+@@ -34,7 +36,7 @@ export class Backer {
+   }
+ 
+   static fromSnapshot(s: BackerSnapshot): Backer {
+-    return new Backer(s.id, s.handle, s.backedCents, s.missedPayments);
++    return new Backer(s.id, s.handle, s.backedCents, s.missedPayments, new Set(s.collectedPledges ?? []));
+   }
+ 
+   get backedTotal(): Amount {
+@@ -58,11 +60,18 @@ export class Backer {
+     this.backedCents += amount.cents;
+   }
+ 
++  /** A pledge of this backer was collected by a funded campaign. Recording the same pledge again changes nothing. */
++  recordCollectedPledge(pledgeId: string, amount: Amount): void {
++    if (this.collected.has(pledgeId)) return;
++    this.collected.add(pledgeId);
++    this.backedCents += amount.cents;
++  }
++
+   missPayment(): void {
+     this.missed += 1;
+   }
+ 
+   snapshot(): BackerSnapshot {
+-    return { id: this.id, handle: this.handle, backedCents: this.backedCents, missedPayments: this.missed };
++    return { id: this.id, handle: this.handle, backedCents: this.backedCents, missedPayments: this.missed, collectedPledges: [...this.collected] };
+   }
+ }
+diff --git a/step-02/src/backers/index.ts b/step-03/src/backers/index.ts
+index 3b911b5d9..6f38cbc65 100644
+--- a/step-02/src/backers/index.ts
++++ b/step-03/src/backers/index.ts
+@@ -24,6 +24,10 @@ export class BackersFacade {
+     this.accounts.recordPastBackings(backerId, amount);
+   }
+ 
++  recordCollectedPledges(pledges: readonly { pledgeId: string; backerId: string; amountCents: number }[]): void {
++    this.accounts.recordCollectedPledges(pledges);
++  }
++
+   recordMissedPayment(backerId: string): void {
+     this.accounts.recordMissedPayment(backerId);
+   }
+diff --git a/step-02/src/campaigns/application/OutboxDispatcher.ts b/step-03/src/campaigns/application/OutboxDispatcher.ts
+index 49f6fa881..09fd2d16a 100644
+--- a/step-02/src/campaigns/application/OutboxDispatcher.ts
++++ b/step-03/src/campaigns/application/OutboxDispatcher.ts
+@@ -3,20 +3,38 @@ import type { PendingEvents } from './ports/PendingEvents';
+ 
+ export type Subscriber = (event: DomainEvent) => void;
+ 
+-/** Hands stored facts to their subscribers, after the change that raised them has been saved. */
++/**
++ * Hands stored facts to their subscribers, after the change that raised them has been saved. A fact is removed only
++ * once every subscriber has handled it; one that fails is kept and retried on the next delivery.
++ */
+ export class OutboxDispatcher {
+-  private readonly subscribers: { type: string; run: Subscriber }[] = [];
++  private readonly subscribers: { key: string; type: string; run: Subscriber }[] = [];
+ 
+   constructor(private readonly pending: PendingEvents) {}
+ 
+   subscribe(type: string, run: Subscriber): void {
+-    this.subscribers.push({ type, run });
++    this.subscribers.push({ key: `${type}#${String(this.subscribers.length)}`, type, run });
+   }
+ 
+   deliverPending(): void {
+-    for (let batch = this.pending.drain(); batch.length > 0; batch = this.pending.drain()) {
+-      for (const event of batch) {
+-        for (const s of this.subscribers) if (s.type === event.type) s.run(event);
++    for (let progressed = true; progressed; ) {
++      progressed = false;
++      for (const { id, event } of this.pending.pending()) {
++        let allHandled = true;
++        for (const s of this.subscribers) {
++          if (s.type !== event.type || this.pending.isHandled(id, s.key)) continue;
++          try {
++            s.run(event);
++            this.pending.markHandled(id, s.key);
++            progressed = true;
++          } catch {
++            allHandled = false;
++          }
++        }
++        if (allHandled) {
++          this.pending.complete(id);
++          progressed = true;
++        }
+       }
+     }
+   }
+diff --git a/step-02/src/campaigns/application/ports/PendingEvents.ts b/step-03/src/campaigns/application/ports/PendingEvents.ts
+index 99d9fcfb6..5b81c5885 100644
+--- a/step-02/src/campaigns/application/ports/PendingEvents.ts
++++ b/step-03/src/campaigns/application/ports/PendingEvents.ts
+@@ -1,6 +1,17 @@
+ import type { DomainEvent } from '../../../shared-kernel/DomainEvent';
+ 
+-/** Facts stored with the campaign that raised them, waiting to be handed to whoever reacts to them. */
++export interface PendingEvent {
++  readonly id: number;
++  readonly event: DomainEvent;
++}
++
++/**
++ * Facts stored with the campaign that raised them. A fact stays until every subscriber has handled it, so a
++ * reaction that fails is retried instead of lost.
++ */
+ export interface PendingEvents {
+-  drain(): DomainEvent[];
++  pending(): PendingEvent[];
++  isHandled(id: number, subscriber: string): boolean;
++  markHandled(id: number, subscriber: string): void;
++  complete(id: number): void;
+ }
+diff --git a/step-02/src/campaigns/infrastructure/InMemoryOutboxTable.ts b/step-03/src/campaigns/infrastructure/InMemoryOutboxTable.ts
+index e56d88698..34d5bab6a 100644
+--- a/step-02/src/campaigns/infrastructure/InMemoryOutboxTable.ts
++++ b/step-03/src/campaigns/infrastructure/InMemoryOutboxTable.ts
+@@ -1,17 +1,35 @@
+ import type { DomainEvent } from '../../shared-kernel/DomainEvent';
+-import type { PendingEvents } from '../application/ports/PendingEvents';
++import type { PendingEvent, PendingEvents } from '../application/ports/PendingEvents';
+ 
+-/** The table that holds stored facts until they are handed on. */
++interface Row {
++  readonly id: number;
++  readonly event: DomainEvent;
++  readonly handledBy: Set<string>;
++}
++
++/** The table that holds stored facts until every reaction to them has run. */
+ export class InMemoryOutboxTable implements PendingEvents {
+-  private rows: DomainEvent[] = [];
++  private rows: Row[] = [];
++  private nextId = 1;
+ 
+   append(events: readonly DomainEvent[]): void {
+-    this.rows = [...this.rows, ...events];
++    const added = events.map((event) => ({ id: this.nextId++, event, handledBy: new Set<string>() }));
++    this.rows = [...this.rows, ...added];
++  }
++
++  pending(): PendingEvent[] {
++    return this.rows.map((r) => ({ id: r.id, event: r.event }));
++  }
++
++  isHandled(id: number, subscriber: string): boolean {
++    return this.rows.find((r) => r.id === id)?.handledBy.has(subscriber) ?? true;
++  }
++
++  markHandled(id: number, subscriber: string): void {
++    this.rows.find((r) => r.id === id)?.handledBy.add(subscriber);
+   }
+ 
+-  drain(): DomainEvent[] {
+-    const out = this.rows;
+-    this.rows = [];
+-    return out;
++  complete(id: number): void {
++    this.rows = this.rows.filter((r) => r.id !== id);
+   }
+ }
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 6e77e1346..4a1c751e5 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -7,6 +7,7 @@ import { CreatorMessages } from './campaigns/application/CreatorMessages';
+ import { LaunchCampaign } from './campaigns/application/LaunchCampaign';
+ import { OutboxDispatcher } from './campaigns/application/OutboxDispatcher';
+ import { PlacePledge, type PledgeReceipt } from './campaigns/application/PlacePledge';
++import type { CampaignClosed } from './campaigns/domain/campaign/events/CampaignClosed';
+ import { InMemoryCampaignRepository } from './campaigns/infrastructure/InMemoryCampaignRepository';
+ import { InMemoryCreatorInbox } from './campaigns/infrastructure/InMemoryCreatorInbox';
+ import { InMemoryOutboxTable } from './campaigns/infrastructure/InMemoryOutboxTable';
+@@ -20,6 +21,10 @@ export function createApp() {
+   const inbox = new InMemoryCreatorInbox();
+   const dispatcher = new OutboxDispatcher(outbox);
+   const messages = new CreatorMessages(inbox, new BackerHandles(backerStore));
++  dispatcher.subscribe('CampaignClosed', (e) => {
++    const closed = e as CampaignClosed;
++    if (closed.outcome === 'funded') backers.recordCollectedPledges(closed.collected);
++  });
+   dispatcher.subscribe('PledgeMade', (e) => messages.onPledgeMade(e));
+   dispatcher.subscribe('CampaignClosed', (e) => messages.onCampaignClosed(e));
+   const lookup = new BackersAdapter(backers);

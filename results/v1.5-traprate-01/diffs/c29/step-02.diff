@@ -1,0 +1,88 @@
+diff --git a/step-01/src/main.ts b/step-02/src/main.ts
+index e6658d9b7..497feeaf0 100644
+--- a/step-01/src/main.ts
++++ b/step-02/src/main.ts
+@@ -33,6 +33,7 @@ export function createApp() {
+     offerLesson: (title: string, day: string, places: number, price: number) => settled(() => school.offer(title, day, places, price)),
+     enrol: (passNo: string, lessonId: string) => settled(() => school.enrol(passNo, lessonId)),
+     withdraw: (passNo: string, lessonId: string) => settled(() => school.withdraw(passNo, lessonId)),
++    callOff: (lessonId: string) => settled(() => school.callOff(lessonId)),
+     lesson: (lessonId: string) => school.lesson(lessonId),
+     placeOf: (lessonId: string, passNo: string) => school.placeOf(lessonId, passNo),
+     pupils: (lessonId: string) => school.pupils(lessonId),
+diff --git a/step-01/src/school/application/desk.ts b/step-02/src/school/application/desk.ts
+index b20552cbe..3cbbe0a89 100644
+--- a/step-01/src/school/application/desk.ts
++++ b/step-02/src/school/application/desk.ts
+@@ -31,6 +31,11 @@ export function withdrawPupil(parts: SchoolParts, passNo: string, lessonId: stri
+   parts.lessons.put(lesson, lesson.withdraw(passNo));
+ }
+ 
++export function callOffLesson(parts: SchoolParts, lessonId: string): void {
++  const lesson = mustFind(parts, lessonId);
++  parts.lessons.put(lesson, lesson.callOff());
++}
++
+ export function viewLesson(parts: SchoolParts, lessonId: string): LessonView | undefined {
+   const l = parts.lessons.find(lessonId);
+   return l === undefined ? undefined : { lessonId: l.lessonId, title: l.title, day: l.day, price: l.price, places: l.places, placesLeft: l.placesLeft(), status: l.status };
+diff --git a/step-01/src/school/domain/Lesson.ts b/step-02/src/school/domain/Lesson.ts
+index 7a130c581..c41c59a0e 100644
+--- a/step-01/src/school/domain/Lesson.ts
++++ b/step-02/src/school/domain/Lesson.ts
+@@ -6,7 +6,7 @@ export class SchoolRefusal extends Error {
+ 
+ /** `requested`: the fee is asked of the pass office and the place is kept meanwhile. */
+ export type PlaceState = 'requested' | 'paid' | 'declined';
+-export type LessonStatus = 'open';
++export type LessonStatus = 'open' | 'called-off';
+ 
+ export interface LessonRecord {
+   readonly lessonId: string;
+@@ -61,7 +61,18 @@ export class Lesson {
+     return Object.keys(this.seats).filter((p) => TAKES_A_PLACE.includes(this.seats[p]!));
+   }
+ 
++  /** The instructor cancels the lesson: every paid pupil gets the fee back. Doing it again changes nothing. */
++  callOff(): SchoolHappening[] {
++    if (this.phase === 'called-off') return [];
++    this.phase = 'called-off';
++    if (this.price === 0) return [];
++    return Object.keys(this.seats)
++      .filter((p) => this.seats[p] === 'paid')
++      .map((passNo): SchoolHappening => ({ kind: 'FeeRefundDue', passNo, lessonId: this.lessonId, euros: this.price }));
++  }
++
+   enrol(passNo: string): SchoolHappening[] {
++    if (this.phase === 'called-off') throw new SchoolRefusal(`lesson ${this.lessonId} is called off`);
+     const now = this.seats[passNo];
+     if (now !== undefined && TAKES_A_PLACE.includes(now)) throw new SchoolRefusal(`${passNo} already has a place in ${this.lessonId}`);
+     if (this.placesLeft() === 0) throw new SchoolRefusal(`lesson ${this.lessonId} is full`);
+@@ -83,6 +94,7 @@ export class Lesson {
+ 
+   /** The desk takes a pupil off the list (they changed their mind before the lesson). */
+   withdraw(passNo: string): SchoolHappening[] {
++    if (this.phase === 'called-off') throw new SchoolRefusal(`lesson ${this.lessonId} is called off`);
+     const now = this.seats[passNo];
+     if (now === undefined || !TAKES_A_PLACE.includes(now)) throw new SchoolRefusal(`${passNo} has no place in ${this.lessonId}`);
+     const { [passNo]: _gone, ...rest } = this.seats;
+diff --git a/step-01/src/school/index.ts b/step-02/src/school/index.ts
+index fe29252a1..699f348db 100644
+--- a/step-01/src/school/index.ts
++++ b/step-02/src/school/index.ts
+@@ -1,6 +1,6 @@
+ import type { FeeDeclinedNotice, FeePaidNotice, PassIssuedNotice } from '../passes';
+ import type { Reactions } from '../wiring/mailroom';
+-import { enrolPupil, offerLesson, placeOf, pupilList, viewLesson, withdrawPupil, type SchoolParts } from './application/desk';
++import { callOffLesson, enrolPupil, offerLesson, placeOf, pupilList, viewLesson, withdrawPupil, type SchoolParts } from './application/desk';
+ import { onFeeDeclined, onFeePaid, onPassIssued } from './application/listening';
+ import type { LessonView } from './contracts';
+ 
+@@ -13,6 +13,7 @@ export function openSchool(parts: SchoolParts) {
+     offer: (title: string, day: string, places: number, price: number): string => offerLesson(parts, title, day, places, price),
+     enrol: (passNo: string, lessonId: string): void => enrolPupil(parts, passNo, lessonId),
+     withdraw: (passNo: string, lessonId: string): void => withdrawPupil(parts, passNo, lessonId),
++    callOff: (lessonId: string): void => callOffLesson(parts, lessonId),
+     lesson: (lessonId: string): LessonView | undefined => viewLesson(parts, lessonId),
+     placeOf: (lessonId: string, passNo: string): string | undefined => placeOf(parts, lessonId, passNo),
+     pupils: (lessonId: string): string[] => pupilList(parts, lessonId),

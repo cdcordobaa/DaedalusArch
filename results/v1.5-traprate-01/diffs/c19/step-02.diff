@@ -1,0 +1,82 @@
+diff --git a/step-01/src/adapters/in/http/LessonRoutes.ts b/step-02/src/adapters/in/http/LessonRoutes.ts
+index c1763437c..5d6656cd3 100644
+--- a/step-01/src/adapters/in/http/LessonRoutes.ts
++++ b/step-02/src/adapters/in/http/LessonRoutes.ts
+@@ -11,4 +11,8 @@ export class LessonRoutes {
+   lesson(id: string): Answer {
+     return answer(() => this.desk.lesson(id));
+   }
++
++  cancel(id: string): Answer {
++    return answer(() => this.desk.cancel(id));
++  }
+ }
+diff --git a/step-01/src/application/ports/in/LessonDesk.ts b/step-02/src/application/ports/in/LessonDesk.ts
+index 2e27d5df7..365ff2579 100644
+--- a/step-01/src/application/ports/in/LessonDesk.ts
++++ b/step-02/src/application/ports/in/LessonDesk.ts
+@@ -21,4 +21,5 @@ export interface LessonView {
+ export interface LessonDesk {
+   book(request: BookingRequest): LessonView;
+   lesson(id: string): LessonView;
++  cancel(id: string): LessonView;
+ }
+diff --git a/step-01/src/application/workflows/BookingWorkflow.ts b/step-02/src/application/workflows/BookingWorkflow.ts
+index 275679392..eafc16f02 100644
+--- a/step-01/src/application/workflows/BookingWorkflow.ts
++++ b/step-02/src/application/workflows/BookingWorkflow.ts
+@@ -44,6 +44,7 @@ export class BookingWorkflow implements LessonDesk {
+     }
+     const lesson = Lesson.book(this.lessons.nextId(), student.id, teacher.id, instrument, date, start, request.minutes);
+     const eventId = this.calendar.add(teacher.calendarId, lesson, student.name);
++    lesson.attachCalendarEvent(eventId);
+     try {
+       this.lessons.save(lesson);
+     } catch (e) {
+@@ -59,6 +60,19 @@ export class BookingWorkflow implements LessonDesk {
+     return lessonView(lesson);
+   }
+ 
++  /** Cancelling closes at the end of the day before the lesson. */
++  cancel(id: string): LessonView {
++    const lesson = this.lessons.find(id);
++    if (lesson === null) throw new SchoolError(`no lesson ${id}`);
++    if (!lesson.isBooked()) throw new SchoolError(`lesson ${id} is cancelled`);
++    if (lesson.date <= this.clock.today()) throw new SchoolError(`lesson ${id} can no longer be cancelled`);
++    const reference = lesson.calendarEvent;
++    if (reference !== null) this.calendar.remove(this.teacher(lesson.teacherId).calendarId, reference);
++    lesson.cancel();
++    this.lessons.save(lesson);
++    return lessonView(lesson);
++  }
++
+   private student(id: string): Student {
+     const student = this.students.find(id);
+     if (student === null) throw new SchoolError(`no student ${id}`);
+diff --git a/step-01/src/domain/lessons/Lesson.ts b/step-02/src/domain/lessons/Lesson.ts
+index 8f672d9da..0a6e43214 100644
+--- a/step-01/src/domain/lessons/Lesson.ts
++++ b/step-02/src/domain/lessons/Lesson.ts
+@@ -23,6 +23,22 @@ export class Lesson {
+     return new Lesson(id, studentId, teacherId, instrument, date, new TimeWindow(startMinute, startMinute + minutes), 'booked');
+   }
+ 
++  private eventRef: string | null = null;
++
++  /** The reference of this lesson's event in the teacher's calendar, if it has one. */
++  get calendarEvent(): string | null {
++    return this.eventRef;
++  }
++
++  attachCalendarEvent(reference: string): void {
++    this.eventRef = reference;
++  }
++
++  cancel(): void {
++    this.state = 'cancelled';
++    this.eventRef = null;
++  }
++
+   get status(): LessonStatus {
+     return this.state;
+   }

@@ -1,0 +1,107 @@
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index 5132f9ad3..b4b2962a5 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -1,4 +1,5 @@
+ import { BookJob } from './workshop/application/BookJob';
++import { CompleteJob, type FittedPart } from './workshop/application/CompleteJob';
+ import { EventRelay } from './workshop/application/EventRelay';
+ import { GetJob, type JobView } from './workshop/application/GetJob';
+ import { GetStock } from './workshop/application/GetStock';
+@@ -29,6 +30,7 @@ export function createApp() {
+   return {
+     bookJob: (customer: string, bike: string): string => command(() => new BookJob(jobs).execute(customer, bike)),
+     logLabour: (jobId: string, hours: number): void => command(() => new LogLabour(jobs).execute(jobId, hours)),
++    completeJob: (jobId: string, parts: ReadonlyArray<FittedPart>): void => command(() => new CompleteJob(jobs, stockrooms).execute(jobId, parts)),
+     receiveParts: (sku: string, quantity: number): void => command(() => new ReceiveParts(stockrooms).execute(sku, quantity)),
+     job: (jobId: string): JobView => new GetJob(jobs).execute(jobId),
+     stockOf: (sku: string): number => new GetStock(stockrooms).execute(sku),
+diff --git a/step-01/src/workshop/application/CompleteJob.ts b/step-01/src/workshop/application/CompleteJob.ts
+new file mode 100644
+index 000000000..90743c37d
+--- /dev/null
++++ b/step-01/src/workshop/application/CompleteJob.ts
+@@ -0,0 +1,30 @@
++import type { JobRepository } from '../domain/job/JobRepository';
++import { JobId } from '../domain/job/value-objects/JobId';
++import { MAIN_STOCKROOM } from '../domain/stock/Stockroom';
++import type { StockroomRepository } from '../domain/stock/StockroomRepository';
++import { Sku } from '../domain/stock/value-objects/Sku';
++import { WorkshopError } from '../domain/WorkshopError';
++
++export interface FittedPart {
++  readonly sku: string;
++  readonly quantity: number;
++}
++
++export class CompleteJob {
++  constructor(
++    private readonly jobs: JobRepository,
++    private readonly stockrooms: StockroomRepository,
++  ) {}
++
++  /** Both aggregates are changed and validated in memory first; only then are both saved, so they cannot disagree. */
++  execute(jobId: string, parts: ReadonlyArray<FittedPart>): void {
++    const job = this.jobs.byId(JobId.of(jobId));
++    if (job === undefined) throw new WorkshopError(`no job ${jobId}`);
++    const stockroom = this.stockrooms.byId(MAIN_STOCKROOM);
++    if (stockroom === undefined) throw new WorkshopError(`no stockroom ${MAIN_STOCKROOM}`);
++    job.complete();
++    stockroom.remove(parts.map((p) => ({ sku: Sku.of(p.sku), quantity: p.quantity })));
++    this.jobs.save(job);
++    this.stockrooms.save(stockroom);
++  }
++}
+diff --git a/step-00/src/workshop/domain/job/RepairJob.ts b/step-01/src/workshop/domain/job/RepairJob.ts
+index 0963b9cb7..2bc402e70 100644
+--- a/step-00/src/workshop/domain/job/RepairJob.ts
++++ b/step-01/src/workshop/domain/job/RepairJob.ts
+@@ -3,7 +3,7 @@ import { WorkshopError } from '../WorkshopError';
+ import { JobBooked } from './events/JobBooked';
+ import type { JobId } from './value-objects/JobId';
+ 
+-export type JobStatus = 'open';
++export type JobStatus = 'open' | 'completed';
+ 
+ export interface RepairJobState {
+   readonly id: JobId;
+@@ -43,7 +43,13 @@ export class RepairJob {
+     return this.minutes;
+   }
+ 
++  complete(): void {
++    if (this.currentStatus === 'completed') throw new WorkshopError(`job ${this.id.value} is already completed`);
++    this.currentStatus = 'completed';
++  }
++
+   logLabour(hours: number): void {
++    if (this.currentStatus === 'completed') throw new WorkshopError(`job ${this.id.value} is completed`);
+     const minutes = Math.round(hours * 60);
+     if (!(minutes > 0)) throw new WorkshopError('labour must be positive');
+     this.minutes += minutes;
+diff --git a/step-00/src/workshop/domain/stock/Stockroom.ts b/step-01/src/workshop/domain/stock/Stockroom.ts
+index 385e2bdd0..328950474 100644
+--- a/step-00/src/workshop/domain/stock/Stockroom.ts
++++ b/step-01/src/workshop/domain/stock/Stockroom.ts
+@@ -36,6 +36,21 @@ export class Stockroom {
+     this.counts[sku.value] = this.onHand(sku) + quantity;
+   }
+ 
++  /** Takes fitted parts off the shelf. All-or-nothing: nothing changes unless every line can be satisfied. */
++  remove(parts: ReadonlyArray<{ readonly sku: Sku; readonly quantity: number }>): void {
++    const needed = new Map<string, number>();
++    for (const { sku, quantity } of parts) {
++      if (!Number.isInteger(quantity) || quantity <= 0) throw new WorkshopError('a quantity must be a positive whole number of parts');
++      if (!Object.prototype.hasOwnProperty.call(this.counts, sku.value)) throw new WorkshopError(`unknown part: ${sku.value}`);
++      needed.set(sku.value, (needed.get(sku.value) ?? 0) + quantity);
++    }
++    for (const [sku, quantity] of needed) {
++      const have = this.counts[sku] ?? 0;
++      if (have < quantity) throw new WorkshopError(`not enough stock: ${sku} needs ${quantity}, ${have} on hand`);
++    }
++    for (const [sku, quantity] of needed) this.counts[sku] = (this.counts[sku] ?? 0) - quantity;
++  }
++
+   state(): StockroomState {
+     return { id: this.id, onHand: { ...this.counts } };
+   }

@@ -1,0 +1,114 @@
+diff --git a/step-02/src/adapters/in/http/reply.ts b/step-03/src/adapters/in/http/reply.ts
+index 74bc3e3ad..b1c4cc7e9 100644
+--- a/step-02/src/adapters/in/http/reply.ts
++++ b/step-03/src/adapters/in/http/reply.ts
+@@ -1,4 +1,4 @@
+-import { AccessRefused, InvalidRequest, NotFound } from '../../../domain/errors/LoungeErrors';
++import { AccessRefused, InvalidRequest, LoungeFull, NotFound } from '../../../domain/errors/LoungeErrors';
+ 
+ /** What the desk app receives for every call. */
+ export interface Reply {
+@@ -13,6 +13,7 @@ export function reply(call: () => unknown): Reply {
+   } catch (e) {
+     if (e instanceof InvalidRequest) return { status: 400, body: { error: e.message } };
+     if (e instanceof NotFound) return { status: 404, body: { error: e.message } };
++    if (e instanceof LoungeFull) return { status: 503, body: { error: e.message, retryAfterMinutes: e.retryAfterMinutes } };
+     if (e instanceof AccessRefused) return { status: 422, body: { error: e.message } };
+     throw e;
+   }
+diff --git a/step-02/src/application/usecases/AdmissionService.ts b/step-03/src/application/usecases/AdmissionService.ts
+index c1f24e503..979782736 100644
+--- a/step-02/src/application/usecases/AdmissionService.ts
++++ b/step-03/src/application/usecases/AdmissionService.ts
+@@ -30,7 +30,8 @@ export class AdmissionService implements Admissions {
+       pass,
+       partner: pass.kind === 'airline' ? this.partners.get(pass.airline) : null,
+       guests,
+-      peopleInside: this.peopleIn(lounge.id),
++      visitsInside: this.visits.inProgressAt(lounge.id),
++      now,
+       passInside: this.visits.inProgressFor(pass.id) !== null,
+       hour: this.calendar.hourAt(lounge.airport, now),
+       today: this.calendar.dateAt(lounge.airport, now),
+@@ -51,8 +52,9 @@ export class AdmissionService implements Admissions {
+     const partner = pass.kind === 'airline' ? this.partners.get(pass.airline) : null;
+     const guests = visit.guests + 1;
+     checkGuests(lounge, pass, partner, guests);
+-    checkCutoff(lounge, partner, guests, this.calendar.hourAt(lounge.airport, this.clock.now()));
+-    checkRoom(lounge, this.peopleIn(lounge.id), 1);
++    const now = this.clock.now();
++    checkCutoff(lounge, partner, guests, this.calendar.hourAt(lounge.airport, now));
++    checkRoom(lounge, this.visits.inProgressAt(lounge.id), 1, now);
+     visit.addGuest();
+     this.visits.save(visit);
+     return { visit: visit.id, guests: visit.guests };
+diff --git a/step-02/src/domain/errors/LoungeErrors.ts b/step-03/src/domain/errors/LoungeErrors.ts
+index e7c654a3d..9867c50d0 100644
+--- a/step-02/src/domain/errors/LoungeErrors.ts
++++ b/step-03/src/domain/errors/LoungeErrors.ts
+@@ -14,3 +14,10 @@ export class NotFound extends LoungeError {}
+ 
+ /** A well-formed request that the lounge rules turn down. */
+ export class AccessRefused extends LoungeError {}
++
++/** The lounge has no room; the desk can show how long until the longest visit must end. */
++export class LoungeFull extends AccessRefused {
++  constructor(message: string, readonly retryAfterMinutes: number) {
++    super(message);
++  }
++}
+diff --git a/step-02/src/domain/rules/Admission.ts b/step-03/src/domain/rules/Admission.ts
+index cb8965ce2..5cda87bb6 100644
+--- a/step-02/src/domain/rules/Admission.ts
++++ b/step-03/src/domain/rules/Admission.ts
+@@ -1,8 +1,13 @@
+-import { AccessRefused, InvalidRequest } from '../errors/LoungeErrors';
++import { AccessRefused, InvalidRequest, LoungeFull } from '../errors/LoungeErrors';
++import type { Instant } from '../model/Instant';
+ import type { LocalDate } from '../model/LocalDate';
+ import type { Lounge } from '../model/Lounge';
+ import type { Pass } from '../model/Pass';
+ import type { PartnerRule } from '../model/PartnerRule';
++import type { Visit } from '../model/Visit';
++
++/** No visit lasts longer than this. */
++const MAX_VISIT_MS = 3 * 60 * 60_000;
+ 
+ /** Everything the entry decision needs, gathered by the caller. */
+ export interface EntryFacts {
+@@ -11,8 +16,10 @@ export interface EntryFacts {
+   /** The partner rule of the pass's airline, or null when the airline is no partner (or the pass is a day pass). */
+   readonly partner: PartnerRule | null;
+   readonly guests: number;
+-  /** People (holders and guests) in the lounge now. */
+-  readonly peopleInside: number;
++  /** The visits in progress in the lounge now. */
++  readonly visitsInside: readonly Visit[];
++  /** The current time. */
++  readonly now: Instant;
+   /** Whether the pass already has a visit in progress anywhere. */
+   readonly passInside: boolean;
+   /** Today's date at the lounge's airport. */
+@@ -42,8 +49,13 @@ export function checkCutoff(lounge: Lounge, partner: PartnerRule | null, guests:
+ }
+ 
+ /** Is there room for `adding` more people? */
+-export function checkRoom(lounge: Lounge, peopleInside: number, adding: number): void {
+-  if (peopleInside + adding > lounge.capacity) throw new AccessRefused(`lounge ${lounge.id} is full`);
++export function checkRoom(lounge: Lounge, visitsInside: readonly Visit[], adding: number, now: Instant): void {
++  const peopleInside = visitsInside.reduce((sum, v) => sum + v.people, 0);
++  if (peopleInside + adding <= lounge.capacity) return;
++  // An empty lounge that is still too small has nobody to wait for; report the minimum.
++  const earliest = visitsInside.length === 0 ? Date.parse(now) - MAX_VISIT_MS : Math.min(...visitsInside.map((v) => Date.parse(v.enteredAt)));
++  const waitMs = earliest + MAX_VISIT_MS - Date.parse(now);
++  throw new LoungeFull(`lounge ${lounge.id} is full`, Math.max(1, Math.ceil(waitMs / 60_000)));
+ }
+ 
+ /** The entry rules, in the order the desk reports them. */
+@@ -58,5 +70,5 @@ export function checkEntry(f: EntryFacts): void {
+   }
+   checkGuests(f.lounge, f.pass, f.partner, f.guests);
+   checkCutoff(f.lounge, f.partner, f.guests, f.hour);
+-  checkRoom(f.lounge, f.peopleInside, 1 + f.guests);
++  checkRoom(f.lounge, f.visitsInside, 1 + f.guests, f.now);
+ }

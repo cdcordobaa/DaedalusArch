@@ -1,0 +1,79 @@
+diff --git a/step-01/src/enrolment/application/SwitchSection.ts b/step-01/src/enrolment/application/SwitchSection.ts
+new file mode 100644
+index 000000000..b1c47217a
+--- /dev/null
++++ b/step-01/src/enrolment/application/SwitchSection.ts
+@@ -0,0 +1,23 @@
++import type { SectionRepository } from '../domain/section/SectionRepository';
++import { SectionId } from '../domain/section/value-objects/SectionId';
++import { EnrolmentError } from '../domain/EnrolmentError';
++
++export class SwitchSection {
++  constructor(private readonly sections: SectionRepository) {}
++
++  /** Moves a student between two sections of one course; both sections are stored together or not at all. */
++  execute(studentId: string, fromSectionId: string, toSectionId: string): void {
++    const from = this.sections.byId(SectionId.of(fromSectionId));
++    if (from === undefined) throw new EnrolmentError(`no section ${fromSectionId}`);
++    const to = this.sections.byId(SectionId.of(toSectionId));
++    if (to === undefined) throw new EnrolmentError(`no section ${toSectionId}`);
++    if (from.courseCode !== to.courseCode) {
++      throw new EnrolmentError(`${fromSectionId} and ${toSectionId} are sections of different courses`);
++    }
++    if (!from.has(studentId)) throw new EnrolmentError(`${studentId} is not enrolled in ${fromSectionId}`);
++    if (fromSectionId === toSectionId) throw new EnrolmentError(`${studentId} is already enrolled in ${toSectionId}`);
++    to.enrol(studentId);
++    from.drop(studentId);
++    this.sections.saveAll([from, to]);
++  }
++}
+diff --git a/step-00/src/enrolment/domain/section/SectionRepository.ts b/step-01/src/enrolment/domain/section/SectionRepository.ts
+index e2853590e..29fa73d99 100644
+--- a/step-00/src/enrolment/domain/section/SectionRepository.ts
++++ b/step-01/src/enrolment/domain/section/SectionRepository.ts
+@@ -6,4 +6,6 @@ export interface SectionRepository {
+   byId(id: SectionId): Section | undefined;
+   /** Stores the section and its pending events in one step. */
+   save(section: Section): void;
++  /** Stores several sections and their pending events in one step: all of them or none. */
++  saveAll(sections: readonly Section[]): void;
+ }
+diff --git a/step-00/src/enrolment/infrastructure/InMemorySectionRepository.ts b/step-01/src/enrolment/infrastructure/InMemorySectionRepository.ts
+index c642fc99b..0f9ac587b 100644
+--- a/step-00/src/enrolment/infrastructure/InMemorySectionRepository.ts
++++ b/step-01/src/enrolment/infrastructure/InMemorySectionRepository.ts
+@@ -26,6 +26,13 @@ export class InMemorySectionRepository implements SectionRepository, Outbox {
+     this.outbox = [...this.outbox, ...events];
+   }
+ 
++  saveAll(sections: readonly Section[]): void {
++    const events = sections.flatMap((section) => section.pullEvents());
++    const states = sections.map((section) => section.state());
++    for (const state of states) this.rows.set(state.id.value, state);
++    this.outbox = [...this.outbox, ...events];
++  }
++
+   takePending(): DomainEvent[] {
+     const out = this.outbox;
+     this.outbox = [];
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index 771457dfc..cb4cb7258 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -4,6 +4,7 @@ import { EventRelay } from './enrolment/application/EventRelay';
+ import { GetRoster } from './enrolment/application/GetRoster';
+ import { OpenSection } from './enrolment/application/OpenSection';
+ import { SendOpeningNotice } from './enrolment/application/SendOpeningNotice';
++import { SwitchSection } from './enrolment/application/SwitchSection';
+ import { InMemoryNotices } from './enrolment/infrastructure/InMemoryNotices';
+ import { InMemorySectionRepository } from './enrolment/infrastructure/InMemorySectionRepository';
+ 
+@@ -29,6 +30,8 @@ export function createApp(options: AppOptions = {}) {
+     openSection: (courseCode: string, capacity: number): string => command(() => new OpenSection(sections).execute(courseCode, capacity)),
+     enrol: (sectionId: string, studentId: string): void => command(() => new Enrol(sections).execute(sectionId, studentId)),
+     drop: (sectionId: string, studentId: string): void => command(() => new Drop(sections).execute(sectionId, studentId)),
++    switchSection: (studentId: string, fromSectionId: string, toSectionId: string): void =>
++      command(() => new SwitchSection(sections).execute(studentId, fromSectionId, toSectionId)),
+     rosterOf: (sectionId: string): string[] => new GetRoster(sections).execute(sectionId),
+     notices: (): string[] => notices.all(),
+   };

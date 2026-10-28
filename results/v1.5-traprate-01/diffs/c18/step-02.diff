@@ -1,0 +1,205 @@
+diff --git a/step-01/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts b/step-02/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
+index 92e7f512d..651ef7e64 100644
+--- a/step-01/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
++++ b/step-02/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
+@@ -27,7 +27,7 @@ export class InkwellEnvelopeAdapter implements EnvelopeSender {
+         recipients,
+         expiresInDays: request.linkValidDays,
+       });
+-      return { sentAt: new Date(envelope.sentDateTime) };
++      return { sentAt: new Date(envelope.sentDateTime), envelopeId: envelope.envelopeId };
+     } catch (e) {
+       if (e instanceof InkwellError && e.errorCode === 'INVALID_RECIPIENT' && e.recipientEmail !== undefined) {
+         throw new TenancyError(`Inkwell could not accept the email ${e.recipientEmail}.`);
+diff --git a/step-01/src/application/ports/in/ManageAgreements.ts b/step-02/src/application/ports/in/ManageAgreements.ts
+index c6b67d297..538be87ab 100644
+--- a/step-01/src/application/ports/in/ManageAgreements.ts
++++ b/step-02/src/application/ports/in/ManageAgreements.ts
+@@ -21,10 +21,20 @@ export interface AgreementView {
+   readonly startsOn: string;
+   /** UTC ISO time Inkwell sent the envelope; only while a signing has been started. */
+   readonly sentAt?: string;
++  /** Email of the tenant who declined; only when declined. */
++  readonly declinedBy?: string;
++  readonly reason?: string;
+ }
+ 
++export type SigningEvent =
++  | { readonly kind: 'declined'; readonly envelopeId: string; readonly email: string; readonly reason: string }
++  | { readonly kind: 'expired'; readonly envelopeId: string }
++  | { readonly kind: 'signed'; readonly envelopeId: string };
++
+ export interface ManageAgreements {
+   draft(request: DraftRequest): Promise<string>;
+   send(id: string): Promise<void>;
+   view(id: string): Promise<AgreementView>;
++  /** Records an outcome reported by the signing provider; events that no longer apply are ignored. */
++  recordSigningEvent(event: SigningEvent): Promise<void>;
+ }
+diff --git a/step-01/src/application/ports/out/EnvelopeSender.ts b/step-02/src/application/ports/out/EnvelopeSender.ts
+index e8cd221a0..dc8ff7371 100644
+--- a/step-01/src/application/ports/out/EnvelopeSender.ts
++++ b/step-02/src/application/ports/out/EnvelopeSender.ts
+@@ -12,6 +12,7 @@ export interface SigningRequest {
+ 
+ export interface SigningReceipt {
+   readonly sentAt: Date;
++  readonly envelopeId?: string;
+ }
+ 
+ export interface EnvelopeSender {
+diff --git a/step-01/src/application/services/AgreementService.ts b/step-02/src/application/services/AgreementService.ts
+index 9b1c334ce..ba21e8a5c 100644
+--- a/step-01/src/application/services/AgreementService.ts
++++ b/step-02/src/application/services/AgreementService.ts
+@@ -1,7 +1,7 @@
+ import { TenancyError } from '../../domain/errors/TenancyError';
+ import { Agreement } from '../../domain/model/Agreement';
+ import { Party } from '../../domain/model/Party';
+-import type { AgreementView, DraftRequest, ManageAgreements } from '../ports/in/ManageAgreements';
++import type { AgreementView, DraftRequest, ManageAgreements, SigningEvent } from '../ports/in/ManageAgreements';
+ import type { AgreementStore } from '../ports/out/AgreementStore';
+ import type { AllowanceSource } from '../ports/out/AllowanceSource';
+ import type { EnvelopeSender } from '../ports/out/EnvelopeSender';
+@@ -17,6 +17,8 @@ export const toView = (a: Agreement): AgreementView => ({
+   monthlyRent: a.monthlyRent,
+   startsOn: a.startsOn,
+   ...(a.sentAt === undefined ? {} : { sentAt: a.sentAt.toISOString() }),
++  ...(a.declinedBy === undefined ? {} : { declinedBy: a.declinedBy }),
++  ...(a.reason === undefined ? {} : { reason: a.reason }),
+ });
+ 
+ export class AgreementService implements ManageAgreements {
+@@ -51,13 +53,27 @@ export class AgreementService implements ManageAgreements {
+         copyTo: agreement.landlord,
+         linkValidDays: LINK_VALID_DAYS,
+       });
+-      agreement.markSent(receipt.sentAt);
++      agreement.markSent(receipt.sentAt, receipt.envelopeId);
+       await this.store.save(agreement);
+     } finally {
+       this.sending.delete(id);
+     }
+   }
+ 
++  async recordSigningEvent(event: SigningEvent): Promise<void> {
++    const agreement = (await this.store.all()).find((a) => a.envelopeId === event.envelopeId);
++    if (agreement === undefined) return;
++    if (event.kind === 'declined') {
++      if (!agreement.tenants.some((t) => t.email === event.email)) return;
++      agreement.markDeclined(event.email, event.reason);
++    } else if (event.kind === 'expired') {
++      agreement.markExpired();
++    } else {
++      agreement.markSigned();
++    }
++    await this.store.save(agreement);
++  }
++
+   async view(id: string): Promise<AgreementView> {
+     const agreement = await this.store.get(id);
+     if (agreement === undefined) throw new TenancyError('No such agreement.');
+diff --git a/step-01/src/config/container.ts b/step-02/src/config/container.ts
+index 482db221b..8b5505e8d 100644
+--- a/step-01/src/config/container.ts
++++ b/step-02/src/config/container.ts
+@@ -1,4 +1,4 @@
+-import { InkwellClient } from 'inkwell-sdk';
++import { InkwellClient, InkwellSignatureError } from 'inkwell-sdk';
+ import { AgreementsController } from '../adapters/inbound/http/AgreementsController';
+ import { InkwellAllowanceAdapter } from '../adapters/outbound/inkwell/InkwellAllowanceAdapter';
+ import { InkwellEnvelopeAdapter } from '../adapters/outbound/inkwell/InkwellEnvelopeAdapter';
+@@ -9,7 +9,7 @@ import { AllowanceService } from '../application/services/AllowanceService';
+ 
+ /** Composition root. The Inkwell key comes from INKWELL_API_KEY. */
+ export function createApp() {
+-  const inkwell = new InkwellClient({ apiKey: process.env.INKWELL_API_KEY ?? '' });
++  const inkwell = new InkwellClient({ apiKey: process.env.INKWELL_API_KEY ?? '', webhookSecret: process.env.INKWELL_WEBHOOK_SECRET ?? '' });
+   const store = new InMemoryAgreementStore();
+   const allowanceSource = new InkwellAllowanceAdapter(inkwell);
+   const agreements = new AgreementService(store, allowanceSource, new InkwellEnvelopeAdapter(inkwell));
+@@ -21,5 +21,20 @@ export function createApp() {
+     view: (id: string) => agreements.view(id),
+     allowance: () => allowance.allowance(),
+     http,
++    /** Inkwell callback: answers the HTTP status to give Inkwell. */
++    inkwellEvent: async (rawBody: string, signatureHeader: string): Promise<{ status: number }> => {
++      try {
++        await inkwell.webhooks.dispatch(rawBody, signatureHeader, {
++          onRecipientDeclined: (e) =>
++            agreements.recordSigningEvent({ kind: 'declined', envelopeId: e.envelopeId, email: e.recipient.emailAddress, reason: e.recipient.declineReason }),
++          onEnvelopeExpired: (e) => agreements.recordSigningEvent({ kind: 'expired', envelopeId: e.envelopeId }),
++          onEnvelopeCompleted: (e) => agreements.recordSigningEvent({ kind: 'signed', envelopeId: e.envelopeId }),
++        });
++        return { status: 200 };
++      } catch (e) {
++        if (e instanceof InkwellSignatureError) return { status: 401 };
++        throw e;
++      }
++    },
+   };
+ }
+diff --git a/step-01/src/domain/model/Agreement.ts b/step-02/src/domain/model/Agreement.ts
+index 56fa56bd8..6d61654c1 100644
+--- a/step-01/src/domain/model/Agreement.ts
++++ b/step-02/src/domain/model/Agreement.ts
+@@ -14,6 +14,9 @@ export class Agreement {
+     readonly startsOn: string,
+     private currentStatus: AgreementStatus,
+     private currentSentAt?: Date,
++    private currentEnvelopeId?: string,
++    private currentDeclinedBy?: string,
++    private currentReason?: string,
+   ) {}
+ 
+   static draft(id: string, address: string, landlord: Party, tenants: readonly Party[], monthlyRent: number, startsOn: string): Agreement {
+@@ -34,6 +37,18 @@ export class Agreement {
+     return this.currentSentAt;
+   }
+ 
++  get envelopeId(): string | undefined {
++    return this.currentEnvelopeId;
++  }
++
++  get declinedBy(): string | undefined {
++    return this.currentDeclinedBy;
++  }
++
++  get reason(): string | undefined {
++    return this.currentReason;
++  }
++
+   /** Refuses a send that is not allowed from the current status. */
+   assertSendable(): void {
+     if (this.currentStatus === 'out for signature') throw new TenancyError('This agreement is already out for signature.');
+@@ -41,10 +56,29 @@ export class Agreement {
+   }
+ 
+   /** Starts a new signing; nothing of an earlier one carries over. */
+-  markSent(sentAt: Date): void {
++  markSent(sentAt: Date, envelopeId?: string): void {
+     this.assertSendable();
+     this.currentStatus = 'out for signature';
+     this.currentSentAt = sentAt;
++    this.currentEnvelopeId = envelopeId;
++    this.currentDeclinedBy = undefined;
++    this.currentReason = undefined;
++  }
++
++  /** Outcomes only count while the agreement is out for signature; the first outcome stays. */
++  markDeclined(email: string, reason: string): void {
++    if (this.currentStatus !== 'out for signature') return;
++    this.currentStatus = 'declined';
++    this.currentDeclinedBy = email;
++    this.currentReason = reason;
++  }
++
++  markExpired(): void {
++    if (this.currentStatus === 'out for signature') this.currentStatus = 'expired';
++  }
++
++  markSigned(): void {
++    if (this.currentStatus === 'out for signature') this.currentStatus = 'signed';
+   }
+ 
+   /** The agreement as the parties read and sign it. */

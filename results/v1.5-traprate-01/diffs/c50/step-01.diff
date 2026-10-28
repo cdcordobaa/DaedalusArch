@@ -1,0 +1,85 @@
+diff --git a/step-00/src/enrolment/acl/PlacementGateway.ts b/step-01/src/enrolment/acl/PlacementGateway.ts
+index d54e82c43..335c4c9db 100644
+--- a/step-00/src/enrolment/acl/PlacementGateway.ts
++++ b/step-01/src/enrolment/acl/PlacementGateway.ts
+@@ -1,4 +1,5 @@
+ import type { PlacementDesk } from '../../placement/published/PlacementDesk';
++import type { Cefr } from '../../shared-kernel/Cefr';
+ import type { StudentRegistry } from '../application/ports/StudentRegistry';
+ 
+ /** Asks the placement office, through its published desk, what the course desk needs to know. */
+@@ -8,4 +9,8 @@ export class PlacementGateway implements StudentRegistry {
+   isRegistered(studentId: string): boolean {
+     return this.desk.sheet(studentId) !== undefined;
+   }
++
++  levelOf(studentId: string): Cefr | undefined {
++    return this.desk.sheet(studentId)?.level;
++  }
+ }
+diff --git a/step-00/src/enrolment/application/JoinCourse.ts b/step-01/src/enrolment/application/JoinCourse.ts
+index 3bbf666ae..245b603df 100644
+--- a/step-00/src/enrolment/application/JoinCourse.ts
++++ b/step-01/src/enrolment/application/JoinCourse.ts
+@@ -1,3 +1,4 @@
++import type { Cefr } from '../../shared-kernel/Cefr';
+ import type { CourseRunStore } from '../domain/course-run/CourseRunStore';
+ import { RunId } from '../domain/course-run/value-objects/RunId';
+ import type { StudentRegistry } from './ports/StudentRegistry';
+@@ -6,6 +7,7 @@ export interface JoinConfirmation {
+   readonly runId: string;
+   readonly studentId: string;
+   readonly seatsLeft: number;
++  readonly level: Cefr;
+ }
+ 
+ export class JoinCourse {
+@@ -17,9 +19,10 @@ export class JoinCourse {
+   perform(runId: string, studentId: string): JoinConfirmation {
+     const run = this.runs.find(RunId.from(runId));
+     if (run === undefined) throw new Error(`no course run ${runId}`);
+-    if (!this.registry.isRegistered(studentId)) throw new Error(`no student ${studentId}`);
+-    run.admit(studentId);
++    const level = this.registry.levelOf(studentId);
++    if (level === undefined) throw new Error(`no student ${studentId}`);
++    run.admit(studentId, level);
+     this.runs.put(run);
+-    return { runId, studentId, seatsLeft: run.seatsLeft() };
++    return { runId, studentId, seatsLeft: run.seatsLeft(), level };
+   }
+ }
+diff --git a/step-00/src/enrolment/application/ports/StudentRegistry.ts b/step-01/src/enrolment/application/ports/StudentRegistry.ts
+index 943d2776e..63b649447 100644
+--- a/step-00/src/enrolment/application/ports/StudentRegistry.ts
++++ b/step-01/src/enrolment/application/ports/StudentRegistry.ts
+@@ -1,4 +1,8 @@
++import type { Cefr } from '../../../shared-kernel/Cefr';
++
+ /** What the course desk needs to know about students. */
+ export interface StudentRegistry {
+   isRegistered(studentId: string): boolean;
++  /** The CEFR level on the student's progress sheet, or undefined if the student is unknown. */
++  levelOf(studentId: string): Cefr | undefined;
+ }
+diff --git a/step-00/src/enrolment/domain/course-run/CourseRun.ts b/step-01/src/enrolment/domain/course-run/CourseRun.ts
+index 718c42bf1..7ae35f644 100644
+--- a/step-00/src/enrolment/domain/course-run/CourseRun.ts
++++ b/step-01/src/enrolment/domain/course-run/CourseRun.ts
+@@ -1,4 +1,4 @@
+-import { isCefr, type Cefr } from '../../../shared-kernel/Cefr';
++import { isCefr, reaches, type Cefr } from '../../../shared-kernel/Cefr';
+ import type { SchoolEvent } from '../../../shared-kernel/SchoolEvent';
+ import { CourseCompleted } from './events/CourseCompleted';
+ import { RunId } from './value-objects/RunId';
+@@ -46,7 +46,10 @@ export class CourseRun {
+     return this.capacity - this.seats.length;
+   }
+ 
+-  admit(studentId: string): void {
++  admit(studentId: string, level: Cefr): void {
++    if (!reaches(level, this.minimumLevel)) {
++      throw new Error(`${studentId} is below the course level ${this.minimumLevel} (student level ${level})`);
++    }
+     if (this.seats.some((s) => s.studentId === studentId)) throw new Error(`${studentId} has already joined ${this.id.raw}`);
+     if (this.seatsLeft() === 0) throw new Error(`course run ${this.id.raw} is full`);
+     this.seats = [...this.seats, { studentId, completed: false }];

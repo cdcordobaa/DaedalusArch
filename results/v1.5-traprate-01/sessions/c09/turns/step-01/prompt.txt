@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Gardens in the network want to pass seed to each other. Add share(lotNumber, garden, grams): it takes that many grams out of the lot and puts them in a brand-new lot held at the receiving garden, and returns the new lot's number. The new lot keeps the variety and germination of the original, its intake day is the day of the share, and lot() shows where it came from as cameFrom (null for a donated lot). The weights must always add up: nobody may ever see those grams counted in both lots or in neither. A share is not a donation, so it pins no thank-you note. Refuse a share of more than the lot holds with the usual 'not enough seed' message, a share of 0 g or less, a share from a lot that does not exist ('no lot L-0042'), and a share to the garden that already holds the lot (the message must say the lot is already there). A refused share changes nothing.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c09/tsconfig.json

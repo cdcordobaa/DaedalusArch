@@ -1,0 +1,99 @@
+diff --git a/step-02/src/cellar/application/batchCommands.ts b/step-03/src/cellar/application/batchCommands.ts
+index ef1d4184f..2119e7b2c 100644
+--- a/step-02/src/cellar/application/batchCommands.ts
++++ b/step-03/src/cellar/application/batchCommands.ts
+@@ -31,7 +31,7 @@ export function batchCommands(deps: { readonly batches: BatchStore; readonly lot
+       const today = deps.today();
+       // Check every use first; nothing is kept until all of them are accepted.
+       const taken = uses.map(({ lotId, kg }) => useInBrew(lotOrRefuse(deps.lots, lotId), gramsFromKg(kg), today));
+-      const brewed = startFermenting(batch, today);
++      const brewed = startFermenting(batch, today, uses.map(({ lotId, kg }) => ({ lotId, kg })));
+       for (const lot of taken) deps.lots.keep(lot);
+       deps.batches.record(brewed);
+     },
+diff --git a/step-02/src/cellar/application/readings.ts b/step-03/src/cellar/application/readings.ts
+index a768bbd48..4e619c193 100644
+--- a/step-02/src/cellar/application/readings.ts
++++ b/step-03/src/cellar/application/readings.ts
+@@ -7,6 +7,12 @@ import { lotOrRefuse } from './lotCommands';
+ export function readings(deps: { readonly lots: LotStore; readonly batches: BatchStore }) {
+   return {
+     lotStock: (lotId: string): number => kgFromGrams(lotOrRefuse(deps.lots, lotId).gramsLeft),
++    lotUsage(lotId: string): { batchId: string; kg: number }[] {
++      lotOrRefuse(deps.lots, lotId);
++      return deps.batches.brewedNewestFirst().flatMap((batch) =>
++        (batch.uses ?? []).filter((use) => use.lotId === lotId).map((use) => ({ batchId: batch.id, kg: use.kg })),
++      );
++    },
+     batchStatus(batchId: string): string {
+       const batch = deps.batches.lookup(batchId);
+       if (batch === undefined) throw new CellarRefusal(`no batch ${batchId}`);
+diff --git a/step-02/src/cellar/domain/batch/BatchStore.ts b/step-03/src/cellar/domain/batch/BatchStore.ts
+index ce6cc06b2..f12cf951d 100644
+--- a/step-02/src/cellar/domain/batch/BatchStore.ts
++++ b/step-03/src/cellar/domain/batch/BatchStore.ts
+@@ -3,6 +3,8 @@ import type { BrewBatch } from './brewBatch';
+ export interface BatchStore {
+   nextBatchId(): string;
+   lookup(batchId: string): BrewBatch | undefined;
++  /** Brewed batches, the most recently brewed first. */
++  brewedNewestFirst(): BrewBatch[];
+   /** Records the batch and posts the facts it raised, in one step. */
+   record(batch: BrewBatch): void;
+ }
+diff --git a/step-02/src/cellar/domain/batch/brewBatch.ts b/step-03/src/cellar/domain/batch/brewBatch.ts
+index e805ddae1..96c4595d6 100644
+--- a/step-02/src/cellar/domain/batch/brewBatch.ts
++++ b/step-03/src/cellar/domain/batch/brewBatch.ts
+@@ -13,6 +13,8 @@ export interface BrewBatch {
+   readonly status: BatchStatus;
+   /** The day the batch was brewed; set once it is fermenting. */
+   readonly brewedOn?: string;
++  /** The lots the brew drew from, in kg; set once it is fermenting. */
++  readonly uses?: readonly { readonly lotId: string; readonly kg: number }[];
+   readonly raised: readonly CellarEvent[];
+ }
+ 
+@@ -22,9 +24,9 @@ export function planBatch(id: string, beer: string, fermentationDays: number): B
+   return { id, beer, fermentationDays, status: 'planned', raised: [] };
+ }
+ 
+-export function startFermenting(batch: BrewBatch, today: string): BrewBatch {
++export function startFermenting(batch: BrewBatch, today: string, uses: readonly { readonly lotId: string; readonly kg: number }[] = []): BrewBatch {
+   if (batch.status !== 'planned') throw new CellarRefusal(`batch ${batch.id} is already brewed`);
+-  return { ...batch, status: 'fermenting', brewedOn: today, raised: [] };
++  return { ...batch, status: 'fermenting', brewedOn: today, uses, raised: [] };
+ }
+ 
+ export function bottleBatch(batch: BrewBatch, today: string): BrewBatch {
+diff --git a/step-02/src/cellar/infrastructure/MemoryBatchStore.ts b/step-03/src/cellar/infrastructure/MemoryBatchStore.ts
+index bd1299947..f20dd61f2 100644
+--- a/step-02/src/cellar/infrastructure/MemoryBatchStore.ts
++++ b/step-03/src/cellar/infrastructure/MemoryBatchStore.ts
+@@ -5,11 +5,14 @@ import type { BatchStore } from '../domain/batch/BatchStore';
+ /** Batches in memory. Recording a batch posts its raised facts to the mailbox in the same step. */
+ export function memoryBatchStore(mailbox: Mailbox): BatchStore {
+   const rows = new Map<string, BrewBatch>();
++  const brewOrder: string[] = [];
+   let issued = 0;
+   return {
+     nextBatchId: () => `B-${String((issued += 1)).padStart(4, '0')}`,
+     lookup: (batchId) => rows.get(batchId),
++    brewedNewestFirst: () => brewOrder.flatMap((id) => rows.get(id) ?? []).reverse(),
+     record: (batch) => {
++      if (batch.status !== 'planned' && !brewOrder.includes(batch.id)) brewOrder.push(batch.id);
+       rows.set(batch.id, batchWithoutRaised(batch));
+       mailbox.post(batch.raised);
+     },
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index ef89f6cc1..9c8415b7b 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -38,6 +38,7 @@ export function createApp(options: BreweryOptions = {}) {
+     planBatch: (beer: string, fermentationDays: number): string => delivered(() => batch.plan(beer, fermentationDays)),
+     brew: (batchId: string, uses: readonly LotUse[]): void => delivered(() => batch.brew(batchId, uses)),
+     lotStock: (lotId: string): number => read.lotStock(lotId),
++    lotUsage: (lotId: string): { batchId: string; kg: number }[] => read.lotUsage(lotId),
+     batchStatus: (batchId: string): string => read.batchStatus(batchId),
+     receivingLog: (): string[] => goodsIn.lines(),
+   };

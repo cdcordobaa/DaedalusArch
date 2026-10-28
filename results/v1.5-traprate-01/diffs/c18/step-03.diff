@@ -1,0 +1,134 @@
+diff --git a/step-02/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts b/step-03/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
+index 651ef7e64..23b360dfa 100644
+--- a/step-02/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
++++ b/step-03/src/adapters/outbound/inkwell/InkwellEnvelopeAdapter.ts
+@@ -7,6 +7,21 @@ import { TenancyError } from '../../../domain/errors/TenancyError';
+ export class InkwellEnvelopeAdapter implements EnvelopeSender {
+   constructor(private readonly client: InkwellClient) {}
+ 
++  async unsignedSigners(envelopeId: string): Promise<string[]> {
++    const envelope = await this.client.getEnvelope(envelopeId);
++    return envelope.recipients.filter((r) => r.role === 'SIGNER' && r.recipientStatus !== 'SIGNED').map((r) => r.emailAddress);
++  }
++
++  async remind(envelopeId: string, emails: readonly string[]): Promise<boolean> {
++    try {
++      await this.client.sendReminder(envelopeId, { recipientEmails: [...emails] });
++      return true;
++    } catch (e) {
++      if (e instanceof InkwellError && e.errorCode === 'RATE_LIMITED') return false;
++      throw e;
++    }
++  }
++
+   async send(request: SigningRequest): Promise<SigningReceipt> {
+     const recipients: InkwellRecipient[] = request.signers.map((p, i) => ({
+       emailAddress: p.email,
+diff --git a/step-02/src/application/ports/in/ManageAgreements.ts b/step-03/src/application/ports/in/ManageAgreements.ts
+index 538be87ab..29c12115d 100644
+--- a/step-02/src/application/ports/in/ManageAgreements.ts
++++ b/step-03/src/application/ports/in/ManageAgreements.ts
+@@ -35,6 +35,8 @@ export interface ManageAgreements {
+   draft(request: DraftRequest): Promise<string>;
+   send(id: string): Promise<void>;
+   view(id: string): Promise<AgreementView>;
++  /** Reminds unsigned tenants of agreements out for signature; answers the ids reminded, in drafting order. */
++  sendReminders(now: Date): Promise<string[]>;
+   /** Records an outcome reported by the signing provider; events that no longer apply are ignored. */
+   recordSigningEvent(event: SigningEvent): Promise<void>;
+ }
+diff --git a/step-02/src/application/ports/out/EnvelopeSender.ts b/step-03/src/application/ports/out/EnvelopeSender.ts
+index dc8ff7371..47f849b90 100644
+--- a/step-02/src/application/ports/out/EnvelopeSender.ts
++++ b/step-03/src/application/ports/out/EnvelopeSender.ts
+@@ -18,4 +18,8 @@ export interface SigningReceipt {
+ export interface EnvelopeSender {
+   /** Throws a TenancyError when an email address is refused. */
+   send(request: SigningRequest): Promise<SigningReceipt>;
++  /** Emails of the signers who have not signed yet, according to the provider. */
++  unsignedSigners(envelopeId: string): Promise<string[]>;
++  /** Reminds the given signers; answers false when the provider is busy and the reminder was not sent. */
++  remind(envelopeId: string, emails: readonly string[]): Promise<boolean>;
+ }
+diff --git a/step-02/src/application/services/AgreementService.ts b/step-03/src/application/services/AgreementService.ts
+index ba21e8a5c..4cf55cde4 100644
+--- a/step-02/src/application/services/AgreementService.ts
++++ b/step-03/src/application/services/AgreementService.ts
+@@ -60,6 +60,21 @@ export class AgreementService implements ManageAgreements {
+     }
+   }
+ 
++  async sendReminders(now: Date): Promise<string[]> {
++    const reminded: string[] = [];
++    for (const agreement of await this.store.all()) {
++      if (agreement.envelopeId === undefined || !agreement.isDueForReminder(now, LINK_VALID_DAYS)) continue;
++      const unsigned = (await this.sender.unsignedSigners(agreement.envelopeId)).map((e) => e.toLowerCase());
++      const emails = agreement.tenants.filter((t) => unsigned.includes(t.email.toLowerCase())).map((t) => t.email);
++      if (emails.length === 0) continue;
++      if (!(await this.sender.remind(agreement.envelopeId, emails))) continue;
++      agreement.markReminded(now);
++      await this.store.save(agreement);
++      reminded.push(agreement.id);
++    }
++    return reminded;
++  }
++
+   async recordSigningEvent(event: SigningEvent): Promise<void> {
+     const agreement = (await this.store.all()).find((a) => a.envelopeId === event.envelopeId);
+     if (agreement === undefined) return;
+diff --git a/step-02/src/config/container.ts b/step-03/src/config/container.ts
+index 8b5505e8d..7faf26fb7 100644
+--- a/step-02/src/config/container.ts
++++ b/step-03/src/config/container.ts
+@@ -18,6 +18,7 @@ export function createApp() {
+   return {
+     draft: (request: DraftRequest) => agreements.draft(request),
+     send: (id: string) => agreements.send(id),
++    sendReminders: (now: Date) => agreements.sendReminders(now),
+     view: (id: string) => agreements.view(id),
+     allowance: () => allowance.allowance(),
+     http,
+diff --git a/step-02/src/domain/model/Agreement.ts b/step-03/src/domain/model/Agreement.ts
+index 6d61654c1..d007a074d 100644
+--- a/step-02/src/domain/model/Agreement.ts
++++ b/step-03/src/domain/model/Agreement.ts
+@@ -17,6 +17,8 @@ export class Agreement {
+     private currentEnvelopeId?: string,
+     private currentDeclinedBy?: string,
+     private currentReason?: string,
++    private currentReminders = 0,
++    private currentRemindedAt?: Date,
+   ) {}
+ 
+   static draft(id: string, address: string, landlord: Party, tenants: readonly Party[], monthlyRent: number, startsOn: string): Agreement {
+@@ -49,6 +51,21 @@ export class Agreement {
+     return this.currentReason;
+   }
+ 
++  /** Whether a reminder may go out at `now`: spacing, the cap of two, and the link expiry. */
++  isDueForReminder(now: Date, linkValidDays: number): boolean {
++    if (this.currentStatus !== 'out for signature' || this.currentSentAt === undefined) return false;
++    const day = 24 * 60 * 60 * 1000;
++    if (now.getTime() >= this.currentSentAt.getTime() + linkValidDays * day) return false;
++    if (this.currentReminders >= 2) return false;
++    const last = this.currentRemindedAt ?? this.currentSentAt;
++    return now.getTime() >= last.getTime() + 3 * day;
++  }
++
++  markReminded(at: Date): void {
++    this.currentReminders += 1;
++    this.currentRemindedAt = at;
++  }
++
+   /** Refuses a send that is not allowed from the current status. */
+   assertSendable(): void {
+     if (this.currentStatus === 'out for signature') throw new TenancyError('This agreement is already out for signature.');
+@@ -63,6 +80,8 @@ export class Agreement {
+     this.currentEnvelopeId = envelopeId;
+     this.currentDeclinedBy = undefined;
+     this.currentReason = undefined;
++    this.currentReminders = 0;
++    this.currentRemindedAt = undefined;
+   }
+ 
+   /** Outcomes only count while the agreement is out for signature; the first outcome stays. */

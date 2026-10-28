@@ -1,0 +1,75 @@
+diff --git a/step-01/src/adapters/out/lockbank/LockBankDoorLatch.ts b/step-01/src/adapters/out/lockbank/LockBankDoorLatch.ts
+new file mode 100644
+index 000000000..17d16bff5
+--- /dev/null
++++ b/step-01/src/adapters/out/lockbank/LockBankDoorLatch.ts
+@@ -0,0 +1,10 @@
++import type { DoorLatch } from '../../../application/ports/out/DoorLatch';
++import type { LockBankDriver } from './LockBankDriver';
++
++export class LockBankDoorLatch implements DoorLatch {
++  constructor(private readonly lockbank: LockBankDriver) {}
++
++  open(buildingId: string, bay: number): boolean {
++    return this.lockbank.pulse({ hub: buildingId, bay, holdMs: 800 }).result === 'OPENED';
++  }
++}
+diff --git a/step-01/src/application/ports/out/DoorLatch.ts b/step-01/src/application/ports/out/DoorLatch.ts
+new file mode 100644
+index 000000000..a1bd85867
+--- /dev/null
++++ b/step-01/src/application/ports/out/DoorLatch.ts
+@@ -0,0 +1,4 @@
++export interface DoorLatch {
++  /** Pops the door of a locker's bay in a building; true only when the door opened. */
++  open(buildingId: string, bay: number): boolean;
++}
+diff --git a/step-00/src/application/services/PickupService.ts b/step-01/src/application/services/PickupService.ts
+index 707b6672c..4f2ca3cff 100644
+--- a/step-00/src/application/services/PickupService.ts
++++ b/step-01/src/application/services/PickupService.ts
+@@ -2,6 +2,7 @@ import { LockerError } from '../../domain/LockerError';
+ import { parsePickupCode } from '../../domain/PickupCode';
+ import type { Collected, CollectDrops } from '../ports/in/CollectDrops';
+ import type { Clock } from '../ports/out/Clock';
++import type { DoorLatch } from '../ports/out/DoorLatch';
+ import type { Drops } from '../ports/out/Drops';
+ import type { Lockers } from '../ports/out/Lockers';
+ 
+@@ -10,6 +11,7 @@ export class PickupService implements CollectDrops {
+     private readonly drops: Drops,
+     private readonly lockers: Lockers,
+     private readonly clock: Clock,
++    private readonly latch: DoorLatch,
+   ) {}
+ 
+   pickup(buildingId: string, code: string): Collected {
+@@ -18,6 +20,7 @@ export class PickupService implements CollectDrops {
+     if (drop === undefined) throw new LockerError(`no waiting drop with code ${typed} in ${buildingId}`);
+     const locker = this.lockers.byId(drop.lockerId);
+     if (locker === undefined) throw new LockerError(`no locker ${drop.lockerId}`);
++    if (!this.latch.open(locker.buildingId, locker.bay)) throw new LockerError(`locker ${locker.id} did not open`);
+     drop.collect(this.clock.now());
+     locker.empty();
+     this.drops.save(drop);
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index bb225bd78..ee518ad15 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -4,6 +4,7 @@ import { LaundryRoutes } from './adapters/in/http/LaundryRoutes';
+ import { BuildingClock } from './adapters/out/clock/BuildingClock';
+ import { SeededCodes } from './adapters/out/codes/SeededCodes';
+ import { LockBankDriver } from './adapters/out/lockbank/LockBankDriver';
++import { LockBankDoorLatch } from './adapters/out/lockbank/LockBankDoorLatch';
+ import { LockBankHub } from './adapters/out/lockbank/LockBankHub';
+ import { MemoryBuildings } from './adapters/out/memory/MemoryBuildings';
+ import { MemoryDrops } from './adapters/out/memory/MemoryDrops';
+@@ -32,7 +33,7 @@ export function createApp(options: AppOptions = {}) {
+   const clock = new BuildingClock(now);
+   const admin = new BuildingService(buildings, lockers);
+   const intake = new DropOffService(buildings, lockers, drops, new SeededCodes(options.codeSeed ?? 271828), clock);
+-  const pickups = new PickupService(drops, lockers, clock);
++  const pickups = new PickupService(drops, lockers, clock, new LockBankDoorLatch(lockbank));
+   return {
+     managers: new ManagerRoutes(admin, lockers, lockbank),
+     laundry: new LaundryRoutes(intake),

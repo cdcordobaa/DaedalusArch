@@ -1,0 +1,70 @@
+diff --git a/step-01/src/adapters/in/http/ShelterController.ts b/step-02/src/adapters/in/http/ShelterController.ts
+index 2c3c16863..b4c0dcad8 100644
+--- a/step-01/src/adapters/in/http/ShelterController.ts
++++ b/step-02/src/adapters/in/http/ShelterController.ts
+@@ -29,6 +29,10 @@ export class ShelterController {
+     return respond(() => this.adoptions.approve(applicationId));
+   }
+ 
++  withdrawApplication(applicationId: string): HttpResponse {
++    return respond(() => this.adoptions.withdraw(applicationId));
++  }
++
+   application(id: string): HttpResponse {
+     return respond(() => this.adoptions.application(id));
+   }
+diff --git a/step-01/src/application/ports/in/Adoptions.ts b/step-02/src/application/ports/in/Adoptions.ts
+index f6f50194c..aaf04b42b 100644
+--- a/step-01/src/application/ports/in/Adoptions.ts
++++ b/step-02/src/application/ports/in/Adoptions.ts
+@@ -10,5 +10,7 @@ export interface Adoptions {
+   apply(petId: string, adopterId: string): { id: string };
+   /** Approves the application, adopts the pet today and rejects the other pending applications for it. */
+   approve(applicationId: string): ApplicationView;
++  /** Withdraws a pending application. */
++  withdraw(applicationId: string): ApplicationView;
+   application(id: string): ApplicationView;
+ }
+diff --git a/step-01/src/application/services/AdoptionService.ts b/step-02/src/application/services/AdoptionService.ts
+index aa01cfcde..22558d641 100644
+--- a/step-01/src/application/services/AdoptionService.ts
++++ b/step-02/src/application/services/AdoptionService.ts
+@@ -46,6 +46,13 @@ export class AdoptionService implements Adoptions {
+     return view(application);
+   }
+ 
++  withdraw(applicationId: string): ApplicationView {
++    const application = this.find(applicationId);
++    application.withdraw();
++    this.applications.save(application);
++    return view(application);
++  }
++
+   application(id: string): ApplicationView {
+     return view(this.find(id));
+   }
+diff --git a/step-01/src/domain/model/AdoptionApplication.ts b/step-02/src/domain/model/AdoptionApplication.ts
+index 59822cdbb..281072c72 100644
+--- a/step-01/src/domain/model/AdoptionApplication.ts
++++ b/step-02/src/domain/model/AdoptionApplication.ts
+@@ -1,7 +1,7 @@
+ import { ShelterError } from '../errors/ShelterError';
+ import { requireDay } from './Calendar';
+ 
+-export type ApplicationStatus = 'pending' | 'approved' | 'rejected';
++export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn';
+ 
+ /** One adopter's request to adopt one pet. Only a pending application can be decided. */
+ export class AdoptionApplication {
+@@ -35,6 +35,11 @@ export class AdoptionApplication {
+     this.currentStatus = 'rejected';
+   }
+ 
++  withdraw(): void {
++    this.requirePending();
++    this.currentStatus = 'withdrawn';
++  }
++
+   private requirePending(): void {
+     if (!this.isPending()) throw new ShelterError(`application ${this.id} is not pending`);
+   }

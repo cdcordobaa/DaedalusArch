@@ -1,0 +1,134 @@
+diff --git a/step-02/src/main.ts b/step-03/src/main.ts
+index 7c29ebec7..a177c29db 100644
+--- a/step-02/src/main.ts
++++ b/step-03/src/main.ts
+@@ -4,6 +4,7 @@ import { CompleteJob, type FittedPart } from './workshop/application/CompleteJob
+ import { EventRelay } from './workshop/application/EventRelay';
+ import { GetJob, type JobView } from './workshop/application/GetJob';
+ import { GetStock } from './workshop/application/GetStock';
++import { GetStockHistory, type StockHistoryItem } from './workshop/application/GetStockHistory';
+ import { LogLabour } from './workshop/application/LogLabour';
+ import { ReceiveParts } from './workshop/application/ReceiveParts';
+ import { SendBookingNotice } from './workshop/application/SendBookingNotice';
+@@ -36,6 +37,7 @@ export function createApp() {
+     receiveParts: (sku: string, quantity: number): void => command(() => new ReceiveParts(stockrooms).execute(sku, quantity)),
+     job: (jobId: string): JobView => new GetJob(jobs).execute(jobId),
+     stockOf: (sku: string): number => new GetStock(stockrooms).execute(sku),
++    stockHistory: (sku: string): { items: StockHistoryItem[] } => new GetStockHistory(stockrooms).execute(sku),
+     notices: (): string[] => notices.all(),
+   };
+ }
+diff --git a/step-02/src/workshop/application/CompleteJob.ts b/step-03/src/workshop/application/CompleteJob.ts
+index 90743c37d..b8e6095ff 100644
+--- a/step-02/src/workshop/application/CompleteJob.ts
++++ b/step-03/src/workshop/application/CompleteJob.ts
+@@ -23,7 +23,7 @@ export class CompleteJob {
+     const stockroom = this.stockrooms.byId(MAIN_STOCKROOM);
+     if (stockroom === undefined) throw new WorkshopError(`no stockroom ${MAIN_STOCKROOM}`);
+     job.complete();
+-    stockroom.remove(parts.map((p) => ({ sku: Sku.of(p.sku), quantity: p.quantity })));
++    stockroom.remove(jobId, parts.map((p) => ({ sku: Sku.of(p.sku), quantity: p.quantity })));
+     this.jobs.save(job);
+     this.stockrooms.save(stockroom);
+   }
+diff --git a/step-03/src/workshop/application/GetStockHistory.ts b/step-03/src/workshop/application/GetStockHistory.ts
+new file mode 100644
+index 000000000..c40c77fb0
+--- /dev/null
++++ b/step-03/src/workshop/application/GetStockHistory.ts
+@@ -0,0 +1,22 @@
++import { MAIN_STOCKROOM } from '../domain/stock/Stockroom';
++import type { StockroomRepository } from '../domain/stock/StockroomRepository';
++import { Sku } from '../domain/stock/value-objects/Sku';
++import { WorkshopError } from '../domain/WorkshopError';
++
++export interface StockHistoryItem {
++  readonly kind: 'received' | 'used';
++  readonly quantity: number;
++  readonly jobId: string | null;
++}
++
++export class GetStockHistory {
++  constructor(private readonly stockrooms: StockroomRepository) {}
++
++  /** Every delivery and use of the part, newest first. */
++  execute(sku: string): { items: StockHistoryItem[] } {
++    const stockroom = this.stockrooms.byId(MAIN_STOCKROOM);
++    if (stockroom === undefined) throw new WorkshopError(`no stockroom ${MAIN_STOCKROOM}`);
++    const items = stockroom.history(Sku.of(sku)).map(({ kind, quantity, jobId }) => ({ kind, quantity, jobId }));
++    return { items };
++  }
++}
+diff --git a/step-02/src/workshop/domain/stock/Stockroom.ts b/step-03/src/workshop/domain/stock/Stockroom.ts
+index 328950474..c4afdae4c 100644
+--- a/step-02/src/workshop/domain/stock/Stockroom.ts
++++ b/step-03/src/workshop/domain/stock/Stockroom.ts
+@@ -8,6 +8,15 @@ export const MAIN_STOCKROOM = 'MAIN';
+ export interface StockroomState {
+   readonly id: string;
+   readonly onHand: Readonly<Record<string, number>>;
++  readonly movements?: ReadonlyArray<StockMovement>;
++}
++
++/** One line of a part's history. A delivery has no job. */
++export interface StockMovement {
++  readonly sku: string;
++  readonly kind: 'received' | 'used';
++  readonly quantity: number;
++  readonly jobId: string | null;
+ }
+ 
+ /** The parts on the shop's shelves. A part's count is a whole number and never below zero. */
+@@ -17,14 +26,15 @@ export class Stockroom {
+   private constructor(
+     readonly id: string,
+     private counts: Record<string, number>,
++    private movements: StockMovement[],
+   ) {}
+ 
+   static open(id: string): Stockroom {
+-    return new Stockroom(id, {});
++    return new Stockroom(id, {}, []);
+   }
+ 
+   static restore(state: StockroomState): Stockroom {
+-    return new Stockroom(state.id, { ...state.onHand });
++    return new Stockroom(state.id, { ...state.onHand }, [...(state.movements ?? [])]);
+   }
+ 
+   onHand(sku: Sku): number {
+@@ -34,10 +44,16 @@ export class Stockroom {
+   receive(sku: Sku, quantity: number): void {
+     if (!Number.isInteger(quantity) || quantity <= 0) throw new WorkshopError('a delivery must be a positive whole number of parts');
+     this.counts[sku.value] = this.onHand(sku) + quantity;
++    this.movements.push({ sku: sku.value, kind: 'received', quantity, jobId: null });
++  }
++
++  /** Newest first. */
++  history(sku: Sku): StockMovement[] {
++    return this.movements.filter((m) => m.sku === sku.value).reverse();
+   }
+ 
+   /** Takes fitted parts off the shelf. All-or-nothing: nothing changes unless every line can be satisfied. */
+-  remove(parts: ReadonlyArray<{ readonly sku: Sku; readonly quantity: number }>): void {
++  remove(jobId: string, parts: ReadonlyArray<{ readonly sku: Sku; readonly quantity: number }>): void {
+     const needed = new Map<string, number>();
+     for (const { sku, quantity } of parts) {
+       if (!Number.isInteger(quantity) || quantity <= 0) throw new WorkshopError('a quantity must be a positive whole number of parts');
+@@ -48,11 +64,14 @@ export class Stockroom {
+       const have = this.counts[sku] ?? 0;
+       if (have < quantity) throw new WorkshopError(`not enough stock: ${sku} needs ${quantity}, ${have} on hand`);
+     }
+-    for (const [sku, quantity] of needed) this.counts[sku] = (this.counts[sku] ?? 0) - quantity;
++    for (const [sku, quantity] of needed) {
++      this.counts[sku] = (this.counts[sku] ?? 0) - quantity;
++      this.movements.push({ sku, kind: 'used', quantity, jobId });
++    }
+   }
+ 
+   state(): StockroomState {
+-    return { id: this.id, onHand: { ...this.counts } };
++    return { id: this.id, onHand: { ...this.counts }, movements: [...this.movements] };
+   }
+ 
+   pullEvents(): DomainEvent[] {

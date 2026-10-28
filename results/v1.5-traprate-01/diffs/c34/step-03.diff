@@ -1,0 +1,38 @@
+diff --git a/step-02/src/bookings/acl/MembershipDirectory.ts b/step-03/src/bookings/acl/MembershipDirectory.ts
+index c2d2a78bf..90b49d673 100644
+--- a/step-02/src/bookings/acl/MembershipDirectory.ts
++++ b/step-03/src/bookings/acl/MembershipDirectory.ts
+@@ -12,4 +12,8 @@ export class MembershipDirectory implements MemberDirectory {
+   levelOf(memberId: string): string | undefined {
+     return this.membership.card(memberId)?.level;
+   }
++
++  addVisits(memberId: string, visits: number): void {
++    this.membership.addVisits(memberId, visits);
++  }
+ }
+diff --git a/step-02/src/bookings/application/BookClass.ts b/step-03/src/bookings/application/BookClass.ts
+index ea045b77f..a34a0c731 100644
+--- a/step-02/src/bookings/application/BookClass.ts
++++ b/step-03/src/bookings/application/BookClass.ts
+@@ -27,6 +27,9 @@ export class BookClass {
+     if (memberId !== null && !this.directory.exists(memberId)) throw new Error(`no member ${memberId}`);
+     const rate = memberId === null ? 0 : (DISCOUNT_BY_LEVEL[this.directory.levelOf(memberId) ?? ''] ?? 0);
+     const booking = Booking.make(this.bookings.nextId(), memberId, classes.map((c) => ({ classCode: c.classCode, sessions: c.sessions, fee: Money.of(c.fee, currency) })), rate);
++    // The booking is fully validated by now; the visits are recorded in the same step as the booking is stored,
++    // and the visit write (the one that can still fail) goes first so a failure leaves neither behind.
++    if (memberId !== null) this.directory.addVisits(memberId, booking.classes.reduce((sum, c) => sum + c.sessions, 0));
+     this.bookings.save(booking);
+     return { bookingId: booking.id.value, total: booking.total().amount(), discount: booking.discount().amount() };
+   }
+diff --git a/step-02/src/bookings/application/ports/MemberDirectory.ts b/step-03/src/bookings/application/ports/MemberDirectory.ts
+index 9655e5188..b3061abe5 100644
+--- a/step-02/src/bookings/application/ports/MemberDirectory.ts
++++ b/step-03/src/bookings/application/ports/MemberDirectory.ts
+@@ -3,4 +3,6 @@ export interface MemberDirectory {
+   exists(memberId: string): boolean;
+   /** The member's level as shown on their member card, or undefined for an unknown member. */
+   levelOf(memberId: string): string | undefined;
++  /** Adds visits to the member's card right away. */
++  addVisits(memberId: string, visits: number): void;
+ }

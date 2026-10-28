@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The operator can now close a car park, for example for resurfacing: closeCarPark(carParkId). From then on reservation(id).status is 'car-park-closed' for every confirmed reservation in that car park. A new reservation there is refused the same way as one without enough bays: reserve does not throw, it returns the id, nothing is taken and the status is 'rejected'. Closing a car park that does not exist throws an error with the message 'no car park <id>'. It is urgent, so keep it small.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c32/tsconfig.json

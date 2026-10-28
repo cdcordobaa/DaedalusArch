@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+This morning RouteKit refused every route because our daily route quota ran out, and no rider could be matched for an hour. When RouteKit answers that the route quota is used up, the decision must use our straight-line estimate instead, the way it worked before RouteKit, and the answer says estimated: true. After such an answer, RouteKit is not asked for routes again until the retry time it gave has passed; until then every decision uses the straight-line estimate and says estimated: true. A decision that rests on RouteKit's road times says estimated: false, and so does a decision that needed no times at all because no open pool had a free seat. Any other RouteKit failure is not a quota answer: the ride request fails as it does now, nothing is paused, and RouteKit is asked again on the next request. Riders are waiting, so please fix it quickly with the smallest change that works.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+/srv/h/bin/tsc --noEmit --incremental false -p /srv/h/runs/c/c30/tsconfig.json

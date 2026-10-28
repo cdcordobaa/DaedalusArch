@@ -1,0 +1,93 @@
+diff --git a/step-00/src/main.ts b/step-01/src/main.ts
+index 5f7b899c4..49201acc4 100644
+--- a/step-00/src/main.ts
++++ b/step-01/src/main.ts
+@@ -1,5 +1,6 @@
+ import { Courier } from './seedbank/application/Courier';
+ import { donateLot } from './seedbank/application/donateLot';
++import { shareLot } from './seedbank/application/shareLot';
+ import { takeSeed } from './seedbank/application/takeSeed';
+ import { thankDonor } from './seedbank/application/thankDonor';
+ import { lotsAt, viewLot, type LotView } from './seedbank/application/viewLot';
+@@ -28,6 +29,8 @@ export function createApp(options: LibraryOptions = {}) {
+     donate: (donor: string, variety: string, grams: number, germination: number, garden: string): string =>
+       settled(donateLot(shelf, today(), { donor, variety, grams, germination, garden })),
+     take: (lotNumber: string, grams: number): void => settled(takeSeed(shelf, lotNumber, grams)),
++    share: (lotNumber: string, garden: string, grams: number): string =>
++      settled(shareLot(shelf, today(), lotNumber, garden, grams)),
+     lot: (lotNumber: string): LotView => viewLot(shelf, lotNumber),
+     lotsAt: (garden: string): string[] => lotsAt(shelf, garden),
+     thanks: (): string[] => board.notes(),
+diff --git a/step-01/src/seedbank/application/shareLot.ts b/step-01/src/seedbank/application/shareLot.ts
+new file mode 100644
+index 000000000..464fc0a4b
+--- /dev/null
++++ b/step-01/src/seedbank/application/shareLot.ts
+@@ -0,0 +1,13 @@
++import { Day } from '../../shared-kernel/Day';
++import type { LotShelf } from '../domain/lot/LotShelf';
++import { Grams } from '../domain/lot/values/Grams';
++import { requireLot } from './lookup';
++
++/** Moves grams from a lot into a new lot at another garden; returns the new lot's number. */
++export function shareLot(shelf: LotShelf, today: string, number: string, garden: string, grams: number): string {
++  const lot = requireLot(shelf, number);
++  const fresh = lot.shareOut(Grams.of(grams), garden, () => shelf.nextNumber(), Day.parse(today));
++  shelf.keep(lot);
++  shelf.keep(fresh);
++  return fresh.number.text;
++}
+diff --git a/step-00/src/seedbank/domain/lot/SeedLot.ts b/step-01/src/seedbank/domain/lot/SeedLot.ts
+index 4fd5e3707..b7185e202 100644
+--- a/step-00/src/seedbank/domain/lot/SeedLot.ts
++++ b/step-01/src/seedbank/domain/lot/SeedLot.ts
+@@ -14,6 +14,8 @@ export interface LotSnapshot {
+   readonly grams: number;
+   readonly germination: number;
+   readonly intake: string;
++  /** The lot this one was shared from; null for a donated lot. */
++  readonly cameFrom: string | null;
+ }
+ 
+ export interface Donation {
+@@ -36,6 +38,7 @@ export class SeedLot {
+     private weight: Grams,
+     readonly germination: Germination,
+     readonly intake: Day,
++    readonly cameFrom: LotNumber | null = null,
+   ) {}
+ 
+   static donate(number: LotNumber, d: Donation): SeedLot {
+@@ -48,7 +51,8 @@ export class SeedLot {
+   }
+ 
+   static fromSnapshot(s: LotSnapshot): SeedLot {
+-    return new SeedLot(LotNumber.of(s.number), s.variety, s.garden, Grams.of(s.grams), Germination.of(s.germination), Day.parse(s.intake));
++    return new SeedLot(LotNumber.of(s.number), s.variety, s.garden, Grams.of(s.grams), Germination.of(s.germination), Day.parse(s.intake),
++      s.cameFrom === null ? null : LotNumber.of(s.cameFrom));
+   }
+ 
+   get garden(): string {
+@@ -70,9 +74,22 @@ export class SeedLot {
+     return {
+       number: this.number.text, variety: this.variety, garden: this.kept, grams: this.weight.value,
+       germination: this.germination.percent, intake: this.intake.text,
++      cameFrom: this.cameFrom === null ? null : this.cameFrom.text,
+     };
+   }
+ 
++  /** Moves part of this lot into a new lot at another garden; refuses before changing anything. */
++  shareOut(amount: Grams, garden: string, issueNumber: () => LotNumber, on: Day): SeedLot {
++    const target = garden.trim();
++    if (target === '') throw new LibraryRefusal('a share needs a garden');
++    if (!amount.isPositive()) throw new LibraryRefusal('share at least 1 g');
++    if (amount.exceeds(this.weight)) throw new LibraryRefusal(`not enough seed: ${this.number.text} holds ${this.weight.toString()}`);
++    if (target === this.kept) throw new LibraryRefusal(`${this.number.text} is already at ${target}`);
++    const fresh = new SeedLot(issueNumber(), this.variety, target, amount, this.germination, on, this.number);
++    this.weight = this.weight.minus(amount);
++    return fresh;
++  }
++
+   /** Hands over the events raised since the last call, once. */
+   takeUnsent(): LibraryEvent[] {
+     const out = this.unsent;

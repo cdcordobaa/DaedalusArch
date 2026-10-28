@@ -1,0 +1,202 @@
+diff --git a/step-00/src/berthing/application/HarbourMaster.ts b/step-01/src/berthing/application/HarbourMaster.ts
+index 063d5563a..091529a23 100644
+--- a/step-00/src/berthing/application/HarbourMaster.ts
++++ b/step-01/src/berthing/application/HarbourMaster.ts
+@@ -20,6 +20,15 @@ export class HarbourMaster {
+     return { berth: berth.number, lengthM: berth.lengthM };
+   }
+ 
++  /** A seasonal berth: undefined, with nothing taken, when no free berth fits. */
++  reserveBerth(pontoonId: string, occupant: string, boatLengthM: number): BerthGiven | undefined {
++    const pontoon = this.load(pontoonId);
++    const berth = pontoon.tryMoor(occupant, boatLengthM);
++    if (berth === undefined) return undefined;
++    this.pontoons.put(pontoon);
++    return { berth: berth.number, lengthM: berth.lengthM };
++  }
++
+   vacateBerth(pontoonId: string, occupant: string): void {
+     const pontoon = this.load(pontoonId);
+     pontoon.unmoor(occupant);
+diff --git a/step-00/src/berthing/domain/pontoon/Pontoon.ts b/step-01/src/berthing/domain/pontoon/Pontoon.ts
+index a1e02ef28..6004b3f0d 100644
+--- a/step-00/src/berthing/domain/pontoon/Pontoon.ts
++++ b/step-01/src/berthing/domain/pontoon/Pontoon.ts
+@@ -50,12 +50,19 @@ export class Pontoon {
+ 
+   /** Gives the occupant the shortest free berth the boat fits (the lower number on a tie) and returns it. */
+   moor(occupant: string, boatLengthM: number): Berth {
++    const best = this.tryMoor(occupant, boatLengthM);
++    if (best === undefined) throw new BerthingError(`no free berth fits ${String(boatLengthM)} m`);
++    return best;
++  }
++
++  /** Like moor, but answers undefined instead of throwing when no free berth fits. */
++  tryMoor(occupant: string, boatLengthM: number): Berth | undefined {
+     if (!Number.isFinite(boatLengthM) || boatLengthM <= 0) throw new BerthingError('a boat length must be a positive number of metres');
+     if ([...this.occupants.values()].includes(occupant)) throw new BerthingError(`${occupant} already has a berth on ${this.name}`);
+     const best = this.berths
+       .filter((b) => !this.occupants.has(b.number) && b.takes(boatLengthM))
+       .sort((a, b) => a.lengthM - b.lengthM || a.number - b.number)[0];
+-    if (best === undefined) throw new BerthingError(`no free berth fits ${String(boatLengthM)} m`);
++    if (best === undefined) return undefined;
+     this.occupants = new Map([...this.occupants, [best.number, occupant]]);
+     return best;
+   }
+diff --git a/step-00/src/berthing/index.ts b/step-01/src/berthing/index.ts
+index 111729023..67f8fc2e3 100644
+--- a/step-00/src/berthing/index.ts
++++ b/step-01/src/berthing/index.ts
+@@ -15,6 +15,8 @@ export interface BerthingModule {
+   pontoon(pontoonId: string): PontoonView | undefined;
+   /** The harbour master's berth for a visiting boat; throws when no free berth fits. */
+   assignBerth(pontoonId: string, occupant: string, boatLengthM: number): BerthGiven;
++  /** A seasonal berth; undefined, with nothing taken, when no free berth fits. */
++  reserveBerth(pontoonId: string, occupant: string, boatLengthM: number): BerthGiven | undefined;
+   vacateBerth(pontoonId: string, occupant: string): void;
+   gateList(): string[];
+   /** Listeners berthing wants subscribed, by message type. */
+@@ -28,6 +30,7 @@ export function createBerthing(pontoons: PontoonRepository, gate: GateRegister):
+     addPontoon: (name, lengths) => master.addPontoon(name, lengths),
+     pontoon: (id) => queries.pontoon(id),
+     assignBerth: (pontoonId, occupant, lengthM) => master.assignBerth(pontoonId, occupant, lengthM),
++    reserveBerth: (pontoonId, occupant, lengthM) => master.reserveBerth(pontoonId, occupant, lengthM),
+     vacateBerth: (pontoonId, occupant) => master.vacateBerth(pontoonId, occupant),
+     gateList: () => queries.gateList(),
+     listensTo: membershipListeners(new GateKeeping(gate)),
+diff --git a/step-00/src/membership/acl/BerthingLookup.ts b/step-01/src/membership/acl/BerthingLookup.ts
+index 418ffd32d..8e9ec4d9f 100644
+--- a/step-00/src/membership/acl/BerthingLookup.ts
++++ b/step-01/src/membership/acl/BerthingLookup.ts
+@@ -8,4 +8,8 @@ export class BerthingLookup implements PontoonLookup {
+   exists(pontoonId: string): boolean {
+     return this.berthing.pontoon(pontoonId) !== undefined;
+   }
++
++  reserveBerth(pontoonId: string, occupant: string, boatLengthM: number): { berth: number; lengthM: number } | undefined {
++    return this.berthing.reserveBerth(pontoonId, occupant, boatLengthM);
++  }
+ }
+diff --git a/step-00/src/membership/application/ContractDesk.ts b/step-01/src/membership/application/ContractDesk.ts
+index 88232bd80..6ff037666 100644
+--- a/step-00/src/membership/application/ContractDesk.ts
++++ b/step-01/src/membership/application/ContractDesk.ts
+@@ -2,6 +2,8 @@ import { MembershipError } from '../domain/MembershipError';
+ import type { MembershipRepository } from '../domain/membership/MembershipRepository';
+ import type { PontoonLookup } from './ports/PontoonLookup';
+ 
++const SEASON_FEE_PER_METRE = 150;
++
+ /** Seasonal berth contracts. */
+ export class ContractDesk {
+   constructor(
+@@ -13,7 +15,10 @@ export class ContractDesk {
+     const m = this.members.get(memberId);
+     if (m === undefined) throw new MembershipError(`no member ${memberId}`);
+     if (!this.pontoons.exists(pontoonId)) throw new MembershipError(`no pontoon ${pontoonId}`);
+-    m.requestContract(pontoonId);
++    m.assertCanContract();
++    const given = this.pontoons.reserveBerth(pontoonId, m.id, m.boat.lengthM);
++    if (given === undefined) m.waitlist(pontoonId);
++    else m.activateContract(pontoonId, given.berth, Math.round(given.lengthM * SEASON_FEE_PER_METRE));
+     this.members.put(m);
+   }
+ }
+diff --git a/step-00/src/membership/application/MemberQueries.ts b/step-01/src/membership/application/MemberQueries.ts
+index 832dd1131..4dba1b396 100644
+--- a/step-00/src/membership/application/MemberQueries.ts
++++ b/step-01/src/membership/application/MemberQueries.ts
+@@ -8,6 +8,6 @@ export class MemberQueries {
+     const m = this.members.get(memberId);
+     if (m === undefined) return undefined;
+     const r = m.toRecord();
+-    return { id: r.id, owner: r.owner, boatName: r.boatName, boatLengthM: r.boatLengthM, status: r.status, contract: r.contract, pontoonId: r.pontoonId, berth: null, feesDue: r.feesDue };
++    return { id: r.id, owner: r.owner, boatName: r.boatName, boatLengthM: r.boatLengthM, status: r.status, contract: r.contract, pontoonId: r.pontoonId, berth: r.berth, feesDue: r.feesDue };
+   }
+ }
+diff --git a/step-00/src/membership/application/ports/PontoonLookup.ts b/step-01/src/membership/application/ports/PontoonLookup.ts
+index db2a8477a..11ed18cc7 100644
+--- a/step-00/src/membership/application/ports/PontoonLookup.ts
++++ b/step-01/src/membership/application/ports/PontoonLookup.ts
+@@ -1,4 +1,6 @@
+ /** What membership needs to know about pontoons. */
+ export interface PontoonLookup {
+   exists(pontoonId: string): boolean;
++  /** Takes the shortest free berth the boat fits; undefined, with nothing taken, when none fits. */
++  reserveBerth(pontoonId: string, occupant: string, boatLengthM: number): { berth: number; lengthM: number } | undefined;
+ }
+diff --git a/step-00/src/membership/domain/membership/Membership.ts b/step-01/src/membership/domain/membership/Membership.ts
+index 91c2674bd..4bd7f9efb 100644
+--- a/step-00/src/membership/domain/membership/Membership.ts
++++ b/step-01/src/membership/domain/membership/Membership.ts
+@@ -4,7 +4,7 @@ import { MemberJoined } from './events';
+ import { Boat } from './value-objects/Boat';
+ 
+ export type MemberStatus = 'member';
+-export type ContractStatus = 'none' | 'requested';
++export type ContractStatus = 'none' | 'active' | 'waitlisted';
+ 
+ export interface MembershipRecord {
+   readonly id: string;
+@@ -14,6 +14,7 @@ export interface MembershipRecord {
+   readonly status: MemberStatus;
+   readonly contract: ContractStatus;
+   readonly pontoonId: string | null;
++  readonly berth: number | null;
+   readonly feesDue: number;
+ }
+ 
+@@ -29,31 +30,47 @@ export class Membership {
+     private contract: ContractStatus,
+     private pontoonId: string | null,
+     private feesDue: number,
++    private berth: number | null,
+   ) {}
+ 
+   static join(id: string, owner: string, boat: Boat): Membership {
+     if (owner.trim() === '') throw new MembershipError('a member needs a name');
+-    const m = new Membership(id, owner, boat, 'member', 'none', null, 0);
++    const m = new Membership(id, owner, boat, 'member', 'none', null, 0, null);
+     m.recorded.push(new MemberJoined(id, owner, boat.name, boat.lengthM));
+     return m;
+   }
+ 
+   static fromRecord(r: MembershipRecord): Membership {
+-    return new Membership(r.id, r.owner, Boat.of(r.boatName, r.boatLengthM), r.status, r.contract, r.pontoonId, r.feesDue);
++    return new Membership(r.id, r.owner, Boat.of(r.boatName, r.boatLengthM), r.status, r.contract, r.pontoonId, r.feesDue, r.berth);
+   }
+ 
+   toRecord(): MembershipRecord {
+     return {
+       id: this.id, owner: this.owner, boatName: this.boat.name, boatLengthM: this.boat.lengthM,
+-      status: this.status, contract: this.contract, pontoonId: this.pontoonId, feesDue: this.feesDue,
++      status: this.status, contract: this.contract, pontoonId: this.pontoonId, berth: this.berth, feesDue: this.feesDue,
+     };
+   }
+ 
+-  /** Asks for a seasonal berth on a pontoon; one contract per member. */
+-  requestContract(pontoonId: string): void {
++  /** One contract per member. */
++  assertCanContract(): void {
+     if (this.contract !== 'none') throw new MembershipError(`${this.id} already has a contract`);
+-    this.contract = 'requested';
++  }
++
++  /** The contract starts with a berth, and the season fee falls due. */
++  activateContract(pontoonId: string, berth: number, seasonFee: number): void {
++    this.assertCanContract();
++    this.contract = 'active';
++    this.pontoonId = pontoonId;
++    this.berth = berth;
++    this.feesDue += seasonFee;
++  }
++
++  /** No berth fit: the member waits, with nothing taken or charged. */
++  waitlist(pontoonId: string): void {
++    this.assertCanContract();
++    this.contract = 'waitlisted';
+     this.pontoonId = pontoonId;
++    this.berth = null;
+   }
+ 
+   /** The treasurer's correction, up or down, in whole amounts. */
