@@ -14,6 +14,7 @@
  * `saveAll([a, b])`, `Promise.all(xs.map(save))`, a write inside `uow.run(() => …)` and a write reached through a port,
  * an ACL and another context's published object literal all reach the same footprint fact.
  */
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Node, Project, SyntaxKind } from 'ts-morph';
 import type { CallExpression, ClassDeclaration, IfStatement, InterfaceDeclaration, NewExpression, SourceFile, Type } from 'ts-morph';
@@ -1642,9 +1643,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
 
   // ── MIRRORS_VENDOR (CN-04 H11) ──────────────────────────────────────────────────────────────────────────────────
   // Domain, application or port code re-declares a vendor SDK's vocabulary without importing it. The vendor types are
-  // the exports of every external package (a non-relative specifier resolved to a declaration outside the tree: an
-  // ambient `declare module`, a `.d.ts` under node_modules or through tsconfig paths) that an adapter of the tree
-  // imports. A core type alias, enum, interface or const object or array mirrors one when all its string-literal
+  // the exports of every vendor module an adapter of the tree imports (CN-05: a bare specifier, wherever it resolves;
+  // see below). A core type alias, enum, interface or const object or array mirrors one when all its string-literal
   // values (at least 2) or all its property names (at least 3, `id` aside) are found in one vendor type. A string-
   // literal union in a property of an interface or object alias counts as its own type (`Payment.declineCode`).
   // CN-04 decision: a value set may hold at most one value outside the vendor type, and only a generic catch-all
@@ -1661,20 +1661,78 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     if (depth >= 2 || !t.isObject() || t.getCallSignatures().length > 0) return;
     for (const p of t.getProperties()) { const vd = p.getValueDeclaration() ?? p.getDeclarations()[0]; if (vd !== undefined) literalsIn(vd.getType(), out, depth + 1); }
   };
+  // CN-05: a module an adapter imports through a bare specifier (not relative, not a tsconfig paths alias into src/) is
+  // a vendor module wherever its declaration resolves: an ambient `declare module`, node_modules, or a `paths` mapping
+  // into a vendored folder (`vendor/<sdk>/index.d.ts`). The checker's tsconfig need not carry the tree's `paths` (the
+  // harness tsconfig does not), so a specifier the checker leaves unresolved is looked up in the tree's own
+  // tsconfig.json `paths`, then under node_modules, and the declaration file found is read for its exports.
+  const inSrc = (abs: string): boolean => { const r = rel(root, abs); return r === 'src' || r.startsWith('src/'); };
+  const treePaths = ((): { base: string; paths: Record<string, string[]> } | undefined => {
+    try {
+      // JSON with comments and trailing commas; comment markers inside strings (`"src/**/*"`) are kept
+      const src = fs.readFileSync(path.join(root, 'tsconfig.json'), 'utf8');
+      let raw = '';
+      for (let i = 0, str = false; i < src.length; i++) {
+        const ch = src[i]!;
+        if (str) { raw += ch; if (ch === '\\') raw += src[++i] ?? ''; else if (ch === '"') str = false; continue; }
+        if (ch === '"') { str = true; raw += ch; continue; }
+        if (ch === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') i++; raw += '\n'; continue; }
+        if (ch === '/' && src[i + 1] === '*') { i = src.indexOf('*/', i + 2); if (i < 0) break; i++; continue; }
+        raw += ch;
+      }
+      raw = raw.replace(/,(\s*[}\]])/g, '$1');
+      const co = (JSON.parse(raw) as { compilerOptions?: { baseUrl?: string; paths?: Record<string, string[]> } }).compilerOptions;
+      return co?.paths !== undefined ? { base: path.resolve(root, co.baseUrl ?? '.'), paths: co.paths } : undefined;
+    } catch { return undefined; }
+  })();
+  const declFile = (p: string): string | undefined => [p, `${p}.d.ts`, `${p}.ts`, path.join(p, 'index.d.ts'), path.join(p, 'index.ts')].find((c) => fs.existsSync(c) && fs.statSync(c).isFile());
+  /** The declaration file a bare specifier resolves to without the checker; `null` for a paths alias into src/. */
+  const vendorFileOf = (ms: string): string | null | undefined => {
+    for (const [k, targets] of Object.entries(treePaths?.paths ?? {})) {
+      const star = k.endsWith('/*') && ms.startsWith(k.slice(0, -1)) ? ms.slice(k.length - 1) : undefined;
+      if (k !== ms && star === undefined) continue;
+      for (const t of targets) {
+        const f = declFile(path.resolve(treePaths!.base, star !== undefined ? t.replace('*', star) : t));
+        if (f !== undefined) return inSrc(f) ? null : f;
+      }
+    }
+    const pkg = /^((?:@[^/]+\/)?[^/]+)(\/.*)?$/.exec(ms);
+    if (pkg === null) return undefined;
+    const dir = path.join(root, 'node_modules', pkg[1]!);
+    if (pkg[2] !== undefined) return declFile(path.join(dir, pkg[2]));
+    try {
+      const pj = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')) as { types?: string; typings?: string };
+      const t = pj.types ?? pj.typings;
+      if (t !== undefined) { const f = declFile(path.join(dir, t)); if (f !== undefined) return f; }
+    } catch { /* no package.json */ }
+    return declFile(dir);
+  };
   const seenModules = new Set<string>();
   for (const sf of files) {
     if (spec.roleOf(fileOf(sf)) !== 'adapter') continue;
     for (const imp of sf.getImportDeclarations()) {
       const ms = imp.getModuleSpecifierValue();
       if (ms.startsWith('.') || ms.startsWith('/') || ms.startsWith('node:')) continue;
+      let mod: string; let exportsOf: { name: string; decls: Node[] }[];
       const msym = imp.getModuleSpecifier().getSymbol();
-      const mdecl = msym?.getDeclarations().find((d) => externalModuleOf(d) !== null);
-      if (msym === undefined || mdecl === undefined) continue;
-      const mod = Node.isModuleDeclaration(mdecl) ? mdecl.getName().replace(/^['"]|['"]$/g, '') : externalModuleOf(mdecl)!;
+      const mdecl = msym?.getDeclarations()[0];
+      if (msym !== undefined && mdecl !== undefined) {
+        // resolved by the checker: an alias into src/ is the tree's own code; anything else is the vendor's
+        if (Node.isSourceFile(mdecl) && !mdecl.isDeclarationFile() && inSrc(mdecl.getFilePath())) continue;
+        if (!Node.isModuleDeclaration(mdecl) && !Node.isSourceFile(mdecl)) continue;
+        mod = Node.isModuleDeclaration(mdecl) ? mdecl.getName().replace(/^['"]|['"]$/g, '') : externalModuleOf(mdecl) ?? ms;
+        exportsOf = msym.getExports().map((ex) => ({ name: ex.getName(), decls: ex.getDeclarations() }));
+      } else {
+        const vf = seenModules.has(ms) ? undefined : vendorFileOf(ms);
+        const vsf = vf !== undefined && vf !== null ? project.addSourceFileAtPathIfExists(vf) : undefined;
+        if (vsf === undefined) continue;
+        mod = ms;
+        exportsOf = [...vsf.getExportedDeclarations()].map(([name, decls]) => ({ name, decls }));
+      }
       if (seenModules.has(mod)) continue;
       seenModules.add(mod);
-      for (const ex of msym.getExports()) {
-        for (const d of ex.getDeclarations()) {
+      for (const ex of exportsOf) {
+        for (const d of ex.decls) {
           const literals = new Set<string>(); const names = new Set<string>();
           if (Node.isEnumDeclaration(d)) { for (const m of d.getMembers()) { const v = m.getValue(); if (typeof v === 'string') literals.add(v); names.add(m.getName()); } }
           else if (Node.isInterfaceDeclaration(d) || Node.isClassDeclaration(d) || Node.isTypeAliasDeclaration(d)) {
@@ -1682,7 +1740,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
             literalsIn(t, literals, 0);
             if (t.isObject() && t.getCallSignatures().length === 0) for (const p of t.getProperties()) names.add(p.getName());
           } else continue;
-          vocabs.push({ name: ex.getName(), module: mod, literals, names });
+          vocabs.push({ name: ex.name, module: mod, literals, names });
         }
       }
     }
