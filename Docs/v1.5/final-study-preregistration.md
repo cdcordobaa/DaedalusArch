@@ -109,11 +109,17 @@ use?" (thesis SO3, Kap6).
 
 1. **N1, model-supplied facts.** S3 names the aggregate roots from the code alone. The admitted DDD rules are re-run
    with S3's roots in place of the spec's declared roots: (a) on the sealed CAL-03 cases, with recall and FP against
-   the labels per admitted row; (b) on every DDD study snapshot, with agreement against the declared-root findings
-   (identical findings share, Cohen's κ per identity). Configuration: the Claude CLI judge route, model and pin
-   recorded; 2 runs per tree, a root counts only when named in both. Cap fixed before the first call (§9).
+   the labels per admitted row; (b) on every DDD study snapshot, with agreement against the declared-root findings: the
+   **identical-findings share** (identities found under both root sources over identities found under either), with
+   Cohen's κ over tree × admitted-rule cells (finding present or absent) beside it. Configuration: S3's U4
+   configuration (prompt `u4-s3-facts-v1`, `claude-sonnet-5-5`, Claude CLI judge route), CLI version and route
+   recorded; 2 runs per tree, a root counts only when named and grounded in both. On CAL-03, S3 runs once per domain
+   on the base tree (no case changes the spec, so the roots are a property of the base). Runner
+   `experiments/v15-n1/`; caps in `experiments/v15-n1/caps.json` (CAL-03: 6). A spec invariant whose owner is not a
+   root S3 names is dropped and reported.
    **Registered reading:** "facts supplied by the model preserve the admitted rules' results" when CAL-03 recall
-   stays ≥ 0.90 pooled with 0 incorrect findings, and agreement on study snapshots is ≥ 0.90.
+   stays ≥ 0.90 pooled with 0 incorrect findings on the admitted rows' clean cases, and the identical-findings share on
+   study snapshots is ≥ 0.90.
 2. **N2, D_sem on the rule-blind rows.** The C4 interpretation with the U3 rubric on the study's final snapshots, for
    the meaning-level rows no admitted rule covers (H06, K11, K12). **Precondition:** a pilot on TRAPRATE-01 outputs
    against a 30-item author audit made before the pilot is run: ≥ 0.80 agreement and 0 hallucinated citations. If the
