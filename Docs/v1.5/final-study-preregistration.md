@@ -67,7 +67,7 @@ exploratory. They never enter D_v15.
 | Tasks | `study-set.json` confirmatory: 12 DDD, 13 Hexagonal (f19 moved in on 2026-10-28; f19 and f24 clean references corrected the same day, before any final-study call) |
 | Start state | each task's seed (S2, seeded), pinned by tree sha256 |
 | Steps | each task's `tasks.json` steps, verbatim, one step per turn, 0 repair turns |
-| Replicates | **r** per task and arm (§9) |
+| Replicates | r = 3 (DDD) and r = 6 (Hexagonal) per task and arm (§3) |
 | Block | task × replicate: one `none` cell and one `combined` cell from the same seed |
 | Lanes | two cloud containers run in parallel, one per style: lane A the 12 DDD tasks (H1), lane B the 13 Hexagonal tasks (H2). One phase per container (`experiments/v15-study/RUNBOOK.md`) |
 | Order | per lane, mulberry32 shuffle, seed `20261029`, interleaved by replicate round (every task and arm of the lane once before the next round) |
@@ -77,15 +77,33 @@ exploratory. They never enter D_v15.
 
 ## 3. Sample size
 
-- **Exactness.** With m tasks, the task-level two-sided sign-flip cannot go below 2/2^m: 4.9 × 10⁻⁴ for 12 tasks,
-  well under Holm's 0.025. The block-level test has N = m × r blocks per style.
-- **Power** is computed before registration from TRAPRATE-01's per-task trap rates (the `none` arm's opportunity) and
-  Stage 1's per-cell D, by the 2b P3 method at task grain, for RR ∈ {0.25, 0.5}. r is the smallest value in {2, 3, 4}
-  with power ≥ 0.80 at RR 0.5 in both styles, capped by the time budget (results closed by 2026-11-01). If no r
-  reaches 0.80 within the budget, r = the largest that fits, and the achieved power is stated (§9).
-- **Tasks with no opportunity.** A task where TRAPRATE-01 found the trap in 0 of 2 `none` runs stays in the study: the
-  population is the sealed set, and dropping tasks after seeing `none` data would select on the outcome. Its share is
-  reported.
+**Screening (TRAPRATE-01, arm `none` only, 2 runs per task, not study data; `results/v1.5-traprate-01/scores/`).**
+
+| Style | Runs | Oracle trap failed | Steps with a new admitted identity | Mean D_v15 per run | Tasks never trapped |
+|---|---|---|---|---|---|
+| DDD | 24 | 21 (0.88) | 24 of 72 (0.33) | 2.17 | 1 of 12 |
+| Hexagonal | 26 | 8 (0.31) | 4 of 78 (0.05) | 0.15 | 9 of 13 |
+
+- **Exactness.** With m tasks the task-level two-sided sign-flip cannot go below 2/2^m: 4.9 × 10⁻⁴ for 12 tasks.
+- **Power** by resampling each task's observed `none` D (2 runs per task) and thinning it to the combined arm with
+  keep probability RR, 400 draws per cell, the §4 decision rule (Holm, sign, task-level sign):
+
+| Style | r | Power at RR 0.5 | Power at RR 0.25 |
+|---|---|---|---|
+| DDD | 3 | 1.00 | 1.00 |
+| Hexagonal | 3 | 0.00 | 0.00 |
+| Hexagonal | 4 | 0.04 | 0.41 |
+| Hexagonal | 6 | 0.38 | 0.95 |
+
+  The DDD figure is optimistic (two runs per task understate within-task variance). The Hexagonal figure reflects
+  that the agent alone seldom violates the admitted Hexagonal rules on these tasks.
+- **Decision (2026-10-28, before any final-study call): r = 3 for DDD (lane A, 216 turns) and r = 6 for Hexagonal
+  (lane B, 468 turns).** H2 is kept confirmatory with its achieved power stated: it can detect a strong effect
+  (RR ≈ 0.25) and is unlikely to detect a halving. A non-rejected H2 is read as "no difference detected at RR ≈ 0.25".
+- **No task is dropped.** Dropping tasks on `none`-arm data and then re-measuring `none` on them would bias the
+  baseline upward. The 9 Hexagonal tasks that never trapped, and the three tasks functional in 0 of 2 screening runs
+  (t08 `f13-ddd-bike-repairs`, t10 `f26-ddd-brewery`, t16 `f16-hex-fx-rates`), stay in; functional acceptance is
+  reported per task.
 
 ## 4. Analysis plan
 
@@ -167,8 +185,8 @@ Every change after the registration commit is dated in this file before the data
 
 | Item | Value |
 |---|---|
-| r | from §3 |
-| Power at RR 0.5 and 0.25, per style | from §3 |
+| r | 3 (DDD), 6 (Hexagonal): §3 |
+| Power at RR 0.5 and 0.25, per style | §3 |
 | CLI version pin | from Stage 1 |
 | `run-study.ts`, `score-study.ts`, analysis script sha256 | at the registration commit |
 | Caps per phase | turns × 1.06 (infrastructure redraws only) |
