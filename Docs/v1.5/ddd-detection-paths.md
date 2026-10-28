@@ -70,6 +70,12 @@ Wilson LB ≈ 0.88). Not admitted (exploratory): K02 3/4, K04 0/4 (location mism
 Rows marked "covered (dev)" above that were not admitted were fitted to CAL-01 and did not carry to fresh cases.
 Source: `Docs/DiagnosticRuns/v15-cal02-admission-2026-10-27.md`.
 
+## 5c. CAL-03 admission (sealed, scored once, 2026-10-28; replaces 5b)
+
+Admitted (4/4 recall, 0/6 FP): **K01, K02, K03, K05, K10, K13, K14, K15, K16** (pooled 36/36, Wilson LB ≈ 0.90; all 7
+Pareto rules). Not admitted: K04 3/4, K06 1/4, K07 2/4 (admitted on CAL-02, lost here), K08 3/4 with 2 FP, K09 3/4
+with 1 FP, K11 0/4, K12 1/4. Source: `Docs/DiagnosticRuns/v15-cal03-admission-2026-10-28.md`.
+
 ## 6. Hexagonal rows (HCAL-01, development)
 
 | ID | Violation | Imports | Structure | Spec | Neural | Runtime | Rule today | Status (dev) |
@@ -83,6 +89,13 @@ Source: `Docs/DiagnosticRuns/v15-cal02-admission-2026-10-27.md`.
 | H07 | transport concepts (HTTP codes, HTTP/SQL errors) in the core | — | ● | ● layers | ◐ | — | R-TRANSPORT | covered (dev) |
 
 Source: `Docs/DiagnosticRuns/v15-hcal01-2026-10-27.md`.
+
+## 6b. HCAL-03 admission (sealed, scored once, 2026-10-28)
+
+New rows: H08 service locator (R-LOCATOR), H09 I/O without a port in the core (R-COREIO), H10 entity as an inbound
+adapter's transport shape (R-ENTITY-OUT). Admitted (4/4 recall, 0/6 FP): **H01, H02, H03, H04, H05, H07, H09, H10**
+(pooled 32/32, Wilson LB ≈ 0.89). Not admitted: H06 0/4 (no rule), H08 3/4 (a free-function wrapper around the
+registry). Source: `Docs/DiagnosticRuns/v15-hcal03-admission-2026-10-28.md`.
 
 ## 5. Sources
 

@@ -1,6 +1,6 @@
 import type { LatchCondition, LockerFaults } from '../../../application/ports/in/LockerFaults';
 import { LockerError } from '../../../domain/LockerError';
-import { reply, type Reply } from '../http/reply';
+import { reply, type Reply } from './reply';
 
 const TOPIC = /^lockbank\/([^/]+)\/bay\/(\d+)\/fault$/;
 const CONDITION: Record<string, LatchCondition> = { jammed: 'faulty', 'left-open': 'faulty', cleared: 'sound' };

@@ -1,0 +1,302 @@
+{
+  "H01-pos1": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/statement.ts",
+    "note": "Statement gains toDto() and imports the HTTP adapter DTO into the domain."
+  },
+  "H01-pos2": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/production-credit.ts",
+    "note": "Domain entity takes the application-layer Clock port type (type-only import) in a method parameter."
+  },
+  "H01-twin1": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "The Statement-to-DTO mapping lives in the inbound adapter, which may depend on the domain."
+  },
+  "H01-twin2": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "The entity receives a plain Date instead of the Clock port, so it imports nothing outside the domain."
+  },
+  "H01-legit": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "A domain template that formats notification text is pure domain logic; it only imports domain files despite the name."
+  },
+  "H02-pos1": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/issue-monthly-credits.use-case.ts",
+    "note": "The use case value-imports a constant from the payment adapter package."
+  },
+  "H02-pos2": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/subscribe-shares.use-case.ts",
+    "note": "The use case type-only imports an adapter type (EmailMessage) for a local variable."
+  },
+  "H02-twin1": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "The provider label reaches the use case as a constructor string supplied by main.ts."
+  },
+  "H02-twin2": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "The same local receipt shape is declared inside the application layer instead of imported from an adapter."
+  },
+  "H02-legit": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "An application-level mapper with an adapter-like name that imports only domain code."
+  },
+  "H03-pos1": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/in/http/member.controller.ts",
+    "note": "The inbound controller value-imports a constant from the outbound payment package."
+  },
+  "H03-pos2": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/out/payment/payment-provider.gateway.ts",
+    "note": "The payment gateway type-imports an EmailMessage from the notification out-adapter package."
+  },
+  "H03-twin1": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "The provider label is passed to the controller by main.ts instead of imported from an out package."
+  },
+  "H03-twin2": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "The gateway declares its own receipt shape instead of importing from a sibling adapter package."
+  },
+  "H03-legit": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "The gateway imports a mapper from its own adapter package, which is not a cross-adapter dependency."
+  },
+  "H04-pos1": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/credit-ledger.port.ts",
+    "note": "A new out-port takes the persistence transaction handle MemoryTx as a parameter."
+  },
+  "H04-pos2": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/payout-status.port.ts",
+    "note": "A new out-port returns the payment vendor type ProviderTransfer."
+  },
+  "H04-twin1": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "The ledger port expresses atomicity with a callback and domain types, exposing no handle."
+  },
+  "H04-twin2": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "The port returns a plain status union defined with the port instead of the vendor transfer type."
+  },
+  "H04-legit": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "A vendor type appears in an adapter method that is not part of any port, which is allowed inside the adapter."
+  },
+  "H05-pos1": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/issue-monthly-credits.use-case.ts",
+    "note": "The use case builds a concrete EmailNotifier in a field initializer."
+  },
+  "H05-pos2": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/subscribe-shares.use-case.ts",
+    "note": "A constructor default parameter instantiates the concrete SystemClock adapter."
+  },
+  "H05-twin1": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "The treasurer digest notifier is a Notifier port injected by main.ts."
+  },
+  "H05-twin2": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "The use case constructs only a built-in Map, not an adapter."
+  },
+  "H05-legit": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "The composition root builds a second wiring with new adapters, which is its job."
+  },
+  "H06-pos1": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/out/payment/payment-provider.gateway.ts",
+    "note": "The payment gateway decides on its own that payouts under 500 cents are carried over, a business rule."
+  },
+  "H06-pos2": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/out/persistence/in-memory-share-subscription.repository.ts",
+    "note": "The repository enforces a per-member share cap, a rule about domain state."
+  },
+  "H06-twin1": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "The minimum payout rule lives in a domain policy that the use case calls."
+  },
+  "H06-twin2": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "The per-member share cap sits in the domain ArrayCapacity service and the use case applies it."
+  },
+  "H06-legit": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "The controller only checks the request shape (whole number) before delegating; all business rules stay in the core."
+  },
+  "H07-pos1": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/domain/errors.ts",
+    "note": "Domain errors carry an HTTP status code field."
+  },
+  "H07-pos2": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/application/cancel-subscription.use-case.ts",
+    "note": "The use case returns HTTP status codes (404, 200) as its result."
+  },
+  "H07-twin1": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "The HTTP status for each domain error is chosen in the inbound adapter."
+  },
+  "H07-twin2": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "The use case signals a missing subscription with a domain error, leaving status codes to the adapter."
+  },
+  "H07-legit": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "Domain errors get a business error code string; it is not a transport status."
+  },
+  "H08-pos1": {
+    "rule": "H08",
+    "label": "violation",
+    "file": "src/application/issue-monthly-credits.use-case.ts",
+    "note": "The use case pulls the Clock from a static ServiceLocator at run time."
+  },
+  "H08-pos2": {
+    "rule": "H08",
+    "label": "violation",
+    "file": "src/adapters/out/inverter/inverter-api.gateway.ts",
+    "note": "The gateway fetches its client from a static registry singleton at call time instead of its constructor."
+  },
+  "H08-twin1": {
+    "rule": "H08",
+    "label": "clean",
+    "file": null,
+    "note": "The Clock port is injected through the use case constructor by main.ts."
+  },
+  "H08-twin2": {
+    "rule": "H08",
+    "label": "clean",
+    "file": null,
+    "note": "Only the composition root reads the registry and passes the client to the gateway constructor."
+  },
+  "H08-legit": {
+    "rule": "H08",
+    "label": "clean",
+    "file": null,
+    "note": "A local Map lookup and a private resolveSubject helper look like a resolver but obtain no dependency."
+  },
+  "H09-pos1": {
+    "rule": "H09",
+    "label": "violation",
+    "file": "src/domain/credit-calculator.ts",
+    "note": "The domain service reads the rate from process.env (global environment access)."
+  },
+  "H09-pos2": {
+    "rule": "H09",
+    "label": "violation",
+    "file": "src/application/get-member-statement.use-case.ts",
+    "note": "The use case writes a file through the node:fs/promises module."
+  },
+  "H09-twin1": {
+    "rule": "H09",
+    "label": "clean",
+    "file": null,
+    "note": "The environment is read by an out-adapter behind a RateProvider port; the domain takes the rate as a parameter."
+  },
+  "H09-twin2": {
+    "rule": "H09",
+    "label": "clean",
+    "file": null,
+    "note": "File writing moves into a FileStatementArchive adapter behind a StatementArchive port."
+  },
+  "H09-legit": {
+    "rule": "H09",
+    "label": "clean",
+    "file": null,
+    "note": "A domain value object uses pure built-ins (Date.UTC, Intl); none of them touches I/O."
+  },
+  "H10-pos1": {
+    "rule": "H10",
+    "label": "violation",
+    "file": "src/adapters/in/http/member.controller.ts",
+    "note": "getStatement returns the domain Statement aggregate as the response body."
+  },
+  "H10-pos2": {
+    "rule": "H10",
+    "label": "violation",
+    "file": "src/adapters/in/http/member-profile.controller.ts",
+    "note": "The new controller types its request body as the domain Member entity."
+  },
+  "H10-twin1": {
+    "rule": "H10",
+    "label": "clean",
+    "file": null,
+    "note": "The statement DTO gains a field and the controller maps it from the aggregate; the body stays a DTO."
+  },
+  "H10-twin2": {
+    "rule": "H10",
+    "label": "clean",
+    "file": null,
+    "note": "The new controller uses request and response DTOs; the Member entity stays behind the port."
+  },
+  "H10-legit": {
+    "rule": "H10",
+    "label": "clean",
+    "file": null,
+    "note": "The controller uses domain Money and Statement internally to build a DTO; no domain type is exposed in a body."
+  }
+}

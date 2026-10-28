@@ -13,6 +13,7 @@ import { MemoryLockers } from './adapters/out/memory/MemoryLockers';
 import { BuildingService } from './application/services/BuildingService';
 import { DropOffService } from './application/services/DropOffService';
 import { FaultService } from './application/services/FaultService';
+import { MaintenanceService } from './application/services/MaintenanceService';
 import { PickupService } from './application/services/PickupService';
 import { TakeBackService } from './application/services/TakeBackService';
 
@@ -39,9 +40,10 @@ export function createApp(options: AppOptions = {}) {
   const intake = new DropOffService(buildings, lockers, drops, new SeededCodes(options.codeSeed ?? 271828), clock);
   const pickups = new PickupService(drops, lockers, clock, doors);
   const returns = new TakeBackService(drops, lockers, doors, clock);
-  const faults = new FaultService(lockers);
+  const maintenance = new MaintenanceService(lockers, doors);
+  const faults =new FaultService(lockers);
   return {
-    managers: new ManagerRoutes(admin, lockers, lockbank),
+    managers: new ManagerRoutes(admin, maintenance),
     laundry: new LaundryRoutes(intake, returns),
     residents: new ResidentRoutes(pickups),
     lockbankMqtt: new LockBankMqtt(faults),

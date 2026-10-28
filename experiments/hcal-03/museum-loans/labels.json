@@ -1,0 +1,302 @@
+{
+  "H01-pos1": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/loan-policy.ts",
+    "note": "Domain policy imports the Clock port from the application layer to decide loan expiry."
+  },
+  "H01-pos2": {
+    "rule": "H01",
+    "label": "violation",
+    "file": "src/domain/condition-report.ts",
+    "note": "Domain entity ConditionReport is decorated with typeorm persistence decorators, a framework dependency in the domain."
+  },
+  "H01-twin1": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "Same expiry feature, but the domain policy takes the current time as a plain Date argument and imports only domain files."
+  },
+  "H01-twin2": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "Persistence mapping with typeorm decorators lives in an outbound adapter record that maps to and from the domain entity."
+  },
+  "H01-legit": {
+    "rule": "H01",
+    "label": "clean",
+    "file": null,
+    "note": "A new domain value-carrying entity named FrameworkAgreement (a lending agreement between museums) imports only sibling domain files; the word framework is business vocabulary."
+  },
+  "H02-pos1": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/request-loan.use-case.ts",
+    "note": "Request use case imports the SystemClock adapter and types its constructor parameter by it instead of the Clock port."
+  },
+  "H02-pos2": {
+    "rule": "H02",
+    "label": "violation",
+    "file": "src/application/approve-loan.use-case.ts",
+    "note": "Approve use case value-imports the formatMoney helper from the inbound HTTP DTO module."
+  },
+  "H02-twin1": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "Same timestamped notification, but the use case keeps the Clock port type and imports only ports and domain."
+  },
+  "H02-twin2": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "Same premium in the notification, formatted with the domain Money.toString instead of an adapter helper."
+  },
+  "H02-legit": {
+    "rule": "H02",
+    "label": "clean",
+    "file": null,
+    "note": "Eligibility check is extracted into an application service used by the use case; it imports only domain and sibling application code."
+  },
+  "H03-pos1": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/in/http/loan.controller.ts",
+    "note": "Inbound controller imports the SystemClock outbound adapter and instantiates it to stamp the response."
+  },
+  "H03-pos2": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/out/courier/stub-courier.gateway.ts",
+    "note": "Courier outbound adapter takes the LogNotifier outbound adapter (type-only import) as a constructor parameter."
+  },
+  "H03-twin1": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "Same response timestamp, but the controller receives the Clock port by constructor and main wires it."
+  },
+  "H03-twin2": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "Same courier-booked log, but the courier adapter depends on the Notifier port and main wires the adapter."
+  },
+  "H03-legit": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "The repository imports a sibling record module from its own persistence package, not another adapter package."
+  },
+  "H04-pos1": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/loan-repository.port.ts",
+    "note": "LoanRepository.save takes an optional pg PoolClient, a database handle, as a parameter."
+  },
+  "H04-pos2": {
+    "rule": "H04",
+    "label": "violation",
+    "file": "src/application/ports/out/quote-archive.port.ts",
+    "note": "New QuoteArchive out-port returns an axios AxiosResponse, a vendor type, from its method."
+  },
+  "H04-twin1": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "Same optional transaction scope, expressed as an application-defined UnitOfWork interface declared in the port file."
+  },
+  "H04-twin2": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "Same QuoteArchive port, returning the domain InsuranceQuote rather than a vendor response."
+  },
+  "H04-legit": {
+    "rule": "H04",
+    "label": "clean",
+    "file": null,
+    "note": "A Postgres repository adapter uses the pg PoolClient internally via its constructor while implementing the clean LoanRepository port."
+  },
+  "H05-pos1": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/request-loan.use-case.ts",
+    "note": "Request use case defaults its clock parameter to a newly constructed SystemClock adapter."
+  },
+  "H05-pos2": {
+    "rule": "H05",
+    "label": "violation",
+    "file": "src/application/approve-loan.use-case.ts",
+    "note": "Approve use case builds a LogNotifier adapter inside its method for an audit message."
+  },
+  "H05-twin1": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "Default clock is an inline object literal implementing the Clock port, not a concrete adapter class."
+  },
+  "H05-twin2": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "Approve use case constructs domain objects (Money, InsuranceQuote) with new for in-house loans, never an adapter."
+  },
+  "H05-legit": {
+    "rule": "H05",
+    "label": "clean",
+    "file": null,
+    "note": "Use case builds a domain service (new LoanPolicy) and plain collections with new; these are not adapters."
+  },
+  "H06-pos1": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/in/http/loan.controller.ts",
+    "note": "Controller computes loan duration and rejects requests over 180 days, a business rule decided in the inbound adapter."
+  },
+  "H06-pos2": {
+    "rule": "H06",
+    "label": "violation",
+    "file": "src/adapters/out/persistence/in-memory-loan.repository.ts",
+    "note": "Repository save decides to reject loans of blocked borrowers, mutating domain state inside persistence."
+  },
+  "H06-twin1": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "Controller only translates the domain LoanTooLongError into HTTP 422; the duration rule stays in LoanPolicy."
+  },
+  "H06-twin2": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "Blocked-borrower rejection is a LoanPolicy method applied by the request use case."
+  },
+  "H06-legit": {
+    "rule": "H06",
+    "label": "clean",
+    "file": null,
+    "note": "Insurance gateway retries a transient 503 from the insurer, a technical resilience concern with no domain decision."
+  },
+  "H07-pos1": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/domain/insurance-declined.error.ts",
+    "note": "Domain error carries an HTTP status code (402) as a field."
+  },
+  "H07-pos2": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/application/approval-webhook.use-case.ts",
+    "note": "Application use case takes an Express Request object as its method parameter."
+  },
+  "H07-twin1": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "Domain error carries a transport-free code and the controller maps it to HTTP 402."
+  },
+  "H07-twin2": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "Same webhook use case, taking a plain ApprovalWebhookCommand instead of a transport request."
+  },
+  "H07-legit": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "A driving port defines a business LoanResponse (the museum's answer to a borrower) with status and decision fields; no transport concepts."
+  },
+  "H08-pos1": {
+    "rule": "H08",
+    "label": "violation",
+    "file": "src/application/approve-loan.use-case.ts",
+    "note": "Approve use case pulls a Notifier from a static ServiceRegistry.resolve call at run time."
+  },
+  "H08-pos2": {
+    "rule": "H08",
+    "label": "violation",
+    "file": "src/adapters/in/http/loan.controller.ts",
+    "note": "Controller field initializer obtains the Clock through the module-level resolve function of a registry."
+  },
+  "H08-twin1": {
+    "rule": "H08",
+    "label": "clean",
+    "file": null,
+    "note": "The registrar audit notification arrives as a second Notifier constructor parameter that main wires."
+  },
+  "H08-twin2": {
+    "rule": "H08",
+    "label": "clean",
+    "file": null,
+    "note": "The use case receives a NotifierFactory port by constructor and main wires a lookup function into it."
+  },
+  "H08-legit": {
+    "rule": "H08",
+    "label": "clean",
+    "file": null,
+    "note": "Only the composition root uses a local registry map to assemble values; main is allowed to assemble dependencies."
+  },
+  "H09-pos1": {
+    "rule": "H09",
+    "label": "violation",
+    "file": "src/application/request-loan.use-case.ts",
+    "note": "Request use case runs a label-printer child process with execFileSync imported from node:child_process."
+  },
+  "H09-pos2": {
+    "rule": "H09",
+    "label": "violation",
+    "file": "src/domain/loan-policy.ts",
+    "note": "Domain policy performs a network call with the global fetch to load a blocked-borrower list."
+  },
+  "H09-twin1": {
+    "rule": "H09",
+    "label": "clean",
+    "file": null,
+    "note": "Label printing goes through a LabelPrinter out-port, with the child process confined to an outbound adapter."
+  },
+  "H09-twin2": {
+    "rule": "H09",
+    "label": "clean",
+    "file": null,
+    "note": "Domain policy checks blocked borrowers against a list passed in as data; no I/O in the domain."
+  },
+  "H09-legit": {
+    "rule": "H09",
+    "label": "clean",
+    "file": null,
+    "note": "An outbound adapter reads condition reports from a JSON file with node:fs; adapters are where I/O belongs."
+  },
+  "H10-pos1": {
+    "rule": "H10",
+    "label": "violation",
+    "file": "src/adapters/in/http/loan.controller.ts",
+    "note": "Controller get returns the LoanRequest domain entity directly as the response body."
+  },
+  "H10-pos2": {
+    "rule": "H10",
+    "label": "violation",
+    "file": "src/adapters/in/http/condition-report.controller.ts",
+    "note": "New controller accepts the ConditionReport domain entity as its request body type."
+  },
+  "H10-twin1": {
+    "rule": "H10",
+    "label": "clean",
+    "file": null,
+    "note": "Same loan detail with the period length, added to the LoanDto and mapped in toLoanDto; the controller still returns a DTO."
+  },
+  "H10-twin2": {
+    "rule": "H10",
+    "label": "clean",
+    "file": null,
+    "note": "Same controller, but the request type is a ConditionReportBody DTO mapped to the domain entity inside the adapter."
+  },
+  "H10-legit": {
+    "rule": "H10",
+    "label": "clean",
+    "file": null,
+    "note": "The DTO types its status field with the LoanStatus string-literal union from the domain; the body is still a DTO, not an entity."
+  }
+}
