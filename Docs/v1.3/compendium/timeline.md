@@ -172,7 +172,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-10-27 | Daily thesis sync: 90 claims C10210–C10299 (part `v15-a`), nulls M259–M271, chronology rows 70–75, open items §12, 82 ledger rows re-anchored (instrument map archived). Public PR #399 (merged). Private thesis: new slot E5 in Kap9; PR tesis-msc-unal #38 left open (claim changes to flag; no TeX compiler available). | #399 |
 | 2026-10-27 | **v1.5 CN-02: DDD rules revised on the CAL-02 misses** (zero model calls, development evidence): 13 of 16 rows at 4/4 on CAL-02 after revision, fitted; two rules added (R-PURE, R-D4R). PR #401 (and #403, a pre-flight schema check fix) | `Docs/DiagnosticRuns/v15-cn02-dev-2026-10-27.md` |
 | 2026-10-27 | **CAL-03 admission design committed before any case exists**: 2 new domains, 160 cases, same per-row bar as CAL-02, all 16 rows scored. PR #402 | `ops/notes/cal-03-admission-design.md` |
-| 2026-10-28 | Daily thesis sync: claims C10300–C10310 (part `v15-b`), nulls M272–M273, chronology row 76, open items §13. PR numbers for the sync are in the entry below | |
+| 2026-10-28 | Daily thesis sync: claims C10300–C10310 (part `v15-b`), nulls M272–M273, chronology row 76, open items §13. Public PR #406 (merged); private thesis PR cdcordobaa/tesis-msc-unal#39, open for the author (not compiled: no LaTeX here) | |
 
 ## What the timeline shows for the thesis
 
