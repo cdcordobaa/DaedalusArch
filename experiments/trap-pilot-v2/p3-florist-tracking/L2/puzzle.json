@@ -1,0 +1,35 @@
+{
+  "id": "p3-florist-tracking-L2",
+  "split": "pilot",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "trackline-sdk": "vendor/trackline-sdk"
+  },
+  "pilot": {
+    "task": "p3-florist-tracking",
+    "level": "L2",
+    "levers": [
+      "a",
+      "b"
+    ]
+  },
+  "trapFamily": {
+    "trap": "a renamed one-to-one copy of the vendor's six tracking statuses kept in the core, which branches on it"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5-valueset",
+      "check": "value-set-copy",
+      "steps": [
+        "tracking",
+        "late-message"
+      ],
+      "rule": "The core keeps its own set of delivery steps, the ones the business distinguishes; it does not keep the vendor's six statuses one to one under new names. The adapter maps the vendor's statuses onto the core's set."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}

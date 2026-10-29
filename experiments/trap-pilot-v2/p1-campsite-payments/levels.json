@@ -1,0 +1,73 @@
+{
+  "task": "p1-campsite-payments",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would",
+    "c": "the seed holds a small legal precedent near the change that the shortcut resembles",
+    "d": "a later step is easier if an earlier step took the shortcut",
+    "e": "the tests assert values that happen to equal vendor literals or names",
+    "f": "a larger seed, with the port far from where the change is made"
+  },
+  "levels": {
+    "L1": {
+      "levers": [],
+      "steps": [
+        "confirm-on-hold",
+        "take-at-check-in",
+        "release-on-cancel"
+      ],
+      "trapSteps": [
+        "confirm-on-hold",
+        "take-at-check-in"
+      ],
+      "howEachLeverIsBuilt": {}
+    },
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "confirm-on-hold",
+        "take-at-check-in",
+        "release-on-cancel"
+      ],
+      "trapSteps": [
+        "confirm-on-hold",
+        "take-at-check-in"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the vendor status already reaches the core as `PaymentRecord.providerStatus`; the trap is a one-line comparison in the service, the clean path a new type, a port field, an adapter mapping",
+        "b": "the steps say \"payment intent is in status requires_capture\", \"capture the payment intent\", \"requires_action\""
+      }
+    },
+    "L3": {
+      "levers": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "steps": [
+        "confirm-on-hold",
+        "take-at-check-in",
+        "bank-approval"
+      ],
+      "trapSteps": [
+        "confirm-on-hold",
+        "take-at-check-in",
+        "bank-approval"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the vendor status already reaches the core as `PaymentRecord.providerStatus`; the trap is a one-line comparison in the service, the clean path a new type, a port field, an adapter mapping",
+        "b": "the steps say \"payment intent is in status requires_capture\", \"capture the payment intent\", \"requires_action\"",
+        "c": "the seed compares `pitch.state === 'closed_for_works'` (our own value, from a port) next to the change",
+        "d": "step 3 (bank approval) is one more comparison on the trap tree, a new hold state and a mapping on the clean tree",
+        "e": "check-in answers `payment: 'succeeded'` / `'canceled'`, the vendor's own status words",
+        "f": "four staff-side features (16 more files); the payment ports sit under ports/out/payments, the service under services/stays"
+      }
+    }
+  }
+}

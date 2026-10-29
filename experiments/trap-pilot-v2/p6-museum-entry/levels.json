@@ -1,0 +1,73 @@
+{
+  "task": "p6-museum-entry",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would",
+    "c": "the seed holds a small legal precedent near the change that the shortcut resembles",
+    "d": "a later step is easier if an earlier step took the shortcut",
+    "e": "the tests assert values that happen to equal vendor literals or names",
+    "f": "a larger seed, with the port far from where the change is made"
+  },
+  "levels": {
+    "L1": {
+      "levers": [],
+      "steps": [
+        "slot-full",
+        "busy-door",
+        "group-limit"
+      ],
+      "trapSteps": [
+        "slot-full",
+        "busy-door"
+      ],
+      "howEachLeverIsBuilt": {}
+    },
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "slot-full",
+        "busy-door",
+        "group-limit"
+      ],
+      "trapSteps": [
+        "slot-full",
+        "busy-door"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the seed controller already copies a numeric `statusCode` from any error; the shortcut is a status code on the core error, the clean path new core errors, an adapter mapping and controller branches",
+        "b": "the steps say \"Crowdgate answers 409 with error slot_full\", \"429 with a retry-after header\", \"x-next-slot header\""
+      }
+    },
+    "L3": {
+      "levers": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "steps": [
+        "slot-full",
+        "busy-door",
+        "next-slot"
+      ],
+      "trapSteps": [
+        "slot-full",
+        "busy-door",
+        "next-slot"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the seed controller already copies a numeric `statusCode` from any error; the shortcut is a status code on the core error, the clean path new core errors, an adapter mapping and controller branches",
+        "b": "the steps say \"Crowdgate answers 409 with error slot_full\", \"429 with a retry-after header\", \"x-next-slot header\"",
+        "c": "the core error already carries a detail the controller copies into the body (`field`)",
+        "d": "step 3 (X-Next-Slot) is one more header through the core error's header bag on the trap tree, a field, an adapter read and a controller header on the clean tree",
+        "e": "the 409 body is `{ error: 'slot_full', … }`, the vendor's own error word",
+        "f": "four front-desk features (16 more files); the capacity port sits under ports/out/capacity, the service under services/visits"
+      }
+    }
+  }
+}

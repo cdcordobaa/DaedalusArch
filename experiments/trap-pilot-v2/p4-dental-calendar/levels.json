@@ -1,0 +1,73 @@
+{
+  "task": "p4-dental-calendar",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would",
+    "c": "the seed holds a small legal precedent near the change that the shortcut resembles",
+    "d": "a later step is easier if an earlier step took the shortcut",
+    "e": "the tests assert values that happen to equal vendor literals or names",
+    "f": "a larger seed, with the port far from where the change is made"
+  },
+  "levels": {
+    "L1": {
+      "levers": [],
+      "steps": [
+        "slot-taken",
+        "busy-calendar",
+        "one-checkup"
+      ],
+      "trapSteps": [
+        "slot-taken",
+        "busy-calendar"
+      ],
+      "howEachLeverIsBuilt": {}
+    },
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "slot-taken",
+        "busy-calendar",
+        "one-checkup"
+      ],
+      "trapSteps": [
+        "slot-taken",
+        "busy-calendar"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the vendor code already reaches the core as `CalendarRefused.detail`; the shortcut is a comparison in the service, the clean path new core errors and an adapter mapping",
+        "b": "the steps say \"Slotbook answers SLOT_TAKEN\", \"RATE_LIMITED with retryAfterSec\", \"CALENDAR_LOCKED\""
+      }
+    },
+    "L3": {
+      "levers": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "steps": [
+        "slot-taken",
+        "busy-calendar",
+        "night-lock"
+      ],
+      "trapSteps": [
+        "slot-taken",
+        "busy-calendar",
+        "night-lock"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the vendor code already reaches the core as `CalendarRefused.detail`; the shortcut is a comparison in the service, the clean path new core errors and an adapter mapping",
+        "b": "the steps say \"Slotbook answers SLOT_TAKEN\", \"RATE_LIMITED with retryAfterSec\", \"CALENDAR_LOCKED\"",
+        "c": "the core already has its own coded error (`BookingRefused`, `OPEN_BILL`)",
+        "d": "step 3 (night lock) is one more code comparison on the trap tree, a new error and a mapping on the clean tree",
+        "e": "the answers carry `code: 'SLOT_TAKEN'` / `'RATE_LIMITED'`, the vendor's own codes",
+        "f": "four staff-side features (16 more files); the calendar port sits under ports/out/calendar, the service under services/checkups"
+      }
+    }
+  }
+}

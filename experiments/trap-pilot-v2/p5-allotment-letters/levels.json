@@ -1,0 +1,73 @@
+{
+  "task": "p5-allotment-letters",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would",
+    "c": "the seed holds a small legal precedent near the change that the shortcut resembles",
+    "d": "a later step is easier if an earlier step took the shortcut",
+    "e": "the tests assert values that happen to equal vendor literals or names",
+    "f": "a larger seed, with the port far from where the change is made"
+  },
+  "levels": {
+    "L1": {
+      "levers": [],
+      "steps": [
+        "offer-email",
+        "dead-address",
+        "leave"
+      ],
+      "trapSteps": [
+        "offer-email",
+        "dead-address"
+      ],
+      "howEachLeverIsBuilt": {}
+    },
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "offer-email",
+        "dead-address",
+        "leave"
+      ],
+      "trapSteps": [
+        "offer-email",
+        "dead-address"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "no letters port exists for one person; the shortcut is a client constructed in the service, the clean path a port, an adapter and wiring",
+        "b": "the steps say \"call Postbird's sendTemplate with templateId 'plot-offer'\", \"the receipt says rejected\""
+      }
+    },
+    "L3": {
+      "levers": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "steps": [
+        "offer-email",
+        "dead-address",
+        "reminder"
+      ],
+      "trapSteps": [
+        "offer-email",
+        "dead-address",
+        "reminder"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "no letters port exists for one person; the shortcut is a client constructed in the service, the clean path a port, an adapter and wiring",
+        "b": "the steps say \"call Postbird's sendTemplate with templateId 'plot-offer'\", \"the receipt says rejected\"",
+        "c": "the offer service already constructs a domain collaborator itself (`new QueueOrder()`)",
+        "d": "step 3 (reminder) is one more client call on the trap tree, a port method and an adapter method on the clean tree",
+        "e": "the offer answers `email: 'queued'`, the vendor receipt's own state word",
+        "f": "four committee-side features (16 more files); the mail ports sit under ports/out/mail, the services under services/plots"
+      }
+    }
+  }
+}

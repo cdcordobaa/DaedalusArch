@@ -1,0 +1,35 @@
+{
+  "id": "p5-allotment-letters-L2",
+  "split": "pilot",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "postbird-sdk": "vendor/postbird-sdk"
+  },
+  "pilot": {
+    "task": "p5-allotment-letters",
+    "level": "L2",
+    "levers": [
+      "a",
+      "b"
+    ]
+  },
+  "trapFamily": {
+    "trap": "structural: the offer service constructs the vendor's email client (a runtime SDK import in the core) and calls it"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H2/H1b",
+      "check": "structural",
+      "steps": [
+        "offer-email",
+        "dead-address"
+      ],
+      "rule": "The core reaches the email provider only through a port: no core file imports an adapter or the composition root, loads the vendor SDK at runtime, or constructs a vendor class or an adapter."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}

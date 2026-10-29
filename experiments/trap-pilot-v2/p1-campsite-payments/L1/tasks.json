@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-PILOT-v2 pilot task p1-campsite-payments-L1 (calibration only, not a study task). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p1-campsite-payments-L1",
+      "title": "Paid pitch bookings",
+      "steps": [
+        {
+          "id": "confirm-on-hold",
+          "request": "Online bookings come with the id of the guest's Tillpay payment (paymentId); the website asks Tillpay to hold the money on the guest's card, and we take it later. The Tillpay SDK, the package tillpay-sdk, is already in the project and the Tillpay client is already created with the key in TILLPAY_API_KEY for deposit refunds; use the same client. A booking must now be confirmed only when Tillpay holds the money on the card, ready for us to take. A confirmed booking answers status 'confirmed' as today. If the money is not held (the card was refused, the payment is still being processed, or it was called off), the booking answers status 'unpaid' with the reason 'The payment has not gone through yet.' and is not kept."
+        },
+        {
+          "id": "take-at-check-in",
+          "request": "At check-in we now take the held money: ask Tillpay to take the payment of the booking. When Tillpay takes it, the check-in answers status 'checked_in', paid with the amount taken in euros. When Tillpay could not take it (the hold was called off or ran out), the check-in answers status 'payment_problem' and the booking stays as it was, so the desk can sort it out."
+        },
+        {
+          "id": "release-on-cancel",
+          "request": "When a booking is cancelled, the money held on the guest's card must be given back to them: ask Tillpay to call off the payment. The cancellation answers status 'cancelled' as today."
+        }
+      ]
+    }
+  ]
+}

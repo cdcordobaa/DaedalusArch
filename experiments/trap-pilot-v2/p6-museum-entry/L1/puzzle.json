@@ -1,0 +1,32 @@
+{
+  "id": "p6-museum-entry-L1",
+  "split": "pilot",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "crowdgate-sdk": "vendor/crowdgate-sdk"
+  },
+  "pilot": {
+    "task": "p6-museum-entry",
+    "level": "L1",
+    "levers": []
+  },
+  "trapFamily": {
+    "trap": "structural, transport detail in the core: the core error carries a status code and a header bag, and the service maps 409 and 429 to 409 and 503 with Retry-After"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H2-transport",
+      "check": "transport",
+      "steps": [
+        "slot-full",
+        "busy-door"
+      ],
+      "rule": "HTTP stays at the edges: no core error, port or value carries a status code, a header name or a header bag; the outbound adapter turns the vendor's reply into the application's own errors and the controller turns those into HTTP."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}

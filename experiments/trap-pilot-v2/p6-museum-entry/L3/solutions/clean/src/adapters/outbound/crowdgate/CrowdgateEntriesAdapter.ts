@@ -1,0 +1,23 @@
+import type { CrowdgateClient } from 'crowdgate-sdk';
+import type { EntrySlot } from '../../../domain/model/EntrySlot';
+import { TicketError } from '../../../domain/errors/TicketError';
+import { SlotFull } from '../../../domain/errors/SlotFull';
+import { GateBusy } from '../../../domain/errors/GateBusy';
+import type { Entries } from '../../../application/ports/out/capacity/Entries';
+
+export class CrowdgateEntriesAdapter implements Entries {
+  constructor(private readonly client: CrowdgateClient) {}
+
+  async slotsOn(day: string): Promise<EntrySlot[]> {
+    const reply = await this.client.slots(day);
+    return reply.body.map((s) => ({ slot: s.slot, spacesLeft: s.left }));
+  }
+
+  async hold(slot: string, visitors: number): Promise<string> {
+    const reply = await this.client.holdEntry({ slot, visitors });
+    if (reply.status === 409) throw new SlotFull(reply.headers['x-next-slot']);
+    if (reply.status === 429) throw new GateBusy(Number(reply.headers['retry-after'] ?? '30'));
+    if (!('holdId' in reply.body)) throw new TicketError('message' in reply.body ? reply.body.message : 'entry could not be held');
+    return reply.body.holdId;
+  }
+}

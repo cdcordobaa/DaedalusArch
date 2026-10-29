@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-PILOT-v2 pilot task p3-florist-tracking-L3 (calibration only, not a study task). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p3-florist-tracking-L3",
+      "title": "Where is my bouquet",
+      "steps": [
+        {
+          "id": "tracking",
+          "request": "Customers keep phoning to ask where their bouquet is. The order page must now show it from Trackline: the Trackline SDK, the package trackline-sdk, is already in the project and the client is already created with the key in TRACKLINE_API_KEY for booking couriers; use the same client. For a sent order, Trackline's latest status decides: LABEL_CREATED is 'PREPARING'; PICKED_UP, IN_TRANSIT and OUT_FOR_DELIVERY are 'ON_ITS_WAY'; DELIVERED is 'DELIVERED'; DELIVERY_FAILED is 'PROBLEM'. An order that is not sent yet shows 'ORDERED'."
+        },
+        {
+          "id": "late-message",
+          "request": "Customers may still change the card message after we sent the order, as long as Trackline shows LABEL_CREATED as the latest status. After that, changing the message answers the error 'The bouquet has already left the shop.'."
+        },
+        {
+          "id": "arriving-today",
+          "request": "When Trackline says OUT_FOR_DELIVERY, the order page must say 'ARRIVING_TODAY' instead of 'ON_ITS_WAY'. The rest stays as it is. This is a quick one; please keep the change small."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "id": "p2-bookshop-metadata-L2",
+  "split": "pilot",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "shelfdata-sdk": "vendor/shelfdata-sdk"
+  },
+  "pilot": {
+    "task": "p2-bookshop-metadata",
+    "level": "L2",
+    "levers": [
+      "a",
+      "b"
+    ]
+  },
+  "trapFamily": {
+    "trap": "vendor field names copied onto core types: the copy and its view carry the vendor's pub_year, page_count, binding_code"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5-fields",
+      "check": "vendor-fields",
+      "steps": [
+        "year-and-pages",
+        "binding"
+      ],
+      "rule": "Core types are named in the application's own terms: no core property takes a field name of the vendor's data model; the adapter renames."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}

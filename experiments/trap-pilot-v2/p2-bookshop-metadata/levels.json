@@ -1,0 +1,73 @@
+{
+  "task": "p2-bookshop-metadata",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would",
+    "c": "the seed holds a small legal precedent near the change that the shortcut resembles",
+    "d": "a later step is easier if an earlier step took the shortcut",
+    "e": "the tests assert values that happen to equal vendor literals or names",
+    "f": "a larger seed, with the port far from where the change is made"
+  },
+  "levels": {
+    "L1": {
+      "levers": [],
+      "steps": [
+        "year-and-pages",
+        "binding",
+        "price-floor"
+      ],
+      "trapSteps": [
+        "year-and-pages",
+        "binding"
+      ],
+      "howEachLeverIsBuilt": {}
+    },
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "year-and-pages",
+        "binding",
+        "price-floor"
+      ],
+      "trapSteps": [
+        "year-and-pages",
+        "binding"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the seed adapter already spreads the vendor volume into the core entry; the shortcut is to declare the vendor names on the core types, the clean path a new type, explicit renaming and a port change",
+        "b": "the steps say \"Shelfdata's pub_year and page_count\", \"binding_code: HC, PB\", \"cover_url_large\""
+      }
+    },
+    "L3": {
+      "levers": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "steps": [
+        "year-and-pages",
+        "binding",
+        "cover"
+      ],
+      "trapSteps": [
+        "year-and-pages",
+        "binding",
+        "cover"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the seed adapter already spreads the vendor volume into the core entry; the shortcut is to declare the vendor names on the core types, the clean path a new type, explicit renaming and a port change",
+        "b": "the steps say \"Shelfdata's pub_year and page_count\", \"binding_code: HC, PB\", \"cover_url_large\"",
+        "c": "the core already carries the vendor's `subtitle` one to one (legal: a generic word)",
+        "d": "step 3 (cover) is one more vendor-named field on the trap tree, a new field, a mapping and a port change on the clean tree",
+        "e": "the website JSON keys are `pub_year` and `page_count`, the vendor's own field names",
+        "f": "four staff-side features (16 more files); the catalogue port sits under ports/out/catalogue, the service under services/shelves"
+      }
+    }
+  }
+}

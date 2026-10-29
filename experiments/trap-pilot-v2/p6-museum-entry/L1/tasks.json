@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-PILOT-v2 pilot task p6-museum-entry-L1 (calibration only, not a study task). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p6-museum-entry-L1",
+      "title": "Timed entry answers for the ticket page",
+      "steps": [
+        {
+          "id": "slot-full",
+          "request": "The Crowdgate SDK, the package crowdgate-sdk, is already in the project and the client is already created with the key in CROWDGATE_API_KEY; the ticket page already books through it. When every place in the time slot is taken, our ticket page must get the status 409 (Conflict), with the body { error: 'This time slot is full.' }, so it can show a friendly message. Every other refusal stays a 400 as today."
+        },
+        {
+          "id": "busy-door",
+          "request": "On busy mornings the door system is overloaded and asks us to wait a number of seconds. Then our ticket page must get the status 503 with the header Retry-After set to that number of seconds (30 when it gives none), and the body { error: 'Please try again in a moment.' }."
+        },
+        {
+          "id": "group-limit",
+          "request": "Groups of more than 10 visitors must book by phone: such a ticket answers 400 with the body { error: 'Groups over 10 book by phone.' } and nothing is held."
+        }
+      ]
+    }
+  ]
+}
