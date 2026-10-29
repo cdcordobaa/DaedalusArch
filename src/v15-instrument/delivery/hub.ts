@@ -116,7 +116,7 @@ export class DeliveryHub {
     private readonly hookSocket: string,
     private readonly mcpSocket: string | null,
     private readonly logDir: string,
-    private readonly options: DeliveryHubOptions = {},
+    options: DeliveryHubOptions = {},
   ) {
     this.check = options.check ?? checkConsistency;
     this.layers = options.checkLayers ?? checkLayers;
