@@ -17,8 +17,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { rulesDir } from './graph.js';
 
-/** The instrument version the scorer and the hub record (bumped 2026-10-29: hub delivers every scored rule; R-AXA v2; then v1.5.2: R-MIRROR2 added to H11, exploratory, so the hub delivers it too). */
-export const INSTRUMENT_ID = 'v1.5.2-r-mirror2';
+/** The instrument version the scorer and the hub record (bumped 2026-10-29: hub delivers every scored rule; R-AXA v2; then v1.5.2: R-MIRROR2 added to H11, exploratory, so the hub delivers it too; then v1.5.3: the hub and the scorers pass the seed as `baseline`). */
+export const INSTRUMENT_ID = 'v1.5.3-baseline';
 
 export type Style = 'ddd' | 'hexagonal';
 
