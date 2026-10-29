@@ -11,6 +11,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { ConsistencyFinding } from '../consistency.js';
+import { RULE_LABELS } from '../rule-messages.js';
 
 export const GATED_TOOLS: readonly string[] = ['Edit', 'Write', 'MultiEdit'];
 export const MAX_FINDINGS_PER_MESSAGE = 3;
@@ -27,13 +28,12 @@ export interface KeyedFinding extends ConsistencyFinding {
   readonly aggregates: readonly string[];
 }
 
-/** Frozen layer rules the hub can add (`layers.ts`): the label is the id and the preset's rule name. */
-const LAYER_LABELS: Readonly<Record<string, string>> = { 'FF-S01': 'FF-S01 dependency-direction', 'FF-S02': 'FF-S02 no-cyclic-deps', 'FF-S03': 'FF-S03 no-layer-skip' };
-
+/**
+ * The bracketed label of a rule (`rule-messages.ts`): frozen rules show their id and the preset's rule name, v1.5 rules
+ * a few plain words. An id with no label (a combined id of the R-D4/R-XCTX pair, or a rule added later) shows itself.
+ */
 export function ruleLabel(rule: string): string {
-  const layer = LAYER_LABELS[rule];
-  if (layer !== undefined) return layer;
-  return rule === 'R-D4' ? 'one aggregate per command' : rule === 'R-XCTX' ? 'cross-context write' : 'one aggregate per command; cross-context write';
+  return RULE_LABELS[rule] ?? rule;
 }
 
 const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -43,6 +43,8 @@ const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
  * read from there; the aggregates are the spec's aggregate roots named (as whole words) in `why`.
  */
 export function keyOf(f: ConsistencyFinding, aggregateRoots: readonly string[]): KeyedFinding {
+  // Rules other than R-D4/R-XCTX (instrument v1.5.1): the scorer's identity, rule | file | subject.
+  if (f.subject !== undefined && f.rule !== 'R-D4' && f.rule !== 'R-XCTX' && f.rule !== 'R-D4+R-XCTX') return { ...f, command: f.subject, aggregates: [], key: [f.rule, f.file, f.subject].join('|') };
   const m = /^(.+?) \([^()]*:\d+\)/.exec(f.why);
   const command = m?.[1] ?? `${f.file}:${String(f.line)}`;
   const aggregates = aggregateRoots.filter((r) => new RegExp(`(^|[^A-Za-z0-9_])${escapeRe(r)}([^A-Za-z0-9_]|$)`).test(f.why)).sort();

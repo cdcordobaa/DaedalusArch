@@ -93,7 +93,8 @@ describe('delivery hub: push and pull share one finding identity', () => {
     const r = await client.call('check_consistency');
     expect(r.result.content[0]!.text).toMatch(/\(finding 1, already reported\)/);
     const calls = lines('c1', 'calls');
-    expect(calls.at(-1)).toMatchObject({ channel: 'pull', tool: 'check_consistency', findings: [{ finding: 1, status: 'already reported' }] });
+    // instrument v1.5.1: the hub delivers every scored DDD rule, so the edit also shows FF-DS02 (finding 2)
+    expect(calls.at(-1)).toMatchObject({ channel: 'pull', tool: 'check_consistency', findings: [{ finding: 1, status: 'already reported' }, { finding: 2, status: 'already reported' }] });
   }, 60_000);
 
   it('a pull outside the work tree is refused by the frozen confinement', async () => {
@@ -103,7 +104,7 @@ describe('delivery hub: push and pull share one finding identity', () => {
 
   it('Stop blocks once per turn on the open finding', async () => {
     const first = await hub.handleHook(stop());
-    expect((JSON.parse(first) as { decision: string; reason: string }).reason).toMatch(/1 finding still open[\s\S]*\(finding 1\)/);
+    expect((JSON.parse(first) as { decision: string; reason: string }).reason).toMatch(/2 findings still open[\s\S]*\(finding 1\)[\s\S]*\[FF-DS02 context-isolation\] \(finding 2\)/);
     expect(await hub.handleHook(stop())).toBe('');
   }, 60_000);
 
@@ -122,6 +123,6 @@ describe('delivery hub: push and pull share one finding identity', () => {
     expect(row).toMatchObject({ number: 1, open: false, resolvedBy: 'push' });
     expect(row.exposures.map((e) => e.channel)).toEqual(['push', 'pull']);
     const pushes = lines('c1', 'push').filter((l) => l.event === 'PostToolUse' && l.refused === null);
-    expect(pushes.map((l) => l.pushed)).toEqual([[1], []]);
+    expect(pushes.map((l) => l.pushed)).toEqual([[1, 2], []]);
   }, 60_000);
 });

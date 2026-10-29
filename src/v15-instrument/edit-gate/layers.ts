@@ -9,6 +9,11 @@
  * The gate keeps the blocking findings of the three layer rules FF-S01 (dependency-direction), FF-S02 (no-cyclic-deps)
  * and FF-S03 (no-layer-skip), and turns each into the gate's finding shape (`gate.ts`), so that de-duplication, the
  * message and the Stop hook treat them like `check_consistency` findings.
+ *
+ * 2026-10-29 (instrument v1.5.1): `rules` takes any set of frozen rule ids (the delivery hub passes the style's frozen
+ * rules from the one rule list, `../rule-set.ts`); the default stays FF-S01–S03. Messages come from
+ * `../rule-messages.ts` (plain rule text, the file:line and subject with the frozen reason, the frozen fix); keys are
+ * unchanged.
  */
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -18,6 +23,7 @@ import { SOURCE_FILE_RE } from '../../mcp-server/diff-check.js';
 import { checkDiffTool, type ServerContext } from '../../mcp-server/tools.js';
 import type { FileViolation } from '../../mcp-server/types.js';
 import type { KeyedFinding } from './gate.js';
+import { frozenMessage } from '../rule-messages.js';
 
 export const LAYER_RULES: readonly string[] = ['FF-S01', 'FF-S02', 'FF-S03'];
 
@@ -65,9 +71,7 @@ export function toKeyed(v: FileViolation): KeyedFinding {
     file: v.file,
     line: v.line,
     rule: v.ruleId,
-    ruleText: `${v.construct}.`,
-    why: `${v.subject}: ${v.reason}`,
-    fix: v.fix,
+    ...frozenMessage(v),
     writes: [],
     command: v.subject,
     aggregates: [],
@@ -79,13 +83,15 @@ export function toKeyed(v: FileViolation): KeyedFinding {
  * The layer findings of the changed files against the seed. `changed` is tree-relative (the hub's `changedSince`);
  * only TypeScript/JavaScript sources are diffed.
  */
-export async function checkLayers(o: { readonly root: string; readonly spec: string; readonly seedDir: string; readonly changed: readonly string[] }): Promise<LayerCheck> {
+export async function checkLayers(o: { readonly root: string; readonly spec: string; readonly seedDir: string; readonly changed: readonly string[]; readonly rules?: readonly string[] | undefined }): Promise<LayerCheck> {
+  const ids = o.rules ?? LAYER_RULES;
   const t0 = performance.now();
+  if (ids.length === 0) return { findings: [], advisory: 0, ms: 0 };
   const diff = o.changed.filter((f) => SOURCE_FILE_RE.test(f)).map((f) => unified(o.seedDir, o.root, f)).filter((d) => d.trim() !== '').join('');
   if (diff === '') return { findings: [], advisory: 0, ms: Math.round(performance.now() - t0) };
   const r = await checkDiffTool(contextOf(o.spec, o.root), { diff });
   if (!r.ok) throw new Error(`check_diff: ${r.message}`);
-  const layer = r.data.files.flatMap((f) => f.findings).filter((v) => LAYER_RULES.includes(v.ruleId));
+  const layer = r.data.files.flatMap((f) => f.findings).filter((v) => ids.includes(v.ruleId));
   const blocking = layer.filter((v) => v.tier === 'blocking');
   const seen = new Set<string>();
   const findings = blocking.map(toKeyed).filter((f) => (seen.has(f.key) ? false : (seen.add(f.key), true)));

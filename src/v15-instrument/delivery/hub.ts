@@ -14,6 +14,14 @@
  * work tree, or whose session id is not the cell's, get no reply; MCP calls go through the frozen `confineArgs`. Every
  * error fails open (empty reply, logged). Logs (root-only, one line per event, one shared `seq`):
  * `<cell>.push.jsonl`, `<cell>.calls.jsonl`, and `<cell>.ledger.json` when the cell closes.
+ *
+ * 2026-10-29 (instrument v1.5.1, `../rule-set.ts`): both channels deliver exactly the rules the scorer runs for the
+ * session's style (admitted + exploratory rows of the one rule list): the v1.5 Cypher rules through the hub's check
+ * (push: after every gated edit, the findings in changed files; pull: `check_consistency`, which now covers the whole
+ * delivered set) and the frozen file rules of the style through the frozen `check_diff` against the seed (push and
+ * `check_consistency`; the frozen `check_file` / `check_diff` answers are numbered for the same rules). The style is
+ * the cell's `style`, else the spec's `architecture.style`; a style no study scores gets no rule.
+ * `tests/unit/v15-instrument/delivery-rule-set.test.ts` holds push == pull == scored.
  */
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -27,12 +35,14 @@ import { buildContext, parseArgs } from '../../mcp-server/context.js';
 import { createServer } from '../../mcp-server/server.js';
 import { confineArgs } from '../../mcp-server/confine.js';
 import type { FileViolation } from '../../mcp-server/types.js';
-import { CONSISTENCY_RULES, checkConsistency, type ConsistencyResult } from '../consistency.js';
+import { checkConsistency, type ConsistencyResult } from '../consistency.js';
 import { GATED_TOOLS, insideTree, keyOf, parseHookEvent, postToolUseReply, stopReply, type KeyedFinding } from '../edit-gate/gate.js';
 import { changedSince, escapingLinks, treeHashes } from '../edit-gate/hub.js';
 import { checkLayers, LAYER_RULES, toKeyed } from '../edit-gate/layers.js';
-import { CHECK_CONSISTENCY, CHECK_CONSISTENCY_DESCRIPTION, CONSISTENCY_SHAPE } from '../mcp/server.js';
+import { CHECK_CONSISTENCY, CONSISTENCY_SHAPE } from '../mcp/server.js';
 import { preflightSpec } from '../preflight.js';
+import { cypherRules, frozenRules, scoredStyle, type Style } from '../rule-set.js';
+import { loadSpec } from '../spec.js';
 import { FindingLedger, type PullAnnotation, type PullScope } from './ledger.js';
 import { pullConsistencyText, pullFrozenHeader, pushMessage, stopText } from './messages.js';
 
@@ -46,10 +56,30 @@ export interface DeliveryCell {
   readonly project: string;
   /** Optional: the tree whose files count as unchanged (default: the work tree when the cell opens). */
   readonly baseline?: string;
+  /** Optional: the scored style whose rules are delivered (default: the spec's `architecture.style`). */
+  readonly style?: Style;
 }
 
+/** The rule ids a cell's channels deliver: the style's scored set from the one rule list, split by kind. */
+export interface DeliveredRules { readonly style: Style | null; readonly cypher: readonly string[]; readonly frozen: readonly string[] }
+
+export function deliveredRulesOf(cell: Pick<DeliveryCell, 'spec' | 'project' | 'style'>): DeliveredRules {
+  const style = cell.style ?? scoredStyle(loadSpec(cell.project, cell.spec).style);
+  return style === null ? { style, cypher: [], frozen: [] } : { style, cypher: cypherRules(style), frozen: frozenRules(style) };
+}
+
+/** The hub's `check_consistency` description: the whole delivered set, not only the consistency pair. */
+export const HUB_CHECK_DESCRIPTION =
+  'Checks the code against the architecture rules of the spec: its layers, its ports and adapters, and its aggregates and bounded contexts, as the spec declares them. These are the same checks that run automatically after each file you create or edit. '
+  + 'WHEN: after you change code, and always before you finish a step. '
+  + 'Each finding gives file:line, the rule in plain words, why this code breaks it (the files and symbols involved) and a fix; a finding you have already been shown is listed by its number only. status is clean or violations. '
+  + 'Fast and deterministic (no model call). Pass `files` (changed files, project-relative) to see only findings in them, or nothing to check the whole project.';
+
 export interface DeliveryHubOptions {
-  /** Also run the frozen layer rules FF-S01–S03 on the push side (`layers.ts`), as PUZZLE-04 did. */
+  /**
+   * Ignored since instrument v1.5.1: the frozen rules of the style are always delivered on both channels (the field is
+   * kept so existing drivers type-check). Before, it switched FF-S01–S03 on for push only.
+   */
   readonly layers?: boolean;
   /** Test seams. */
   readonly check?: typeof checkConsistency;
@@ -59,13 +89,17 @@ export interface DeliveryHubOptions {
 const sha = (s: string): string => createHash('sha256').update(s).digest('hex');
 const digestOf = (h: ReadonlyMap<string, string>): string => sha([...h].sort(([a], [b]) => (a < b ? -1 : 1)).map(([f, x]) => `${f}\0${x}`).join('\n'));
 
+/** One check of a tree state by both rule kinds: the v1.5 result and every keyed finding (v1.5 first, then frozen). */
+interface Delivered { readonly res: ConsistencyResult; readonly keyed: readonly KeyedFinding[]; readonly frozenCount: number; readonly frozenError: string | null }
+
 interface Session {
   cell: DeliveryCell;
   readonly seed: Map<string, string>;
   readonly ledger: FindingLedger;
   readonly scratch: string;
   readonly seedCopy: string;
-  readonly cache: Map<string, ConsistencyResult>;
+  readonly cache: Map<string, Delivered>;
+  readonly rules: DeliveredRules;
   hookEvents: number;
   failOpen: number;
 }
@@ -82,7 +116,7 @@ export class DeliveryHub {
     private readonly hookSocket: string,
     private readonly mcpSocket: string | null,
     private readonly logDir: string,
-    private readonly options: DeliveryHubOptions = {},
+    options: DeliveryHubOptions = {},
   ) {
     this.check = options.check ?? checkConsistency;
     this.layers = options.checkLayers ?? checkLayers;
@@ -90,6 +124,11 @@ export class DeliveryHub {
 
   get ledger(): FindingLedger | null {
     return this.s?.ledger ?? null;
+  }
+
+  /** The rule ids the open cell delivers (null when no cell is open). */
+  get delivered(): DeliveredRules | null {
+    return this.s?.rules ?? null;
   }
 
   async setCell(cell: DeliveryCell): Promise<void> {
@@ -100,9 +139,11 @@ export class DeliveryHub {
     fs.mkdirSync(scratch, { recursive: true, mode: 0o700 });
     const seedCopy = path.join(scratch, 'seed');
     fs.rmSync(seedCopy, { recursive: true, force: true });
-    if (this.options.layers === true) fs.cpSync(cell.project, seedCopy, { recursive: true, filter: (src) => path.relative(cell.project, src).split(path.sep)[0] !== 'node_modules' });
-    this.s = { cell, seed: treeHashes(cell.baseline ?? cell.project), ledger: new FindingLedger(), scratch, seedCopy, cache: new Map(), hookEvents: 0, failOpen: 0 };
-    await this.check({ root: cell.project, spec: cell.spec, scratch }).catch(() => undefined); // warm, not logged
+    const base = cell.baseline ?? cell.project;
+    fs.cpSync(base, seedCopy, { recursive: true, filter: (src) => path.relative(base, src).split(path.sep)[0] !== 'node_modules' });
+    const rules = deliveredRulesOf(cell);
+    this.s = { cell, seed: treeHashes(base), ledger: new FindingLedger(), scratch, seedCopy, cache: new Map(), rules, hookEvents: 0, failOpen: 0 };
+    await this.check({ root: cell.project, spec: cell.spec, scratch, rules: rules.cypher }).catch(() => undefined); // warm, not logged
   }
 
   setTurn(step: string, turn: string): void {
@@ -147,14 +188,26 @@ export class DeliveryHub {
     fs.appendFileSync(path.join(this.logDir, `${s.cell.id}.${file}.jsonl`), `${JSON.stringify({ at: new Date().toISOString(), cell: s.cell.id, step: s.cell.step, turn: s.cell.turn, ...line })}\n`);
   }
 
-  /** The consistency check of one tree state, cached by tree digest and file scope. */
-  private async consistency(s: Session, hashes: ReadonlyMap<string, string>, files: readonly string[] | null): Promise<ConsistencyResult> {
+  /**
+   * The check of one tree state by both rule kinds, cached by tree digest and file scope, so push and pull give the
+   * same answer on the same tree. v1.5 rules: the hub's check over `files` (null: the whole project). Frozen rules:
+   * `check_diff` of the changed files against the seed copy (`files` and changed, when files are given). A frozen-check
+   * error drops only its findings (logged), as the layer check did.
+   */
+  private async deliver(s: Session, hashes: ReadonlyMap<string, string>, files: readonly string[] | null): Promise<Delivered> {
     const k = `${digestOf(hashes)}|${files === null ? '*' : [...files].sort().join(',')}`;
     const hit = s.cache.get(k);
     if (hit !== undefined) return hit;
-    const res = await this.check({ root: s.cell.project, spec: s.cell.spec, scratch: s.scratch, ...(files !== null ? { files } : {}) });
-    s.cache.set(k, res);
-    return res;
+    const res = await this.check({ root: s.cell.project, spec: s.cell.spec, scratch: s.scratch, rules: s.rules.cypher, ...(files !== null ? { files } : {}) });
+    const changed = changedSince(s.seed, hashes).filter((f) => files === null || files.includes(f));
+    let frozenError: string | null = null;
+    const lay = s.rules.frozen.length > 0 && changed.length > 0
+      ? await this.layers({ root: s.cell.project, spec: s.cell.spec, seedDir: s.seedCopy, changed, rules: s.rules.frozen }).catch((e: unknown) => { frozenError = (e instanceof Error ? e.message : String(e)).slice(0, 300); return null; })
+      : null;
+    const keyed = [...res.findings.map((f) => keyOf(f, res.aggregateRoots)), ...(lay?.findings ?? [])];
+    const d: Delivered = { res, keyed, frozenCount: lay?.findings.length ?? 0, frozenError };
+    s.cache.set(k, d);
+    return d;
   }
 
   // ── Push ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -203,17 +256,13 @@ export class DeliveryHub {
       const hashes = treeHashes(s.cell.project);
       const changed = changedSince(s.seed, hashes);
       const t1 = performance.now();
-      const res = changed.length === 0 ? null : await this.consistency(s, hashes, changed);
-      let layerError: string | null = null;
-      const lay = this.options.layers === true && changed.length > 0
-        ? await this.layers({ root: s.cell.project, spec: s.cell.spec, seedDir: s.seedCopy, changed }).catch((e: unknown) => { layerError = (e instanceof Error ? e.message : String(e)).slice(0, 300); return null; })
-        : null;
-      const keyed = [...(res === null ? [] : res.findings.map((f) => keyOf(f, res.aggregateRoots))), ...(lay?.findings ?? [])];
+      const dv = changed.length === 0 ? null : await this.deliver(s, hashes, changed);
+      const keyed = dv?.keyed ?? [];
       const d = s.ledger.push(keyed, seq);
       const common = {
         event: ev.event, file, treeDigest: digestOf(hashes).slice(0, 16), checkMs: Math.round(performance.now() - t1), changedFiles: changed.length, findings: keyed.length,
         pushed: d.fresh.map((f) => f.number), withheld: d.withheld.map((w) => ({ finding: w.number, shownBy: w.shownBy })), resolved: d.resolved.map((f) => f.number), open: d.open.map((f) => f.number),
-        allowOverlay, ...(this.options.layers === true ? { layerFindings: lay?.findings.length ?? 0, layerError } : {}),
+        allowOverlay, layerFindings: dv?.frozenCount ?? 0, layerError: dv?.frozenError ?? null,
       };
       if (ev.event === 'PostToolUse') return done(common, postToolUseReply(pushMessage(d.fresh, d.resolved)));
       const block = d.open.length > 0 && !ev.stopHookActive && s.ledger.claimStop(s.cell.turn);
@@ -240,7 +289,7 @@ export class DeliveryHub {
     const register = server.registerTool.bind(server) as unknown as (name: string, config: Record<string, unknown>, h: (args: unknown) => Promise<CallToolResult>) => unknown;
     register(CHECK_CONSISTENCY, {
       title: 'Check aggregate and context consistency boundaries',
-      description: CHECK_CONSISTENCY_DESCRIPTION,
+      description: HUB_CHECK_DESCRIPTION,
       inputSchema: CONSISTENCY_SHAPE,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     }, async (args) => {
@@ -262,17 +311,19 @@ export class DeliveryHub {
     conn.on('close', () => { void server.close().catch(() => undefined); });
   }
 
-  /** `check_consistency` for a pull: cached check, keyed, numbered in the ledger, text with seen findings shortened. */
+  /** `check_consistency` for a pull: cached check of the whole delivered set, keyed, numbered in the ledger, seen findings shortened. */
   private async pullConsistency(s: Session, args: unknown): Promise<CallToolResult> {
     const a = z.object(CONSISTENCY_SHAPE).parse(args ?? {});
     try {
-      const files = a.files ?? null;
-      const res = await this.consistency(s, treeHashes(s.cell.project), files);
-      const keyed = res.findings.map((f) => keyOf(f, res.aggregateRoots));
-      const notes = s.ledger.pull(keyed, { files, covers: (r) => (CONSISTENCY_RULES as readonly string[]).includes(r) });
+      const files = a.files?.map((f) => f.replace(/^\.\//, '')) ?? null;
+      const { res, keyed } = await this.deliver(s, treeHashes(s.cell.project), files);
+      const all = new Set([...s.rules.cypher, ...s.rules.frozen]);
+      const notes = s.ledger.pull(keyed, { files, covers: (r) => r.split('+').every((x) => all.has(x)) });
+      const status = keyed.length > 0 ? 'violations' : res.status === 'not-applicable' && s.rules.frozen.length === 0 ? 'not-applicable' : 'clean';
+      const summary = keyed.length === res.findings.length ? res.summary : `${String(keyed.length)} finding(s) break an architecture rule: fix each before finishing the step.`;
       return {
-        content: [{ type: 'text', text: pullConsistencyText(res, keyed, notes) }],
-        structuredContent: { ...res, findings: res.findings.map((f, i) => ({ ...f, finding: notes[i]!.number, delivery: notes[i]!.status })) } as Record<string, unknown>,
+        content: [{ type: 'text', text: pullConsistencyText({ ...res, summary }, keyed, notes) }],
+        structuredContent: { ...res, status, summary, findings: keyed.map(({ key: _key, command: _command, aggregates: _aggregates, ...f }, i) => ({ ...f, finding: notes[i]!.number, delivery: notes[i]!.status })) } as Record<string, unknown>,
       };
     } catch (e) {
       return { isError: true, content: [{ type: 'text', text: `check_consistency failed: ${(e instanceof Error ? e.message : String(e)).slice(0, 300)}` }] };
@@ -292,8 +343,8 @@ export class DeliveryHub {
     if (req.tool === CHECK_CONSISTENCY && Array.isArray(sc?.findings)) {
       numbers = (sc.findings as { finding: number; delivery: string }[]).map((f) => ({ finding: f.finding, status: f.delivery }));
     } else if ((req.tool === 'check_file' || req.tool === 'check_diff') && sc !== undefined && result.isError !== true) {
-      const keyed = frozenLayerFindings(req.tool, sc, s.cell.project);
-      const scope: PullScope = { files: keyed.files, covers: (r) => LAYER_RULES.includes(r) };
+      const keyed = frozenLayerFindings(req.tool, sc, s.cell.project, s.rules.frozen);
+      const scope: PullScope = { files: keyed.files, covers: (r) => s.rules.frozen.includes(r) };
       const notes: PullAnnotation[] = s.ledger.pull(keyed.findings, scope, seq);
       numbers = notes.map((n) => ({ finding: n.number, status: n.status }));
       const header = pullFrozenHeader(keyed.findings, notes);
@@ -309,8 +360,8 @@ function safeReal(p: string): string | null {
   try { return fs.realpathSync.native(p); } catch { return null; }
 }
 
-/** The blocking FF-S01–S03 findings of a frozen check_file / check_diff answer, keyed as the gate keys them. */
-export function frozenLayerFindings(tool: 'check_file' | 'check_diff', sc: Record<string, unknown>, project: string): { findings: KeyedFinding[]; files: string[] } {
+/** The blocking findings of the given frozen rules (default FF-S01–S03) in a frozen check_file / check_diff answer, keyed as the gate keys them. */
+export function frozenLayerFindings(tool: 'check_file' | 'check_diff', sc: Record<string, unknown>, project: string, rules: readonly string[] = LAYER_RULES): { findings: KeyedFinding[]; files: string[] } {
   const rel = (p: string): string => (path.isAbsolute(p) ? path.relative(project, p) : p).split(path.sep).join('/');
   const fileResults = tool === 'check_file' ? [sc as { path?: string; findings?: FileViolation[] }] : ((sc.files as { path?: string; findings?: FileViolation[] }[] | undefined) ?? []);
   const findings: KeyedFinding[] = [];
@@ -320,7 +371,7 @@ export function frozenLayerFindings(tool: 'check_file' | 'check_diff', sc: Recor
     const file = rel(String(fr.path ?? ''));
     files.push(file);
     for (const v of fr.findings ?? []) {
-      if (!LAYER_RULES.includes(v.ruleId) || v.tier !== 'blocking') continue;
+      if (!rules.includes(v.ruleId) || v.tier !== 'blocking') continue;
       const k = toKeyed({ ...v, file } as FileViolation & { file: string });
       if (!seen.has(k.key)) { seen.add(k.key); findings.push(k); }
     }
