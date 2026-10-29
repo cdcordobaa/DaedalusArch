@@ -105,7 +105,11 @@ export function writeTsconfig(tree: string, scratch: string): string {
   return file;
 }
 
-export interface BuildOptions { readonly spec?: string | undefined; readonly style?: string | undefined; readonly withApg?: boolean | undefined; readonly scratch?: string | undefined; readonly tsconfig?: string | undefined }
+export interface BuildOptions {
+  readonly spec?: string | undefined; readonly style?: string | undefined; readonly withApg?: boolean | undefined; readonly scratch?: string | undefined; readonly tsconfig?: string | undefined;
+  /** R-MIRROR2 stoplist: a baseline tree (for example the task's seed) whose core terms are the project's own. */
+  readonly baseline?: string | undefined;
+}
 
 export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise<{ graph: MemoryGraph; facts: Facts; spec: DetectSpec; stats: Record<string, number>; preflight?: PreflightResult }> {
   const scratch = opts.scratch ?? fs.mkdtempSync(path.join(os.tmpdir(), 'detect-02-'));
@@ -144,7 +148,7 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     } else stats.apgFailed = 1;
   }
 
-  const facts = computeFacts(tree, tsconfig, spec);
+  const facts = computeFacts(tree, tsconfig, spec, { specFile, baseline: opts.baseline });
   const contexts = new Map<string, GraphNode>();
   const ctx = (name: string): GraphNode => { let c = contexts.get(name); if (!c) { c = node(['Context'], { name }); contexts.set(name, c); } return c; };
   const roots = new Map<string, GraphNode>();
@@ -239,6 +243,24 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const c = node(['CoreType'], { name: x.core, file: x.file, role: x.role });
     const v = node(['VendorType'], { name: x.vendor, module: x.module });
     rel('MIRRORS_VENDOR', c, v, { form: x.form, detail: x.detail, line: x.line });
+  }
+  // R-MIRROR2 (H11 v2): one Token node per token; vendor terms, core terms and the adapters' value maps point to it.
+  const tokens = new Map<string, GraphNode>();
+  const tok = (t: string): GraphNode => { let g = tokens.get(t); if (!g) { g = node(['Token'], { token: t }); tokens.set(t, g); } return g; };
+  if (facts.vendorTerms.length > 0) {
+    for (const v of facts.vendorTerms) {
+      const g = node(['VendorTerm'], { module: v.module, decl: v.decl, kind: v.kind, text: v.text, set: v.set, setSize: v.setSize, isError: v.isError, ownedBy: v.ownedBy });
+      rel('TERM_TOKEN', g, tok(v.token));
+    }
+    for (const c of facts.coreTerms) {
+      const g = node(['CoreTerm'], { file: c.file, line: c.line, role: c.role, kind: c.kind, text: c.text, symbol: c.symbol, context: c.context, set: c.set, setSize: c.setSize, owner: c.owner, ownerFields: c.ownerFields });
+      rel('TERM_TOKEN', g, tok(c.token));
+    }
+    for (const m of facts.valueMaps) {
+      const g = node(['ValueMap'], { file: m.file, line: m.line, from: m.from, to: m.to, form: m.form });
+      rel('MAPS_FROM', g, tok(`lit:${m.from}`));
+      rel('MAPS_TO', g, tok(`lit:${m.to}`));
+    }
   }
   for (const x of facts.repoMulti) {
     const a = node(['RepositoryMethod'], { name: `${x.repo}.${x.method}`, file: x.file, line: x.line });
