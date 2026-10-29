@@ -1,0 +1,1419 @@
+{
+ "schema": "detect-02-heldout-v1",
+ "split": "held-out",
+ "scoredOnce": true,
+ "modelCalls": 0,
+ "commit": "82be5f8de1a1a9664bfd55d007841c598f609b7f",
+ "ruleHash": "761f37d9e5586371a12f3c1f17756bb19d24cd2224c0fa6df114d4f9e3cd6494",
+ "manifestSeal": "afacdd86003b74a7b3e03557ca948db7aedfc75f4801cd2b3f1a40418a66f7ab",
+ "manifestLines": 433,
+ "rules": [
+  {
+   "id": "R-ADAPTER-RULE",
+   "family": "H6",
+   "file": "r-adapter-rule-business-rule-in-adapter.cypher"
+  },
+  {
+   "id": "R-AXA",
+   "family": "H3",
+   "file": "r-axa-adapter-imports-adapter.cypher"
+  },
+  {
+   "id": "R-COREIO",
+   "family": "H9",
+   "file": "r-coreio-io-without-port.cypher"
+  },
+  {
+   "id": "R-D3",
+   "family": "D5",
+   "file": "r-d3-calc-outside-aggregate.cypher"
+  },
+  {
+   "id": "R-D4",
+   "family": "D4",
+   "file": "r-d4-multi-aggregate-write.cypher"
+  },
+  {
+   "id": "R-D4R",
+   "family": "D4",
+   "file": "r-d4r-repository-persists-many.cypher"
+  },
+  {
+   "id": "R-D5",
+   "family": "D5",
+   "file": "r-d5-rule-outside-aggregate.cypher"
+  },
+  {
+   "id": "R-D5S",
+   "family": "D5",
+   "file": "r-d5s-declared-invariant.cypher"
+  },
+  {
+   "id": "R-D9",
+   "family": "D9",
+   "file": "r-d9-contract-exposes-entity.cypher"
+  },
+  {
+   "id": "R-ENTITY-OUT",
+   "family": "H10",
+   "file": "r-entity-out-inbound-exposes-entity.cypher"
+  },
+  {
+   "id": "R-H5",
+   "family": "H5",
+   "file": "r-h5-port-mechanism.cypher"
+  },
+  {
+   "id": "R-INJ",
+   "family": "H4",
+   "file": "r-inj-concrete-injection.cypher"
+  },
+  {
+   "id": "R-LOCATOR",
+   "family": "H8",
+   "file": "r-locator-service-locator.cypher"
+  },
+  {
+   "id": "R-LOCK",
+   "family": "D5",
+   "file": "r-lock-lock-around-write.cypher"
+  },
+  {
+   "id": "R-MIRROR",
+   "family": "H11",
+   "file": "r-mirror-vendor-vocabulary.cypher"
+  },
+  {
+   "id": "R-PURE",
+   "family": "D2",
+   "file": "r-pure-domain-imports-tech.cypher"
+  },
+  {
+   "id": "R-REF",
+   "family": "D4",
+   "file": "r-ref-holds-other-root.cypher"
+  },
+  {
+   "id": "R-RTX",
+   "family": "RTX",
+   "file": "r-rtx-remote-in-transaction.cypher"
+  },
+  {
+   "id": "R-TRANSPORT",
+   "family": "H7",
+   "file": "r-transport-in-core.cypher"
+  },
+  {
+   "id": "R-XCTX",
+   "family": "D4",
+   "file": "r-xctx-cross-context-write.cypher"
+  }
+ ],
+ "familyMap": {
+  "D4": {
+   "family": "D4",
+   "expectedRule": "R-D4"
+  },
+  "cross-context-write": {
+   "family": "D4",
+   "expectedRule": "R-XCTX"
+  },
+  "D5/D3": {
+   "family": "D5",
+   "expectedRule": "R-D5"
+  },
+  "D9": {
+   "family": "D9",
+   "expectedRule": "R-D9"
+  },
+  "H5": {
+   "family": "H5",
+   "expectedRule": "R-H5"
+  },
+  "concrete-injection": {
+   "family": "H4",
+   "expectedRule": "R-INJ"
+  },
+  "vendor-call-in-transaction": {
+   "family": "RTX",
+   "expectedRule": "R-RTX"
+  }
+ },
+ "perFamily": {
+  "D2": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "D4": {
+   "positives": 6,
+   "tp": 4,
+   "fn": 2,
+   "located": 4,
+   "tpCases": [
+    "hc-03",
+    "hc-06",
+    "hc-24",
+    "hc-26"
+   ],
+   "fnCases": [
+    "hc-22",
+    "hc-30"
+   ],
+   "fpOnTwins": [
+    "hc-28"
+   ],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-03",
+     "twin": "hc-12",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-06",
+     "twin": "hc-28",
+     "positiveFlagged": true,
+     "twinFlagged": true,
+     "discriminates": false
+    },
+    {
+     "positive": "hc-22",
+     "twin": "hc-10",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    },
+    {
+     "positive": "hc-24",
+     "twin": "hc-09",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-26",
+     "twin": "hc-17",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-30",
+     "twin": "hc-05",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    }
+   ]
+  },
+  "D5": {
+   "positives": 2,
+   "tp": 1,
+   "fn": 1,
+   "located": 1,
+   "tpCases": [
+    "hc-14"
+   ],
+   "fnCases": [
+    "hc-07"
+   ],
+   "fpOnTwins": [],
+   "fpOnNegatives": [
+    "hc-11",
+    "hc-34"
+   ],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-07",
+     "twin": "hc-15",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    },
+    {
+     "positive": "hc-14",
+     "twin": "hc-18",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "D9": {
+   "positives": 2,
+   "tp": 2,
+   "fn": 0,
+   "located": 2,
+   "tpCases": [
+    "hc-04",
+    "hc-19"
+   ],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-04",
+     "twin": "hc-20",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-19",
+     "twin": "hc-02",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H10": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [
+    "hc-19"
+   ],
+   "pairs": []
+  },
+  "H11": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H3": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H4": {
+   "positives": 1,
+   "tp": 1,
+   "fn": 0,
+   "located": 1,
+   "tpCases": [
+    "hc-31"
+   ],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-31",
+     "twin": "hc-16",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H5": {
+   "positives": 2,
+   "tp": 2,
+   "fn": 0,
+   "located": 2,
+   "tpCases": [
+    "hc-23",
+    "hc-33"
+   ],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-23",
+     "twin": "hc-27",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-33",
+     "twin": "hc-32",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H6": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H7": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H8": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H9": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "RTX": {
+   "positives": 1,
+   "tp": 0,
+   "fn": 1,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [
+    "hc-08"
+   ],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-08",
+     "twin": "hc-29",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    }
+   ]
+  }
+ },
+ "perRule": {
+  "R-D4": {
+   "positive": 4,
+   "twin": 1,
+   "negative": 0
+  },
+  "R-XCTX": {
+   "positive": 2,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-D9": {
+   "positive": 3,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-D5": {
+   "positive": 2,
+   "twin": 0,
+   "negative": 2
+  },
+  "R-ENTITY-OUT": {
+   "positive": 1,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-H5": {
+   "positive": 2,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-INJ": {
+   "positive": 1,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-LOCK": {
+   "positive": 0,
+   "twin": 0,
+   "negative": 1
+  }
+ },
+ "rows": [
+  {
+   "id": "hc-01",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "authorLabel": "N05",
+   "pair": null,
+   "nearFamily": "H5",
+   "violation": null,
+   "rationale": "Both ports use only domain types (FlightNumber, TravelDate, SeatCount, SeatHold); the vendor SDK and HTTP request types appear only in the outbound and inbound adapters.",
+   "ms": 331,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-02",
+   "kind": "twin",
+   "keyFamily": "D9",
+   "family": "D9",
+   "expectedRule": "R-D9",
+   "authorLabel": "P10-twin",
+   "pair": "hc-19",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "PlanView is an explicit primitive shape filled by a mapper in the API layer; the contract file imports nothing from the domain.",
+   "ms": 114,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-03",
+   "kind": "positive",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "authorLabel": "P05",
+   "pair": "hc-12",
+   "nearFamily": null,
+   "violation": "src/rentals/application/ReturnVehicle.ts:17",
+   "rationale": "ReturnVehicle (rentals) calls, through its ACL and fleet's published FleetCommands facade, a command that mutates and stores the fleet Vehicle aggregate inside the rentals transaction.",
+   "ms": 154,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/rentals/application/ReturnVehicle.ts",
+     "line": 12,
+     "subject": "ReturnVehicle.execute",
+     "path": [
+      "src/rentals/application/ReturnVehicle.ts:16 RentalDao.store",
+      "src/rentals/domain/rental/RentalDao.ts:5 (declaration of RentalDao.store)",
+      "src/fleet/application/FleetCommands.ts:15 VehicleDao.store",
+      "src/fleet/domain/vehicle/VehicleDao.ts:5 (declaration of VehicleDao.store)"
+     ],
+     "evidence": "saves 2 aggregate instances: Rental x1, Vehicle x1"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/rentals/application/ReturnVehicle.ts",
+     "line": 12,
+     "subject": "ReturnVehicle.execute",
+     "path": [
+      "ReturnVehicle.execute",
+      "FleetOperationsAdapter.recordReturn",
+      "FleetCommands.checkIn",
+      "VehicleDao.store"
+     ],
+     "evidence": "context rentals writes Vehicle (owned by fleet)"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-04",
+   "kind": "positive",
+   "keyFamily": "D9",
+   "family": "D9",
+   "expectedRule": "R-D9",
+   "authorLabel": "P09",
+   "pair": "hc-20",
+   "nearFamily": null,
+   "violation": "src/care/contracts/GetPetResponse.ts:4",
+   "rationale": "The published GetPetResponse contract embeds the Pet aggregate (with its Vaccination entities) and the controller serialises it as the HTTP body.",
+   "ms": 87,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/care/contracts/GetPetResponse.ts",
+     "line": 4,
+     "subject": "GetPetResponse",
+     "path": [],
+     "evidence": "GetPetResponse exposes Pet (src/care/domain/pet/Pet.ts) via GetPetResponse.pet"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-05",
+   "kind": "twin",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "authorLabel": "P06-twin",
+   "pair": "hc-30",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "PurchaseTickets only enqueues TicketsPurchased in its outbox; the event reaches the loyalty handler through a relay that drains committed outbox entries after the sales unit of work ends.",
+   "ms": 102,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-06",
+   "kind": "positive",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "authorLabel": "P03",
+   "pair": "hc-28",
+   "nearFamily": null,
+   "violation": "src/guests/application/MergeGuestProfiles.ts:19",
+   "rationale": "MergeGuestProfiles mutates two GuestProfile instances and writes both through a helper (Promise.all over the array) inside one Session.atomically callback.",
+   "ms": 95,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/guests/application/MergeGuestProfiles.ts",
+     "line": 14,
+     "subject": "MergeGuestProfiles.merge",
+     "path": [
+      "src/guests/application/support/commitAll.ts:5 ProfileWriter.write",
+      "src/guests/domain/profile/ProfileWriter.ts:4 (declaration of ProfileWriter.write)"
+     ],
+     "evidence": "saves 2 aggregate instances: GuestProfile x2"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-07",
+   "kind": "positive",
+   "keyFamily": "D5/D3",
+   "family": "D5",
+   "expectedRule": "R-D5",
+   "authorLabel": "P08",
+   "pair": "hc-15",
+   "nearFamily": null,
+   "violation": "src/workshops/application/support/capacityGuard.ts:6",
+   "rationale": "The Workshop capacity invariant, already enforced in Workshop.enrol, is duplicated in an application-layer helper that the use case calls first.",
+   "ms": 106,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-08",
+   "kind": "positive",
+   "keyFamily": "vendor-call-in-transaction",
+   "family": "RTX",
+   "expectedRule": "R-RTX",
+   "authorLabel": "P14",
+   "pair": "hc-29",
+   "nearFamily": null,
+   "violation": "src/application/ConfirmDonation.ts:15",
+   "rationale": "ConfirmDonation.confirm runs inside the @Transactional database transaction and, through the private settle helper, performs the remote Stripe payment capture before commit.",
+   "ms": 96,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-09",
+   "kind": "twin",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "authorLabel": "P04-twin",
+   "pair": "hc-24",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "EnrolStudent stores only the Enrolment and puts a StudentEnrolled message in its outbox; finance charges the TuitionAccount in its own consumer.",
+   "ms": 99,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-10",
+   "kind": "twin",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "authorLabel": "P02-twin",
+   "pair": "hc-22",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "CloseSprint commits only the Sprint plus a SprintClosed outbox event; a handler returns each Ticket to the backlog in its own unit of work.",
+   "ms": 82,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-11",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "authorLabel": "N02",
+   "pair": null,
+   "nearFamily": "cross-context-write / D4",
+   "violation": null,
+   "rationale": "PlaceOrder commits the Order with an OrderPlaced outbox record; inventory updates each StockItem in its own consumer transaction after delivery (saga/outbox, eventual consistency).",
+   "ms": 98,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/inventory/application/ReserveStockOnOrderPlaced.ts",
+     "line": 13,
+     "subject": "ReserveStockOnOrderPlaced.consume",
+     "path": [],
+     "evidence": "if (!item || !item.reserve(message.orderId, line.quantity)) throws: decides on the state of StockItem (item.reserve(message.orderId, line.quantity))"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-12",
+   "kind": "twin",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "authorLabel": "P05-twin",
+   "pair": "hc-03",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "ReturnVehicle stores the Rental and records a RentalClosed outbox message; fleet checks the Vehicle in from its own consumer after delivery.",
+   "ms": 89,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-13",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "authorLabel": "N03",
+   "pair": null,
+   "nearFamily": "cross-context-write",
+   "violation": null,
+   "rationale": "BookAppointment reads practitioner availability from the staff context's published StaffDirectory through an ACL adapter (a read-only DTO query) and persists only its own Appointment.",
+   "ms": 110,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-14",
+   "kind": "positive",
+   "keyFamily": "D5/D3",
+   "family": "D5",
+   "expectedRule": "R-D5",
+   "authorLabel": "P07",
+   "pair": "hc-18",
+   "nearFamily": null,
+   "violation": "src/wallets/application/SpendFromWallet.ts:19",
+   "rationale": "The overdraft invariant of the Wallet aggregate is enforced only in the SpendFromWallet application service; Wallet.debit accepts any amount.",
+   "ms": 85,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/wallets/application/SpendFromWallet.ts",
+     "line": 15,
+     "subject": "SpendFromWallet.handle",
+     "path": [],
+     "evidence": "if (cmd.amountCents <= 0) throws: decides on cmd.amountCents, which is then passed to Wallet"
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/wallets/application/SpendFromWallet.ts",
+     "line": 19,
+     "subject": "SpendFromWallet.handle",
+     "path": [],
+     "evidence": "if (wallet.balance.minus(amount).isLessThan(wallet.overdraftLimit.negated())) throws: decides on the state of Wallet (wallet.balance)"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-15",
+   "kind": "twin",
+   "keyFamily": "D5/D3",
+   "family": "D5",
+   "expectedRule": "R-D5",
+   "authorLabel": "P08-twin",
+   "pair": "hc-07",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "The capacity rule lives only in Workshop.enrol; the use case maps the domain error to an outcome without re-checking it.",
+   "ms": 68,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-16",
+   "kind": "twin",
+   "keyFamily": "concrete-injection",
+   "family": "H4",
+   "expectedRule": "R-INJ",
+   "authorLabel": "P13-twin",
+   "pair": "hc-31",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "SendWeeklyDigest depends on the MailSender port; only the composition root knows SmtpMailer.",
+   "ms": 82,
+   "rootSource": "none",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-17",
+   "kind": "twin",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "authorLabel": "P01-twin",
+   "pair": "hc-26",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "TransferStock persists only the source Warehouse and appends a StockDispatched outbox record; the destination is updated by a separate handler in its own transaction.",
+   "ms": 83,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-18",
+   "kind": "twin",
+   "keyFamily": "D5/D3",
+   "family": "D5",
+   "expectedRule": "R-D5",
+   "authorLabel": "P07-twin",
+   "pair": "hc-14",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "Wallet.debit enforces the positive-amount and overdraft invariants itself; SpendFromWallet only loads, delegates and commits.",
+   "ms": 84,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-19",
+   "kind": "positive",
+   "keyFamily": "D9",
+   "family": "D9",
+   "expectedRule": "R-D9",
+   "authorLabel": "P10",
+   "pair": "hc-02",
+   "nearFamily": null,
+   "violation": "src/subscriptions/contracts/PlanView.ts:3",
+   "rationale": "The published PlanView is a mapped type over the SubscriptionPlan aggregate (its tiers are PriceTier entities), so the endpoint returns the aggregate instances themselves.",
+   "ms": 72,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/subscriptions/contracts/PlanView.ts",
+     "line": 3,
+     "subject": "PlanView",
+     "path": [],
+     "evidence": "PlanView exposes SubscriptionPlan (src/subscriptions/domain/plan/SubscriptionPlan.ts) via PlanView.="
+    },
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/subscriptions/contracts/PlanView.ts",
+     "line": 6,
+     "subject": "PlanListResponse",
+     "path": [],
+     "evidence": "PlanListResponse exposes SubscriptionPlan (src/subscriptions/domain/plan/SubscriptionPlan.ts) via PlanListResponse.plans"
+    },
+    {
+     "rule": "R-ENTITY-OUT",
+     "family": "H10",
+     "file": "src/subscriptions/api/PlanEndpoints.ts",
+     "line": 9,
+     "subject": "PlanEndpoints.list",
+     "path": [],
+     "evidence": "PlanEndpoints.list returns the domain entity SubscriptionPlan"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-20",
+   "kind": "twin",
+   "keyFamily": "D9",
+   "family": "D9",
+   "expectedRule": "R-D9",
+   "authorLabel": "P09-twin",
+   "pair": "hc-04",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "The contract carries a primitive PetSummary built by a mapper in the API layer; no domain type appears in the published response.",
+   "ms": 77,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-21",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "authorLabel": "N01",
+   "pair": null,
+   "nearFamily": "D4",
+   "violation": null,
+   "rationale": "ImportSupplierFeed writes many Product instances in one unit of work, but the spec declares it as an allowed batch-import command for that single aggregate type.",
+   "ms": 80,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-22",
+   "kind": "positive",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "authorLabel": "P02",
+   "pair": "hc-10",
+   "nearFamily": null,
+   "violation": "src/planning/application/CloseSprint.ts:22",
+   "rationale": "CloseSprint registers the Sprint and every unfinished Ticket (a second aggregate type, in a for-of loop) in one explicit unit of work committed once.",
+   "ms": 94,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-23",
+   "kind": "positive",
+   "keyFamily": "H5",
+   "family": "H5",
+   "expectedRule": "R-H5",
+   "authorLabel": "P11",
+   "pair": "hc-27",
+   "nearFamily": null,
+   "violation": "src/bookings/application/ports/BookingLocks.ts:4",
+   "rationale": "The application port BookingLocks returns the vendor redlock Lock type, so the lock library's handle is part of the port signature.",
+   "ms": 69,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/bookings/application/ports/BookingLocks.ts",
+     "line": 4,
+     "subject": "BookingLocks.acquireDesk",
+     "path": [],
+     "evidence": "vendor-type: signature uses Lock from redlock"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-24",
+   "kind": "positive",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "authorLabel": "P04",
+   "pair": "hc-09",
+   "nearFamily": null,
+   "violation": "src/enrolment/application/EnrolStudent.ts:30",
+   "rationale": "EnrolStudent (enrolment context) loads, charges and stores the finance context's TuitionAccount aggregate inside its own transaction instead of publishing an event.",
+   "ms": 94,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/enrolment/application/EnrolStudent.ts",
+     "line": 21,
+     "subject": "EnrolStudent.execute",
+     "path": [
+      "src/enrolment/application/EnrolStudent.ts:27 EnrolmentBook.add",
+      "src/enrolment/domain/enrolment/EnrolmentBook.ts:5 (declaration of EnrolmentBook.add)",
+      "src/enrolment/application/EnrolStudent.ts:31 TuitionAccountBook.keep",
+      "src/finance/domain/account/TuitionAccountBook.ts:5 (declaration of TuitionAccountBook.keep)"
+     ],
+     "evidence": "saves 2 aggregate instances: Enrolment x1, TuitionAccount x1"
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/enrolment/application/EnrolStudent.ts",
+     "line": 21,
+     "subject": "EnrolStudent.execute",
+     "path": [
+      "EnrolStudent.execute",
+      "TuitionAccountBook.keep"
+     ],
+     "evidence": "context enrolment writes TuitionAccount (owned by finance)"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-25",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "authorLabel": "N06",
+   "pair": null,
+   "nearFamily": "D4",
+   "violation": null,
+   "rationale": "The LotAwarding domain service reads the Bidder and changes the Lot; CloseLot saves only the Lot and defers the Bidder update to a LotAwarded outbox event handled in a separate transaction.",
+   "ms": 96,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-26",
+   "kind": "positive",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "authorLabel": "P01",
+   "pair": "hc-17",
+   "nearFamily": null,
+   "violation": "src/inventory/application/TransferStock.ts:25",
+   "rationale": "TransferStock changes two Warehouse aggregate instances and persists both inside one TransactionRunner.run callback.",
+   "ms": 79,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/inventory/application/TransferStock.ts",
+     "line": 18,
+     "subject": "TransferStock.execute",
+     "path": [
+      "src/inventory/application/TransferStock.ts:24 WarehouseStore.persist",
+      "src/inventory/application/TransferStock.ts:25 WarehouseStore.persist",
+      "src/inventory/domain/warehouse/WarehouseStore.ts:5 (declaration of WarehouseStore.persist)"
+     ],
+     "evidence": "saves 2 aggregate instances: Warehouse x2"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-27",
+   "kind": "twin",
+   "keyFamily": "H5",
+   "family": "H5",
+   "expectedRule": "R-H5",
+   "authorLabel": "P11-twin",
+   "pair": "hc-23",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "BookingLocks returns a port-owned DeskLease; the redlock Lock stays inside the infrastructure adapter.",
+   "ms": 107,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-28",
+   "kind": "twin",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "authorLabel": "P03-twin",
+   "pair": "hc-06",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "The merge reads the duplicate but writes only the survivor (same helper, one-element array) and stages a ProfileAbsorbed event; the duplicate is retired by a separate handler.",
+   "ms": 237,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/guests/application/MergeGuestProfiles.ts",
+     "line": 16,
+     "subject": "MergeGuestProfiles.merge",
+     "path": [
+      "src/guests/application/support/commitAll.ts:5 ProfileWriter.write",
+      "src/guests/domain/profile/ProfileWriter.ts:4 (declaration of ProfileWriter.write)"
+     ],
+     "evidence": "saves 2 aggregate instances: GuestProfile x2"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-29",
+   "kind": "twin",
+   "keyFamily": "vendor-call-in-transaction",
+   "family": "RTX",
+   "expectedRule": "R-RTX",
+   "authorLabel": "P14-twin",
+   "pair": "hc-08",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "The Stripe capture happens before the transaction; only the decorated record method, which touches the database alone, runs inside it.",
+   "ms": 90,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-30",
+   "kind": "positive",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "authorLabel": "P06",
+   "pair": "hc-05",
+   "nearFamily": null,
+   "violation": "src/sales/application/PurchaseTickets.ts:28",
+   "rationale": "The publish is awaited inside the sales unit of work and the in-process bus runs the loyalty handler synchronously, so MemberAccount (loyalty) is changed and stored in the same flow and transaction as the TicketOrder.",
+   "ms": 237,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-31",
+   "kind": "positive",
+   "keyFamily": "concrete-injection",
+   "family": "H4",
+   "expectedRule": "R-INJ",
+   "authorLabel": "P13",
+   "pair": "hc-16",
+   "nearFamily": null,
+   "violation": "src/application/SendWeeklyDigest.ts:8",
+   "rationale": "The SendWeeklyDigest use case is constructed with the concrete SmtpMailer outbound adapter class although the MailSender port exists.",
+   "ms": 308,
+   "rootSource": "none",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-INJ",
+     "family": "H4",
+     "file": "src/application/SendWeeklyDigest.ts",
+     "line": 8,
+     "subject": "SendWeeklyDigest",
+     "path": [],
+     "evidence": "SendWeeklyDigest depends on SmtpMailer (src/adapters/outbound/SmtpMailer.ts, constructor)"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-32",
+   "kind": "twin",
+   "keyFamily": "H5",
+   "family": "H5",
+   "expectedRule": "R-H5",
+   "authorLabel": "P12-twin",
+   "pair": "hc-33",
+   "nearFamily": null,
+   "violation": null,
+   "rationale": "TripLedger speaks only the domain Trip type; row mapping moved into the Postgres adapter.",
+   "ms": 107,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-33",
+   "kind": "positive",
+   "keyFamily": "H5",
+   "family": "H5",
+   "expectedRule": "R-H5",
+   "authorLabel": "P12",
+   "pair": "hc-32",
+   "nearFamily": null,
+   "violation": "src/application/ports/TripLedger.ts:5",
+   "rationale": "The TripLedger port returns the pg driver's QueryResultRow, so the use case maps raw SQL columns itself.",
+   "ms": 80,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/TripLedger.ts",
+     "line": 5,
+     "subject": "TripLedger.fetchTrip",
+     "path": [],
+     "evidence": "vendor-type: signature uses QueryResultRow from pg"
+    }
+   ],
+   "otherStatus": []
+  },
+  {
+   "id": "hc-34",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "authorLabel": "N04",
+   "pair": null,
+   "nearFamily": "D5/D3",
+   "violation": null,
+   "rationale": "EmailAddress and BirthDate validate themselves and Member derives the waiver flag; RegisterMember only parses, looks up for idempotency, creates and stores.",
+   "ms": 87,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/membership/application/RegisterMember.ts",
+     "line": 19,
+     "subject": "RegisterMember.execute",
+     "path": [],
+     "evidence": "if (previous) throws: repeats EmailAddress's own check on cmd (previous) [the aggregate also checks this: duplicated]"
+    },
+    {
+     "rule": "R-LOCK",
+     "family": "D5",
+     "file": "src/membership/application/RegisterMember.ts",
+     "line": 16,
+     "subject": "RegisterMember.execute",
+     "path": [],
+     "evidence": "calls RegisterMember.clock around writes to Member"
+    }
+   ],
+   "otherStatus": []
+  }
+ ],
+ "latencyMs": {
+  "max": 331
+ },
+ "errors": []
+}
