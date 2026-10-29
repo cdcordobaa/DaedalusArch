@@ -1,0 +1,243 @@
+{
+ "key": "14c003f6ccae400c3998ad2cdc70e088ce0353e0e4764b4e10cdecfdb8ac14db",
+ "n1Version": "v15-n1-v1",
+ "target": "cal03",
+ "item": "cal03/theatre/(outside every context) + casting + productions + rehearsals",
+ "run": 1,
+ "promptVersion": "u4-s3-facts-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T00:22:54.072Z",
+ "answer": {
+  "types": [
+   {
+    "name": "DomainEvent",
+    "path": "src/shared-kernel/DomainEvent.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "EventBus",
+    "path": "src/shared-kernel/EventBus.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "InMemoryUnitOfWork",
+    "path": "src/shared-kernel/InMemoryUnitOfWork.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "UnitOfWork",
+    "path": "src/shared-kernel/UnitOfWork.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Money",
+    "path": "src/shared-kernel/value-objects/Money.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "CastBookingConfirmedEvent",
+    "path": "src/casting/contracts/CastBookingConfirmedEvent.ts",
+    "verdict": "not-root",
+    "context": "casting",
+    "cites": []
+   },
+   {
+    "name": "CastBookingDto",
+    "path": "src/casting/contracts/CastBookingDto.ts",
+    "verdict": "not-root",
+    "context": "casting",
+    "cites": []
+   },
+   {
+    "name": "Actor",
+    "path": "src/casting/domain/actor/Actor.ts",
+    "verdict": "root",
+    "context": "casting",
+    "cites": [
+     {
+      "path": "src/casting/domain/actor/ActorRepository.ts",
+      "line": 4,
+      "quote": "findById(id: string): Promise<Actor | undefined>;"
+     }
+    ]
+   },
+   {
+    "name": "BookingStatus",
+    "path": "src/casting/domain/cast-booking/CastBooking.ts",
+    "verdict": "not-root",
+    "context": "casting",
+    "cites": []
+   },
+   {
+    "name": "CastBooking",
+    "path": "src/casting/domain/cast-booking/CastBooking.ts",
+    "verdict": "root",
+    "context": "casting",
+    "cites": [
+     {
+      "path": "src/casting/domain/cast-booking/CastBookingRepository.ts",
+      "line": 4,
+      "quote": "findById(id: string): Promise<CastBooking | undefined>;"
+     }
+    ]
+   },
+   {
+    "name": "CastBookingConfirmed",
+    "path": "src/casting/domain/events/CastBookingConfirmed.ts",
+    "verdict": "not-root",
+    "context": "casting",
+    "cites": []
+   },
+   {
+    "name": "ProductionDto",
+    "path": "src/productions/contracts/ProductionDto.ts",
+    "verdict": "not-root",
+    "context": "productions",
+    "cites": []
+   },
+   {
+    "name": "ProductionOpenedEvent",
+    "path": "src/productions/contracts/ProductionOpenedEvent.ts",
+    "verdict": "not-root",
+    "context": "productions",
+    "cites": []
+   },
+   {
+    "name": "ProductionOpened",
+    "path": "src/productions/domain/events/ProductionOpened.ts",
+    "verdict": "not-root",
+    "context": "productions",
+    "cites": []
+   },
+   {
+    "name": "ProductionStatus",
+    "path": "src/productions/domain/production/Production.ts",
+    "verdict": "not-root",
+    "context": "productions",
+    "cites": []
+   },
+   {
+    "name": "Production",
+    "path": "src/productions/domain/production/Production.ts",
+    "verdict": "root",
+    "context": "productions",
+    "cites": [
+     {
+      "path": "src/productions/domain/production/ProductionRepository.ts",
+      "line": 4,
+      "quote": "findById(id: string): Promise<Production | undefined>;"
+     }
+    ]
+   },
+   {
+    "name": "RoomDto",
+    "path": "src/rehearsals/contracts/RoomDto.ts",
+    "verdict": "not-root",
+    "context": "rehearsals",
+    "cites": []
+   },
+   {
+    "name": "RehearsalRoom",
+    "path": "src/rehearsals/domain/room/RehearsalRoom.ts",
+    "verdict": "root",
+    "context": "rehearsals",
+    "cites": [
+     {
+      "path": "src/rehearsals/domain/room/RehearsalRoomRepository.ts",
+      "line": 4,
+      "quote": "findById(id: string): Promise<RehearsalRoom | undefined>;"
+     }
+    ]
+   },
+   {
+    "name": "RoomSlot",
+    "path": "src/rehearsals/domain/room/RoomSlot.ts",
+    "verdict": "not-root",
+    "context": "rehearsals",
+    "cites": []
+   }
+  ],
+  "stores": [
+   {
+    "name": "ActorRepository",
+    "path": "src/casting/domain/actor/ActorRepository.ts",
+    "ownedBy": "casting",
+    "loads": "Actor"
+   },
+   {
+    "name": "CastBookingRepository",
+    "path": "src/casting/domain/cast-booking/CastBookingRepository.ts",
+    "ownedBy": "casting",
+    "loads": "CastBooking"
+   },
+   {
+    "name": "InMemoryActorRepository",
+    "path": "src/casting/infrastructure/InMemoryActorRepository.ts",
+    "ownedBy": "casting",
+    "loads": "Actor"
+   },
+   {
+    "name": "InMemoryCastBookingRepository",
+    "path": "src/casting/infrastructure/InMemoryCastBookingRepository.ts",
+    "ownedBy": "casting",
+    "loads": "CastBooking"
+   },
+   {
+    "name": "ProductionRepository",
+    "path": "src/productions/domain/production/ProductionRepository.ts",
+    "ownedBy": "productions",
+    "loads": "Production"
+   },
+   {
+    "name": "InMemoryProductionRepository",
+    "path": "src/productions/infrastructure/InMemoryProductionRepository.ts",
+    "ownedBy": "productions",
+    "loads": "Production"
+   },
+   {
+    "name": "RehearsalRoomRepository",
+    "path": "src/rehearsals/domain/room/RehearsalRoomRepository.ts",
+    "ownedBy": "rehearsals",
+    "loads": "RehearsalRoom"
+   },
+   {
+    "name": "InMemoryRehearsalRoomRepository",
+    "path": "src/rehearsals/infrastructure/InMemoryRehearsalRoomRepository.ts",
+    "ownedBy": "rehearsals",
+    "loads": "RehearsalRoom"
+   }
+  ]
+ },
+ "invalidReason": null
+}
