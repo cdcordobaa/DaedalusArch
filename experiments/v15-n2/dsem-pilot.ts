@@ -81,10 +81,14 @@ async function main(argv: readonly string[]): Promise<number> {
   const s = score(results, panel.reference);
   const models = [...new Set(results.flatMap((r) => r.runs.map((x) => x.model)).filter((m): m is string => m !== null))].sort();
   const truncated = b.stopped !== null || b.truncated.length > 0;
+  // The route each answer was recorded under (from the cassettes; a replay makes no call and reads no CLI version).
+  const recordedRoutes = fs.existsSync(STORE.cassettes)
+    ? [...new Set(fs.readdirSync(STORE.cassettes).filter((f) => f.endsWith('.json')).map((f) => JSON.stringify((JSON.parse(fs.readFileSync(path.join(STORE.cassettes, f), 'utf8')) as { route: unknown }).route)))].map((r) => JSON.parse(r) as unknown)
+    : [];
   const out = {
     schema: 'v15-n2-dsem-pilot-v1', dsemVersion: DSEM_VERSION, deviation: panel.deviation, mode, at: new Date().toISOString(),
     promptVersion: N2_PROMPT_VERSION, promptsSha256: promptsSha, systemSha256: sha(N2_SYSTEM), schemaSha256: sha(JSON.stringify(N2_SCHEMA)),
-    requestedModel: DSEM_MODEL, answeredModels: models, route: routeRec, runsPerItem: RUNS,
+    requestedModel: DSEM_MODEL, answeredModels: models, route: routeRec, recordedRoutes, runsPerItem: RUNS,
     finalRule: 'the grounded answer given in both runs, otherwise unsure; a yes or no with no resolved cite is unsure',
     cap: CAP, callsOnLedger: b.used, truncated, stopped: b.stopped, truncatedRuns: b.truncated,
     bar: { agreement: BAR.agreement, hallucinatedCitations: BAR.hallucinatedCitations, unsureCountsAs: 'disagreement' },
