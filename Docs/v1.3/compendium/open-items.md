@@ -197,3 +197,19 @@ The readiness dashboard did not change in this window. Changes to the items in s
 | CAL-03 is now designed (160 cases, 2 new domains, 16 rows scored including the 7 admitted by CAL-02) but not built or scored; the confirmatory DDD family is open until it runs. Check that the thesis does not present the CAL-02 rows as the final family | author / agent | `ops/notes/cal-03-admission-design.md:25` |
 | CN-02 revised the DDD rules after reading the CAL-02 misses; CAL-02 is development evidence from now on. K06, K11, K13 still miss | agent | `Docs/DiagnosticRuns/v15-cn02-dev-2026-10-27.md:60` |
 | The pre-flight check of the frozen schema was changed (PR #403) without a report; the sealed rule hash changes with CN-02 | agent | `Docs/DiagnosticRuns/v15-cn02-dev-2026-10-27.md:73` |
+
+## 14. State on 2026-10-29 (refresh after PRs #404–#429)
+
+The readiness dashboard did not change in this window. Changes to the items in section 13:
+
+| Item | Owner | Source |
+|---|---|---|
+| CAL-03 has run: 9 of 16 DDD rows admitted (36/36), K07 out. The thesis must not present the CAL-02 family (7 rows) or the CN-02 figure "13 of 16" as the DDD family | author / agent | `Docs/DiagnosticRuns/v15-cal03-admission-2026-10-28.md:49` |
+| The Hexagonal family is 9 rows (H01 to H05, H07 to H10); H06 and H11 stay exploratory | agent | `Docs/DiagnosticRuns/v15-hcal05-admission-2026-10-29.md:50` |
+| The v1.5 final study has run: H1 (DDD) supported, H2 (Hexagonal) not rejected. Check that the thesis states the Study 2 design as the v1.5 registration and not as the 2026-10-16 deviation or the three-arm plan | author | `Docs/DiagnosticRuns/v15-final-study-2026-10-29.md:23` |
+| H2 tested an arm that did not deliver the Hexagonal admitted rules (hub: R-D4, R-XCTX and layer rules only). A new registered study is needed to test delivery of those families | author | `Docs/DiagnosticRuns/v15-final-study-2026-10-29.md:47` |
+| N1(b) not run (snapshots not retained, DEV-2); N2 not run (pilot 16/21 against 0.80). Decide whether to repeat N2 with a human reference | author | `Docs/DiagnosticRuns/v15-n2-dsem-pilot-2026-10-29.md:3` |
+| The N2 reference is a model panel (DEV-1) that shares a model family with the interpreter; a human spot-check is not done | author | `Docs/v1.5/final-study-preregistration.md:169` |
+| The lane `run/*.jsonl` records were not committed; consider adding them (or their summaries) to the replication package | agent | `Docs/DiagnosticRuns/v15-final-study-2026-10-29.md:101` |
+| DETECT-02 held-out is spent (10 of 14, descriptive); no numeric bar was registered. Any later use is development material | agent | `Docs/DiagnosticRuns/detect-02-heldout-2026-10-29.md:114` |
+| The sealed v1.3 hold-out of the original Study 2 design is still unscored; the SO5 taxonomy codebook is a first-coder draft (no second coder yet) | author | `experiments/so5-taxonomy/README.md:26` |

@@ -61,13 +61,14 @@
 | [2026-10-25 sync: the synthesis objective relabel and the bt audit triage](claims-ledger/v14-w-objective-relabel-audit.md) | C10207–C10209 | 3 | 3 | 0 | 0 | 0 |
 | [2026-10-27 sync: v1.5 calibration and admission (CAL-01, CAL-02, HCAL-01, HCAL-02), R-D5S unseen set, answer keys R6, Stage 0 re-score, C8 hint audit](claims-ledger/v15-a-calibration-admission.md) | C10210–C10299 | 90 | 27 | 15 | 48 | 0 |
 | [2026-10-28 sync: v1.5 CN-02 development revision and the CAL-03 admission design](claims-ledger/v15-b-cn02-cal03-design.md) | C10300–C10310 | 11 | 4 | 0 | 7 | 0 |
-| **total** | C0001–C10310 | **10,036** | 5,353 | 1,081 | 3,219 | 383 |
+| [2026-10-29 sync: v1.5 final study (H1 supported, H2 not rejected), N2 pilot, DETECT-02 held-out, TRAPRATE-01, CAL-03 and HCAL-03 to HCAL-05 admissions](claims-ledger/v15-c-final-study-and-admissions.md) | C10311–C10387 | 77 | 30 | 17 | 29 | 1 |
+| **total** | C0001–C10387 | **10,113** | 5,383 | 1,098 | 3,248 | 384 |
 
 By evidence type (recounted 2026-10-23 over all parts; +3 descriptive on 2026-10-25; +17 descriptive, +69 criterion and +4 correctness on 2026-10-27; +7 descriptive and +4 criterion on 2026-10-28): descriptive 2,806, criterion 1,794, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,015, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
 
 By set (recounted 2026-10-23; +2 none and +1 sealed-2b on 2026-10-25): development 5,342, external 1,507, none 1,403, wild 701, synthetic 638, sealed-2b 167, hold-out 101. (From part `v14-g` on, some `external` rows cover the 60 repositories of the Tier-A waves 1–3, not only the 15 of #133/#181/#232; the row says so.)
 
-A claim keeps its status in its own context. For example, `established` on a development-set row means established **as a development-set figure**. No row is a held-out estimate: the hold-out has not been scored. The `sealed-2b` rows are the one confirmatory result in the ledger, and each is scoped as its notes say (one style, one generator, four tasks, FF-S03 only).
+A claim keeps its status in its own context. For example, `established` on a development-set row means established **as a development-set figure**. No row is a held-out estimate: the hold-out has not been scored. The `sealed-2b` rows are the one confirmatory result in the ledger, and each is scoped as its notes say (one style, one generator, four tasks, FF-S03 only). From 2026-10-29 the `study-v15` rows (part `v15-c`) are the second confirmatory result: H1 (DDD) is supported, H2 (Hexagonal) is not rejected, and H2 tested an arm that did not deliver the Hexagonal admitted rules. The `detect02-heldout` rows are a held-out scoring of the SO4 DETECT-02 set, descriptive and without a registered numeric bar; the sealed v1.3 hold-out of the Study 2 design is still not scored.
 
 ## Conflicts
 
