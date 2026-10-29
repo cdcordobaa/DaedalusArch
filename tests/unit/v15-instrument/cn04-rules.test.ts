@@ -42,8 +42,24 @@ describe('v1.5 instrument: CN-04 rules on the tool-library fixture', () => {
     const tree = path.join(scratch, c ?? 'base');
     fs.cpSync(path.join(FX, 'base'), tree, { recursive: true });
     if (c !== null) fs.cpSync(path.join(FX, 'cases', c), tree, { recursive: true });
-    return (await runTree(tree, rules, { spec, scratch: path.join(scratch, '_s') })).findings.filter((f) => f.status === 'violation');
+    return (await runTree(tree, rules, { spec, scratch: path.join(scratch, '_s') })).findings.filter((f) => f.status === 'violation' && f.rule !== 'R-MIRROR2');
   };
+  // R-MIRROR2 (H11 v2, exploratory, 2026-10-29) is a different construct: one vendor code or one exactly copied vendor
+  // field in the core is already a finding, where R-MIRROR needs the vendor's set. The CN-04 set-threshold cases are
+  // R-MIRROR's boundary, so they are scored here without R-MIRROR2, and R-MIRROR2's verdict on them is pinned below.
+  const mirror2 = async (c: string): Promise<string[]> => {
+    const tree = path.join(scratch, `m2-${c}`);
+    fs.cpSync(path.join(FX, 'base'), tree, { recursive: true });
+    fs.cpSync(path.join(FX, 'cases', c), tree, { recursive: true });
+    const r = await runTree(tree, rules.filter((x) => x.id === 'R-MIRROR2'), { spec, scratch: path.join(scratch, '_s') });
+    return [...new Set(r.findings.filter((f) => f.status === 'violation').map((f) => /'([^']+)'|\.(\w+) is named/.exec(f.evidence)?.slice(1).find(Boolean) ?? f.evidence))].sort();
+  };
+  it('R-MIRROR2 on the R-MIRROR set-threshold cases: the single vendor codes and the copied field are reported', async () => {
+    expect(await mirror2('mirror-clean1')).toEqual(['amountCents', 'limit_exceeded']);
+    expect(await mirror2('mirror-clean2')).toEqual(['card_blocked', 'limit_exceeded']);
+    expect(await mirror2('mirror-clean3')).toEqual(['card_blocked']);
+    expect(await mirror2('mirror-paths-clean1')).toEqual([]);
+  }, 180_000);
 
   it('the base is clean under every rule', async () => {
     expect(await run(null)).toEqual([]);

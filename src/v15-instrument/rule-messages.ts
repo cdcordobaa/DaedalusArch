@@ -37,6 +37,7 @@ export const RULE_LABELS: Readonly<Record<string, string>> = {
   'R-ENTITY-OUT': 'entity as transport shape',
   'R-ADAPTER-RULE': 'business rule in an adapter',
   'R-MIRROR': 'vendor vocabulary in the core',
+  'R-MIRROR2': 'vendor term in the core',
   'FF-S01': 'FF-S01 dependency-direction',
   'FF-S02': 'FF-S02 no-cyclic-deps',
   'FF-S03': 'FF-S03 no-layer-skip',
@@ -72,6 +73,7 @@ export const RULE_TEXT: Readonly<Record<string, string>> = {
   'R-ENTITY-OUT': 'An inbound adapter reads and writes its own request and response shapes (DTOs). It does not use a domain entity as its request type or response body, so the domain can change without changing the API.',
   'R-ADAPTER-RULE': 'Adapters translate between a technology and the core. A decision that accepts, rejects, prices or changes domain state belongs to the domain or a use case, not to an adapter.',
   'R-MIRROR': 'The core uses its own vocabulary. An outbound adapter translates a vendor\'s codes and field names into it, so a vendor change stays inside the adapter.',
+  'R-MIRROR2': 'Domain, application and port code use only terms the domain owns. A vendor SDK\'s codes, error names, field and method names stay in the outbound adapter, which translates them into the core\'s terms, so a vendor change stays inside the adapter.',
   'FF-S01': 'Each layer imports only the layers the architecture allows it to depend on, so dependencies point toward the core.',
   'FF-S02': 'Modules do not import each other in a cycle.',
   'FF-S03': 'An import follows an allowed edge between two layers. A layer does not reach a layer it has no edge to (for example an inbound adapter importing an outbound adapter).',
@@ -172,6 +174,24 @@ const BUILDERS: Readonly<Record<string, Builder>> = {
       why: `The ${role} type ${core} (${at(f)}) re-declares ${vendor} of ${mod}: ${detail}.`,
       fix: `Name ${core}'s values in the core's own terms, and map ${mod}'s codes or fields to them in the outbound adapter that uses ${mod}.`,
     };
+  },
+  'R-MIRROR2': (f) => {
+    const m = /^\[([a-z-]+)\] \S+:\d+ (.+)$/.exec(f.evidence);
+    if (m === null) return null;
+    const [, shape, detail] = m as unknown as [string, string, string];
+    const src = /\(([^()]+?) of (\S+?)\)/.exec(detail) ?? / ([A-Za-z0-9_$]+)(?:\.[A-Za-z0-9_$]+)? of (\S+?)(?::|$)/.exec(detail);
+    const mod = src?.[2] ?? 'the vendor SDK';
+    const term = shape === 'field-set' ? (/: (.+)$/.exec(detail)?.[1] ?? f.subject)
+      : shape === 'field' ? (/ \S+?\.(\S+) of \S+$/.exec(detail)?.[1] ?? f.subject)
+        : (/'([^']+)'/.exec(detail)?.[1] ?? f.subject);
+    const fix = shape === 'field-set'
+      ? `Give ${f.subject} the fields the core needs, named in the domain's terms (not the vendor's ${term}), and map ${mod}'s fields to them in the outbound adapter that uses ${mod}.`
+      : shape === 'field'
+        ? `Rename ${f.subject} to a term the domain owns (not ${term}), and translate between the two in the outbound adapter that uses ${mod}.`
+        : shape === 'error'
+          ? `Translate at the adapter: catch ${mod}'s error there and raise or return a core error the domain owns (for example a named refusal or a provider outage), so the core never compares '${term}'.`
+          : `Translate at the adapter into a core term the domain owns: map ${mod}'s '${term}' to a value of a core type in the outbound adapter, and let the core compare only its own terms.`;
+    return { why: `${at(f)}: ${detail} (the vendor term ${shape === 'field-set' ? `set ${term}` : `'${term}'`}, from ${mod}).`, fix };
   },
   'R-PURE': (f) => {
     const m = /^domain code imports (.+?) \((.+)\)$/.exec(f.evidence);

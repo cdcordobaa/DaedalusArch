@@ -22,6 +22,8 @@ import { categoryOfModule } from '../apg-enrich/cheap/behaviour.js';
 import { guardShape, isTrivialParamNullCheck, normaliseCondition } from '../apg-enrich/cheap/guards.js';
 import type { DetectSpec, Role } from './spec.js';
 import { globMatch } from './spec.js';
+import { baselineTokens, coreTermsOf, genericVendorTerm, specTokens, vendorTermsOf } from './vendor-lexicon.js';
+import type { CoreTermFact, VendorTermFact } from './vendor-lexicon.js';
 
 export const MAX_DEPTH = 4;
 
@@ -91,6 +93,9 @@ export interface Facts {
   readonly entityOut: readonly EntityOutFact[];
   readonly adapterRules: readonly AdapterRuleFact[];
   readonly mirrors: readonly MirrorFact[];
+  /** R-MIRROR2 (H11 v2): the vendor lexicon and the core terms (`vendor-lexicon.ts`). */
+  readonly vendorTerms: readonly VendorTermFact[];
+  readonly coreTerms: readonly CoreTermFact[];
   readonly repoMulti: readonly RepoMultiFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
@@ -146,7 +151,10 @@ function isCollection(t: Type): boolean {
   return ['ReadonlyArray', 'Array', 'Set', 'ReadonlySet', 'Iterable', 'Map', 'ReadonlyMap'].includes(n);
 }
 
-export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): Facts {
+/** Inputs of the R-MIRROR2 stoplist: the tree's spec file and an optional baseline tree (for example the task's seed). */
+export interface FactOptions { readonly specFile?: string | undefined; readonly baseline?: string | undefined }
+
+export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, opts: FactOptions = {}): Facts {
   const root = path.resolve(tree);
   const project = new Project({ tsConfigFilePath: tsconfig, skipAddingFilesFromTsConfig: false });
   const files = project.getSourceFiles().filter((sf) => !sf.isDeclarationFile() && !sf.getFilePath().includes('/node_modules/'));
@@ -1730,6 +1738,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
     return declFile(dir);
   };
   const seenModules = new Set<string>();
+  const vendorExports: { mod: string; exportsOf: { name: string; decls: Node[] }[] }[] = [];
   for (const sf of files) {
     if (spec.roleOf(fileOf(sf)) !== 'adapter') continue;
     for (const imp of sf.getImportDeclarations()) {
@@ -1753,6 +1762,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       }
       if (seenModules.has(mod)) continue;
       seenModules.add(mod);
+      vendorExports.push({ mod, exportsOf });
       for (const ex of exportsOf) {
         for (const d of ex.decls) {
           const literals = new Set<string>(); const names = new Set<string>();
@@ -1824,9 +1834,29 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   }
   bump('mirrors', mirrors.length);
 
+  // ── R-MIRROR2 lexicon (H11 v2, 2026-10-29): extraction and tokens only; the matching is the rule's Cypher ────────
+  const vendorTerms: VendorTermFact[] = [];
+  const coreTerms: CoreTermFact[] = [];
+  if (vendorExports.length > 0) {
+    const fromSpec = specTokens(opts.specFile);
+    const fromBaseline = opts.baseline !== undefined ? baselineTokens(opts.baseline, (f) => spec.roleOf(f)) : new Set<string>();
+    for (const v of vendorExports) {
+      for (const t of vendorTermsOf(v.mod, v.exportsOf)) {
+        const ownedBy = genericVendorTerm(t.kind, t.text) ? 'generic' : fromSpec.has(t.token) ? 'spec' : fromBaseline.has(t.token) ? 'baseline' : '';
+        vendorTerms.push({ ...t, ownedBy });
+      }
+    }
+    for (const sf of files) {
+      const f = fileOf(sf);
+      const role = spec.roleOf(f);
+      if (role === 'domain' || role === 'application' || role === 'port') coreTerms.push(...coreTermsOf(sf, f, role));
+    }
+  }
+  bump('vendorTerms', vendorTerms.length); bump('coreTerms', coreTerms.length);
+
   return {
     roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
-    locators, coreIo, entityOut, adapterRules, mirrors, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
+    locators, coreIo, entityOut, adapterRules, mirrors, vendorTerms, coreTerms, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
 

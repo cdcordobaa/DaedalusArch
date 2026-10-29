@@ -22,8 +22,8 @@ interface Meta { pattern: string; legit: string; positive: string | null; expect
 describe('v1.5 instrument: rules', () => {
   it('loads the RULES-V15 Cypher rules: the seven prototype rules byte-identical, plus R-D5S (C1, v1.5 only)', () => {
     const rules = loadRules();
-    expect(rules.map((r) => r.id).sort()).toEqual(['R-ADAPTER-RULE', 'R-AXA', 'R-COREIO', 'R-D3', 'R-D4', 'R-D4R', 'R-D5', 'R-D5S', 'R-D9', 'R-ENTITY-OUT', 'R-H5', 'R-INJ', 'R-LOCATOR', 'R-LOCK', 'R-MIRROR', 'R-PURE', 'R-REF', 'R-RTX', 'R-TRANSPORT', 'R-XCTX']);
-    for (const r of rules.filter((x) => !['R-D5S', 'R-D3', 'R-LOCK', 'R-REF', 'R-AXA', 'R-TRANSPORT', 'R-PURE', 'R-D4R', 'R-LOCATOR', 'R-COREIO', 'R-ENTITY-OUT', 'R-ADAPTER-RULE', 'R-MIRROR'].includes(x.id))) {
+    expect(rules.map((r) => r.id).sort()).toEqual(['R-ADAPTER-RULE', 'R-AXA', 'R-COREIO', 'R-D3', 'R-D4', 'R-D4R', 'R-D5', 'R-D5S', 'R-D9', 'R-ENTITY-OUT', 'R-H5', 'R-INJ', 'R-LOCATOR', 'R-LOCK', 'R-MIRROR', 'R-MIRROR2', 'R-PURE', 'R-REF', 'R-RTX', 'R-TRANSPORT', 'R-XCTX']);
+    for (const r of rules.filter((x) => !['R-D5S', 'R-D3', 'R-LOCK', 'R-REF', 'R-AXA', 'R-TRANSPORT', 'R-PURE', 'R-D4R', 'R-LOCATOR', 'R-COREIO', 'R-ENTITY-OUT', 'R-ADAPTER-RULE', 'R-MIRROR', 'R-MIRROR2'].includes(x.id))) {
       expect(r.text).toBe(fs.readFileSync(path.join(REPO, 'experiments', 'detect-02', 'rules', r.file), 'utf8'));
     }
     expect(path.relative(REPO, rulesDir())).toBe(path.join('src', 'v15-instrument', 'rules'));

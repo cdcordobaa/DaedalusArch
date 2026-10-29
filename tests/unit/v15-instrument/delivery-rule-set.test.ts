@@ -91,7 +91,7 @@ describe('delivery hub rule set: push == pull == scored (blocking gate)', () => 
       for (const id of cypherRules(style)) expect(cypherIds.has(id)).toBe(true);
       for (const id of scoredRules(style)) { expect(RULE_LABELS[id]).toBeDefined(); expect(RULE_TEXT[id]).toBeDefined(); }
     }
-    expect(INSTRUMENT_ID).toMatch(/^v1\.5\.1/);
+    expect(INSTRUMENT_ID).toMatch(/^v1\.5\.2/);
   });
 
   const cases: [Style, string, string, string, string][] = [
@@ -146,6 +146,7 @@ describe('delivery hub: a fixture violating each Hexagonal rule produces a hub f
     'R-COREIO': [MUSEUM, path.join(MUSEUM, 'cases', 'H09-pos1'), 'src/application/request-loan.use-case.ts'],
     'R-ENTITY-OUT': [MUSEUM, path.join(MUSEUM, 'cases', 'H10-pos1'), 'src/adapters/in/http/loan.controller.ts'],
     'R-MIRROR': [DENTAL, path.join(DENTAL, 'cases', 'H11-pos1'), 'src/domain/rescan-policy.ts'],
+    'R-MIRROR2': [DENTAL, path.join(DENTAL, 'cases', 'H11-pos2'), 'src/application/scan-job-tracking.ts'],
   };
   const tierOf = (id: string): string | undefined => [...HEXAGONAL_RULE_TIERS.values()].find((t) => t.ruleId === id)?.tier ?? (RULE_TIERS.get(id)?.tier as string | undefined);
   const advisory = scoredRules('hexagonal').filter((id) => id.startsWith('FF-') && tierOf(id) === 'advisory').sort();
