@@ -20,7 +20,7 @@ import type { Finding } from '../../src/v15-instrument/index.js';
 const SEAL = 'afacdd86003b74a7b3e03557ca948db7aedfc75f4801cd2b3f1a40418a66f7ab';
 const RULES_FROZEN = 'experiments/hcal-05/RULES-FROZEN.sha256';
 const RULES_FROZEN_SHA = '761f37d9e5586371a12f3c1f17756bb19d24cd2224c0fa6df114d4f9e3cd6494';
-const OUT = 'results/detect-02-heldout';
+const OUT = 'results/v1.5-detect02-heldout';
 
 /** KEY family label -> DETECT-02 family (rule `// family:` header) and the rule the family was built for. */
 export const FAMILY_MAP: Record<string, { family: string; expectedRule: string }> = {

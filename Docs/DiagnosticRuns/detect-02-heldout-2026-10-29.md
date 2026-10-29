@@ -3,7 +3,7 @@
 **Date:** 2026-10-29 (scored about 01:40Z). **Status:** held-out, scored once, zero model calls. Registered in
 `Docs/v1.5/final-study-preregistration.md` §4, "SO4 hold-out (separate, zero calls)". Reported beside the study; not
 an outcome of H1 or H2. Scoring note, committed and pushed before the run:
-`experiments/detect-02-heldout/SCORING.md` (`82be5f8de`). Record: `results/detect-02-heldout/result.json`.
+`experiments/detect-02-heldout/SCORING.md` (`82be5f8de`). Record: `results/v1.5-detect02-heldout/result.json`.
 
 ## Setup
 
@@ -109,6 +109,6 @@ family, as the development scorer counts it.
   Hexagonal projects without aggregates (hc-16, hc-31).
 - The harness tsconfig the study uses includes `src/**` only; the cases' ambient vendor declarations
   (`types/*.d.ts`) are therefore not in the program. This is the study's configuration and was fixed before scoring.
-- The record `results/detect-02-heldout/result.json` was redacted after scoring (KEY rationales and labels, labelled
+- The record `results/v1.5-detect02-heldout/result.json` was redacted after scoring (KEY rationales and labels, labelled
   lines, finding evidence and call paths removed); scores are unchanged.
 - The set is now spent as a held-out set: any later use of it is development material.

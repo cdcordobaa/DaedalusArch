@@ -35,7 +35,7 @@ default harness tsconfig). Command:
 npx tsx experiments/detect-02-heldout/score.ts --root ../daedalus-heldout/detect-02
 ```
 
-Output: `results/detect-02-heldout/result.json`.
+Output: `results/v1.5-detect02-heldout/result.json`.
 
 **Fixed before scoring:**
 - KEY family to rule family: `D4` → D4 (R-D4); `cross-context-write` → D4 (R-XCTX; D4 = R-D4 or R-XCTX in the
