@@ -191,6 +191,23 @@ Every change after the registration commit is dated in this file before the data
      taxonomy uses the final study's scored identities as evidence-only cards (no hunk).
   Disclosure: while checking the score file's layout for this note, the coordinator saw the per-arm summary block of
   lane B's `scores.json` (mean Y and trap-fail counts per arm). No D contrast, p value or effect size was computed.
+- **DEV-3 (2026-10-29, recorded after `final-study-analyse.ts` was run; a fidelity disclosure, not a pre-data
+  change).** §1 says the rules of every row, admitted and exploratory, are "delivered by the tool like every rule".
+  The arm as run did not do this. The hub's push and pull `check_consistency` ran only R-D4 and R-XCTX
+  (`src/v15-instrument/consistency.ts`, `CONSISTENCY_RULES`) plus the layer rules FF-S01 to FF-S03; the pull channel
+  also served the frozen v1.4 tools. The other rules of §1 were scored but never delivered, in both lanes. The
+  registration's pre-run checks did not compare the delivered rules with the scored rules.
+  Consequences, with no change to any hypothesis, test, threshold, exclusion or decision:
+  1. *H1 (DDD).* Every identity in D_v15 under `none` came from R-D4 (53), R-XCTX (30) or FF-S01 (2), all delivered.
+     H1 tests the arm on the rules that produced its outcome; its decision stands.
+  2. *H2 (Hexagonal).* 12 of the 16 `none` identities and all 12 `combined` identities are R-AXA, which was not
+     delivered; R-INJ (2) was not delivered either. H2's decision stands as registered, but it is not evidence about
+     delivering the Hexagonal admitted families.
+  3. *R-AXA on f19.* On the canteen task the 12 R-AXA identities (6 per arm) are a new route importing the driving
+     side's shared reply helper, as the seed's routes already do; the oracle passes these cells. They are counted as
+     registered and reported as a known false positive of R-AXA.
+  A delivery of the Hexagonal families is tested in a separate study under its own registration, not as a change
+  to this one.
 
 ## 7. Limitations, stated before the run
 
@@ -226,6 +243,7 @@ Every change after the registration commit is dated in this file before the data
 
 ## Changelog
 
+- 2026-10-29: DEV-3 (delivery did not carry the rules §1 says it delivers; no decision changes; R-AXA f19 false positive).
 - 2026-10-29: DEV-2 (coordinator restart read as an infrastructure state; snapshots not retained, N1(b) not run).
 - 2026-10-29: registered. Families final after CAL-03, HCAL-03, HCAL-04 and HCAL-05; size from TRAPRATE-01; Stage 1 passed.
 
