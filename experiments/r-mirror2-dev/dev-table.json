@@ -1,0 +1,803 @@
+{
+  "modelCalls": 0,
+  "rule": "R-MIRROR2",
+  "rows": [
+    {
+      "task": "f2-hex-vendor-port",
+      "tree": "seed",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f2-hex-vendor-port",
+      "tree": "solutions/clean",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f2-hex-vendor-port",
+      "tree": "solutions/trap",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 1,
+      "findingsWithSeedBaseline": 1,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/services/CheckoutService.ts:23 CheckoutService.checkout uses the vendor code 'DECLINED' (PaystreamCharge of paystream-sdk) in compare"
+      ]
+    },
+    {
+      "task": "f14-hex-geocoding",
+      "tree": "seed",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f14-hex-geocoding",
+      "tree": "solutions/clean",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f14-hex-geocoding",
+      "tree": "solutions/trap",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 2,
+      "findingsWithSeedBaseline": 2,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/services/ScheduleDeliveryService.ts:21 ScheduleDeliveryService.schedule uses the vendor code 'LOCALITY' (GeopinMatch of geopin-sdk) in compare",
+        "[literal] src/application/services/ScheduleDeliveryService.ts:21 ScheduleDeliveryService.schedule uses the vendor code 'POSTCODE' (GeopinMatch of geopin-sdk) in compare"
+      ]
+    },
+    {
+      "task": "f15-hex-sms",
+      "tree": "seed",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f15-hex-sms",
+      "tree": "solutions/clean",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f15-hex-sms",
+      "tree": "solutions/trap",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 4,
+      "findingsWithSeedBaseline": 4,
+      "pass": true,
+      "evidence": [
+        "[error] src/application/services/BookAppointmentService.ts:24 BookAppointmentService.book uses the vendor code 'OPTED_OUT' (TextwaveRecipientBlockedError of textwave-sdk) in compare",
+        "[error] src/application/services/SendRemindersService.ts:34 SendRemindersService.sendFor uses the vendor code 'OPTED_OUT' (TextwaveRecipientBlockedError of textwave-sdk) in compare",
+        "[literal] src/application/services/SendRemindersService.ts:57 SendRemindersService.reportFor uses the vendor code 'ACCEPTED' (TextwaveDeliveryState of textwave-sdk) in compare",
+        "[literal] src/application/services/SendRemindersService.ts:57 SendRemindersService.reportFor uses the vendor code 'DELIVERED' (TextwaveDeliveryState of textwave-sdk) in compare"
+      ]
+    },
+    {
+      "task": "f16-hex-fx-rates",
+      "tree": "seed",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f16-hex-fx-rates",
+      "tree": "solutions/clean",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f16-hex-fx-rates",
+      "tree": "solutions/trap",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 1,
+      "findingsWithSeedBaseline": 1,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/services/PriceProductService.ts:24 PriceProductService.price uses the vendor code 'INDICATIVE' (RatewiseRate of ratewise-sdk) in compare"
+      ]
+    },
+    {
+      "task": "f16-hex-fx-rates",
+      "tree": "gaming/renamed-vendor-shape",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 8,
+      "findingsWithSeedBaseline": 8,
+      "pass": true,
+      "evidence": [
+        "[field-set] src/application/ports/out/FxRatesPort.ts:3 LiveRate copies the fields of RatewiseRate of ratewise-sdk: 'symbol', 'mid', 'asOf', 'quality', 'minorUnits'",
+        "[field-set] src/application/ports/out/FxRatesPort.ts:3 LiveRate copies the fields of RatewiseLatestResult of ratewise-sdk: 'symbol', 'mid', 'asOf', 'quality', 'minorUnits'",
+        "[field] src/application/ports/out/FxRatesPort.ts:5 LiveRate.asOf is named like the vendor field RatewiseRate.asOf of ratewise-sdk",
+        "[literal] src/application/ports/out/FxRatesPort.ts:6 LiveRate.quality uses the vendor code 'FIRM' (RatewiseRate of ratewise-sdk) in union",
+        "[literal] src/application/ports/out/FxRatesPort.ts:6 LiveRate.quality uses the vendor code 'INDICATIVE' (RatewiseRate of ratewise-sdk) in union",
+        "[field] src/application/ports/out/FxRatesPort.ts:7 LiveRate.minorUnits is named like the vendor field RatewiseRate.minorUnits of ratewise-sdk",
+        "[literal] src/application/services/PriceProductService.ts:23 PriceProductService.price uses the vendor code 'INDICATIVE' (RatewiseRate of ratewise-sdk) in compare",
+        "[error] src/application/services/PriceProductService.ts:30 PriceProductService.price names the vendor declaration 'RatewiseUnavailableError' (RatewiseUnavailableError of ratewise-sdk) in compare"
+      ]
+    },
+    {
+      "task": "f17-hex-ride-pooling",
+      "tree": "seed",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f17-hex-ride-pooling",
+      "tree": "solutions/clean",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f17-hex-ride-pooling",
+      "tree": "solutions/trap",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 2,
+      "findingsWithSeedBaseline": 2,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/RequestRideService.ts:35 RequestRideService.request uses the vendor code 'CAR' (RkProfile of routekit-sdk) in value",
+        "[literal] src/application/RequestRideService.ts:37 RequestRideService.request uses the vendor code 'FERRY' (RkRoadFeature of routekit-sdk) in includes"
+      ]
+    },
+    {
+      "task": "f17-hex-ride-pooling",
+      "tree": "gaming/renamed-vendor-shape",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 6,
+      "findingsWithSeedBaseline": 6,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/RequestRideService.ts:34 RequestRideService.request uses the vendor code 'CAR' (RkProfile of routekit-sdk) in value",
+        "[literal] src/application/RequestRideService.ts:36 RequestRideService.request uses the vendor code 'FERRY' (RkRoadFeature of routekit-sdk) in includes",
+        "[field] src/application/RequestRideService.ts:40 RequestRideService.request.retryAfterSec is named like the vendor field RouteKitQuotaError.retryAfterSec of routekit-sdk",
+        "[error] src/application/RequestRideService.ts:41 RequestRideService.request names the vendor declaration 'RouteKitQuotaError' (RouteKitQuotaError of routekit-sdk) in compare",
+        "[field] src/application/outbound/DrivingRoutes.ts:3 DrivingRoute.legs.durationSec is named like the vendor field RkLeg.durationSec of routekit-sdk",
+        "[field] src/application/outbound/DrivingRoutes.ts:4 DrivingRoute.totalDurationSec is named like the vendor field RkRoute.totalDurationSec of routekit-sdk"
+      ]
+    },
+    {
+      "task": "f18-hex-pet-adoption",
+      "tree": "seed",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f18-hex-pet-adoption",
+      "tree": "solutions/clean",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f18-hex-pet-adoption",
+      "tree": "solutions/trap",
+      "vocabulary": false,
+      "expect": "report",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f18-hex-pet-adoption",
+      "tree": "gaming/look-alike-rows",
+      "vocabulary": false,
+      "expect": "report",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f19-hex-school-canteen",
+      "tree": "seed",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f19-hex-school-canteen",
+      "tree": "solutions/clean",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f19-hex-school-canteen",
+      "tree": "solutions/trap",
+      "vocabulary": false,
+      "expect": "report",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f20-hex-music-lessons",
+      "tree": "seed",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f20-hex-music-lessons",
+      "tree": "solutions/clean",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f20-hex-music-lessons",
+      "tree": "solutions/trap",
+      "vocabulary": false,
+      "expect": "report",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f21-hex-blood-bank",
+      "tree": "seed",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f21-hex-blood-bank",
+      "tree": "solutions/clean",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f21-hex-blood-bank",
+      "tree": "solutions/trap",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 13,
+      "findingsWithSeedBaseline": 13,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/RequestUnitsService.ts:9 PRODUCT uses the vendor code 'FFP' (HlProductCode of haemalink-sdk) in value",
+        "[literal] src/application/RequestUnitsService.ts:9 PRODUCT uses the vendor code 'PLT' (HlProductCode of haemalink-sdk) in value",
+        "[literal] src/application/RequestUnitsService.ts:9 PRODUCT uses the vendor code 'RBC' (HlProductCode of haemalink-sdk) in value",
+        "[field] src/application/RequestUnitsService.ts:11 Embargo.embargoCode is named like the vendor field HaemalinkEmbargoError.embargoCode of haemalink-sdk",
+        "[field] src/application/RequestUnitsService.ts:11 Embargo.liftsAt is named like the vendor field HaemalinkEmbargoError.liftsAt of haemalink-sdk",
+        "[field] src/application/RequestUnitsService.ts:27 RequestUnitsService.request.orderRef is named like the vendor field HlOrderReceipt.orderRef of haemalink-sdk",
+        "[error] src/application/RequestUnitsService.ts:48 RequestUnitsService.request uses the vendor code 'REGIONAL_SHORTAGE' (HaemalinkEmbargoError of haemalink-sdk) in compare",
+        "[field] src/application/RequestUnitsService.ts:53 RequestUnitsService.order.orderRef is named like the vendor field HlOrderReceipt.orderRef of haemalink-sdk",
+        "[literal] src/application/RequestUnitsService.ts:60 RequestUnitsService.order uses the vendor code 'ROUTINE' (HlPriority of haemalink-sdk) in other",
+        "[literal] src/application/RequestUnitsService.ts:60 RequestUnitsService.order uses the vendor code 'STAT' (HlPriority of haemalink-sdk) in other",
+        "[literal] src/application/RequestUnitsService.ts:61 RequestUnitsService.order uses the vendor code 'NEG' (HlRhD of haemalink-sdk) in other",
+        "[literal] src/application/RequestUnitsService.ts:61 RequestUnitsService.order uses the vendor code 'POS' (HlRhD of haemalink-sdk) in other",
+        "[literal] src/application/RequestUnitsService.ts:64 RequestUnitsService.order uses the vendor code 'BACKORDERED' (HlAllocation of haemalink-sdk) in compare"
+      ]
+    },
+    {
+      "task": "f21-hex-blood-bank",
+      "tree": "gaming/renamed-vendor-shape",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 11,
+      "findingsWithSeedBaseline": 11,
+      "pass": true,
+      "evidence": [
+        "[field] src/application/RequestUnitsService.ts:8 Embargo.embargoCode is named like the vendor field HaemalinkEmbargoError.embargoCode of haemalink-sdk",
+        "[field] src/application/RequestUnitsService.ts:8 Embargo.liftsAt is named like the vendor field HaemalinkEmbargoError.liftsAt of haemalink-sdk",
+        "[field] src/application/RequestUnitsService.ts:24 RequestUnitsService.request.orderRef is named like the vendor field HlOrderReceipt.orderRef of haemalink-sdk",
+        "[field] src/application/RequestUnitsService.ts:50 RequestUnitsService.order.orderRef is named like the vendor field HlOrderReceipt.orderRef of haemalink-sdk",
+        "[error] src/application/RequestUnitsService.ts:63 RequestUnitsService.order names the vendor declaration 'HaemalinkEmbargoError' (HaemalinkEmbargoError of haemalink-sdk) in compare",
+        "[field-set] src/application/needs/SupplierOrders.ts:5 SupplyRequestLine copies the fields of HlOrderLine of haemalink-sdk: 'product', 'abo', 'qty'",
+        "[field-set] src/application/needs/SupplierOrders.ts:5 SupplyRequestLine copies the fields of HlOrderRequest of haemalink-sdk: 'product', 'abo', 'qty'",
+        "[field-set] src/application/needs/SupplierOrders.ts:5 SupplyRequestLine copies the fields of HaemalinkClient of haemalink-sdk: 'product', 'abo', 'qty'",
+        "[field] src/application/needs/SupplierOrders.ts:16 SupplyAllocation.qtyAllocated is named like the vendor field HlAllocation.qtyAllocated of haemalink-sdk",
+        "[field] src/application/needs/SupplierOrders.ts:17 SupplyAllocation.allocationStatus is named like the vendor field HlAllocation.allocationStatus of haemalink-sdk",
+        "[field] src/application/needs/SupplierOrders.ts:22 SupplyReceipt.orderRef is named like the vendor field HlOrderReceipt.orderRef of haemalink-sdk"
+      ]
+    },
+    {
+      "task": "f22-hex-airport-lounge",
+      "tree": "seed",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f22-hex-airport-lounge",
+      "tree": "solutions/clean",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f22-hex-airport-lounge",
+      "tree": "solutions/trap",
+      "vocabulary": false,
+      "expect": "report",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f23-hex-e-signature",
+      "tree": "seed",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f23-hex-e-signature",
+      "tree": "solutions/clean",
+      "vocabulary": true,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f23-hex-e-signature",
+      "tree": "solutions/trap",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 11,
+      "findingsWithSeedBaseline": 11,
+      "pass": true,
+      "evidence": [
+        "[field] src/application/ports/out/InkwellPort.ts:4 InkwellPort.createEnvelope is named like the vendor method InkwellClient.createEnvelope of inkwell-sdk",
+        "[field] src/application/ports/out/InkwellPort.ts:5 InkwellPort.getEnvelope is named like the vendor method InkwellClient.getEnvelope of inkwell-sdk",
+        "[field] src/application/ports/out/InkwellPort.ts:6 InkwellPort.sendReminder is named like the vendor method InkwellClient.sendReminder of inkwell-sdk",
+        "[literal] src/application/services/SigningService.ts:26 SigningService.send uses the vendor code 'SIGNER' (InkwellRecipient of inkwell-sdk) in other",
+        "[error] src/application/services/SigningService.ts:32 SigningService.send uses the vendor code 'INVALID_RECIPIENT' (InkwellErrorCode of inkwell-sdk) in compare",
+        "[field] src/application/services/SigningService.ts:46 SigningService.onRecipientDeclined is named like the vendor method InkwellWebhookHandlers.onRecipientDeclined of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:54 SigningService.onEnvelopeExpired is named like the vendor method InkwellWebhookHandlers.onEnvelopeExpired of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:58 SigningService.onEnvelopeCompleted is named like the vendor method InkwellWebhookHandlers.onEnvelopeCompleted of inkwell-sdk",
+        "[literal] src/application/services/SigningService.ts:69 SigningService.sendReminders uses the vendor code 'SIGNED' (InkwellRecipientState of inkwell-sdk) in compare",
+        "[literal] src/application/services/SigningService.ts:69 SigningService.sendReminders uses the vendor code 'SIGNER' (InkwellRecipient of inkwell-sdk) in compare",
+        "[error] src/application/services/SigningService.ts:74 SigningService.sendReminders uses the vendor code 'RATE_LIMITED' (InkwellErrorCode of inkwell-sdk) in compare"
+      ]
+    },
+    {
+      "task": "f23-hex-e-signature",
+      "tree": "gaming/renamed-vendor-shape",
+      "vocabulary": true,
+      "expect": "violation",
+      "findings": 37,
+      "findingsWithSeedBaseline": 37,
+      "pass": true,
+      "evidence": [
+        "[field-set] src/application/ports/out/SignaturePort.ts:3 SignatureParty copies the fields of InkwellRecipient of inkwell-sdk: 'emailAddress', 'fullName', 'role', 'routingOrder'",
+        "[field-set] src/application/ports/out/SignaturePort.ts:3 SignatureParty copies the fields of InkwellEnvelopeDraft of inkwell-sdk: 'emailAddress', 'fullName', 'role', 'routingOrder'",
+        "[field-set] src/application/ports/out/SignaturePort.ts:3 SignatureParty copies the fields of InkwellRecipientState of inkwell-sdk: 'emailAddress', 'fullName', 'role', 'routingOrder'",
+        "[field-set] src/application/ports/out/SignaturePort.ts:3 SignatureParty copies the fields of InkwellEnvelope of inkwell-sdk: 'emailAddress', 'fullName', 'role', 'routingOrder'",
+        "[field-set] src/application/ports/out/SignaturePort.ts:3 SignatureParty copies the fields of InkwellClient of inkwell-sdk: 'emailAddress', 'fullName', 'role', 'routingOrder'",
+        "[field] src/application/ports/out/SignaturePort.ts:6 SignatureParty.routingOrder is named like the vendor field InkwellRecipient.routingOrder of inkwell-sdk",
+        "[field-set] src/application/ports/out/SignaturePort.ts:10 EnvelopeDraft copies the fields of InkwellEnvelopeDraft of inkwell-sdk: 'emailSubject', 'documents', 'recipients', 'expiresInDays'",
+        "[field-set] src/application/ports/out/SignaturePort.ts:10 EnvelopeDraft copies the fields of InkwellClient of inkwell-sdk: 'emailSubject', 'documents', 'recipients', 'expiresInDays'",
+        "[field] src/application/ports/out/SignaturePort.ts:10 EnvelopeDraft.emailSubject is named like the vendor field InkwellEnvelopeDraft.emailSubject of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:11 EnvelopeDraft.documents.documentBase64 is named like the vendor field InkwellDocument.documentBase64 of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:11 EnvelopeDraft.documents.fileName is named like the vendor field InkwellDocument.fileName of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:13 EnvelopeDraft.expiresInDays is named like the vendor field InkwellEnvelopeDraft.expiresInDays of inkwell-sdk",
+        "[field-set] src/application/ports/out/SignaturePort.ts:17 SentEnvelope copies the fields of InkwellEnvelope of inkwell-sdk: 'envelopeId', 'sentDateTime', 'recipients'",
+        "[field] src/application/ports/out/SignaturePort.ts:17 SentEnvelope.envelopeId is named like the vendor field InkwellEnvelope.envelopeId of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:18 SentEnvelope.sentDateTime is named like the vendor field InkwellEnvelope.sentDateTime of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:19 SentEnvelope.recipients.recipientStatus is named like the vendor field InkwellRecipientState.recipientStatus of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:23 SignaturePort.createEnvelope is named like the vendor method InkwellClient.createEnvelope of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:24 SignaturePort.getEnvelope is named like the vendor method InkwellClient.getEnvelope of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:25 SignaturePort.sendReminder is named like the vendor method InkwellClient.sendReminder of inkwell-sdk",
+        "[field] src/application/ports/out/SignaturePort.ts:25 SignaturePort.sendReminder.recipientEmails is named like the vendor field InkwellReminderRequest.recipientEmails of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:7 SigningNotice.envelopeId is named like the vendor field InkwellEnvelope.envelopeId of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:8 DeclineNotice.recipient.declineReason is named like the vendor field InkwellRecipientDeclinedEvent.declineReason of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:10 SigningCallbacks.onRecipientDeclined is named like the vendor method InkwellWebhookHandlers.onRecipientDeclined of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:11 SigningCallbacks.onEnvelopeExpired is named like the vendor method InkwellWebhookHandlers.onEnvelopeExpired of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:12 SigningCallbacks.onEnvelopeCompleted is named like the vendor method InkwellWebhookHandlers.onEnvelopeCompleted of inkwell-sdk",
+        "[field-set] src/application/services/SigningService.ts:14 failure copies the fields of InkwellError of inkwell-sdk: 'name', 'errorCode', 'recipientEmail'",
+        "[field] src/application/services/SigningService.ts:14 failure.recipientEmail is named like the vendor field InkwellError.recipientEmail of inkwell-sdk",
+        "[literal] src/application/services/SigningService.ts:35 SigningService.send uses the vendor code 'SIGNER' (InkwellRecipient of inkwell-sdk) in value",
+        "[error] src/application/services/SigningService.ts:41 SigningService.send uses the vendor code 'INVALID_RECIPIENT' (InkwellErrorCode of inkwell-sdk) in compare",
+        "[error] src/application/services/SigningService.ts:41 SigningService.send names the vendor declaration 'InkwellError' (InkwellError of inkwell-sdk) in compare",
+        "[field] src/application/services/SigningService.ts:55 SigningService.onRecipientDeclined is named like the vendor method InkwellWebhookHandlers.onRecipientDeclined of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:63 SigningService.onEnvelopeExpired is named like the vendor method InkwellWebhookHandlers.onEnvelopeExpired of inkwell-sdk",
+        "[field] src/application/services/SigningService.ts:67 SigningService.onEnvelopeCompleted is named like the vendor method InkwellWebhookHandlers.onEnvelopeCompleted of inkwell-sdk",
+        "[literal] src/application/services/SigningService.ts:78 SigningService.sendReminders uses the vendor code 'SIGNED' (InkwellRecipientState of inkwell-sdk) in compare",
+        "[literal] src/application/services/SigningService.ts:78 SigningService.sendReminders uses the vendor code 'SIGNER' (InkwellRecipient of inkwell-sdk) in compare",
+        "[error] src/application/services/SigningService.ts:83 SigningService.sendReminders names the vendor declaration 'InkwellError' (InkwellError of inkwell-sdk) in compare",
+        "[error] src/application/services/SigningService.ts:83 SigningService.sendReminders uses the vendor code 'RATE_LIMITED' (InkwellErrorCode of inkwell-sdk) in compare"
+      ]
+    },
+    {
+      "task": "f24-hex-laundry-lockers",
+      "tree": "seed",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f24-hex-laundry-lockers",
+      "tree": "solutions/clean",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f24-hex-laundry-lockers",
+      "tree": "solutions/trap",
+      "vocabulary": false,
+      "expect": "report",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f29-hex-courier-dispatch",
+      "tree": "seed",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f29-hex-courier-dispatch",
+      "tree": "solutions/clean",
+      "vocabulary": false,
+      "expect": "clean",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "task": "f29-hex-courier-dispatch",
+      "tree": "solutions/trap",
+      "vocabulary": false,
+      "expect": "report",
+      "findings": 0,
+      "findingsWithSeedBaseline": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-04",
+      "domain": "radio-station",
+      "case": "base",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-04",
+      "domain": "radio-station",
+      "case": "H11-legit",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-04",
+      "domain": "radio-station",
+      "case": "H11-pos1",
+      "expect": "violation",
+      "findings": 6,
+      "pass": true,
+      "evidence": [
+        "[literal] src/domain/royalty-status.ts:1 RoyaltyStatus uses the vendor code 'ACCEPTED' (PlayLogStatus of playlog-sdk) in union",
+        "[literal] src/domain/royalty-status.ts:1 RoyaltyStatus uses the vendor code 'PENDING_REVIEW' (PlayLogStatus of playlog-sdk) in union",
+        "[literal] src/domain/royalty-status.ts:1 RoyaltyStatus uses the vendor code 'REJECTED_DUPLICATE' (PlayLogStatus of playlog-sdk) in union",
+        "[literal] src/domain/royalty-status.ts:1 RoyaltyStatus uses the vendor code 'REJECTED_UNLICENSED' (PlayLogStatus of playlog-sdk) in union",
+        "[literal] src/domain/royalty-status.ts:4 isSettled uses the vendor code 'ACCEPTED' (PlayLogStatus of playlog-sdk) in compare",
+        "[literal] src/domain/royalty-status.ts:4 isSettled uses the vendor code 'REJECTED_DUPLICATE' (PlayLogStatus of playlog-sdk) in compare"
+      ]
+    },
+    {
+      "set": "hcal-04",
+      "domain": "radio-station",
+      "case": "H11-pos2",
+      "expect": "violation",
+      "findings": 2,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/ports/out/report-options.ts:2 TimePrecision uses the vendor code 'EXACT_SECOND' (TimePrecision of playlog-sdk) in enum",
+        "[literal] src/application/ports/out/report-options.ts:3 TimePrecision uses the vendor code 'ROUNDED_MINUTE' (TimePrecision of playlog-sdk) in enum"
+      ]
+    },
+    {
+      "set": "hcal-04",
+      "domain": "radio-station",
+      "case": "H11-twin1",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-04",
+      "domain": "radio-station",
+      "case": "H11-twin2",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-04",
+      "domain": "vet-clinic",
+      "case": "base",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-04",
+      "domain": "vet-clinic",
+      "case": "H11-legit",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-04",
+      "domain": "vet-clinic",
+      "case": "H11-pos1",
+      "expect": "violation",
+      "findings": 3,
+      "pass": true,
+      "evidence": [
+        "[literal] src/domain/claim-outcome.ts:2 RejectionReason uses the vendor code 'LIMIT_EXCEEDED' (DeclineCode of petclaim-sdk) in union",
+        "[literal] src/domain/claim-outcome.ts:2 RejectionReason uses the vendor code 'POLICY_LAPSED' (DeclineCode of petclaim-sdk) in union",
+        "[literal] src/domain/claim-outcome.ts:2 RejectionReason uses the vendor code 'PRE_EXISTING' (DeclineCode of petclaim-sdk) in union"
+      ]
+    },
+    {
+      "set": "hcal-04",
+      "domain": "vet-clinic",
+      "case": "H11-pos2",
+      "expect": "violation",
+      "findings": 3,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/ports/out/claims-gateway.port.ts:4 TreatmentPrecision uses the vendor code 'EXACT' (TreatmentPrecision of petclaim-sdk) in enum",
+        "[literal] src/application/ports/out/claims-gateway.port.ts:5 TreatmentPrecision uses the vendor code 'APPROXIMATE' (TreatmentPrecision of petclaim-sdk) in enum",
+        "[literal] src/application/ports/out/claims-gateway.port.ts:6 TreatmentPrecision uses the vendor code 'UNKNOWN' (TreatmentPrecision of petclaim-sdk) in enum"
+      ]
+    },
+    {
+      "set": "hcal-04",
+      "domain": "vet-clinic",
+      "case": "H11-twin1",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-04",
+      "domain": "vet-clinic",
+      "case": "H11-twin2",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-05",
+      "domain": "dental-lab",
+      "case": "base",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-05",
+      "domain": "dental-lab",
+      "case": "H11-legit",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-05",
+      "domain": "dental-lab",
+      "case": "H11-pos1",
+      "expect": "violation",
+      "findings": 4,
+      "pass": true,
+      "evidence": [
+        "[literal] src/domain/rescan-policy.ts:1 ScanGrade uses the vendor code 'SF_LOW_RES' (ScanQualityGrade of scanfab-sdk) in union",
+        "[literal] src/domain/rescan-policy.ts:1 ScanGrade uses the vendor code 'SF_MARGIN_UNCLEAR' (ScanQualityGrade of scanfab-sdk) in union",
+        "[literal] src/domain/rescan-policy.ts:1 ScanGrade uses the vendor code 'SF_OK' (ScanQualityGrade of scanfab-sdk) in union",
+        "[literal] src/domain/rescan-policy.ts:4 requiresRescan uses the vendor code 'SF_OK' (ScanQualityGrade of scanfab-sdk) in compare"
+      ]
+    },
+    {
+      "set": "hcal-05",
+      "domain": "dental-lab",
+      "case": "H11-pos2",
+      "expect": "violation",
+      "findings": 4,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/scan-job-tracking.ts:2 ScanJobState uses the vendor code 'QUEUED' (ScanJobStatus of scanfab-sdk) in enum",
+        "[literal] src/application/scan-job-tracking.ts:3 ScanJobState uses the vendor code 'PROCESSING' (ScanJobStatus of scanfab-sdk) in enum",
+        "[literal] src/application/scan-job-tracking.ts:4 ScanJobState uses the vendor code 'DONE' (ScanJobStatus of scanfab-sdk) in enum",
+        "[literal] src/application/scan-job-tracking.ts:5 ScanJobState uses the vendor code 'REJECTED' (ScanJobStatus of scanfab-sdk) in enum"
+      ]
+    },
+    {
+      "set": "hcal-05",
+      "domain": "dental-lab",
+      "case": "H11-twin1",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-05",
+      "domain": "dental-lab",
+      "case": "H11-twin2",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-05",
+      "domain": "scooter-rental",
+      "case": "base",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-05",
+      "domain": "scooter-rental",
+      "case": "H11-legit",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-05",
+      "domain": "scooter-rental",
+      "case": "H11-pos1",
+      "expect": "violation",
+      "findings": 3,
+      "pass": true,
+      "evidence": [
+        "[literal] src/domain/payment-failure.ts:2 PaymentFailure uses the vendor code 'DECLINED_INSUFFICIENT_FUNDS' (PaynetStatus of paynet-sdk) in union",
+        "[literal] src/domain/payment-failure.ts:3 PaymentFailure uses the vendor code 'DECLINED_CARD_EXPIRED' (PaynetStatus of paynet-sdk) in union",
+        "[literal] src/domain/payment-failure.ts:4 PaymentFailure uses the vendor code 'DECLINED_SUSPECTED_FRAUD' (PaynetStatus of paynet-sdk) in union"
+      ]
+    },
+    {
+      "set": "hcal-05",
+      "domain": "scooter-rental",
+      "case": "H11-pos2",
+      "expect": "violation",
+      "findings": 1,
+      "pass": true,
+      "evidence": [
+        "[literal] src/application/payment-retry-policy.ts:1 RETRYABLE_STATUSES uses the vendor code 'PENDING_REVIEW' (PaynetStatus of paynet-sdk) in const-set"
+      ]
+    },
+    {
+      "set": "hcal-05",
+      "domain": "scooter-rental",
+      "case": "H11-twin1",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "set": "hcal-05",
+      "domain": "scooter-rental",
+      "case": "H11-twin2",
+      "expect": "clean",
+      "findings": 0,
+      "pass": true,
+      "evidence": []
+    }
+  ]
+}

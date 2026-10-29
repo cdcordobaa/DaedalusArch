@@ -1,7 +1,7 @@
 /**
  * v1.5 R-MIRROR2 (row H11 v2, exploratory, 2026-10-29): the vendor lexicon and the core terms it is matched against.
  * Zero model calls. This module only extracts and tokenises; the matching (which core term mirrors which vendor term,
- * the one-to-one value-set test, the field-set test) is the Cypher text of `rules/r-mirror2-vendor-lexicon.cypher`.
+ * the field-set test) is the Cypher text of `rules/r-mirror2-vendor-lexicon.cypher`.
  *
  * Vendor lexicon: the exports of every vendor module an adapter of the tree imports (the vendor modules of R-MIRROR,
  * found by `facts.ts`): declaration names, string-literal values (with the value set each belongs to), enum members,
@@ -10,9 +10,6 @@
  * Core terms: in domain, application and port files, every string literal (with where it sits: a comparison, a switch
  * case, an includes/has/indexOf argument, a union member, an enum value, a constant set, an error, other) and every
  * declared field or method name (interfaces, type literals, classes, constructor parameter properties).
- *
- * Value maps: in adapter files, a vendor-side literal translated to a core-side literal (a switch case returning a
- * literal, an object literal keyed by the vendor value, `x === 'V' ? 'c' : ...`, `if (x === 'V') return 'c'`).
  *
  * Tokens: a literal's token is its exact text (`lit:DECLINED`, case kept: `'declined'` is not `'DECLINED'`); a name's
  * token is its lower-cased word sequence without separators (`name:amountminor` for `amountMinor`, `amount_minor`,
@@ -31,7 +28,8 @@
  *   - `baseline`: its token occurs in the core of a baseline tree (`BuildOptions.baseline`, for example the task's
  *     seed): the core already owned the term before the change, so only NEW mirrored vocabulary is reported.
  * The field-set shape (a core type all of whose >= 3 non-id field names are fields of one vendor declaration, R-MIRROR's
- * names shape) and the one-to-one value-set shape ignore `generic`: there the evidence is the whole set, not one word.
+ * names shape) ignores `generic`: there the evidence is the whole set, not one word. The single-field shape needs the
+ * exact vendor spelling (`treatment_code` in the vendor, `treatmentCode` in the core is a translation, not a copy).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -60,7 +58,6 @@ export interface CoreTermFact {
   /** For a field: its owner type and the number of the owner's non-id field names. */
   readonly owner: string; readonly ownerFields: number;
 }
-export interface ValueMapFact { readonly file: string; readonly line: number; readonly from: string; readonly to: string; readonly form: 'switch' | 'object' | 'conditional' | 'if' }
 
 /** Words of a name or literal: camelCase, PascalCase, snake, kebab, dotted and digits split; lower case. */
 export function words(s: string): string[] {
@@ -275,54 +272,6 @@ export function coreTermsOf(sf: SourceFile, file: string, role: Role): CoreTermF
   for (const p of sf.getDescendantsOfKind(SyntaxKind.PropertyDeclaration)) addName(p, p.getName(), 'field');
   for (const p of sf.getDescendantsOfKind(SyntaxKind.Parameter)) if (p.isParameterProperty()) addName(p, p.getName(), 'field');
   for (const m of [...sf.getDescendantsOfKind(SyntaxKind.MethodSignature), ...sf.getDescendantsOfKind(SyntaxKind.MethodDeclaration)]) addName(m, m.getName(), 'method');
-  return out;
-}
-
-/** Literal-to-literal translations in an adapter file. */
-export function valueMapsOf(sf: SourceFile, file: string): ValueMapFact[] {
-  const out: ValueMapFact[] = [];
-  const firstReturned = (stmts: Node[]): string | undefined => {
-    for (const s of stmts) {
-      if (Node.isReturnStatement(s)) return strOf(unwrap(s.getExpression() ?? s));
-      if (Node.isExpressionStatement(s)) { const e = s.getExpression(); if (Node.isBinaryExpression(e) && e.getOperatorToken().getKind() === SyntaxKind.EqualsToken) return strOf(unwrap(e.getRight())); }
-      if (Node.isBlock(s)) return firstReturned(s.getStatements());
-    }
-    return undefined;
-  };
-  const cmpLiteral = (e: Node): string | undefined => {
-    const x = unwrap(e);
-    if (!Node.isBinaryExpression(x) || !COMPARE_OPS.has(x.getOperatorToken().getKind())) return undefined;
-    if (x.getOperatorToken().getKind() !== SyntaxKind.EqualsEqualsEqualsToken && x.getOperatorToken().getKind() !== SyntaxKind.EqualsEqualsToken) return undefined;
-    return strOf(unwrap(x.getRight())) ?? strOf(unwrap(x.getLeft()));
-  };
-  for (const c of sf.getDescendantsOfKind(SyntaxKind.CaseClause)) {
-    const from = strOf(unwrap(c.getExpression()));
-    // fall-through cases share the next case's statements
-    let stmts: Node[] = c.getStatements();
-    for (let n: Node | undefined = c; stmts.length === 0 && n !== undefined;) { n = n.getNextSibling(); if (n !== undefined && (Node.isCaseClause(n) || Node.isDefaultClause(n))) stmts = n.getStatements(); }
-    const to = firstReturned(stmts);
-    if (from !== undefined && to !== undefined) out.push({ file, line: c.getStartLineNumber(), from, to, form: 'switch' });
-  }
-  for (const o of sf.getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression)) {
-    for (const p of o.getProperties()) {
-      if (!Node.isPropertyAssignment(p)) continue;
-      const nameNode = p.getNameNode();
-      const from = Node.isIdentifier(nameNode) ? nameNode.getText() : strOf(nameNode);
-      const to = strOf(unwrap(p.getInitializerOrThrow()));
-      if (from !== undefined && to !== undefined) out.push({ file, line: p.getStartLineNumber(), from, to, form: 'object' });
-    }
-  }
-  for (const c of sf.getDescendantsOfKind(SyntaxKind.ConditionalExpression)) {
-    const from = cmpLiteral(c.getCondition());
-    const to = strOf(unwrap(c.getWhenTrue()));
-    if (from !== undefined && to !== undefined) out.push({ file, line: c.getStartLineNumber(), from, to, form: 'conditional' });
-  }
-  for (const i of sf.getDescendantsOfKind(SyntaxKind.IfStatement)) {
-    const from = cmpLiteral(i.getExpression());
-    const t = i.getThenStatement();
-    const to = firstReturned(Node.isBlock(t) ? t.getStatements() : [t]);
-    if (from !== undefined && to !== undefined) out.push({ file, line: i.getStartLineNumber(), from, to, form: 'if' });
-  }
   return out;
 }
 

@@ -22,8 +22,7 @@ async function main(): Promise<void> {
         const v = vt.get(c.kind === 'literal' ? literalToken(c.text) : nameToken(c.text));
         if (v) hits.push(`${c.file}:${c.line} ${c.kind}/${c.context} ${c.symbol} '${c.text}' <- ${[...new Set(v)].join(',')}${c.set ? ` [set ${c.set}/${c.setSize}]` : ''}`);
       }
-      const maps = facts.valueMaps.map((m) => `${m.from}->${m.to}`);
-      process.stdout.write(`== ${task} ${name}: vendorTerms ${facts.vendorTerms.length}, maps ${maps.join(' ')}\n${[...new Set(hits)].map((h) => `   ${h}`).join('\n')}\n`);
+      process.stdout.write(`== ${task} ${name}: vendorTerms ${facts.vendorTerms.length}\n${[...new Set(hits)].map((h) => `   ${h}`).join('\n')}\n`);
     }
   }
   fs.rmSync(scratch, { recursive: true, force: true });

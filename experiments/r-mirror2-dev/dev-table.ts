@@ -34,8 +34,10 @@ async function main(): Promise<void> {
     for (const [name, tree] of trees) {
       const strict = await run(tree, spec);
       const withSeed = name === 'seed' ? strict : await run(tree, spec, path.join(TF, task, 'seed'));
-      const expect = name === 'seed' || name === 'solutions/clean' || !vocabulary ? 'clean' : 'violation';
-      rows.push({ task, tree: name, vocabulary, expect, findings: strict.n, findingsWithSeedBaseline: withSeed.n, pass: expect === 'clean' ? strict.n === 0 : strict.n > 0, evidence: strict.items });
+      // the target: every seed and clean solution silent; every trap and gaming tree of a vocabulary task fires; the
+      // other tasks' trap and gaming trees (another trap family) are reported only
+      const expect = name === 'seed' || name === 'solutions/clean' ? 'clean' : vocabulary ? 'violation' : 'report';
+      rows.push({ task, tree: name, vocabulary, expect, findings: strict.n, findingsWithSeedBaseline: withSeed.n, pass: expect === 'clean' ? strict.n === 0 : expect === 'violation' ? strict.n > 0 : true, evidence: strict.items });
       process.stdout.write(`${task.padEnd(26)} ${name.padEnd(32)} expect ${expect.padEnd(9)} findings ${String(strict.n).padStart(3)} (seed baseline ${String(withSeed.n).padStart(3)})${VERBOSE ? `\n${strict.items.map((e) => `      ${e}`).join('\n')}` : ''}\n`);
     }
   }

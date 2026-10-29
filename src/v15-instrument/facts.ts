@@ -22,8 +22,8 @@ import { categoryOfModule } from '../apg-enrich/cheap/behaviour.js';
 import { guardShape, isTrivialParamNullCheck, normaliseCondition } from '../apg-enrich/cheap/guards.js';
 import type { DetectSpec, Role } from './spec.js';
 import { globMatch } from './spec.js';
-import { baselineTokens, coreTermsOf, genericVendorTerm, specTokens, valueMapsOf, vendorTermsOf } from './vendor-lexicon.js';
-import type { CoreTermFact, ValueMapFact, VendorTermFact } from './vendor-lexicon.js';
+import { baselineTokens, coreTermsOf, genericVendorTerm, specTokens, vendorTermsOf } from './vendor-lexicon.js';
+import type { CoreTermFact, VendorTermFact } from './vendor-lexicon.js';
 
 export const MAX_DEPTH = 4;
 
@@ -93,10 +93,9 @@ export interface Facts {
   readonly entityOut: readonly EntityOutFact[];
   readonly adapterRules: readonly AdapterRuleFact[];
   readonly mirrors: readonly MirrorFact[];
-  /** R-MIRROR2 (H11 v2): the vendor lexicon, the core terms and the adapters' literal translations (`vendor-lexicon.ts`). */
+  /** R-MIRROR2 (H11 v2): the vendor lexicon and the core terms (`vendor-lexicon.ts`). */
   readonly vendorTerms: readonly VendorTermFact[];
   readonly coreTerms: readonly CoreTermFact[];
-  readonly valueMaps: readonly ValueMapFact[];
   readonly repoMulti: readonly RepoMultiFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
@@ -1838,7 +1837,6 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   // ── R-MIRROR2 lexicon (H11 v2, 2026-10-29): extraction and tokens only; the matching is the rule's Cypher ────────
   const vendorTerms: VendorTermFact[] = [];
   const coreTerms: CoreTermFact[] = [];
-  const valueMaps: ValueMapFact[] = [];
   if (vendorExports.length > 0) {
     const fromSpec = specTokens(opts.specFile);
     const fromBaseline = opts.baseline !== undefined ? baselineTokens(opts.baseline, (f) => spec.roleOf(f)) : new Set<string>();
@@ -1852,14 +1850,13 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
       const f = fileOf(sf);
       const role = spec.roleOf(f);
       if (role === 'domain' || role === 'application' || role === 'port') coreTerms.push(...coreTermsOf(sf, f, role));
-      else if (role === 'adapter') valueMaps.push(...valueMapsOf(sf, f));
     }
   }
-  bump('vendorTerms', vendorTerms.length); bump('coreTerms', coreTerms.length); bump('valueMaps', valueMaps.length);
+  bump('vendorTerms', vendorTerms.length); bump('coreTerms', coreTerms.length);
 
   return {
     roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
-    locators, coreIo, entityOut, adapterRules, mirrors, vendorTerms, coreTerms, valueMaps, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
+    locators, coreIo, entityOut, adapterRules, mirrors, vendorTerms, coreTerms, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
 
