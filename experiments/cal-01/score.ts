@@ -27,11 +27,11 @@ export const ROW_RULES: Record<string, readonly string[]> = {
   K07: ['R-RTX'], K08: ['R-D5'], K09: ['R-D5'], K10: ['R-D5S', 'R-D5'], K11: ['R-LOCK'], K12: ['R-D3'], K13: ['R-H5'],
   K14: ['R-D9'], K15: ['R-INJ'], K16: ['R-REF'],
 };
-/** Hexagonal rows (HCAL), mapped by construct from the spec's fitness functions before scoring (2026-10-27; CN-04 2026-10-28: H06 R-ADAPTER-RULE in place of R-D5, R-D3; H11 R-MIRROR). */
+/** Hexagonal rows (HCAL), mapped by construct from the spec's fitness functions before scoring (2026-10-27; CN-04 2026-10-28: H06 R-ADAPTER-RULE in place of R-D5, R-D3; H11 R-MIRROR; H11 v2 2026-10-29: R-MIRROR2 added, exploratory, not admitted). */
 export const HEX_ROW_RULES: Record<string, readonly string[]> = {
   H01: ['FF-S01', 'FF-S04', 'FF-P01'], H02: ['FF-S01', 'FF-S03', 'FF-P02', 'R-INJ'], H03: ['FF-S01', 'FF-S03', 'FF-P03', 'R-AXA'],
   H04: ['R-H5'], H05: ['R-INJ', 'FF-P02'], H06: ['R-ADAPTER-RULE'], H07: ['FF-P01', 'FF-S01', 'R-TRANSPORT'],
-  H08: ['R-LOCATOR'], H09: ['R-COREIO'], H10: ['R-ENTITY-OUT'], H11: ['R-MIRROR'],
+  H08: ['R-LOCATOR'], H09: ['R-COREIO'], H10: ['R-ENTITY-OUT'], H11: ['R-MIRROR', 'R-MIRROR2'],
 };
 const ROWS: Record<string, readonly string[]> = argOf('--rows') === 'hex' ? HEX_ROW_RULES : ROW_RULES;
 // Development runs: `--only K08,K12` scores those rows' cases (plus the base), `--out <file>` writes the record
