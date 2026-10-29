@@ -1,0 +1,40 @@
+{
+ "key": "c92dea687e3a298d1fc7e7fc488fa871131543a9f55f59cdb1ebc103936c7fe7",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A20",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:15:41.953Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "This is an outbound in-memory store adapter for batches. In `record`, it branches on the domain field `batch.status` (`!== 'planned'`) to decide whether a batch enters `brewOrder`. That order is what `brewedNewestFirst` returns. So the adapter holds the business rule that a batch counts as brewed once it leaves 'planned'. That rule belongs in the domain, not in persistence. The other code is plain storage: id generation, lookup, mailbox posting. The status check is a domain decision, not transport-shape validation. It only affects which batches a read returns, and one file could undo it, so I rank it medium because business logic sits in the wrong layer.",
+  "severityClass": "medium",
+  "cites": [
+   "src/cellar/infrastructure/MemoryBatchStore.ts:15",
+   "src/cellar/infrastructure/MemoryBatchStore.ts:13"
+  ]
+ },
+ "invalidReason": null
+}

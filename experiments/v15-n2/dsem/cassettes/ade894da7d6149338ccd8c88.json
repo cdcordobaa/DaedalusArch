@@ -1,0 +1,42 @@
+{
+ "key": "ade894da7d6149338ccd8c88c0dea834b84910d56b2099189515feb840e2d29e",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A02",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:12:17.762Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "AgreementService keeps a private in-memory Set<string> (`sending`) of agreement ids. In send(), it rejects a second send if the id is already in the set, adds the id, does async work (allowance check, external sender call), then marks the agreement sent and saves it. The id is removed in `finally`. This process-local set acts as a concurrency guard so the same agreement is not sent twice at once. That guard is the job of the Agreement aggregate's consistency boundary, for example through its state or versioned persistence. The set only works inside one process. It does not work across multiple instances or restarts, and the service holds it instead of the aggregate or store.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/services/AgreementService.ts:25",
+   "src/application/services/AgreementService.ts:44",
+   "src/application/services/AgreementService.ts:46",
+   "src/application/services/AgreementService.ts:59"
+  ]
+ },
+ "invalidReason": null
+}

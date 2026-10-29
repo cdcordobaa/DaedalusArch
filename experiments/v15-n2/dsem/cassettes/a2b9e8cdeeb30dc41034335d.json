@@ -1,0 +1,39 @@
+{
+ "key": "a2b9e8cdeeb30dc41034335dec9f3d72e7cae97533741bede1fff109081d08dd",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A24",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:22.868Z",
+ "answer": {
+  "explanation": "GetJob.execute loads a RepairJob and maps it to a JobView. It copies status and converts labourMinutes to hours by dividing by 60. The division is a unit conversion for the read model, and it has no business rule behind it. There is no rate, overrun check, threshold or approval logic. The aggregate keeps its own rules, such as overrunApproved and the pending events. The service only reformats one value for display, so this is not a business calculation that belongs in the aggregate.",
+  "answer": "no",
+  "severityClass": null,
+  "cites": [
+   "src/workshop/application/GetJob.ts:16"
+  ]
+ },
+ "invalidReason": null
+}

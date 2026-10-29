@@ -1,0 +1,41 @@
+{
+ "key": "724ce38a2685a385e954aaf18efd1a86471a82387d517301788d8bbd5a0b18d7",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A04",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:12:38.578Z",
+ "answer": {
+  "answer": "yes",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/RequestRideService.ts:27-35",
+   "src/application/RequestRideService.ts:37",
+   "src/application/RequestRideService.ts:45"
+  ],
+  "explanation": "The service computes each pool's detour itself and hands it to the matching policy. For every pool with free seats it takes the stops with and without the rider (lines 27-28), gets travel times from the times port, and subtracts them to get addedSeconds (line 32). It passes that figure, with withoutSeconds, to matching.choose as a Candidate (line 37). That detour figure is business logic over the Pool's state, and it is worked out in the application service instead of in the Pool aggregate, which only supplies raw stop lists. The service also converts the added time to minutes (line 45). The travel-time lookup is an outside dependency, so the service has to orchestrate that call. The subtraction and the definition of added time are still domain rules in the wrong layer. The case is modest, since the arithmetic is small and the actual selection stays in the domain's matching policy."
+ },
+ "invalidReason": null
+}

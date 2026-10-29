@@ -1,0 +1,39 @@
+{
+ "key": "82787c84813b0204ec35d3a38e98db29835dcedde1dd0b423a3e2172289e0d65",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A12",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:14:09.699Z",
+ "answer": {
+  "answer": "no",
+  "explanation": "The code is a repository-style query in an in-memory adapter. It filters lessons by teacher and date and sorts them by slot start. This is retrieval and ordering, not a business calculation over an aggregate's state that is handed back to an application service. No domain rule is computed here, such as overlap or availability, so the construct is not present.",
+  "severityClass": null,
+  "cites": [
+   "src/adapters/out/memory/MemoryLessonLedger.ts:22"
+  ]
+ },
+ "invalidReason": null
+}

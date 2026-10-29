@@ -1,0 +1,41 @@
+{
+ "key": "f3a15d18d6d97aeccd457abc5987093e14cbac9e960c9a95d5fa318cb5f178ef",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A16",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:14:58.946Z",
+ "answer": {
+  "answer": "yes",
+  "severityClass": "medium",
+  "explanation": "The application service computes business rules itself: how much comes from stock (min of requested and on-hand), how much is missing, supplier hold expiry, and the urgent red-cell fallback to O- substitution. These calculations use the request's state (component, group, units, urgent) and the fridge's stock. They sit in the service instead of in the UnitRequest or a stock aggregate. UnitRequest is only a value holder with a factory. So the domain logic is in the wrong layer.",
+  "cites": [
+   "src/application/RequestUnitsService.ts:17-18",
+   "src/application/RequestUnitsService.ts:25",
+   "src/application/RequestUnitsService.ts:47-50"
+  ]
+ },
+ "invalidReason": null
+}

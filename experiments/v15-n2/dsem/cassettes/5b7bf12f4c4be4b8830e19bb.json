@@ -1,0 +1,40 @@
+{
+ "key": "5b7bf12f4c4be4b8830e19bb2153030125aa1c9a3196e32c1cf50bd55e9442c0",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A19",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:15:19.801Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service converts a product's price into a foreign currency itself. It reads the product's euroCents state, multiplies it by the exchange rate mid, and rounds the result with roundPrice using the rate's minor units. Product is a plain readonly data interface with no behaviour, so this pricing calculation happens in the service instead of in the entity. The EUR case is delegated to this.prices.euroPrice, but the non-EUR conversion is a business calculation over entity state done in the service layer.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/services/PriceProductService.ts:34",
+   "src/domain/model/Product.ts:2-6"
+  ]
+ },
+ "invalidReason": null
+}

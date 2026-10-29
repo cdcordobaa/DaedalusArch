@@ -1,0 +1,39 @@
+{
+ "key": "668d564d418225dcebf485f9dc9747b76d2873ee517ebceee8ce746ee1b26c18",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A26",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:45.043Z",
+ "answer": {
+  "answer": "no",
+  "explanation": "The handler reacts to a BookingMade event and formats the total as a display string (cents divided by 100, shown with two decimals) for a confirmation message. This is presentation formatting of event data, not a business calculation over an aggregate's or entity's state. It reads no aggregate, applies no business rule, and hands no result back to a domain object. The construct is not present.",
+  "severityClass": null,
+  "cites": [
+   "src/bookings/application/SendConfirmation.ts:14"
+  ]
+ },
+ "invalidReason": null
+}

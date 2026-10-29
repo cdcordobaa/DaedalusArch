@@ -1,0 +1,39 @@
+{
+ "key": "d9f861dbcaa15ba002eeb3a4fb399232d1e0b011b7eff0ab4d920ebce8fbfaea",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A12",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:14:14.359Z",
+ "answer": {
+  "answer": "no",
+  "explanation": "The code is a repository-style query in an in-memory adapter. It filters lessons by teacher and date and sorts them by slot start time. That is retrieval and ordering, not a business calculation over an aggregate's state. The overlap and containment logic lives in TimeWindow, a domain type, and it isn't used here. Nothing is computed outside the domain and handed back.",
+  "severityClass": null,
+  "cites": [
+   "src/adapters/out/memory/MemoryLessonLedger.ts:21-23"
+  ]
+ },
+ "invalidReason": null
+}

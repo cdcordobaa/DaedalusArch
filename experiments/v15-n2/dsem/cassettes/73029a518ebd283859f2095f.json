@@ -1,0 +1,39 @@
+{
+ "key": "73029a518ebd283859f2095f89b039845391d0be7cb9bcdb7893237da4751d6c",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A08",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:13:23.678Z",
+ "answer": {
+  "answer": "no",
+  "explanation": "The workflow method looks up a teacher, parses a date, fetches time windows from a hours service, sorts them by start time and maps them to labels for a view. This is read-only query/presentation assembly. It performs no business calculation over the teacher aggregate's state (such as an eligibility or availability rule) that would belong inside the aggregate. Sorting and labelling windows is view shaping, not domain logic pulled out of an entity.",
+  "severityClass": null,
+  "cites": [
+   "src/application/workflows/TeacherWorkflow.ts:27-32"
+  ]
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,41 @@
+{
+ "key": "c5942b8a6f3c32d759d75165d1b5663d399b615f152cc4f185bd457336a8ad09",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A22",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:01.013Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service FinanceExportService.financeExport loads meal orders and pupils, then does the business calculation itself. It skips cancelled orders, groups by the pupil's class, and sums meal counts and amounts per class and in total. It does this by reading the order's status and price and the pupil's className directly. The MealOrder entity holds only state and a cancel() method, and none of this takings logic sits in the domain. The calculation therefore lives in the service. Part of the method is CSV formatting and file writing, which is a legitimate adapter concern. The pricing and aggregation of takings per class is business logic placed outside the domain objects. No intent is declared, and this is a read-only calculation in the wrong layer, so the severity is low.",
+  "severityClass": "low",
+  "cites": [
+   "src/application/usecases/FinanceExportService.ts:18-26",
+   "src/application/usecases/FinanceExportService.ts:31-37",
+   "src/domain/model/MealOrder.ts:7-12"
+  ]
+ },
+ "invalidReason": null
+}

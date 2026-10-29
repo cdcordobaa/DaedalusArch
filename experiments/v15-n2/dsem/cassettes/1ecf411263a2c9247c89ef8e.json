@@ -1,0 +1,39 @@
+{
+ "key": "1ecf411263a2c9247c89ef8e1dcfdb11981db0254734efcaac52e64803b65dfa",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A15",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:14:45.326Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "CheckoutService computes a surcharge from the order's total cents (rounded half up, using a per-thousand rate) and adds it to the total to get the charged amount. This is a business pricing calculation over the Order's state. It lives in the application service instead of in the Order or Money. The service then passes the result to the charges port. The Order should own this calculation.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/services/CheckoutService.ts:23-25"
+  ]
+ },
+ "invalidReason": null
+}
