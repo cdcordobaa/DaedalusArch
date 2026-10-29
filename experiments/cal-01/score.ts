@@ -5,7 +5,8 @@
  * nothing, blocking tier only). The frozen loader needs its full schema, so the frozen check uses P1's spec as the
  * template with the domain's own `ddd` block (minus `invariants`, a v1.5-only field) swapped in. A violation case passes when a rule mapped to its catalog row fires in the labelled
  * file; a clean case (twin, legit) passes when no mapped rule fires anywhere in the tree. CAL-01 is development
- * material: rules may be revised after reading it; the admission gate is CAL-02.
+ * material: rules may be revised after reading it; the admission gate is CAL-02. Since instrument v1.5.3 a case is
+ * scored with its domain's base as the baseline (`BuildOptions.baseline`), as the delivery hub takes the session's seed.
  *
  *   npx tsx experiments/cal-01/score.ts
  */
@@ -83,7 +84,9 @@ async function main(): Promise<void> {
       fs.cpSync(path.join(dd, 'base'), tree, { recursive: true });
       if (c !== 'base') fs.cpSync(caseDir, tree, { recursive: true });
       const spec = fs.existsSync(path.join(tree, 'spec.yaml')) ? path.join(tree, 'spec.yaml') : path.join(dd, 'base', 'spec.yaml');
-      const r = await runTree(tree, rules, { spec, scratch: path.join(scratch, '_s') });
+      // A case's seed is its domain's base: the base is the baseline (instrument v1.5.3, as the hub takes the session's
+      // seed); the base itself has no seed and is scored without one, so its clean check keeps its meaning.
+      const r = await runTree(tree, rules, { spec, scratch: path.join(scratch, '_s'), ...(c !== 'base' ? { baseline: path.join(dd, 'base') } : {}) });
       const hits: Hit[] = [...r.findings.filter((f) => f.status === 'violation').map((f) => ({ rule: f.rule, file: f.file, line: f.line })), ...(await frozenHits(tree, spec))];
       if (lab === null) { rows.push({ domain, case: c, row: null, label: 'clean', pass: hits.length === 0, hits }); continue; }
       const ids = ROWS[lab.rule] ?? [];

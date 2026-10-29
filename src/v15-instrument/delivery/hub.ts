@@ -22,6 +22,10 @@
  * `check_consistency`; the frozen `check_file` / `check_diff` answers are numbered for the same rules). The style is
  * the cell's `style`, else the spec's `architecture.style`; a style no study scores gets no rule.
  * `tests/unit/v15-instrument/delivery-rule-set.test.ts` holds push == pull == scored.
+ *
+ * 2026-10-29 (instrument v1.5.3): every v1.5 check of both channels takes the session's seed (the cell's `baseline`,
+ * else the work tree when the cell opens; its copy under the scratch dir) as `baseline`, so a rule that reads a
+ * baseline (R-MIRROR2's stoplist) does not deliver vocabulary the seed already has. The scorers pass the same seed.
  */
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -35,7 +39,7 @@ import { buildContext, parseArgs } from '../../mcp-server/context.js';
 import { createServer } from '../../mcp-server/server.js';
 import { confineArgs } from '../../mcp-server/confine.js';
 import type { FileViolation } from '../../mcp-server/types.js';
-import { checkConsistency, type ConsistencyResult } from '../consistency.js';
+import { checkConsistency, type CheckOptions, type ConsistencyResult } from '../consistency.js';
 import { GATED_TOOLS, insideTree, keyOf, parseHookEvent, postToolUseReply, stopReply, type KeyedFinding } from '../edit-gate/gate.js';
 import { changedSince, escapingLinks, treeHashes } from '../edit-gate/hub.js';
 import { checkLayers, LAYER_RULES, toKeyed } from '../edit-gate/layers.js';
@@ -143,7 +147,7 @@ export class DeliveryHub {
     fs.cpSync(base, seedCopy, { recursive: true, filter: (src) => path.relative(base, src).split(path.sep)[0] !== 'node_modules' });
     const rules = deliveredRulesOf(cell);
     this.s = { cell, seed: treeHashes(base), ledger: new FindingLedger(), scratch, seedCopy, cache: new Map(), rules, hookEvents: 0, failOpen: 0 };
-    await this.check({ root: cell.project, spec: cell.spec, scratch, rules: rules.cypher }).catch(() => undefined); // warm, not logged
+    await this.check(this.checkOptions(this.s, null)).catch(() => undefined); // warm, not logged
   }
 
   setTurn(step: string, turn: string): void {
@@ -198,7 +202,7 @@ export class DeliveryHub {
     const k = `${digestOf(hashes)}|${files === null ? '*' : [...files].sort().join(',')}`;
     const hit = s.cache.get(k);
     if (hit !== undefined) return hit;
-    const res = await this.check({ root: s.cell.project, spec: s.cell.spec, scratch: s.scratch, rules: s.rules.cypher, ...(files !== null ? { files } : {}) });
+    const res = await this.check(this.checkOptions(s, files));
     const changed = changedSince(s.seed, hashes).filter((f) => files === null || files.includes(f));
     let frozenError: string | null = null;
     const lay = s.rules.frozen.length > 0 && changed.length > 0
@@ -208,6 +212,15 @@ export class DeliveryHub {
     const d: Delivered = { res, keyed, frozenCount: lay?.findings.length ?? 0, frozenError };
     s.cache.set(k, d);
     return d;
+  }
+
+  /**
+   * The v1.5 check's options, the one place for both channels: the delivered Cypher rules over `files` (null: the whole
+   * project), with the session's seed copy as the baseline (instrument v1.5.3), so a rule that reads a baseline does
+   * not deliver what the seed already has. The scorers pass the same seed (`experiments/v15-study/score-study.ts`).
+   */
+  private checkOptions(s: Session, files: readonly string[] | null): CheckOptions {
+    return { root: s.cell.project, spec: s.cell.spec, scratch: s.scratch, rules: s.rules.cypher, baseline: s.seedCopy, ...(files !== null ? { files } : {}) };
   }
 
   // ── Push ───────────────────────────────────────────────────────────────────────────────────────────────────────

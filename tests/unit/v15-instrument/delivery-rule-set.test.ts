@@ -68,12 +68,13 @@ const pushedText = (reply: string): string => (reply === '' ? '' : (JSON.parse(r
 /** A hub whose two checks record the rule ids they are asked to run, per channel. */
 function recordingHub(tmp: string, name: string) {
   const ran = { push: new Set<string>(), pull: new Set<string>() };
+  const baselines = { push: new Set<string | undefined>(), pull: new Set<string | undefined>() };
   let channel: 'push' | 'pull' = 'push';
   const hub = new DeliveryHub(path.join(tmp, 'sock', `${name}.hook.sock`), path.join(tmp, 'sock', `${name}.mcp.sock`), path.join(tmp, `logs-${name}`), {
-    check: async (o) => { for (const r of o.rules ?? []) ran[channel].add(r); return checkConsistency(o); },
+    check: async (o) => { for (const r of o.rules ?? []) ran[channel].add(r); baselines[channel].add(o.baseline); return checkConsistency(o); },
     checkLayers: async (o) => { for (const r of o.rules ?? []) ran[channel].add(r); return checkLayers(o); },
   });
-  return { hub, ran, setChannel: (c: 'push' | 'pull'): void => { channel = c; } };
+  return { hub, ran, baselines, setChannel: (c: 'push' | 'pull'): void => { channel = c; } };
 }
 
 const scorerSet = (style: Style): string[] => [...new Set([...scorerAdmitted(style), ...scorerExploratory(style)])].sort();
@@ -91,7 +92,7 @@ describe('delivery hub rule set: push == pull == scored (blocking gate)', () => 
       for (const id of cypherRules(style)) expect(cypherIds.has(id)).toBe(true);
       for (const id of scoredRules(style)) { expect(RULE_LABELS[id]).toBeDefined(); expect(RULE_TEXT[id]).toBeDefined(); }
     }
-    expect(INSTRUMENT_ID).toMatch(/^v1\.5\.2/);
+    expect(INSTRUMENT_ID).toMatch(/^v1\.5\.3/);
   });
 
   const cases: [Style, string, string, string, string][] = [
@@ -100,13 +101,13 @@ describe('delivery hub rule set: push == pull == scored (blocking gate)', () => 
     ['hexagonal', path.join(MUSEUM, 'base'), path.join(MUSEUM, 'base', 'spec.yaml'), 'src/adapters/in/http/loan.controller.ts', path.join(MUSEUM, 'cases', 'H03-pos1', 'src', 'adapters', 'in', 'http', 'loan.controller.ts')],
   ];
   it.each(cases)('%s: the rule ids run by push and by pull equal the scorer\'s set', async (style, seed, spec, file, edit) => {
-    const { hub, ran, setChannel } = recordingHub(tmp, style);
+    const { hub, ran, baselines, setChannel } = recordingHub(tmp, style);
     const work = path.join(tmp, `work-${style}`);
     fs.cpSync(seed, work, { recursive: true });
     await hub.start();
     try {
       await hub.setCell({ id: `gate-${style}`, session: null, step: 's1', turn: 't1', spec, project: work, baseline: seed });
-      ran.push.clear(); // the warm-up check at setCell is not a channel
+      ran.push.clear(); baselines.push.clear(); // the warm-up check at setCell is not a channel
       expect(hub.delivered).toMatchObject({ style });
       fs.copyFileSync(edit, path.join(work, file));
       setChannel('push');
@@ -118,6 +119,13 @@ describe('delivery hub rule set: push == pull == scored (blocking gate)', () => 
       expect(r.result.isError).not.toBe(true);
       expect([...ran.push].sort()).toEqual(scorerSet(style));
       expect([...ran.pull].sort()).toEqual(scorerSet(style));
+      // v1.5.3: both channels' v1.5 checks take the session's seed (its copy) as the baseline, as the scorer does
+      for (const ch of ['push', 'pull'] as const) {
+        expect(baselines[ch].size).toBe(1);
+        const b = [...baselines[ch]][0];
+        expect(b).toBeDefined();
+        expect(fs.readFileSync(path.join(b!, file), 'utf8')).toBe(fs.readFileSync(path.join(seed, file), 'utf8'));
+      }
       // the frozen tools' answers are numbered for the same frozen rules
       expect([...hub.delivered!.frozen].sort()).toEqual(scorerSet(style).filter((x) => x.startsWith('FF-')));
     } finally {

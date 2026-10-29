@@ -63,6 +63,15 @@ export const identity = (h: Pick<Hit, 'rule' | 'file' | 'subject'>): string => `
 export function identitiesOf(hits: readonly Hit[], rules: readonly string[]): Set<string> {
   return new Set(hits.filter((h) => matches(h.rule, rules)).map(identity));
 }
+/**
+ * The v1.5 rules on one scored tree, with the session's seed (step-00) as the baseline (instrument v1.5.3): the same
+ * baseline the delivery hub's checks take (the cell's seed copy), so a rule that reads a baseline (R-MIRROR2) scores
+ * what the hub delivers. `tests/unit/v15-instrument/baseline-delivery.test.ts` holds hub == scorer on it.
+ */
+export function scoreTreeV15(tree: string, rules: Parameters<typeof runTree>[1], spec: string, scratch: string, seed: string): ReturnType<typeof runTree> {
+  return runTree(tree, rules, { spec, scratch, baseline: path.resolve(seed) });
+}
+
 /** New identities against the seed. */
 export const newAgainst = (now: ReadonlySet<string>, seed: ReadonlySet<string>): string[] => [...now].filter((k) => !seed.has(k)).sort();
 
@@ -279,7 +288,7 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
     const tests = tsxJson(['experiments/puzzle-01/tools/run-tests.ts', '--puzzle', taskDir, '--tree', tree]) as TestsResult | null;
     const oracle = tsxJson([path.join(FAM, m.task, 'oracle.ts'), tree]);
     const sg = (oracle?.subGoals as SubGoal[] | undefined) ?? null;
-    const r = await runTree(tree, rules, { spec, scratch: path.join(scratch, '_s') });
+    const r = await scoreTreeV15(tree, rules, spec, path.join(scratch, '_s'), snaps[0] as string);
     let frozenHitsK: Hit[] = [];
     let frozenError: string | null = null;
     try { frozenHitsK = await frozenFileHits(tree, spec, scratch); } catch (e) { frozenError = scrub(String(e)).slice(0, 300); }
@@ -392,7 +401,7 @@ async function main(): Promise<number> {
         if (snaps.length > 1) {
           const last = snaps.at(-1) as string;
           // The keys the hub gives on the final tree: the style's delivered set (the one rule list), both rule kinds.
-          const cc = await checkConsistency({ root: path.resolve(last), spec, scratch: path.join(scratch, '_cc'), rules: cypherRules(m.style) }).catch(() => null);
+          const cc = await checkConsistency({ root: path.resolve(last), spec, scratch: path.join(scratch, '_cc'), rules: cypherRules(m.style), baseline: path.resolve(snaps[0] as string) }).catch(() => null);
           for (const f of cc?.findings ?? []) finalKeys.add(keyOf(f, cc!.aggregateRoots).key);
           const changed = (() => { const a = new Set<string>(); const walk = (d: string, rel: string): void => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const r = rel === '' ? e.name : `${rel}/${e.name}`; if (e.isDirectory()) walk(path.join(d, e.name), r); else a.add(r); } }; walk(last, ''); return [...a]; })();
           const lay = await checkLayers({ root: path.resolve(last), spec, seedDir: path.resolve(snaps[0] as string), changed, rules: frozenRules(m.style) }).catch(() => null);

@@ -94,6 +94,11 @@ export interface CheckOptions {
   readonly root: string; readonly spec?: string | undefined; readonly files?: readonly string[] | undefined; readonly scratch?: string | undefined;
   /** The v1.5 Cypher rule ids to check (default: R-D4 and R-XCTX). */
   readonly rules?: readonly string[] | undefined;
+  /**
+   * A baseline tree (the session's seed): rules that read a baseline (`BuildOptions.baseline`; today R-MIRROR2's
+   * stoplist) count what the seed already has as the project's own. Instrument v1.5.3: the hub and the scorers pass the seed.
+   */
+  readonly baseline?: string | undefined;
 }
 
 export async function checkConsistency(opts: CheckOptions): Promise<ConsistencyResult> {
@@ -101,7 +106,7 @@ export async function checkConsistency(opts: CheckOptions): Promise<ConsistencyR
   const ids = opts.rules ?? CONSISTENCY_RULES;
   const selected = rulesOf(ids);
   const onlyConsistency = ids.every(isConsistencyRule);
-  const r = await runTree(opts.root, selected, { spec: opts.spec, scratch, withApg: false });
+  const r = await runTree(opts.root, selected, { spec: opts.spec, scratch, withApg: false, ...(opts.baseline !== undefined ? { baseline: opts.baseline } : {}) });
   const rootsFrom = r.facts.rootSource === 'spec' ? 'spec' : r.facts.rootSource === 'fallback' ? 'inferred' : 'none';
   const ownerOf = (root: string): string | null => r.facts.roots.find((x) => x.name === root)?.context ?? null;
   const merged = new Map<string, ConsistencyFinding>();
