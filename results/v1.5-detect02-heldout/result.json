@@ -1,0 +1,1267 @@
+{
+ "schema": "detect-02-heldout-v1",
+ "split": "held-out",
+ "scoredOnce": true,
+ "modelCalls": 0,
+ "commit": "82be5f8de1a1a9664bfd55d007841c598f609b7f",
+ "ruleHash": "761f37d9e5586371a12f3c1f17756bb19d24cd2224c0fa6df114d4f9e3cd6494",
+ "manifestSeal": "afacdd86003b74a7b3e03557ca948db7aedfc75f4801cd2b3f1a40418a66f7ab",
+ "manifestLines": 433,
+ "rules": [
+  {
+   "id": "R-ADAPTER-RULE",
+   "family": "H6",
+   "file": "r-adapter-rule-business-rule-in-adapter.cypher"
+  },
+  {
+   "id": "R-AXA",
+   "family": "H3",
+   "file": "r-axa-adapter-imports-adapter.cypher"
+  },
+  {
+   "id": "R-COREIO",
+   "family": "H9",
+   "file": "r-coreio-io-without-port.cypher"
+  },
+  {
+   "id": "R-D3",
+   "family": "D5",
+   "file": "r-d3-calc-outside-aggregate.cypher"
+  },
+  {
+   "id": "R-D4",
+   "family": "D4",
+   "file": "r-d4-multi-aggregate-write.cypher"
+  },
+  {
+   "id": "R-D4R",
+   "family": "D4",
+   "file": "r-d4r-repository-persists-many.cypher"
+  },
+  {
+   "id": "R-D5",
+   "family": "D5",
+   "file": "r-d5-rule-outside-aggregate.cypher"
+  },
+  {
+   "id": "R-D5S",
+   "family": "D5",
+   "file": "r-d5s-declared-invariant.cypher"
+  },
+  {
+   "id": "R-D9",
+   "family": "D9",
+   "file": "r-d9-contract-exposes-entity.cypher"
+  },
+  {
+   "id": "R-ENTITY-OUT",
+   "family": "H10",
+   "file": "r-entity-out-inbound-exposes-entity.cypher"
+  },
+  {
+   "id": "R-H5",
+   "family": "H5",
+   "file": "r-h5-port-mechanism.cypher"
+  },
+  {
+   "id": "R-INJ",
+   "family": "H4",
+   "file": "r-inj-concrete-injection.cypher"
+  },
+  {
+   "id": "R-LOCATOR",
+   "family": "H8",
+   "file": "r-locator-service-locator.cypher"
+  },
+  {
+   "id": "R-LOCK",
+   "family": "D5",
+   "file": "r-lock-lock-around-write.cypher"
+  },
+  {
+   "id": "R-MIRROR",
+   "family": "H11",
+   "file": "r-mirror-vendor-vocabulary.cypher"
+  },
+  {
+   "id": "R-PURE",
+   "family": "D2",
+   "file": "r-pure-domain-imports-tech.cypher"
+  },
+  {
+   "id": "R-REF",
+   "family": "D4",
+   "file": "r-ref-holds-other-root.cypher"
+  },
+  {
+   "id": "R-RTX",
+   "family": "RTX",
+   "file": "r-rtx-remote-in-transaction.cypher"
+  },
+  {
+   "id": "R-TRANSPORT",
+   "family": "H7",
+   "file": "r-transport-in-core.cypher"
+  },
+  {
+   "id": "R-XCTX",
+   "family": "D4",
+   "file": "r-xctx-cross-context-write.cypher"
+  }
+ ],
+ "familyMap": {
+  "D4": {
+   "family": "D4",
+   "expectedRule": "R-D4"
+  },
+  "cross-context-write": {
+   "family": "D4",
+   "expectedRule": "R-XCTX"
+  },
+  "D5/D3": {
+   "family": "D5",
+   "expectedRule": "R-D5"
+  },
+  "D9": {
+   "family": "D9",
+   "expectedRule": "R-D9"
+  },
+  "H5": {
+   "family": "H5",
+   "expectedRule": "R-H5"
+  },
+  "concrete-injection": {
+   "family": "H4",
+   "expectedRule": "R-INJ"
+  },
+  "vendor-call-in-transaction": {
+   "family": "RTX",
+   "expectedRule": "R-RTX"
+  }
+ },
+ "perFamily": {
+  "D2": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "D4": {
+   "positives": 6,
+   "tp": 4,
+   "fn": 2,
+   "located": 4,
+   "tpCases": [
+    "hc-03",
+    "hc-06",
+    "hc-24",
+    "hc-26"
+   ],
+   "fnCases": [
+    "hc-22",
+    "hc-30"
+   ],
+   "fpOnTwins": [
+    "hc-28"
+   ],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-03",
+     "twin": "hc-12",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-06",
+     "twin": "hc-28",
+     "positiveFlagged": true,
+     "twinFlagged": true,
+     "discriminates": false
+    },
+    {
+     "positive": "hc-22",
+     "twin": "hc-10",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    },
+    {
+     "positive": "hc-24",
+     "twin": "hc-09",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-26",
+     "twin": "hc-17",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-30",
+     "twin": "hc-05",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    }
+   ]
+  },
+  "D5": {
+   "positives": 2,
+   "tp": 1,
+   "fn": 1,
+   "located": 1,
+   "tpCases": [
+    "hc-14"
+   ],
+   "fnCases": [
+    "hc-07"
+   ],
+   "fpOnTwins": [],
+   "fpOnNegatives": [
+    "hc-11",
+    "hc-34"
+   ],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-07",
+     "twin": "hc-15",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    },
+    {
+     "positive": "hc-14",
+     "twin": "hc-18",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "D9": {
+   "positives": 2,
+   "tp": 2,
+   "fn": 0,
+   "located": 2,
+   "tpCases": [
+    "hc-04",
+    "hc-19"
+   ],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-04",
+     "twin": "hc-20",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-19",
+     "twin": "hc-02",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H10": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [
+    "hc-19"
+   ],
+   "pairs": []
+  },
+  "H11": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H3": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H4": {
+   "positives": 1,
+   "tp": 1,
+   "fn": 0,
+   "located": 1,
+   "tpCases": [
+    "hc-31"
+   ],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-31",
+     "twin": "hc-16",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H5": {
+   "positives": 2,
+   "tp": 2,
+   "fn": 0,
+   "located": 2,
+   "tpCases": [
+    "hc-23",
+    "hc-33"
+   ],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-23",
+     "twin": "hc-27",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    },
+    {
+     "positive": "hc-33",
+     "twin": "hc-32",
+     "positiveFlagged": true,
+     "twinFlagged": false,
+     "discriminates": true
+    }
+   ]
+  },
+  "H6": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H7": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H8": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "H9": {
+   "positives": 0,
+   "tp": 0,
+   "fn": 0,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": []
+  },
+  "RTX": {
+   "positives": 1,
+   "tp": 0,
+   "fn": 1,
+   "located": 0,
+   "tpCases": [],
+   "fnCases": [
+    "hc-08"
+   ],
+   "fpOnTwins": [],
+   "fpOnNegatives": [],
+   "fpOnOtherPositives": [],
+   "pairs": [
+    {
+     "positive": "hc-08",
+     "twin": "hc-29",
+     "positiveFlagged": false,
+     "twinFlagged": false,
+     "discriminates": false
+    }
+   ]
+  }
+ },
+ "perRule": {
+  "R-D4": {
+   "positive": 4,
+   "twin": 1,
+   "negative": 0
+  },
+  "R-XCTX": {
+   "positive": 2,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-D9": {
+   "positive": 3,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-D5": {
+   "positive": 2,
+   "twin": 0,
+   "negative": 2
+  },
+  "R-ENTITY-OUT": {
+   "positive": 1,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-H5": {
+   "positive": 2,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-INJ": {
+   "positive": 1,
+   "twin": 0,
+   "negative": 0
+  },
+  "R-LOCK": {
+   "positive": 0,
+   "twin": 0,
+   "negative": 1
+  }
+ },
+ "rows": [
+  {
+   "id": "hc-01",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "pair": null,
+   "nearFamily": "H5",
+   "ms": 331,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-02",
+   "kind": "twin",
+   "keyFamily": "D9",
+   "family": "D9",
+   "expectedRule": "R-D9",
+   "pair": "hc-19",
+   "nearFamily": null,
+   "ms": 114,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-03",
+   "kind": "positive",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "pair": "hc-12",
+   "nearFamily": null,
+   "ms": 154,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/rentals/application/ReturnVehicle.ts",
+     "line": 12
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/rentals/application/ReturnVehicle.ts",
+     "line": 12
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/rentals/application/ReturnVehicle.ts"
+  },
+  {
+   "id": "hc-04",
+   "kind": "positive",
+   "keyFamily": "D9",
+   "family": "D9",
+   "expectedRule": "R-D9",
+   "pair": "hc-20",
+   "nearFamily": null,
+   "ms": 87,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/care/contracts/GetPetResponse.ts",
+     "line": 4
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/care/contracts/GetPetResponse.ts"
+  },
+  {
+   "id": "hc-05",
+   "kind": "twin",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "pair": "hc-30",
+   "nearFamily": null,
+   "ms": 102,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-06",
+   "kind": "positive",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "pair": "hc-28",
+   "nearFamily": null,
+   "ms": 95,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/guests/application/MergeGuestProfiles.ts",
+     "line": 14
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/guests/application/MergeGuestProfiles.ts"
+  },
+  {
+   "id": "hc-07",
+   "kind": "positive",
+   "keyFamily": "D5/D3",
+   "family": "D5",
+   "expectedRule": "R-D5",
+   "pair": "hc-15",
+   "nearFamily": null,
+   "ms": 106,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": "src/workshops/application/support/capacityGuard.ts"
+  },
+  {
+   "id": "hc-08",
+   "kind": "positive",
+   "keyFamily": "vendor-call-in-transaction",
+   "family": "RTX",
+   "expectedRule": "R-RTX",
+   "pair": "hc-29",
+   "nearFamily": null,
+   "ms": 96,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": "src/application/ConfirmDonation.ts"
+  },
+  {
+   "id": "hc-09",
+   "kind": "twin",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "pair": "hc-24",
+   "nearFamily": null,
+   "ms": 99,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-10",
+   "kind": "twin",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "pair": "hc-22",
+   "nearFamily": null,
+   "ms": 82,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-11",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "pair": null,
+   "nearFamily": "cross-context-write / D4",
+   "ms": 98,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/inventory/application/ReserveStockOnOrderPlaced.ts",
+     "line": 13
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-12",
+   "kind": "twin",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "pair": "hc-03",
+   "nearFamily": null,
+   "ms": 89,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-13",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "pair": null,
+   "nearFamily": "cross-context-write",
+   "ms": 110,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-14",
+   "kind": "positive",
+   "keyFamily": "D5/D3",
+   "family": "D5",
+   "expectedRule": "R-D5",
+   "pair": "hc-18",
+   "nearFamily": null,
+   "ms": 85,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/wallets/application/SpendFromWallet.ts",
+     "line": 15
+    },
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/wallets/application/SpendFromWallet.ts",
+     "line": 19
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/wallets/application/SpendFromWallet.ts"
+  },
+  {
+   "id": "hc-15",
+   "kind": "twin",
+   "keyFamily": "D5/D3",
+   "family": "D5",
+   "expectedRule": "R-D5",
+   "pair": "hc-07",
+   "nearFamily": null,
+   "ms": 68,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-16",
+   "kind": "twin",
+   "keyFamily": "concrete-injection",
+   "family": "H4",
+   "expectedRule": "R-INJ",
+   "pair": "hc-31",
+   "nearFamily": null,
+   "ms": 82,
+   "rootSource": "none",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-17",
+   "kind": "twin",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "pair": "hc-26",
+   "nearFamily": null,
+   "ms": 83,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-18",
+   "kind": "twin",
+   "keyFamily": "D5/D3",
+   "family": "D5",
+   "expectedRule": "R-D5",
+   "pair": "hc-14",
+   "nearFamily": null,
+   "ms": 84,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-19",
+   "kind": "positive",
+   "keyFamily": "D9",
+   "family": "D9",
+   "expectedRule": "R-D9",
+   "pair": "hc-02",
+   "nearFamily": null,
+   "ms": 72,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/subscriptions/contracts/PlanView.ts",
+     "line": 3
+    },
+    {
+     "rule": "R-D9",
+     "family": "D9",
+     "file": "src/subscriptions/contracts/PlanView.ts",
+     "line": 6
+    },
+    {
+     "rule": "R-ENTITY-OUT",
+     "family": "H10",
+     "file": "src/subscriptions/api/PlanEndpoints.ts",
+     "line": 9
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/subscriptions/contracts/PlanView.ts"
+  },
+  {
+   "id": "hc-20",
+   "kind": "twin",
+   "keyFamily": "D9",
+   "family": "D9",
+   "expectedRule": "R-D9",
+   "pair": "hc-04",
+   "nearFamily": null,
+   "ms": 77,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-21",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "pair": null,
+   "nearFamily": "D4",
+   "ms": 80,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-22",
+   "kind": "positive",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "pair": "hc-10",
+   "nearFamily": null,
+   "ms": 94,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": "src/planning/application/CloseSprint.ts"
+  },
+  {
+   "id": "hc-23",
+   "kind": "positive",
+   "keyFamily": "H5",
+   "family": "H5",
+   "expectedRule": "R-H5",
+   "pair": "hc-27",
+   "nearFamily": null,
+   "ms": 69,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/bookings/application/ports/BookingLocks.ts",
+     "line": 4
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/bookings/application/ports/BookingLocks.ts"
+  },
+  {
+   "id": "hc-24",
+   "kind": "positive",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "pair": "hc-09",
+   "nearFamily": null,
+   "ms": 94,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/enrolment/application/EnrolStudent.ts",
+     "line": 21
+    },
+    {
+     "rule": "R-XCTX",
+     "family": "D4",
+     "file": "src/enrolment/application/EnrolStudent.ts",
+     "line": 21
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/enrolment/application/EnrolStudent.ts"
+  },
+  {
+   "id": "hc-25",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "pair": null,
+   "nearFamily": "D4",
+   "ms": 96,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-26",
+   "kind": "positive",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "pair": "hc-17",
+   "nearFamily": null,
+   "ms": 79,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/inventory/application/TransferStock.ts",
+     "line": 18
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/inventory/application/TransferStock.ts"
+  },
+  {
+   "id": "hc-27",
+   "kind": "twin",
+   "keyFamily": "H5",
+   "family": "H5",
+   "expectedRule": "R-H5",
+   "pair": "hc-23",
+   "nearFamily": null,
+   "ms": 107,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-28",
+   "kind": "twin",
+   "keyFamily": "D4",
+   "family": "D4",
+   "expectedRule": "R-D4",
+   "pair": "hc-06",
+   "nearFamily": null,
+   "ms": 237,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": true,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-D4",
+     "family": "D4",
+     "file": "src/guests/application/MergeGuestProfiles.ts",
+     "line": 16
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-29",
+   "kind": "twin",
+   "keyFamily": "vendor-call-in-transaction",
+   "family": "RTX",
+   "expectedRule": "R-RTX",
+   "pair": "hc-08",
+   "nearFamily": null,
+   "ms": 90,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-30",
+   "kind": "positive",
+   "keyFamily": "cross-context-write",
+   "family": "D4",
+   "expectedRule": "R-XCTX",
+   "pair": "hc-05",
+   "nearFamily": null,
+   "ms": 237,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": "src/sales/application/PurchaseTickets.ts"
+  },
+  {
+   "id": "hc-31",
+   "kind": "positive",
+   "keyFamily": "concrete-injection",
+   "family": "H4",
+   "expectedRule": "R-INJ",
+   "pair": "hc-16",
+   "nearFamily": null,
+   "ms": 308,
+   "rootSource": "none",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-INJ",
+     "family": "H4",
+     "file": "src/application/SendWeeklyDigest.ts",
+     "line": 8
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/application/SendWeeklyDigest.ts"
+  },
+  {
+   "id": "hc-32",
+   "kind": "twin",
+   "keyFamily": "H5",
+   "family": "H5",
+   "expectedRule": "R-H5",
+   "pair": "hc-33",
+   "nearFamily": null,
+   "ms": 107,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": false,
+   "violations": [],
+   "otherStatus": [],
+   "labelledFile": null
+  },
+  {
+   "id": "hc-33",
+   "kind": "positive",
+   "keyFamily": "H5",
+   "family": "H5",
+   "expectedRule": "R-H5",
+   "pair": "hc-32",
+   "nearFamily": null,
+   "ms": 80,
+   "rootSource": "fallback",
+   "error": null,
+   "familyFlagged": true,
+   "located": true,
+   "locatedLine": true,
+   "expectedRuleFired": true,
+   "violations": [
+    {
+     "rule": "R-H5",
+     "family": "H5",
+     "file": "src/application/ports/TripLedger.ts",
+     "line": 5
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": "src/application/ports/TripLedger.ts"
+  },
+  {
+   "id": "hc-34",
+   "kind": "negative",
+   "keyFamily": "none",
+   "family": null,
+   "expectedRule": null,
+   "pair": null,
+   "nearFamily": "D5/D3",
+   "ms": 87,
+   "rootSource": "spec",
+   "error": null,
+   "familyFlagged": false,
+   "located": false,
+   "locatedLine": false,
+   "expectedRuleFired": null,
+   "violations": [
+    {
+     "rule": "R-D5",
+     "family": "D5",
+     "file": "src/membership/application/RegisterMember.ts",
+     "line": 19
+    },
+    {
+     "rule": "R-LOCK",
+     "family": "D5",
+     "file": "src/membership/application/RegisterMember.ts",
+     "line": 16
+    }
+   ],
+   "otherStatus": [],
+   "labelledFile": null
+  }
+ ],
+ "latencyMs": {
+  "max": 331
+ },
+ "errors": [],
+ "redaction": "2026-10-29, after scoring: the KEY rationale and author labels, the labelled line and the finding evidence, subject and call path were removed, as the set README requires (the set is not committed). Scores are unchanged."
+}
