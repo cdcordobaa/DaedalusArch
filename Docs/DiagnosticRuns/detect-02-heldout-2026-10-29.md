@@ -19,9 +19,9 @@ an outcome of H1 or H2. Scoring note, committed and pushed before the run:
 | Errors | none; every project built; max 331 ms per project |
 
 **Bars** (`ops/notes/detect-02-precision-note.md` §3, bar 3; `ops/notes/explore-02-needs-and-gaps.md` N2): report per
-family TP / FP / FN, twin discrimination and negative-control false positives, whatever they are. No numeric threshold
-is registered, so there is no pass or fail; the outcome of the bar is the table below. No rule, fact or spec was
-changed after the output was seen.
+family TP / FP / FN, twin discrimination and negative-control false positives, whatever they are. **No numeric bar was
+registered: this scoring is descriptive, with no pass or fail.** No rule, fact or spec was changed after the output
+was seen.
 
 ## Result
 
@@ -38,7 +38,8 @@ declaration). A pair discriminates when the positive is detected and its twin ha
 | H5 (H5, R-H5) | 2 | 2 | 2 | 0 | 2 / 2 |
 | concrete injection (H4, R-INJ) | 1 | 1 | 1 | 0 | 1 / 1 |
 | vendor call in a transaction (RTX, R-RTX) | 1 | 0 | 0 | 0 | 0 / 1 |
-| **All** | **14** | **10** | **10** | **1 of 14** | **9 / 14** |
+| **All families** | **14** | **10** | **10** | **1 of 14** | **9 / 14** |
+| **Admitted families only** (D4, cross-context write, D9, H5, concrete injection) | **11** | **9** (recall 9/11) | **9** | **1 of 11** (hc-28) | **8 / 11** |
 
 On both detected cross-context positives (hc-03, hc-24) R-XCTX fires, and R-D4 fires too. On every detected positive
 the rule the family was built for fires.
@@ -80,25 +81,27 @@ positive (hc-28) is an admitted rule; both negative-control findings are rules o
 
 ## Misses (4), read after scoring
 
-| Case | KEY | Labelled site | What the case does | Reading of the shape (no change made) |
+Text copied from the set (rationales, labelled lines, code) is not reproduced here, as the set's `README.md` requires;
+only the case id, the family, the labelled file and the shape, in general terms, are given.
+
+| Case | KEY family | Labelled file | Detected | Shape (general terms; no change made) |
 |---|---|---|---|---|
-| hc-07 (P08) | D5/D3 | `src/workshops/application/support/capacityGuard.ts:6` | the Workshop capacity check, also enforced in `Workshop.enrol`, is repeated in a free helper function under `application/support/` that the use case calls first | the throwing guard compares a local derived from two root properties (`capacity - attendeeCount`) inside a helper outside the `application_services` glob; no D5 rule fires |
-| hc-08 (P14) | vendor call in a transaction | `src/application/ConfirmDonation.ts:15` | `confirm` runs under a `@Transactional()` method decorator and calls the payment capture (Stripe adapter) through a private helper | R-RTX reads a transaction scope as a callback argument (`detect-02-design.md` §2); a decorator is not such a scope. The vendor module is declared in `types/*.d.ts`, outside the harness tsconfig's `src/**` |
-| hc-22 (P02) | D4 | `src/planning/application/CloseSprint.ts:22` | the Sprint and each unfinished Ticket are `registerDirty`-ed on an explicit unit of work, committed once | the writes go to a unit-of-work port that loads no root, so under the R1 sink taxonomy (`detect-02-precision-note.md` §5) they are not writes of a root |
-| hc-30 (P06) | cross-context write | `src/sales/application/PurchaseTickets.ts:28` | the sales command awaits `events.publish(…)` inside its unit of work; the in-process bus runs the loyalty handler synchronously, which stores a MemberAccount | the footprint stops at messaging owners (bus, publisher) by design (§2), so a synchronous in-process bus hides the second context's write |
+| hc-07 | D5/D3 | `src/workshops/application/support/capacityGuard.ts` | no | the duplicated invariant check sits in an application helper function outside the `application_services` glob |
+| hc-08 | vendor call in a transaction | `src/application/ConfirmDonation.ts` | no | the transaction is a method decorator; R-RTX reads a transaction scope only as a callback argument (`detect-02-design.md` §2) |
+| hc-22 | D4 | `src/planning/application/CloseSprint.ts` | no | both aggregates are registered on an explicit unit-of-work port that loads no root, so under the R1 sink taxonomy (`detect-02-precision-note.md` §5) these are not root writes |
+| hc-30 | cross-context write | `src/sales/application/PurchaseTickets.ts` | no | the second context is written through a synchronous in-process event bus; the footprint stops at messaging owners by design (§2) |
 
 ## False positives (3 projects), read after scoring
 
-| Case | Kind (KEY) | Finding | What the case does | Reading |
-|---|---|---|---|---|
-| hc-28 (P03-twin) | twin of hc-06, D4 | R-D4 `MergeGuestProfiles.merge`, "saves 2 aggregate instances: GuestProfile x2" | writes only the survivor, through the same helper as the positive (`commitAll(writer, [survivor])`, which maps over its collection parameter), and stages a ProfileAbsorbed event | the helper's root-collection parameter is counted as more than one instance; the one-element array of the caller is not bound back. The positive (hc-06) gets the same finding text, so its detection does not separate two instances from one |
-| hc-11 (N02) | negative: saga/outbox, near family cross-context write / D4 | R-D5 `ReserveStockOnOrderPlaced.consume` line 13 | an event consumer: `if (!item \|\| !item.reserve(…)) return false;` inside its own transaction | the decision is the aggregate's (`reserve` returns the outcome) and the branch returns, it does not throw. R-D4 and R-XCTX stay quiet, as the case intends |
-| hc-34 (N04) | negative: self-validating value objects, near family D5/D3 | R-D5 `RegisterMember.execute` line 19; R-LOCK line 16 | `if (previous) return …` is an idempotency lookup by email; `this.clock()` is an injected clock function read before the write | R-D5 reports the lookup as a duplicate of `EmailAddress`'s own check, and the branch returns, it does not throw; R-LOCK reads the injected function-typed `clock` as a scope around the write |
+| Case | Kind, KEY family / near family | Rule, file, line | Shape (general terms) |
+|---|---|---|---|
+| hc-28 | twin of hc-06, D4 | R-D4, `src/guests/application/MergeGuestProfiles.ts`, 16 | one root is written through a helper that maps over a root-collection parameter; the helper is counted as more than one instance. The positive hc-06 gets the same finding, so its detection does not separate one instance from two |
+| hc-11 | negative, near family cross-context write / D4 | R-D5, `src/inventory/application/ReserveStockOnOrderPlaced.ts`, 13 | an event consumer branches on an aggregate method's result and returns (no throw); the near family stays quiet |
+| hc-34 | negative, near family D5/D3 | R-D5, `src/membership/application/RegisterMember.ts`, 19; R-LOCK, same file, 16 | R-D5 fires on a returning branch after an idempotency lookup; R-LOCK reads an injected function-typed dependency as a scope around the write |
 
-**Off-target finding on a positive:** hc-19 (P10, D9) also gets R-ENTITY-OUT (H10) at
-`src/subscriptions/api/PlanEndpoints.ts:9`, "returns the domain entity SubscriptionPlan". The case's own rationale
-says the endpoint returns the aggregate instances themselves, so it is the labelled defect seen at the inbound
-adapter; it is counted above as an H10 finding on a positive of another family, as the development scorer counts it.
+**Off-target finding on a positive:** hc-19 (D9) also gets R-ENTITY-OUT (H10) at `src/subscriptions/api/PlanEndpoints.ts`,
+line 9, the inbound adapter that returns the same labelled defect; counted as an H10 finding on a positive of another
+family, as the development scorer counts it.
 
 ## Notes
 
@@ -106,4 +109,6 @@ adapter; it is counted above as an H10 finding on a positive of another family, 
   Hexagonal projects without aggregates (hc-16, hc-31).
 - The harness tsconfig the study uses includes `src/**` only; the cases' ambient vendor declarations
   (`types/*.d.ts`) are therefore not in the program. This is the study's configuration and was fixed before scoring.
+- The record `results/detect-02-heldout/result.json` was redacted after scoring (KEY rationales and labels, labelled
+  lines, finding evidence and call paths removed); scores are unchanged.
 - The set is now spent as a held-out set: any later use of it is development material.
