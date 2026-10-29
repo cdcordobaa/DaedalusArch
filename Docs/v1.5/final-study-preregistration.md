@@ -176,6 +176,21 @@ Every change after the registration commit is dated in this file before the data
   D_sem with an independent model panel, not with a human; because D_sem's interpreter and one rater share a model
   family, this is stated as a limit. Any author answers given later are reported as a human spot-check beside it.
   Reason: author time this week goes to the papers; the author asked for a model consensus instead.
+- **DEV-2 (2026-10-29, after both lanes were scored by `score-study.ts`, before `final-study-analyse.ts` is run).**
+  Two procedural facts of the run, neither of which changes a hypothesis, a test, a threshold or an exclusion:
+  1. *Coordinator restart.* In each lane the coordinator stopped the first `--sessions` launch once, because the tool
+     that held it ends a command after 2 h, and restarted it detached with `--sessions --resume`. The call in flight
+     was recorded as `lost-in-restart` and its session redrawn whole: lane A c007 → c073, lane B c001 → c157 (reason
+     "unfinished at restart", `run/redraws.jsonl`). §5 lists "container restart" among the infrastructure states; this
+     restart is read as one. The lost session has no `session.json` and is not scored. One call per lane is lost
+     inside the caps.
+  2. *Snapshots not retained.* The RUNBOOK copied no session trees into the results, so the lanes keep scores,
+     hook logs and run records but not the code. Consequences: secondary 7 (graph against imports) is unaffected,
+     since `score-study.ts` computed `D_frozen` on every snapshot during scoring; **N1(b)** (study snapshots) is
+     reported as "not run" and N1 rests on (a), CAL-03; N2 was already "not run" by its precondition; the SO5
+     taxonomy uses the final study's scored identities as evidence-only cards (no hunk).
+  Disclosure: while checking the score file's layout for this note, the coordinator saw the per-arm summary block of
+  lane B's `scores.json` (mean Y and trap-fail counts per arm). No D contrast, p value or effect size was computed.
 
 ## 7. Limitations, stated before the run
 
@@ -211,6 +226,7 @@ Every change after the registration commit is dated in this file before the data
 
 ## Changelog
 
+- 2026-10-29: DEV-2 (coordinator restart read as an infrastructure state; snapshots not retained, N1(b) not run).
 - 2026-10-29: registered. Families final after CAL-03, HCAL-03, HCAL-04 and HCAL-05; size from TRAPRATE-01; Stage 1 passed.
 
 - 2026-10-28: draft written before any final-study call.
