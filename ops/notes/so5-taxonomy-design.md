@@ -72,3 +72,17 @@ with the same cap per lane. Counts drawn and not drawn are reported.
 
 `experiments/so5-taxonomy/` (card builder, cards, codes, codebook, counts), report
 `Docs/DiagnosticRuns/so5-taxonomy-<date>.md`, thesis Kap8 SO5 section and appendix codebook.
+
+## Addendum (2026-10-29, written after the first coder's pass, before any second coding or freezing)
+
+- **Models.** Study 1 has four generators: `claude-haiku-4-5`, `claude-opus-5-5`, `claude-sonnet-5-5` and
+  `gpt-5.6-terra`. The drawn cards hold 15 per model; all 60 are advisory metric findings (M0) for every model, so the
+  "across LLMs" axis reads: no codable blocking construct in any model's drawn greenfield episodes. The GPT arm's
+  vendor is confounded with its harness and run time; stated as a limit. The §6 "Claude-only" limit applies to the
+  v1.5 sources only.
+- **Declared minimum for the write-up.** A taxonomy is reported as such only with ≥ 6 failure categories each holding
+  ≥ 2 episodes, a second-coder κ on a seeded 20 % sample, and counts by model × spec level × style. The first pass gives
+  12 categories, 9 of them with ≥ 2 episodes.
+- **If it comes out thin** (fewer than 6 categories meet the minimum, or κ < 0.40): the section is written as a
+  "failure-pattern profile" (categories with counts and examples, no reliability claim), and SO5's taxonomy promise is
+  reported as partially met.
