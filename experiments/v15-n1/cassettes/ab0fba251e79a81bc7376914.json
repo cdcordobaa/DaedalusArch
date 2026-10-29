@@ -1,0 +1,362 @@
+{
+ "key": "ab0fba251e79a81bc73769146327ce52707513b9a25bb281cd1054938caa20f0",
+ "n1Version": "v15-n1-v1",
+ "target": "cal03",
+ "item": "cal03/drones/(outside every context) + permits + pilots + surveys",
+ "run": 0,
+ "promptVersion": "u4-s3-facts-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T00:22:16.960Z",
+ "answer": {
+  "types": [
+   {
+    "name": "DomainEvent",
+    "path": "src/shared-kernel/DomainEvent.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "EventBus",
+    "path": "src/shared-kernel/EventBus.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "Money",
+    "path": "src/shared-kernel/Money.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "UnitOfWork",
+    "path": "src/shared-kernel/UnitOfWork.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "InMemoryUnitOfWork",
+    "path": "src/shared-kernel/UnitOfWork.ts",
+    "verdict": "not-root",
+    "context": null,
+    "cites": []
+   },
+   {
+    "name": "PermitGranted",
+    "path": "src/permits/contracts/events.ts",
+    "verdict": "not-root",
+    "context": "permits",
+    "cites": []
+   },
+   {
+    "name": "PermitDto",
+    "path": "src/permits/contracts/PermitDto.ts",
+    "verdict": "not-root",
+    "context": "permits",
+    "cites": []
+   },
+   {
+    "name": "PermitGranted",
+    "path": "src/permits/domain/events/PermitGranted.ts",
+    "verdict": "not-root",
+    "context": "permits",
+    "cites": []
+   },
+   {
+    "name": "FlightPermit",
+    "path": "src/permits/domain/permit/FlightPermit.ts",
+    "verdict": "root",
+    "context": "permits",
+    "cites": [
+     {
+      "path": "src/permits/domain/permit/PermitRepository.ts",
+      "line": 6,
+      "quote": "findById(id: string): FlightPermit | undefined;"
+     }
+    ]
+   },
+   {
+    "name": "PermitRepository",
+    "path": "src/permits/domain/permit/PermitRepository.ts",
+    "verdict": "not-root",
+    "context": "permits",
+    "cites": []
+   },
+   {
+    "name": "DateWindow",
+    "path": "src/permits/domain/permit/value-objects/DateWindow.ts",
+    "verdict": "not-root",
+    "context": "permits",
+    "cites": []
+   },
+   {
+    "name": "InMemoryPermitRepository",
+    "path": "src/permits/infrastructure/InMemoryPermitRepository.ts",
+    "verdict": "not-root",
+    "context": "permits",
+    "cites": []
+   },
+   {
+    "name": "PilotAssigned",
+    "path": "src/pilots/contracts/events.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "RegisterPilotCommand",
+    "path": "src/pilots/contracts/PilotDto.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "PilotDto",
+    "path": "src/pilots/contracts/PilotDto.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "RegisterDroneCommand",
+    "path": "src/pilots/contracts/PilotDto.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "DroneDto",
+    "path": "src/pilots/contracts/PilotDto.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "Drone",
+    "path": "src/pilots/domain/drone/Drone.ts",
+    "verdict": "root",
+    "context": "pilots",
+    "cites": [
+     {
+      "path": "src/pilots/domain/drone/DroneRepository.ts",
+      "line": 6,
+      "quote": "findById(id: string): Drone | undefined;"
+     }
+    ]
+   },
+   {
+    "name": "DroneRepository",
+    "path": "src/pilots/domain/drone/DroneRepository.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "PilotAssigned",
+    "path": "src/pilots/domain/events/PilotAssigned.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "Pilot",
+    "path": "src/pilots/domain/pilot/Pilot.ts",
+    "verdict": "root",
+    "context": "pilots",
+    "cites": [
+     {
+      "path": "src/pilots/domain/pilot/PilotRepository.ts",
+      "line": 6,
+      "quote": "findById(id: string): Pilot | undefined;"
+     }
+    ]
+   },
+   {
+    "name": "PilotRepository",
+    "path": "src/pilots/domain/pilot/PilotRepository.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "Assignment",
+    "path": "src/pilots/domain/pilot/value-objects/Assignment.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "InMemoryDroneRepository",
+    "path": "src/pilots/infrastructure/InMemoryDroneRepository.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "InMemoryPilotRepository",
+    "path": "src/pilots/infrastructure/InMemoryPilotRepository.ts",
+    "verdict": "not-root",
+    "context": "pilots",
+    "cites": []
+   },
+   {
+    "name": "SurveyBooked",
+    "path": "src/surveys/contracts/events.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "DeliverableInput",
+    "path": "src/surveys/contracts/SurveyDto.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "RequestSurveyCommand",
+    "path": "src/surveys/contracts/SurveyDto.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "SurveyDto",
+    "path": "src/surveys/contracts/SurveyDto.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "SurveyBooked",
+    "path": "src/surveys/domain/events/SurveyBooked.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "SurveyJob",
+    "path": "src/surveys/domain/survey/SurveyJob.ts",
+    "verdict": "root",
+    "context": "surveys",
+    "cites": [
+     {
+      "path": "src/surveys/domain/survey/SurveyRepository.ts",
+      "line": 6,
+      "quote": "findById(id: string): SurveyJob | undefined;"
+     }
+    ]
+   },
+   {
+    "name": "SurveyRepository",
+    "path": "src/surveys/domain/survey/SurveyRepository.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "Area",
+    "path": "src/surveys/domain/survey/value-objects/Area.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "Deliverable",
+    "path": "src/surveys/domain/survey/value-objects/Deliverable.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "FlightWindow",
+    "path": "src/surveys/domain/survey/value-objects/FlightWindow.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   },
+   {
+    "name": "InMemorySurveyRepository",
+    "path": "src/surveys/infrastructure/InMemorySurveyRepository.ts",
+    "verdict": "not-root",
+    "context": "surveys",
+    "cites": []
+   }
+  ],
+  "stores": [
+   {
+    "name": "PermitRepository",
+    "path": "src/permits/domain/permit/PermitRepository.ts",
+    "ownedBy": "permits",
+    "loads": "FlightPermit"
+   },
+   {
+    "name": "InMemoryPermitRepository",
+    "path": "src/permits/infrastructure/InMemoryPermitRepository.ts",
+    "ownedBy": "permits",
+    "loads": "FlightPermit"
+   },
+   {
+    "name": "DroneRepository",
+    "path": "src/pilots/domain/drone/DroneRepository.ts",
+    "ownedBy": "pilots",
+    "loads": "Drone"
+   },
+   {
+    "name": "PilotRepository",
+    "path": "src/pilots/domain/pilot/PilotRepository.ts",
+    "ownedBy": "pilots",
+    "loads": "Pilot"
+   },
+   {
+    "name": "InMemoryDroneRepository",
+    "path": "src/pilots/infrastructure/InMemoryDroneRepository.ts",
+    "ownedBy": "pilots",
+    "loads": "Drone"
+   },
+   {
+    "name": "InMemoryPilotRepository",
+    "path": "src/pilots/infrastructure/InMemoryPilotRepository.ts",
+    "ownedBy": "pilots",
+    "loads": "Pilot"
+   },
+   {
+    "name": "SurveyRepository",
+    "path": "src/surveys/domain/survey/SurveyRepository.ts",
+    "ownedBy": "surveys",
+    "loads": "SurveyJob"
+   },
+   {
+    "name": "InMemorySurveyRepository",
+    "path": "src/surveys/infrastructure/InMemorySurveyRepository.ts",
+    "ownedBy": "surveys",
+    "loads": "SurveyJob"
+   }
+  ]
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,4352 @@
+{
+ "schema": "v15-n1-result-v1",
+ "n1Version": "v15-n1-v1",
+ "target": "cal03",
+ "mode": "record",
+ "at": "2026-10-29T00:22:54.074Z",
+ "promptVersion": "u4-s3-facts-v1",
+ "requestedModel": "claude-sonnet-5-5",
+ "answeredModels": [
+  "claude-sonnet-5-5"
+ ],
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "runsPerTree": 2,
+ "rootRule": "named and grounded in both runs",
+ "cap": 6,
+ "capFixedAt": "2026-10-29T00:21:51.620Z",
+ "callsOnLedger": 4,
+ "truncated": false,
+ "stopped": null,
+ "truncatedAnswers": [],
+ "admittedRows": {
+  "K01": [
+   "FF-DS02"
+  ],
+  "K02": [
+   "FF-DT04",
+   "FF-S01",
+   "FF-S03",
+   "R-H5",
+   "R-PURE"
+  ],
+  "K03": [
+   "R-D4"
+  ],
+  "K05": [
+   "R-XCTX",
+   "R-D4"
+  ],
+  "K10": [
+   "R-D5S"
+  ],
+  "K13": [
+   "R-H5"
+  ],
+  "K14": [
+   "R-D9"
+  ],
+  "K15": [
+   "R-INJ"
+  ],
+  "K16": [
+   "R-REF"
+  ]
+ },
+ "s3": [
+  {
+   "id": "cal03/drones",
+   "batches": 1,
+   "listedTypes": 40,
+   "complete": true,
+   "kept": [
+    {
+     "name": "FlightPermit",
+     "context": "permits",
+     "module": "src/permits/domain/permit/**",
+     "root": "src/permits/domain/permit/FlightPermit.ts",
+     "inner_entities": []
+    },
+    {
+     "name": "Drone",
+     "context": "pilots",
+     "module": "src/pilots/domain/drone/**",
+     "root": "src/pilots/domain/drone/Drone.ts",
+     "inner_entities": []
+    },
+    {
+     "name": "Pilot",
+     "context": "pilots",
+     "module": "src/pilots/domain/pilot/**",
+     "root": "src/pilots/domain/pilot/Pilot.ts",
+     "inner_entities": []
+    },
+    {
+     "name": "SurveyJob",
+     "context": "surveys",
+     "module": "src/surveys/domain/survey/**",
+     "root": "src/surveys/domain/survey/SurveyJob.ts",
+     "inner_entities": []
+    }
+   ],
+   "dropped": [],
+   "contextDiffers": [],
+   "runs": [
+    {
+     "run": 0,
+     "complete": true,
+     "roots": [
+      "src/permits/domain/permit/FlightPermit.ts#FlightPermit",
+      "src/pilots/domain/drone/Drone.ts#Drone",
+      "src/pilots/domain/pilot/Pilot.ts#Pilot",
+      "src/surveys/domain/survey/SurveyJob.ts#SurveyJob"
+     ],
+     "answers": [
+      {
+       "context": "(outside every context) + permits + pilots + surveys",
+       "key": "ab0fba251e79a81bc7376914",
+       "cached": false,
+       "model": "claude-sonnet-5-5",
+       "invalid": null
+      }
+     ]
+    },
+    {
+     "run": 1,
+     "complete": true,
+     "roots": [
+      "src/permits/domain/permit/FlightPermit.ts#FlightPermit",
+      "src/pilots/domain/drone/Drone.ts#Drone",
+      "src/pilots/domain/pilot/Pilot.ts#Pilot",
+      "src/surveys/domain/survey/SurveyJob.ts#SurveyJob"
+     ],
+     "answers": [
+      {
+       "context": "(outside every context) + permits + pilots + surveys",
+       "key": "62d4f696eace0bca357dc68a",
+       "cached": false,
+       "model": "claude-sonnet-5-5",
+       "invalid": null
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cal03/theatre",
+   "batches": 1,
+   "listedTypes": 28,
+   "complete": true,
+   "kept": [
+    {
+     "name": "Actor",
+     "context": "casting",
+     "module": "src/casting/domain/actor/**",
+     "root": "src/casting/domain/actor/Actor.ts",
+     "inner_entities": []
+    },
+    {
+     "name": "CastBooking",
+     "context": "casting",
+     "module": "src/casting/domain/cast-booking/**",
+     "root": "src/casting/domain/cast-booking/CastBooking.ts",
+     "inner_entities": []
+    },
+    {
+     "name": "Production",
+     "context": "productions",
+     "module": "src/productions/domain/production/**",
+     "root": "src/productions/domain/production/Production.ts",
+     "inner_entities": []
+    },
+    {
+     "name": "RehearsalRoom",
+     "context": "rehearsals",
+     "module": "src/rehearsals/domain/room/**",
+     "root": "src/rehearsals/domain/room/RehearsalRoom.ts",
+     "inner_entities": []
+    }
+   ],
+   "dropped": [],
+   "contextDiffers": [],
+   "runs": [
+    {
+     "run": 0,
+     "complete": true,
+     "roots": [
+      "src/casting/domain/actor/Actor.ts#Actor",
+      "src/casting/domain/cast-booking/CastBooking.ts#CastBooking",
+      "src/productions/domain/production/Production.ts#Production",
+      "src/rehearsals/domain/room/RehearsalRoom.ts#RehearsalRoom"
+     ],
+     "answers": [
+      {
+       "context": "(outside every context) + casting + productions + rehearsals",
+       "key": "291263d121c0fe6148fdbe86",
+       "cached": false,
+       "model": "claude-sonnet-5-5",
+       "invalid": null
+      }
+     ]
+    },
+    {
+     "run": 1,
+     "complete": true,
+     "roots": [
+      "src/casting/domain/actor/Actor.ts#Actor",
+      "src/casting/domain/cast-booking/CastBooking.ts#CastBooking",
+      "src/productions/domain/production/Production.ts#Production",
+      "src/rehearsals/domain/room/RehearsalRoom.ts#RehearsalRoom"
+     ],
+     "answers": [
+      {
+       "context": "(outside every context) + casting + productions + rehearsals",
+       "key": "14c003f6ccae400c3998ad2c",
+       "cached": false,
+       "model": "claude-sonnet-5-5",
+       "invalid": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "calDir": "experiments/cal-03",
+ "basis": "S3 on each domain base tree; every case scored with the base spec aggregates replaced by those roots",
+ "domains": {
+  "drones": {
+   "declaredRoots": [
+    "Drone",
+    "FlightPermit",
+    "Pilot",
+    "SurveyJob"
+   ],
+   "declaredRootSource": "spec",
+   "s3Roots": [
+    "Drone",
+    "FlightPermit",
+    "Pilot",
+    "SurveyJob"
+   ],
+   "s3RootSource": "spec"
+  },
+  "theatre": {
+   "declaredRoots": [
+    "Actor",
+    "CastBooking",
+    "Production",
+    "RehearsalRoom"
+   ],
+   "declaredRootSource": "spec",
+   "s3Roots": [
+    "Actor",
+    "CastBooking",
+    "Production",
+    "RehearsalRoom"
+   ],
+   "s3RootSource": "spec"
+  }
+ },
+ "notScored": [],
+ "declared": {
+  "perRow": {
+   "K01": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K02": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K03": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K05": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K10": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K13": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K14": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K15": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K16": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   }
+  },
+  "pooled": {
+   "k": 36,
+   "n": 36,
+   "recall": 1,
+   "wilsonLower95": 0.9035781695514236
+  },
+  "incorrectOnAdmittedClean": {
+   "count": 0,
+   "cases": []
+  },
+  "admittedRuleHitsOnOtherCleanCases": {
+   "count": 1,
+   "cases": [
+    {
+     "case": "drones/K07-twin2",
+     "rules": [
+      "R-D4"
+     ]
+    }
+   ]
+  }
+ },
+ "s3Roots": {
+  "perRow": {
+   "K01": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K02": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K03": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K05": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K10": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K13": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K14": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K15": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   },
+   "K16": {
+    "recall": "4/4",
+    "fp": "0/6",
+    "pos": 4,
+    "posPass": 4,
+    "clean": 6,
+    "cleanFail": 0
+   }
+  },
+  "pooled": {
+   "k": 36,
+   "n": 36,
+   "recall": 1,
+   "wilsonLower95": 0.9035781695514236
+  },
+  "incorrectOnAdmittedClean": {
+   "count": 0,
+   "cases": []
+  },
+  "admittedRuleHitsOnOtherCleanCases": {
+   "count": 1,
+   "cases": [
+    {
+     "case": "drones/K07-twin2",
+     "rules": [
+      "R-D4"
+     ]
+    }
+   ]
+  }
+ },
+ "findingAgreementOnCal03": {
+  "declared": 49,
+  "s3": 49,
+  "union": 49,
+  "identical": 49,
+  "onlyDeclared": [],
+  "onlyS3": [],
+  "share": 1,
+  "vacuous": false,
+  "kappaUnion": null
+ },
+ "sealedRecordAdmittedRows": {
+  "K01": {
+   "recall": "4/4",
+   "fp": "0/6"
+  },
+  "K02": {
+   "recall": "4/4",
+   "fp": "0/6"
+  },
+  "K03": {
+   "recall": "4/4",
+   "fp": "0/6"
+  },
+  "K05": {
+   "recall": "4/4",
+   "fp": "0/6"
+  },
+  "K10": {
+   "recall": "4/4",
+   "fp": "0/6"
+  },
+  "K13": {
+   "recall": "4/4",
+   "fp": "0/6"
+  },
+  "K14": {
+   "recall": "4/4",
+   "fp": "0/6"
+  },
+  "K15": {
+   "recall": "4/4",
+   "fp": "0/6"
+  },
+  "K16": {
+   "recall": "4/4",
+   "fp": "0/6"
+  }
+ },
+ "reading": {
+  "recallAtLeast090": true,
+  "zeroIncorrectOnClean": true
+ },
+ "cases": {
+  "declared": [
+   {
+    "domain": "drones",
+    "case": "base",
+    "row": null,
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K01-legit",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K01-pos1",
+    "row": "K01",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotBriefingService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DS02",
+      "file": "src/pilots/application/PilotBriefingService.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K01-pos2",
+    "row": "K01",
+    "label": "violation",
+    "labelledFile": "src/permits/api/PermitSurveyController.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DS02",
+      "file": "src/permits/api/PermitSurveyController.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K01-twin1",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K01-twin2",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K02-legit",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K02-pos1",
+    "row": "K02",
+    "label": "violation",
+    "labelledFile": "src/permits/domain/permit/ReferencePolicy.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-S01",
+      "file": "src/permits/domain/permit/ReferencePolicy.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K02-pos2",
+    "row": "K02",
+    "label": "violation",
+    "labelledFile": "src/pilots/domain/pilot/value-objects/LicenceNumber.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DT04",
+      "file": "src/pilots/domain/pilot/value-objects/LicenceNumber.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K02-twin1",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K02-twin2",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K03-legit",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K03-pos1",
+    "row": "K03",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/DroneDispatchService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/pilots/application/DroneDispatchService.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K03-pos2",
+    "row": "K03",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotTransferService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/pilots/application/PilotTransferService.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K03-twin1",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K03-twin2",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K04-legit",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K04-pos1",
+    "row": "K04",
+    "label": "violation",
+    "labelledFile": "src/pilots/infrastructure/InMemoryPilotRepository.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/pilots/application/PilotTransferService.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K04-pos2",
+    "row": "K04",
+    "label": "violation",
+    "labelledFile": "src/permits/infrastructure/InMemoryPermitRepository.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K04-twin1",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K04-twin2",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K05-legit",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K05-pos1",
+    "row": "K05",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotDispatchService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/pilots/application/PilotDispatchService.ts",
+      "line": 10
+     },
+     {
+      "rule": "R-XCTX",
+      "file": "src/pilots/application/PilotDispatchService.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K05-pos2",
+    "row": "K05",
+    "label": "violation",
+    "labelledFile": "src/permits/application/PermitApprovalService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/permits/application/PermitApprovalService.ts",
+      "line": 12
+     },
+     {
+      "rule": "R-XCTX",
+      "file": "src/permits/application/PermitApprovalService.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K05-twin1",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K05-twin2",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K06-legit",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K06-pos1",
+    "row": "K06",
+    "label": "violation",
+    "labelledFile": "src/main.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/main.ts",
+      "line": 43
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K06-pos2",
+    "row": "K06",
+    "label": "violation",
+    "labelledFile": "src/main.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K06-twin1",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K06-twin2",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-legit",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-pos1",
+    "row": "K07",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-pos2",
+    "row": "K07",
+    "label": "violation",
+    "labelledFile": "src/permits/application/PermitService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-twin1",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-twin2",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/permits/application/PermitService.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K08-legit",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K08-pos1",
+    "row": "K08",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyAmendmentService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K08-pos2",
+    "row": "K08",
+    "label": "violation",
+    "labelledFile": "src/surveys/api/SurveyController.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K08-twin1",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K08-twin2",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-legit",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-pos1",
+    "row": "K09",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyScopeService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-pos2",
+    "row": "K09",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotScheduleService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-twin1",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-twin2",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K10-legit",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K10-pos1",
+    "row": "K10",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotRosterService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D5S",
+      "file": "src/pilots/application/PilotRosterService.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K10-pos2",
+    "row": "K10",
+    "label": "violation",
+    "labelledFile": "src/pilots/api/PilotController.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D5S",
+      "file": "src/pilots/api/PilotController.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K10-twin1",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K10-twin2",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-legit",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-pos1",
+    "row": "K11",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/GuardedPilotService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-pos2",
+    "row": "K11",
+    "label": "violation",
+    "labelledFile": "src/permits/application/PermitSubmissionQueue.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-twin1",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-twin2",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-legit",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-pos1",
+    "row": "K12",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyPricingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-pos2",
+    "row": "K12",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/FlightLogService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-twin1",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-twin2",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K13-legit",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K13-pos1",
+    "row": "K13",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/ports/BookingMailer.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-H5",
+      "file": "src/surveys/application/ports/BookingMailer.ts",
+      "line": 4
+     },
+     {
+      "rule": "R-H5",
+      "file": "src/surveys/application/ports/BookingMailer.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K13-pos2",
+    "row": "K13",
+    "label": "violation",
+    "labelledFile": "src/permits/application/ports/PermitArchive.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-H5",
+      "file": "src/permits/application/ports/PermitArchive.ts",
+      "line": 4
+     },
+     {
+      "rule": "R-H5",
+      "file": "src/permits/application/ports/PermitArchive.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K13-twin1",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K13-twin2",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K14-legit",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K14-pos1",
+    "row": "K14",
+    "label": "violation",
+    "labelledFile": "src/surveys/contracts/SurveyEnvelope.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D9",
+      "file": "src/surveys/contracts/SurveyEnvelope.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K14-pos2",
+    "row": "K14",
+    "label": "violation",
+    "labelledFile": "src/pilots/index.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D9",
+      "file": "src/pilots/index.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K14-twin1",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K14-twin2",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K15-legit",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K15-pos1",
+    "row": "K15",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-INJ",
+      "file": "src/surveys/application/SurveyService.ts",
+      "line": 18
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/surveys/application/SurveyService.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K15-pos2",
+    "row": "K15",
+    "label": "violation",
+    "labelledFile": "src/permits/application/PermitService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-INJ",
+      "file": "src/permits/application/PermitService.ts",
+      "line": 14
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/permits/application/PermitService.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K15-twin1",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K15-twin2",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K16-legit",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K16-pos1",
+    "row": "K16",
+    "label": "violation",
+    "labelledFile": "src/pilots/domain/pilot/Pilot.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-REF",
+      "file": "src/pilots/domain/pilot/Pilot.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K16-pos2",
+    "row": "K16",
+    "label": "violation",
+    "labelledFile": "src/pilots/domain/drone/Drone.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-REF",
+      "file": "src/pilots/domain/drone/Drone.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K16-twin1",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K16-twin2",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "base",
+    "row": null,
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-legit",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-pos1",
+    "row": "K01",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DS02",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-pos2",
+    "row": "K01",
+    "label": "violation",
+    "labelledFile": "src/casting/application/ProductionLookup.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DS02",
+      "file": "src/casting/application/ProductionLookup.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-twin1",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-twin2",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-legit",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-pos1",
+    "row": "K02",
+    "label": "violation",
+    "labelledFile": "src/productions/domain/production/Production.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DT04",
+      "file": "src/productions/domain/production/Production.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-pos2",
+    "row": "K02",
+    "label": "violation",
+    "labelledFile": "src/casting/domain/actor/Actor.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-S01",
+      "file": "src/casting/domain/actor/Actor.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-twin1",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-twin2",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-legit",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-pos1",
+    "row": "K03",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 41
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-pos2",
+    "row": "K03",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "line": 40
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-twin1",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-twin2",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-legit",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-pos1",
+    "row": "K04",
+    "label": "violation",
+    "labelledFile": "src/casting/domain/cast-booking/CastBookingRepository.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 41
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-pos2",
+    "row": "K04",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/domain/room/RehearsalRoomRepository.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-twin1",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-twin2",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-legit",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-pos1",
+    "row": "K05",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 43
+     },
+     {
+      "rule": "R-XCTX",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 43
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-pos2",
+    "row": "K05",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ProductionService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/productions/application/ProductionService.ts",
+      "line": 48
+     },
+     {
+      "rule": "R-XCTX",
+      "file": "src/productions/application/ProductionService.ts",
+      "line": 48
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-twin1",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-twin2",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-legit",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-pos1",
+    "row": "K06",
+    "label": "violation",
+    "labelledFile": "src/main.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-pos2",
+    "row": "K06",
+    "label": "violation",
+    "labelledFile": "src/main.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-twin1",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-twin2",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-legit",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-pos1",
+    "row": "K07",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ProductionService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-pos2",
+    "row": "K07",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-twin1",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-twin2",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-legit",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-pos1",
+    "row": "K08",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ProductionService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-pos2",
+    "row": "K08",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/api/RehearsalController.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-twin1",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-twin2",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-legit",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-pos1",
+    "row": "K09",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-pos2",
+    "row": "K09",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-twin1",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-twin2",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-legit",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-pos1",
+    "row": "K10",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ProductionService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D5S",
+      "file": "src/productions/application/ProductionService.ts",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-pos2",
+    "row": "K10",
+    "label": "violation",
+    "labelledFile": "src/productions/api/ProductionController.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D5S",
+      "file": "src/productions/api/ProductionController.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-twin1",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-twin2",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-legit",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-pos1",
+    "row": "K11",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-pos2",
+    "row": "K11",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-twin1",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-twin2",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-legit",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-pos1",
+    "row": "K12",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-pos2",
+    "row": "K12",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-twin1",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-twin2",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-legit",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-pos1",
+    "row": "K13",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ports/TicketingGateway.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-H5",
+      "file": "src/productions/application/ports/TicketingGateway.ts",
+      "line": 4
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/productions/application/ports/TicketingGateway.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-pos2",
+    "row": "K13",
+    "label": "violation",
+    "labelledFile": "src/casting/application/ports/ActorAvailabilityPort.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-H5",
+      "file": "src/casting/application/ports/ActorAvailabilityPort.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-twin1",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-twin2",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-legit",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-pos1",
+    "row": "K14",
+    "label": "violation",
+    "labelledFile": "src/productions/index.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D9",
+      "file": "src/productions/index.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-pos2",
+    "row": "K14",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/contracts/RoomDto.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D9",
+      "file": "src/rehearsals/contracts/RoomDto.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-twin1",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-twin2",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-legit",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-pos1",
+    "row": "K15",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-INJ",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 16
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-pos2",
+    "row": "K15",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-INJ",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "line": 9
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-twin1",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-twin2",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-legit",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-pos1",
+    "row": "K16",
+    "label": "violation",
+    "labelledFile": "src/casting/domain/cast-booking/CastBooking.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-REF",
+      "file": "src/casting/domain/cast-booking/CastBooking.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-pos2",
+    "row": "K16",
+    "label": "violation",
+    "labelledFile": "src/casting/domain/actor/Actor.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-REF",
+      "file": "src/casting/domain/actor/Actor.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-twin1",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-twin2",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   }
+  ],
+  "s3": [
+   {
+    "domain": "drones",
+    "case": "base",
+    "row": null,
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K01-legit",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K01-pos1",
+    "row": "K01",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotBriefingService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DS02",
+      "file": "src/pilots/application/PilotBriefingService.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K01-pos2",
+    "row": "K01",
+    "label": "violation",
+    "labelledFile": "src/permits/api/PermitSurveyController.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DS02",
+      "file": "src/permits/api/PermitSurveyController.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K01-twin1",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K01-twin2",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K02-legit",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K02-pos1",
+    "row": "K02",
+    "label": "violation",
+    "labelledFile": "src/permits/domain/permit/ReferencePolicy.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-S01",
+      "file": "src/permits/domain/permit/ReferencePolicy.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K02-pos2",
+    "row": "K02",
+    "label": "violation",
+    "labelledFile": "src/pilots/domain/pilot/value-objects/LicenceNumber.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DT04",
+      "file": "src/pilots/domain/pilot/value-objects/LicenceNumber.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K02-twin1",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K02-twin2",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K03-legit",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K03-pos1",
+    "row": "K03",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/DroneDispatchService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/pilots/application/DroneDispatchService.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K03-pos2",
+    "row": "K03",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotTransferService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/pilots/application/PilotTransferService.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K03-twin1",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K03-twin2",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K04-legit",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K04-pos1",
+    "row": "K04",
+    "label": "violation",
+    "labelledFile": "src/pilots/infrastructure/InMemoryPilotRepository.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/pilots/application/PilotTransferService.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K04-pos2",
+    "row": "K04",
+    "label": "violation",
+    "labelledFile": "src/permits/infrastructure/InMemoryPermitRepository.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K04-twin1",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K04-twin2",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K05-legit",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K05-pos1",
+    "row": "K05",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotDispatchService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/pilots/application/PilotDispatchService.ts",
+      "line": 10
+     },
+     {
+      "rule": "R-XCTX",
+      "file": "src/pilots/application/PilotDispatchService.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K05-pos2",
+    "row": "K05",
+    "label": "violation",
+    "labelledFile": "src/permits/application/PermitApprovalService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/permits/application/PermitApprovalService.ts",
+      "line": 12
+     },
+     {
+      "rule": "R-XCTX",
+      "file": "src/permits/application/PermitApprovalService.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K05-twin1",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K05-twin2",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K06-legit",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K06-pos1",
+    "row": "K06",
+    "label": "violation",
+    "labelledFile": "src/main.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/main.ts",
+      "line": 43
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K06-pos2",
+    "row": "K06",
+    "label": "violation",
+    "labelledFile": "src/main.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K06-twin1",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K06-twin2",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-legit",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-pos1",
+    "row": "K07",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-pos2",
+    "row": "K07",
+    "label": "violation",
+    "labelledFile": "src/permits/application/PermitService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-twin1",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K07-twin2",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/permits/application/PermitService.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K08-legit",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K08-pos1",
+    "row": "K08",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyAmendmentService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K08-pos2",
+    "row": "K08",
+    "label": "violation",
+    "labelledFile": "src/surveys/api/SurveyController.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K08-twin1",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K08-twin2",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-legit",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-pos1",
+    "row": "K09",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyScopeService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-pos2",
+    "row": "K09",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotScheduleService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-twin1",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K09-twin2",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K10-legit",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K10-pos1",
+    "row": "K10",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/PilotRosterService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D5S",
+      "file": "src/pilots/application/PilotRosterService.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K10-pos2",
+    "row": "K10",
+    "label": "violation",
+    "labelledFile": "src/pilots/api/PilotController.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D5S",
+      "file": "src/pilots/api/PilotController.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K10-twin1",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K10-twin2",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-legit",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-pos1",
+    "row": "K11",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/GuardedPilotService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-pos2",
+    "row": "K11",
+    "label": "violation",
+    "labelledFile": "src/permits/application/PermitSubmissionQueue.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-twin1",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K11-twin2",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-legit",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-pos1",
+    "row": "K12",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyPricingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-pos2",
+    "row": "K12",
+    "label": "violation",
+    "labelledFile": "src/pilots/application/FlightLogService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-twin1",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K12-twin2",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K13-legit",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K13-pos1",
+    "row": "K13",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/ports/BookingMailer.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-H5",
+      "file": "src/surveys/application/ports/BookingMailer.ts",
+      "line": 4
+     },
+     {
+      "rule": "R-H5",
+      "file": "src/surveys/application/ports/BookingMailer.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K13-pos2",
+    "row": "K13",
+    "label": "violation",
+    "labelledFile": "src/permits/application/ports/PermitArchive.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-H5",
+      "file": "src/permits/application/ports/PermitArchive.ts",
+      "line": 4
+     },
+     {
+      "rule": "R-H5",
+      "file": "src/permits/application/ports/PermitArchive.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K13-twin1",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K13-twin2",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K14-legit",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K14-pos1",
+    "row": "K14",
+    "label": "violation",
+    "labelledFile": "src/surveys/contracts/SurveyEnvelope.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D9",
+      "file": "src/surveys/contracts/SurveyEnvelope.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K14-pos2",
+    "row": "K14",
+    "label": "violation",
+    "labelledFile": "src/pilots/index.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D9",
+      "file": "src/pilots/index.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K14-twin1",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K14-twin2",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K15-legit",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K15-pos1",
+    "row": "K15",
+    "label": "violation",
+    "labelledFile": "src/surveys/application/SurveyService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-INJ",
+      "file": "src/surveys/application/SurveyService.ts",
+      "line": 18
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/surveys/application/SurveyService.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K15-pos2",
+    "row": "K15",
+    "label": "violation",
+    "labelledFile": "src/permits/application/PermitService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-INJ",
+      "file": "src/permits/application/PermitService.ts",
+      "line": 14
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/permits/application/PermitService.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K15-twin1",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K15-twin2",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K16-legit",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K16-pos1",
+    "row": "K16",
+    "label": "violation",
+    "labelledFile": "src/pilots/domain/pilot/Pilot.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-REF",
+      "file": "src/pilots/domain/pilot/Pilot.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K16-pos2",
+    "row": "K16",
+    "label": "violation",
+    "labelledFile": "src/pilots/domain/drone/Drone.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-REF",
+      "file": "src/pilots/domain/drone/Drone.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "domain": "drones",
+    "case": "K16-twin1",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "drones",
+    "case": "K16-twin2",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "base",
+    "row": null,
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-legit",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-pos1",
+    "row": "K01",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DS02",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-pos2",
+    "row": "K01",
+    "label": "violation",
+    "labelledFile": "src/casting/application/ProductionLookup.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DS02",
+      "file": "src/casting/application/ProductionLookup.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-twin1",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K01-twin2",
+    "row": "K01",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-legit",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-pos1",
+    "row": "K02",
+    "label": "violation",
+    "labelledFile": "src/productions/domain/production/Production.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-DT04",
+      "file": "src/productions/domain/production/Production.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-pos2",
+    "row": "K02",
+    "label": "violation",
+    "labelledFile": "src/casting/domain/actor/Actor.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "FF-S01",
+      "file": "src/casting/domain/actor/Actor.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-twin1",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K02-twin2",
+    "row": "K02",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-legit",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-pos1",
+    "row": "K03",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 41
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-pos2",
+    "row": "K03",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "line": 40
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-twin1",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K03-twin2",
+    "row": "K03",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-legit",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-pos1",
+    "row": "K04",
+    "label": "violation",
+    "labelledFile": "src/casting/domain/cast-booking/CastBookingRepository.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 41
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-pos2",
+    "row": "K04",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/domain/room/RehearsalRoomRepository.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-twin1",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K04-twin2",
+    "row": "K04",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-legit",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-pos1",
+    "row": "K05",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 43
+     },
+     {
+      "rule": "R-XCTX",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 43
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-pos2",
+    "row": "K05",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ProductionService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D4",
+      "file": "src/productions/application/ProductionService.ts",
+      "line": 48
+     },
+     {
+      "rule": "R-XCTX",
+      "file": "src/productions/application/ProductionService.ts",
+      "line": 48
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-twin1",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K05-twin2",
+    "row": "K05",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-legit",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-pos1",
+    "row": "K06",
+    "label": "violation",
+    "labelledFile": "src/main.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-pos2",
+    "row": "K06",
+    "label": "violation",
+    "labelledFile": "src/main.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-twin1",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K06-twin2",
+    "row": "K06",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-legit",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-pos1",
+    "row": "K07",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ProductionService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-pos2",
+    "row": "K07",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-twin1",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K07-twin2",
+    "row": "K07",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-legit",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-pos1",
+    "row": "K08",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ProductionService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-pos2",
+    "row": "K08",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/api/RehearsalController.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-twin1",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K08-twin2",
+    "row": "K08",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-legit",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-pos1",
+    "row": "K09",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-pos2",
+    "row": "K09",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-twin1",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K09-twin2",
+    "row": "K09",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-legit",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-pos1",
+    "row": "K10",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ProductionService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D5S",
+      "file": "src/productions/application/ProductionService.ts",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-pos2",
+    "row": "K10",
+    "label": "violation",
+    "labelledFile": "src/productions/api/ProductionController.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D5S",
+      "file": "src/productions/api/ProductionController.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-twin1",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K10-twin2",
+    "row": "K10",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-legit",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-pos1",
+    "row": "K11",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-pos2",
+    "row": "K11",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-twin1",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K11-twin2",
+    "row": "K11",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-legit",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-pos1",
+    "row": "K12",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-pos2",
+    "row": "K12",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-twin1",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K12-twin2",
+    "row": "K12",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": false,
+    "pass": null,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-legit",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-pos1",
+    "row": "K13",
+    "label": "violation",
+    "labelledFile": "src/productions/application/ports/TicketingGateway.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-H5",
+      "file": "src/productions/application/ports/TicketingGateway.ts",
+      "line": 4
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/productions/application/ports/TicketingGateway.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-pos2",
+    "row": "K13",
+    "label": "violation",
+    "labelledFile": "src/casting/application/ports/ActorAvailabilityPort.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-H5",
+      "file": "src/casting/application/ports/ActorAvailabilityPort.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-twin1",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K13-twin2",
+    "row": "K13",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-legit",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-pos1",
+    "row": "K14",
+    "label": "violation",
+    "labelledFile": "src/productions/index.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D9",
+      "file": "src/productions/index.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-pos2",
+    "row": "K14",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/contracts/RoomDto.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-D9",
+      "file": "src/rehearsals/contracts/RoomDto.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-twin1",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K14-twin2",
+    "row": "K14",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-legit",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-pos1",
+    "row": "K15",
+    "label": "violation",
+    "labelledFile": "src/casting/application/CastingService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-INJ",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 16
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/casting/application/CastingService.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-pos2",
+    "row": "K15",
+    "label": "violation",
+    "labelledFile": "src/rehearsals/application/RehearsalService.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-INJ",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "line": 9
+     },
+     {
+      "rule": "FF-S01",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-twin1",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K15-twin2",
+    "row": "K15",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-legit",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-pos1",
+    "row": "K16",
+    "label": "violation",
+    "labelledFile": "src/casting/domain/cast-booking/CastBooking.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-REF",
+      "file": "src/casting/domain/cast-booking/CastBooking.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-pos2",
+    "row": "K16",
+    "label": "violation",
+    "labelledFile": "src/casting/domain/actor/Actor.ts",
+    "admittedRow": true,
+    "pass": true,
+    "hits": [
+     {
+      "rule": "R-REF",
+      "file": "src/casting/domain/actor/Actor.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-twin1",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   },
+   {
+    "domain": "theatre",
+    "case": "K16-twin2",
+    "row": "K16",
+    "label": "clean",
+    "labelledFile": null,
+    "admittedRow": true,
+    "pass": true,
+    "hits": []
+   }
+  ]
+ }
+}
