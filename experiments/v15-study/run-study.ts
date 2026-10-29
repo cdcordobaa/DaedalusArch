@@ -25,6 +25,12 @@
  *   --smoke      --input <f>   2 calls: one per arm (combined on the edit-gate dummy: push, pull, Stop)
  *   --probes     --input <f>   1 call: the READ probe (arm none)
  *   --sessions [--resume] --input <f>   the plan, inside the sessions cap
+ *   --local      with --smoke, --probes or --sessions: real calls as the current user (pilot calibration runs only, not
+ *                study data): no uid switch, no chown, and the CLI's HOME is the current user's (its configured login;
+ *                `--setting-sources ""`, `--strict-mcp-config` and the frozen argv keep user settings, CLAUDE.md, hooks
+ *                and MCP servers out). Confinement then rests on the CLI alone; the READ probe is its evidence.
+ * A plan without the `combined` arm (`make-input.ts --arms none`) skips the combined smoke and the dry run's
+ * hub-killed session; a pilot input (`taskRoot`) is scored end to end in the dry run by `score-pilot.ts` (rule-blind).
  *
  * Records keep no chat text: agent replies are reduced to booleans before anything is written outside the out root.
  */
@@ -86,12 +92,16 @@ export interface Input {
   readonly probe: { readonly outsideProject: string };
   readonly readProbe: { readonly paths: readonly string[]; readonly forbidden: readonly string[] };
   readonly isolation: { readonly denied: readonly string[]; readonly canaries: readonly string[]; readonly sweepPatternsFile: string };
+  /** Pilot inputs only (`make-input.ts --task-root`): the variants' root, scored by `score-pilot.ts`. */
+  readonly taskRoot?: string;
 }
 
 /** Root (the cloud run) or local (`--local-dry`: the current user, no uid switch, no chown). */
 interface Ctx {
   readonly input: Input;
   readonly local: boolean;
+  /** `--local` real calls: the CLI's HOME is the current user's (its configured login), not the generator home. */
+  readonly localCalls?: boolean;
   readonly sentence: string;
   readonly sockets: ArmSockets;
 }
@@ -155,7 +165,11 @@ function resetHome(ctx: Ctx): void {
   closeRootTemp();
 }
 
-function parentEnv(input: Input): NodeJS.ProcessEnv {
+function parentEnv(input: Input, localCalls = false): NodeJS.ProcessEnv {
+  if (localCalls) {
+    const u = os.userInfo();
+    return { PATH: '/usr/local/bin:/usr/bin:/bin', HOME: u.homedir, USER: u.username, LOGNAME: u.username, SHELL: '/bin/sh', LANG: 'C.UTF-8', TMPDIR: path.join(input.genHome, 'tmp') };
+  }
   return { PATH: '/usr/local/bin:/usr/bin:/bin', HOME: input.genHome, USER: 'gen', LOGNAME: 'gen', SHELL: '/bin/sh', LANG: 'C.UTF-8', TMPDIR: path.join(input.genHome, 'tmp') };
 }
 
@@ -732,9 +746,14 @@ async function dry(ctx: Ctx): Promise<number> {
     const lastSnap = path.join(out, 'sessions', s.id, 'snap', `step-0${String(s.steps)}`, 'DRY.txt');
     sessions.push({ id: s.id, task: taskId, arm, verdict: r.verdict, integrity: r.integrity, dryLines: fs.existsSync(lastSnap) ? fs.readFileSync(lastSnap, 'utf8').trim().split('\n') : [] });
   }
-  const killed = cell(input.dryTasks[0] as string, 'combined');
-  const k = await runSession(ctx, install, deps({ killHubAfterStep: 1 }), killed, out, hubLogs);
-  res.hubKilled = { id: killed.id, verdict: k.verdict, flaggedInfrastructure: k.verdict === 'infrastructure' && k.integrity?.infrastructure === true, reasons: k.integrity?.reasons ?? [] };
+  const hasCombined = input.arms.includes('combined');
+  if (hasCombined) {
+    const killed = cell(input.dryTasks[0] as string, 'combined');
+    const k = await runSession(ctx, install, deps({ killHubAfterStep: 1 }), killed, out, hubLogs);
+    res.hubKilled = { id: killed.id, verdict: k.verdict, flaggedInfrastructure: k.verdict === 'infrastructure' && k.integrity?.infrastructure === true, reasons: k.integrity?.reasons ?? [] };
+  } else {
+    res.hubKilled = { skipped: 'no combined arm in the plan', flaggedInfrastructure: true };
+  }
   let versionStop: Record<string, unknown> = { stopped: false };
   const vs = cell(input.dryTasks[1] as string, 'none');
   let calls = 0;
@@ -749,13 +768,14 @@ async function dry(ctx: Ctx): Promise<number> {
   res.argv = argvDiff(cliConfig(input), 'c/c001', '<prompt>', ctx.sockets);
   // The scorer end to end on the four stub sessions (no hand step).
   fs.writeFileSync(path.join(out, 'schedule.json'), `${JSON.stringify({ schedule: sessions.map((s) => ({ id: s.id })) }, null, 2)}\n`);
+  if (input.taskRoot !== undefined) return dryFinish(ctx, res, out, sessions, listingPassed(ctx, res), s4res);
   const sc = spawnSync(process.execPath, [path.join(REPO, 'node_modules', 'tsx', 'dist', 'cli.mjs'), path.join(REPO, 'experiments', 'v15-study', 'score-study.ts'), '--results', out, '--input', inputPath(), '--node-modules', path.join(install.dir, 'node_modules'), '--out', path.join(out, 'scores')], { cwd: REPO, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 3_600_000 });
   const scoresFile = path.join(out, 'scores', 'scores.json');
   const scores = fs.existsSync(scoresFile) ? (JSON.parse(fs.readFileSync(scoresFile, 'utf8')) as { runs: { session: string; Y: number | null; attribution?: unknown }[]; evaluationFailures: number }) : null;
   const cellsFile = path.join(out, 'scores', 'cells.json');
   const cells = fs.existsSync(cellsFile) ? (JSON.parse(fs.readFileSync(cellsFile, 'utf8')) as { cells: { D: number | null; D_frozen: number | null; trapFailed: boolean | null; accepted: boolean | null; flagged: boolean; style: string; arm: string }[] }).cells : [];
   res.scorer = { exit: sc.status, stderrTail: (sc.stderr ?? '').split(REPO).join('.').slice(-1500), runs: scores?.runs.length ?? 0, scoredWithY: scores?.runs.filter((r) => r.Y !== null).length ?? 0, combinedWithAttribution: scores?.runs.filter((r) => r.attribution !== undefined && r.attribution !== null).length ?? 0, evaluationFailures: scores?.evaluationFailures ?? null, cells: cells.length, cellsWithD: cells.filter((c) => c.D !== null).length, cellsWithDFrozen: cells.filter((c) => c.D_frozen !== null).length, cellArms: [...new Set(cells.map((c) => `${c.style}/${c.arm}`))].sort() };
-  const listOk = ctx.local || ((res.listing as { denied: boolean }[]).every((l) => l.denied) && (res.sweep as { controlFound: boolean; readableFiles: string[] }).controlFound && (res.sweep as { readableFiles: string[] }).readableFiles.length === 0);
+  const listOk = listingPassed(ctx, res);
   const scorer = res.scorer as { exit: number | null; runs: number; scoredWithY: number; combinedWithAttribution: number; cells: number; cellsWithD: number };
   const argv = res.argv as { noneIdentical: boolean; combinedOnlyTwoChanges: boolean };
   res.items = {
@@ -765,7 +785,7 @@ async function dry(ctx: Ctx): Promise<number> {
     hubKilledFlagged: (res.hubKilled as { flaggedInfrastructure: boolean }).flaggedInfrastructure,
     versionMismatchStops: versionStop.stopped === true,
     argv: argv.noneIdentical && argv.combinedOnlyTwoChanges,
-    scorerEndToEnd: scorer.exit === 0 && scorer.runs === sessions.length && scorer.scoredWithY === sessions.length && scorer.combinedWithAttribution === input.dryTasks.length && scorer.cells === sessions.length && scorer.cellsWithD === sessions.length,
+    scorerEndToEnd: scorer.exit === 0 && scorer.runs === sessions.length && scorer.scoredWithY === sessions.length && scorer.combinedWithAttribution === (hasCombined ? input.dryTasks.length : 0) && scorer.cells === sessions.length && scorer.cellsWithD === sessions.length,
   };
   res.passed = Object.values(res.items as Record<string, boolean>).every(Boolean);
   res.at = new Date().toISOString();
@@ -775,12 +795,41 @@ async function dry(ctx: Ctx): Promise<number> {
   return res.passed === true ? 0 : 1;
 }
 
+function listingPassed(ctx: Ctx, res: Record<string, unknown>): boolean {
+  return ctx.local || ((res.listing as { denied: boolean }[]).every((l) => l.denied) && (res.sweep as { controlFound: boolean; readableFiles: string[] }).controlFound && (res.sweep as { readableFiles: string[] }).readableFiles.length === 0);
+}
+
+/** The dry run's end for a pilot input: the rule-blind pilot scorer end to end on the stub sessions. */
+function dryFinish(ctx: Ctx, res: Record<string, unknown>, out: string, sessions: Record<string, unknown>[], listOk: boolean, s4res: Record<string, unknown>): number {
+  const input = ctx.input;
+  const sc = spawnSync(process.execPath, [path.join(REPO, 'node_modules', 'tsx', 'dist', 'cli.mjs'), path.join(REPO, 'experiments', 'v15-study', 'score-pilot.ts'), '--results', out, '--input', inputPath(), '--out', path.join(out, 'scores')], { cwd: REPO, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 3_600_000 });
+  const f = path.join(out, 'scores', 'pilot-scores.json');
+  const runs = fs.existsSync(f) ? (JSON.parse(fs.readFileSync(f, 'utf8')) as { runs: { session: string; trapFailed: boolean | null; functional: boolean | null }[] }).runs : [];
+  res.scorer = { pilot: true, exit: sc.status, stderrTail: (sc.stderr ?? '').split(REPO).join('.').slice(-1500), runs: runs.length, scored: runs.filter((r) => r.trapFailed !== null && r.functional !== null).length };
+  const argv = res.argv as { noneIdentical: boolean };
+  res.items = {
+    isolation: listOk,
+    s4: (s4res as { passed: boolean }).passed,
+    stubSessions: sessions.length === input.dryTasks.length * input.arms.length && sessions.every((s) => s.verdict === 'done'),
+    hubKilledFlagged: (res.hubKilled as { flaggedInfrastructure: boolean }).flaggedInfrastructure,
+    versionMismatchStops: (res.versionMismatch as { stopped?: boolean }).stopped === true,
+    argv: argv.noneIdentical,
+    // Every stub session is scored (the version-stop session's partial record may be listed too; it is not counted).
+    scorerEndToEnd: sc.status === 0 && sessions.every((s) => runs.some((r) => r.session === s.id && r.trapFailed !== null && r.functional !== null)),
+  };
+  res.passed = Object.values(res.items as Record<string, boolean>).every(Boolean);
+  res.at = new Date().toISOString();
+  fs.writeFileSync(path.join(out, 'dry-result.json'), `${JSON.stringify(res, null, 2).split(REPO).join('<clone>')}\n`);
+  process.stdout.write(`${JSON.stringify({ mode: res.mode, items: res.items, passed: res.passed, out: path.join(out, 'dry-result.json') }, null, 2)}\n`);
+  return res.passed === true ? 0 : 1;
+}
+
 // ── calls ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 function realAgent(ctx: Ctx, phase: Phase): { agent: StudyAgent; runner: LedgerRunner } {
   const runner = new LedgerRunner(new NodeProcessRunner(), ctx.input.binary, path.join(ctx.input.outRoot, 'calls.jsonl'), phase, ctx.input.caps);
   runner.recoverPending();
-  const agent = new StudyAgent(cliConfig(ctx.input), { runner, parentEnv: parentEnv(ctx.input), clock: systemClock, sleep: realSleep }, ctx.sockets);
+  const agent = new StudyAgent(cliConfig(ctx.input), { runner, parentEnv: parentEnv(ctx.input, ctx.localCalls === true), clock: systemClock, sleep: realSleep }, ctx.sockets);
   return { agent, runner };
 }
 
@@ -819,7 +868,7 @@ async function smoke(ctx: Ctx): Promise<number> {
     const { r, env } = await turn('smoke-none', 'none', 'c000', null, SMOKE_PROMPT);
     results.push({ id: 'smoke-none', status: r.success ? r.data.status : 'harness-error', modelUsageIds: modelIds(env), canaryLeaked: leakOf(env), passed: r.success && r.data.status === 'completed' });
   }
-  {
+  if (input.arms.includes('combined')) {
     const content = fs.readFileSync(input.dummy.editContent, 'utf8');
     const prompt = `${gateSmokePrompt(input.dummy.editFile, content)} Before you reply, call the check_consistency tool once with no arguments.`;
     const { r, env } = await turn('smoke-combined', 'combined', 'c999', input.dummy.seedDir, prompt);
@@ -958,11 +1007,15 @@ async function main(argv: readonly string[]): Promise<number> {
   if (i < 0 || argv[i + 1] === undefined) throw new Error('--input <input.json> is required');
   INPUT_PATH = path.resolve(argv[i + 1] as string);
   const input = load(INPUT_PATH);
-  const local = argv.includes('--local-dry');
+  const localDry = argv.includes('--local-dry');
+  const localCalls = argv.includes('--local') && (argv.includes('--smoke') || argv.includes('--probes') || argv.includes('--sessions'));
+  if (argv.includes('--local') && !localCalls) throw new Error('--local goes with --smoke, --probes or --sessions (use --local-dry for the dry run)');
+  if (localCalls && input.taskRoot === undefined) throw new Error('--local is for pilot inputs only (make-input.ts --task-root): the study runs as root');
+  const local = localDry || localCalls;
   if (!local && typeof process.getuid === 'function' && process.getuid() !== 0) throw new Error('run as root (the generator runs as uid 1500); locally, use --local-dry');
-  const ctx: Ctx = { input, local, sentence: loadCombinedSentence(REPO), sockets: socketsOf(input) };
+  const ctx: Ctx = { input, local, localCalls, sentence: loadCombinedSentence(REPO), sockets: socketsOf(input) };
   if (input.frameCombinedSha256 !== undefined && input.frameCombinedSha256 !== sha256(fs.readFileSync(path.join(REPO, 'experiments', 'v15-delivery', 'hint-audit', 'frame-combined.txt')))) throw new Error('input frame hash differs from frame-combined.txt');
-  if (argv.includes('--dry') || local) return dry(ctx);
+  if (argv.includes('--dry') || localDry) return dry(ctx);
   if (argv.includes('--s4')) {
     const e = argv.indexOf('--evidence');
     const dir = path.resolve(e >= 0 ? (argv[e + 1] as string) : path.join(input.resultsDir ?? path.join(REPO, 'results', 'v1.5-study', input.phase ?? 'study'), 'isolation'));

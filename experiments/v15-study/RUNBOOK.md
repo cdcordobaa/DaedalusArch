@@ -91,3 +91,25 @@ This must print nothing.
 
 The analysis reads the two lanes' `scores/cells.json` together; the lanes are one study with one plan per lane.
 Stage 1 is never pooled with the study.
+
+## 4. Pilot calibration runs (local, arm `none`; not study data)
+
+Pilot tasks (`experiments/trap-pilot-v2/`) run on the author's machine as the current user, with the same frozen argv
+and frame. There is no generator user, so `setup-sandbox.sh`, the listing and the sweep do not apply; confinement rests
+on the CLI (the frozen argv: `--setting-sources ""`, `--strict-mcp-config`, acceptEdits, prompts none, one Bash rule),
+and the READ probe is its evidence. `--local` is refused for a study input (no `taskRoot`).
+
+```sh
+P=/short/run/root; PH=pilot-ladder; I=$P/o/$PH/input.json; D=experiments/v15-study; CLI=$(command -v claude)
+npx tsx $D/make-input.ts --o $P/o --vault $P/v --srv $P/srv --clone "$PWD" --phase $PH \
+  --task-root experiments/trap-pilot-v2 --arms none --runs 2 --binary "$CLI" --cli-binary "$CLI" --results-dir results/v1.5-pilot-ladder
+npx tsx $D/run-study.ts --local-dry --input $I                 # zero calls; must print "passed": true (pilot scorer end to end)
+npx tsx $D/run-study.ts --smoke  --local --input $I            # 1 call (the none smoke only: no combined arm)
+npx tsx $D/run-study.ts --probes --local --input $I            # 1 call
+nohup npx tsx $D/run-study.ts --sessions --local --input $I > $P/sessions.log 2>&1 &   # detached: tool commands die at 2 h
+npx tsx $D/score-pilot.ts --results $P/o/$PH/out --input $I --out results/v1.5-pilot-ladder/scores   # zero calls, rule-blind
+```
+
+`sh experiments/v15-study/study-input-diff.sh` checks that the study's inputs are unchanged by these options.
+Results go to `results/v1.5-pilot-ladder/` (the root `.gitignore` keeps its `*.jsonl`), with every session's step
+snapshots, on a `results/` branch.

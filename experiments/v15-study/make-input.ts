@@ -4,6 +4,7 @@
  *
  *   npx tsx experiments/v15-study/make-input.ts --o /srv/o --vault /srv/vault [--clone <repo>] [--replicates 3] [--srv /srv] [--sock /srv/m]
  *       [--phase study|stage1|lane-a|lane-b|…] [--tasks t01,t13 | f1-ddd-two-aggregates,…]
+ *       [--task-root experiments/trap-pilot-v2] [--arms none] [--runs 2] [--binary <cli>] [--cli-binary <cli>] [--results-dir <dir>]
  *
  * `--tasks` restricts the run to a subset (neutral ids or real task ids); the neutral ids stay those of the full set
  * (t01…t25 in study-set order), so a subset run and the full run name every task the same. `--phase` (default `study`)
@@ -19,11 +20,18 @@
  *   `<vault>/sweep-patterns.txt` (the fingerprint patterns, root-only, piped to the sweep).
  * The task order in the input is the study-set order (confirmatory DDD, confirmatory Hexagonal, then any exploratory); the run
  * order comes from the plan's seeded shuffle.
+ *
+ * Pilot option (calibration runs, not study data): `--task-root <dir>` reads the tasks from `<dir>/<task>/<level>/`
+ * (the TRAP-PILOT-v2 layout: every variant directory has the trap-families files) instead of `study-set.json`; the
+ * neutral ids are then those of every variant under the root, in sorted order, and `--tasks` also takes short names
+ * (`p1/L1` for `p1-campsite-payments/L1`). `--arms` restricts the plan to a subset of the arms (`none`), `--runs` is a
+ * synonym of `--replicates`, `--binary` / `--cli-binary` point at a local CLI, `--results-dir` overrides the results
+ * directory, and the input gains `taskRoot`. Without these options the output is the study's, unchanged.
  */
 import { createHash, randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { ARMS, ORDER_SEED, DEFAULT_REPLICATES, buildPlan, capsFor, plannedTurns } from './lib/plan.js';
+import { ARMS, ORDER_SEED, DEFAULT_REPLICATES, buildPlan, capsFor, plannedTurns, type Arm } from './lib/plan.js';
 import { FRAME_COMBINED_SHA256 } from './lib/arms.js';
 
 const arg = (k: string, d?: string): string => { const i = process.argv.indexOf(k); const v = i >= 0 ? process.argv[i + 1] : d; if (v === undefined) throw new Error(`missing ${k}`); return v; };
@@ -31,7 +39,7 @@ const O = path.resolve(arg('--o'));
 const VAULT = path.resolve(arg('--vault'));
 const CLONE = path.resolve(arg('--clone', process.cwd()));
 const SRV = path.resolve(arg('--srv', '/srv'));
-const R = Number(arg('--replicates', String(DEFAULT_REPLICATES)));
+const R = Number(process.argv.includes('--runs') ? arg('--runs') : arg('--replicates', String(DEFAULT_REPLICATES)));
 // Unix socket paths are limited to ~104 bytes (macOS) / 108 (Linux): a local run passes a short directory.
 const SOCK = path.resolve(arg('--sock', path.join(SRV, 'm')));
 const FAM = 'experiments/trap-families';
@@ -39,6 +47,12 @@ const PHASE = arg('--phase', 'study');
 if (!/^[a-z0-9][a-z0-9-]*$/.test(PHASE)) throw new Error(`--phase must match [a-z0-9-]+, got ${PHASE}`);
 const TASKS_ARG = process.argv.includes('--tasks') ? arg('--tasks').split(',').map((x) => x.trim()).filter(Boolean) : null;
 const PO = path.join(O, PHASE);
+// Pilot option: the task root (variants `<task>/<level>/`) and the arm subset; absent, the study's set and both arms.
+const TASK_ROOT = process.argv.includes('--task-root') ? arg('--task-root').replace(/\/+$/, '') : null;
+const RUN_ARMS: readonly Arm[] = process.argv.includes('--arms') ? arg('--arms').split(',').map((x) => x.trim()).filter(Boolean) as Arm[] : ARMS;
+for (const a of RUN_ARMS) if (!ARMS.includes(a)) throw new Error(`--arms: unknown arm ${a}`);
+if (RUN_ARMS.length === 0 || new Set(RUN_ARMS).size !== RUN_ARMS.length) throw new Error('--arms must name each arm at most once');
+const ORDERED_ARMS: readonly Arm[] = ARMS.filter((a) => RUN_ARMS.includes(a));
 
 const sha256 = (s: string | Buffer): string => createHash('sha256').update(s).digest('hex');
 // the driver's `filesOf` / `treeSha` (top-level node_modules skipped, regular files only, default sort)
@@ -59,7 +73,13 @@ const treeSha = (dir: string): string => sha256(`${filesOf(dir).map((f) => `${f}
 
 // The task set is read from study-set.json at build time: the confirmatory lists (12 DDD + 13 Hexagonal since f19 was
 // admitted on HCAL-03), then any exploratory task still listed.
-const set = JSON.parse(fs.readFileSync(path.join(FAM, 'study-set.json'), 'utf8')) as { confirmatory: { ddd: string[]; hexagonal: string[] }; exploratory?: { ddd?: string[]; hexagonal?: string[] } };
+// With --task-root, every variant directory `<task>/<level>/` holding a `puzzle.json` (sorted), none confirmatory.
+const pilotIds = (root: string): string[] => fs.readdirSync(root, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort()
+  .flatMap((t) => fs.readdirSync(path.join(root, t), { withFileTypes: true }).filter((e) => e.isDirectory() && fs.existsSync(path.join(root, t, e.name, 'puzzle.json'))).map((e) => `${t}/${e.name}`).sort());
+const set = TASK_ROOT === null
+  ? JSON.parse(fs.readFileSync(path.join(FAM, 'study-set.json'), 'utf8')) as { confirmatory: { ddd: string[]; hexagonal: string[] }; exploratory?: { ddd?: string[]; hexagonal?: string[] } }
+  : { confirmatory: { ddd: [], hexagonal: [] }, exploratory: { hexagonal: pilotIds(TASK_ROOT) } };
+const TASKS_DIR = TASK_ROOT ?? FAM;
 const confirmatory = new Set([...set.confirmatory.ddd, ...set.confirmatory.hexagonal]);
 const ids = [...set.confirmatory.ddd, ...set.confirmatory.hexagonal, ...(set.exploratory?.ddd ?? []), ...(set.exploratory?.hexagonal ?? [])];
 if (new Set(ids).size !== ids.length) throw new Error('a task is listed twice in study-set.json');
@@ -72,7 +92,7 @@ const tasks: { id: string; seedDir: string; seedTreeSha256: string; specPath: st
 const map: Record<string, { task: string; style: string; confirmatory: boolean }> = {};
 for (const [i, task] of ids.entries()) {
   const tid = `t${String(i + 1).padStart(2, '0')}`;
-  const dir = path.join(FAM, task);
+  const dir = path.join(TASKS_DIR, task);
   const doc = JSON.parse(fs.readFileSync(path.join(dir, 'tasks.json'), 'utf8')) as { tasks: { steps: { request: string }[] }[] };
   const steps = doc.tasks[0]!.steps.map((s) => s.request);
   const seedDir = path.join(O, 'seeds', tid);
@@ -86,7 +106,9 @@ for (const [i, task] of ids.entries()) {
 // The run's subset (all tasks when --tasks is absent); neutral ids are those of the full set.
 const resolveId = (x: string): string => {
   if (map[x] !== undefined) return x;
-  const hit = Object.entries(map).find(([, v]) => v.task === x);
+  // A pilot short name `p1/L1` names the variant `p1-…/L1`.
+  const short = (task: string): boolean => TASK_ROOT !== null && x.includes('/') && task.endsWith(`/${x.split('/')[1]!}`) && task.startsWith(`${x.split('/')[0]!}-`);
+  const hit = Object.entries(map).find(([, v]) => v.task === x) ?? Object.entries(map).find(([, v]) => short(v.task));
   if (hit === undefined) throw new Error(`--tasks: unknown task ${x}`);
   return hit[0];
 };
@@ -113,24 +135,24 @@ fs.writeFileSync(path.join(VAULT, 'private-id-map.json'), `${JSON.stringify(map,
 
 // READ probe (PUZZLE-01 isolation check 3): the first task's README at its clone path, both canaries, a spec copy.
 const probeTask = ids[0]!;
-const readmeFirst = fs.readFileSync(path.join(FAM, probeTask, 'README.md'), 'utf8').split('\n').find((l) => l.trim() !== '')!.replace(/^#+\s*/, '').trim();
-const probePaths = [path.join(CLONE, FAM, probeTask, 'README.md'), path.join(VAULT, 'canary.txt'), path.join(O, 'canary.txt'), runTasks[0]!.specPath];
+const readmeFirst = fs.readFileSync(path.join(TASKS_DIR, probeTask, 'README.md'), 'utf8').split('\n').find((l) => l.trim() !== '')!.replace(/^#+\s*/, '').trim();
+const probePaths = [path.join(CLONE, TASKS_DIR, probeTask, 'README.md'), path.join(VAULT, 'canary.txt'), path.join(O, 'canary.txt'), runTasks[0]!.specPath];
 const canaryStrings = Object.values(canaries).flatMap((c) => [`canary-${c}`, c]);
 // An id that is part of a probe path is echoed back in the agent's refusal ("cannot read …/<id>/README.md") and is
 // no leak; only file contents and the other ids count (the TRAPRATE-01 probe-id fix).
 const forbidden = [readmeFirst, ...canaryStrings, ...ids.filter((id) => !probePaths.some((p) => p.includes(id)))];
 
-const plan = buildPlan({ tasks: runTasks.map((t) => ({ id: t.id, steps: t.steps.length })), arms: ARMS, replicates: R, orderSeed: ORDER_SEED });
-const caps = capsFor(plan, ARMS);
+const plan = buildPlan({ tasks: runTasks.map((t) => ({ id: t.id, steps: t.steps.length })), arms: ORDERED_ARMS, replicates: R, orderSeed: ORDER_SEED });
+const caps = capsFor(plan, ORDERED_ARMS);
 const OUT = path.join(PO, 'out');
 fs.mkdirSync(PO, { recursive: true });
 const input = {
   schema: 'v15-study-input/v1',
-  phase: PHASE, taskSubset: wanted === null ? null : runTasks.map((t) => t.id), resultsDir: path.join(CLONE, 'results', 'v1.5-study', PHASE),
-  modelId: 'claude-sonnet-5-5', binary: path.join(SRV, 'bin', 'gclaude'), cliBinary: '/opt/claude-code/bin/claude', cliVersionPin: null,
+  phase: PHASE, taskSubset: wanted === null ? null : runTasks.map((t) => t.id), resultsDir: process.argv.includes('--results-dir') ? path.resolve(CLONE, arg('--results-dir')) : path.join(CLONE, 'results', 'v1.5-study', PHASE),
+  modelId: 'claude-sonnet-5-5', binary: process.argv.includes('--binary') ? path.resolve(arg('--binary')) : path.join(SRV, 'bin', 'gclaude'), cliBinary: process.argv.includes('--cli-binary') ? path.resolve(arg('--cli-binary')) : '/opt/claude-code/bin/claude', cliVersionPin: null,
   harnessRoot: path.join(SRV, 'h'), workRoot: path.join(SRV, 'w'), outRoot: OUT, vault: VAULT,
   genUid: 1500, genGid: 1500, genHome: path.join(SRV, 'gh'),
-  orderSeed: ORDER_SEED, replicates: R, arms: ARMS, timeoutMs: 1_200_000,
+  orderSeed: ORDER_SEED, replicates: R, arms: ORDERED_ARMS, timeoutMs: 1_200_000,
   frameCombinedSha256: FRAME_COMBINED_SHA256,
   plannedSessions: plan.length, plannedTurns: plannedTurns(plan), caps,
   delivery: {
@@ -150,10 +172,12 @@ const input = {
       path.join(CLONE, 'src', 'v15-instrument', 'delivery', 'hub.ts'), path.join(CLONE, 'ops', 'notes', 'v15-combined-delivery-design-2026-10-26.md'),
       path.join(CLONE, FAM, 'study-set.json'), path.join(CLONE, 'experiments', 'hcal-03'), path.join(CLONE, 'experiments', 'v15-study', 'run-study.ts'),
       '/root', '/tmp/claude-0', '/tmp/tsx-0',
+      ...(TASK_ROOT === null ? [] : [path.join(CLONE, TASK_ROOT)]),
     ],
     canaries: canaryStrings,
     sweepPatternsFile: path.join(VAULT, 'sweep-patterns.txt'),
   },
+  ...(TASK_ROOT === null ? {} : { taskRoot: TASK_ROOT }),
 };
 
 // Fingerprint patterns (§6 item 2): canaries, the TRAPRATE set, note title, hub header, spec header, task phrases.
@@ -163,4 +187,4 @@ for (const t of tasks) for (const s of t.steps.slice(1)) pats.add(s.slice(0, 40)
 for (const v of Object.values(map)) pats.add(v.task);
 fs.writeFileSync(path.join(VAULT, 'sweep-patterns.txt'), `${[...pats].filter((p) => p.length >= 8).join('\n')}\n`);
 fs.writeFileSync(path.join(PO, 'input.json'), `${JSON.stringify(input, null, 1)}\n`);
-process.stdout.write(`input ${path.join(PO, 'input.json')} (phase ${PHASE}): ${String(runTasks.length)} tasks × ${String(ARMS.length)} arms × ${String(R)} replicates = ${String(plan.length)} sessions, ${String(plannedTurns(plan))} turns planned; caps ${JSON.stringify(caps)}; dry tasks ${dryTasks.join(', ')}\n`);
+process.stdout.write(`input ${path.join(PO, 'input.json')} (phase ${PHASE}): ${String(runTasks.length)} tasks × ${String(ORDERED_ARMS.length)} arms × ${String(R)} replicates = ${String(plan.length)} sessions, ${String(plannedTurns(plan))} turns planned; caps ${JSON.stringify(caps)}; dry tasks ${dryTasks.join(', ')}\n`);
