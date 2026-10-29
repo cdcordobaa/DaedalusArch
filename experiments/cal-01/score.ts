@@ -17,23 +17,15 @@ import { buildContext, parseArgs } from '../../src/mcp-server/context.js';
 import { checkDiffTool } from '../../src/mcp-server/tools.js';
 import YAML from 'yaml';
 import { loadRules, runTree } from '../../src/v15-instrument/index.js';
+import { DDD_ROW_RULES, HEX_ROW_RULES } from '../../src/v15-instrument/rule-set.js';
 
 // `--dir experiments/<set>` scores another set (CAL-02, HCAL-01); `--rows hex` uses the Hexagonal row map.
 const argOf = (k: string): string | undefined => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : undefined; };
 const DIR = path.resolve(argOf('--dir') ?? path.join('experiments', 'cal-01'));
-/** Catalog row → the rule ids that detect it (v1.5 Cypher ids, or a frozen rule-id prefix ending in `*`). */
-export const ROW_RULES: Record<string, readonly string[]> = {
-  K01: ['FF-DS02'], K02: ['FF-DT04', 'FF-S01', 'FF-S03', 'R-H5', 'R-PURE'], K03: ['R-D4'], K04: ['R-D4', 'R-D4R'], K05: ['R-XCTX', 'R-D4'], K06: ['R-D4', 'R-XCTX'],
-  K07: ['R-RTX'], K08: ['R-D5'], K09: ['R-D5'], K10: ['R-D5S', 'R-D5'], K11: ['R-LOCK'], K12: ['R-D3'], K13: ['R-H5'],
-  K14: ['R-D9'], K15: ['R-INJ'], K16: ['R-REF'],
-};
-/** Hexagonal rows (HCAL), mapped by construct from the spec's fitness functions before scoring (2026-10-27; CN-04 2026-10-28: H06 R-ADAPTER-RULE in place of R-D5, R-D3; H11 R-MIRROR). */
-export const HEX_ROW_RULES: Record<string, readonly string[]> = {
-  H01: ['FF-S01', 'FF-S04', 'FF-P01'], H02: ['FF-S01', 'FF-S03', 'FF-P02', 'R-INJ'], H03: ['FF-S01', 'FF-S03', 'FF-P03', 'R-AXA'],
-  H04: ['R-H5'], H05: ['R-INJ', 'FF-P02'], H06: ['R-ADAPTER-RULE'], H07: ['FF-P01', 'FF-S01', 'R-TRANSPORT'],
-  H08: ['R-LOCATOR'], H09: ['R-COREIO'], H10: ['R-ENTITY-OUT'], H11: ['R-MIRROR'],
-};
-const ROWS: Record<string, readonly string[]> = argOf('--rows') === 'hex' ? HEX_ROW_RULES : ROW_RULES;
+/** Catalog row → the rule ids that detect it: the one rule list (`src/v15-instrument/rule-set.ts`), re-exported. */
+export const ROW_RULES: Readonly<Record<string, readonly string[]>> = DDD_ROW_RULES;
+export { HEX_ROW_RULES };
+const ROWS: Readonly<Record<string, readonly string[]>> = argOf('--rows') === 'hex' ? HEX_ROW_RULES : ROW_RULES;
 // Development runs: `--only K08,K12` scores those rows' cases (plus the base), `--out <file>` writes the record
 // elsewhere, so a sealed set's result.json is never overwritten.
 const ONLY = argOf('--only')?.split(',');

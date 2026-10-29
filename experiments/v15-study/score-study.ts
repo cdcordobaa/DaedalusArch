@@ -46,32 +46,14 @@ import { checkFinding } from '../../scripts/v1.3/lib/labelling/correctness.js';
 import { findingsOfReport } from '../../scripts/v1.3/lib/labelling/findings.js';
 import { SourceFacts } from '../../scripts/v1.3/lib/labelling/source-facts.js';
 import { loadSpecView } from '../../scripts/v1.3/lib/labelling/spec-facts.js';
-import { HEX_ROW_RULES, ROW_RULES, frozenSpec } from '../cal-01/score.js';
+import { frozenSpec } from '../cal-01/score.js';
+import { ADMITTED_DDD_ROWS, ADMITTED_HEX_ROWS, INSTRUMENT_ID, ROW_OVERRIDES, admittedRules, cypherRules, exploratoryRules, frozenRules, instrumentRuleHash, ruleMatches, type Style } from '../../src/v15-instrument/rule-set.js';
 
-// ── The admitted rules (CAL-03 for DDD, HCAL-03 for Hexagonal). Fixed before any study call. ──────────────────────
-/** DDD rows admitted by CAL-03. */
-export const ADMITTED_DDD_ROWS: readonly string[] = ['K01', 'K02', 'K03', 'K05', 'K10', 'K13', 'K14', 'K15', 'K16'];
-/** Hexagonal rows admitted by HCAL-03 (8 of 10) and HCAL-04 (H08); H06 and H11 not admitted (HCAL-04, HCAL-05). */
-export const ADMITTED_HEX_ROWS: readonly string[] = ['H01', 'H02', 'H03', 'H04', 'H05', 'H07', 'H08', 'H09', 'H10'];
-/** Row-map exceptions: K10 is scored by R-D5S only (R-D5 stays exploratory). */
-export const ROW_OVERRIDES: Readonly<Record<string, readonly string[]>> = { K10: ['R-D5S'] };
-
-export type Style = 'ddd' | 'hexagonal';
-const rowMap = (style: Style): Record<string, readonly string[]> => (style === 'ddd' ? ROW_RULES : HEX_ROW_RULES);
-const rowsAdmitted = (style: Style): readonly string[] => (style === 'ddd' ? ADMITTED_DDD_ROWS : ADMITTED_HEX_ROWS);
-const rulesOfRow = (style: Style, row: string): readonly string[] => ROW_OVERRIDES[row] ?? rowMap(style)[row] ?? [];
-
-/** The rule ids that count in D_v15 for a style. */
-export function admittedRules(style: Style): string[] {
-  return [...new Set(rowsAdmitted(style).flatMap((r) => rulesOfRow(style, r)))].sort();
-}
-/** The rule ids of the style's other rows that are not admitted (reported separately, never in Y). */
-export function exploratoryRules(style: Style): string[] {
-  const adm = new Set(admittedRules(style));
-  const all = Object.keys(rowMap(style)).flatMap((r) => rowMap(style)[r] ?? []);
-  return [...new Set(all.filter((r) => !adm.has(r)))].sort();
-}
-const matches = (rule: string, ids: readonly string[]): boolean => ids.some((i) => (i.endsWith('*') ? rule.startsWith(i.slice(0, -1)) : rule === i));
+// ── The admitted rules (CAL-03 for DDD, HCAL-03 for Hexagonal). Fixed before any study call; the one rule list
+// (`src/v15-instrument/rule-set.ts`) holds them, and the delivery hub delivers the same set (admitted + exploratory).
+export { ADMITTED_DDD_ROWS, ADMITTED_HEX_ROWS, ROW_OVERRIDES, admittedRules, exploratoryRules };
+export type { Style };
+const matches = ruleMatches;
 
 export interface Hit { readonly rule: string; readonly file: string; readonly subject: string; readonly line: number | null; readonly source: 'v15' | 'frozen' }
 /** Identity of a finding (Study 2b's D unit at this grain): rule + file + subject; line shifts do not split it. */
@@ -409,10 +391,11 @@ async function main(): Promise<number> {
         const finalKeys = new Set<string>();
         if (snaps.length > 1) {
           const last = snaps.at(-1) as string;
-          const cc = await checkConsistency({ root: path.resolve(last), spec, scratch: path.join(scratch, '_cc') }).catch(() => null);
+          // The keys the hub gives on the final tree: the style's delivered set (the one rule list), both rule kinds.
+          const cc = await checkConsistency({ root: path.resolve(last), spec, scratch: path.join(scratch, '_cc'), rules: cypherRules(m.style) }).catch(() => null);
           for (const f of cc?.findings ?? []) finalKeys.add(keyOf(f, cc!.aggregateRoots).key);
           const changed = (() => { const a = new Set<string>(); const walk = (d: string, rel: string): void => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const r = rel === '' ? e.name : `${rel}/${e.name}`; if (e.isDirectory()) walk(path.join(d, e.name), r); else a.add(r); } }; walk(last, ''); return [...a]; })();
-          const lay = await checkLayers({ root: path.resolve(last), spec, seedDir: path.resolve(snaps[0] as string), changed }).catch(() => null);
+          const lay = await checkLayers({ root: path.resolve(last), spec, seedDir: path.resolve(snaps[0] as string), changed, rules: frozenRules(m.style) }).catch(() => null);
           for (const f of lay?.findings ?? []) finalKeys.add(f.key);
         }
         const table = attributionTable(ledger?.rows ?? [], finalKeys);
@@ -453,7 +436,7 @@ async function main(): Promise<number> {
     return { turnWallTime: wallOf(arm), runs: rs.length, meanY: ys.length === 0 ? null : +(ys.reduce((a, b) => a + b, 0) / ys.length).toFixed(3), runsWithY0: ys.filter((y) => y === 0).length, trapFailed: rs.filter((r) => r.trapFailed === true).length, functional: rs.filter((r) => r.functional === true).length };
   };
   const out = {
-    schema: 'v15-study-scores/v1', modelCalls: 0, instrumentCommit: head,
+    schema: 'v15-study-scores/v1', modelCalls: 0, instrumentCommit: head, instrumentId: INSTRUMENT_ID, instrumentRuleHash: instrumentRuleHash().hash,
     params: {
       admitted: { ddd: { rows: ADMITTED_DDD_ROWS, rules: admittedRules('ddd') }, hexagonal: { rows: ADMITTED_HEX_ROWS, rules: admittedRules('hexagonal') }, overrides: ROW_OVERRIDES },
       exploratory: { ddd: exploratoryRules('ddd'), hexagonal: exploratoryRules('hexagonal') },

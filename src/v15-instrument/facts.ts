@@ -51,7 +51,13 @@ export interface CalcFact { readonly unit: string; readonly file: string; readon
 /** CN-01: an aggregate root that holds another aggregate root's object instead of its id (K16). */
 export interface RefFact { readonly root: string; readonly file: string; readonly line: number; readonly member: string; readonly target: string }
 /** HCAL-01 (2026-10-27): an adapter that imports another adapter package (H03). */
-export interface AdapterImportFact { readonly file: string; readonly line: number; readonly specifier: string; readonly target: string; readonly fromPkg: string; readonly toPkg: string }
+export interface AdapterImportFact {
+  readonly file: string; readonly line: number; readonly specifier: string; readonly target: string; readonly fromPkg: string; readonly toPkg: string;
+  /** 2026-10-29 (R-AXA shared helpers): the target package is the `shared` or `common` folder of the importer's own driving (inbound) side. */
+  readonly drivingShared: boolean;
+  /** 2026-10-29: every in-tree import of the target file is a domain or shared-kernel file, or a file of the target's own package. */
+  readonly targetHelperOnly: boolean;
+}
 /** HCAL-01: a transport concept (an HTTP status code, an HTTP or SQL error type) in domain, application or port code (H07). */
 export interface RepoMultiFact { readonly file: string; readonly line: number; readonly repo: string; readonly method: string; readonly root: string; readonly form: 'two-params' | 'collection' }
 export interface DomainTechFact { readonly file: string; readonly line: number; readonly module: string; readonly category: string }
@@ -1216,6 +1222,22 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
   // adapter package couples two adapters that should only meet through ports, wired in the composition root.
   const ADAPTER_PKG = /^(.*?(?:adapters\/(?:in|out|inbound|outbound)|adapters|infrastructure)\/[^/]+)\//;
   const adapterImports: AdapterImportFact[] = [];
+  // 2026-10-29 (R-AXA shared helpers): a driving side's shared folder (`…/adapters/in/shared`, `…/adapters/in/common`,
+  // `inbound` likewise) is that side's helper code (reply shapes, error translation), not another adapter. The rule
+  // reads both facts and decides; the facts only state where the target sits and what it imports.
+  const DRIVING_SIDE = /(?:^|\/)adapters\/(?:in|inbound)$/;
+  const SHARED_FOLDER = /^(?:shared|common)$/;
+  const drivingShared = (from: string, to: string): boolean => {
+    const side = path.posix.dirname(from);
+    return DRIVING_SIDE.test(side) && path.posix.dirname(to) === side && SHARED_FOLDER.test(path.posix.basename(to));
+  };
+  const helperOnly = (tsf: SourceFile, pkg: string): boolean => tsf.getImportDeclarations().every((d) => {
+    const x = d.getModuleSpecifierSourceFile();
+    if (x === undefined || !inTree(x)) return true; // a library import: not another adapter of this tree
+    const xf = fileOf(x);
+    const role = spec.roleOf(xf);
+    return role === 'domain' || role === 'shared-kernel' || xf.startsWith(`${pkg}/`);
+  });
   for (const sf of files) {
     const f = fileOf(sf);
     if (spec.roleOf(f) !== 'adapter') continue;
@@ -1229,7 +1251,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec): 
       if (spec.roleOf(t) !== 'adapter') continue;
       const to = ADAPTER_PKG.exec(t)?.[1];
       if (to === undefined || to === from) continue;
-      adapterImports.push({ file: f, line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), target: t, fromPkg: from, toPkg: to });
+      adapterImports.push({ file: f, line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), target: t, fromPkg: from, toPkg: to, drivingShared: drivingShared(from, to), targetHelperOnly: helperOnly(tsf, to) });
     }
   }
   bump('adapterImports', adapterImports.length);

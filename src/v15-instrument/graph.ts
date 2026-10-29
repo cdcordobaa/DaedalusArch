@@ -208,7 +208,7 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
   for (const x of facts.adapterImports) {
     const a = node(['AdapterFile'], { file: x.file, pkg: x.fromPkg });
     const b = node(['AdapterFile'], { file: x.target, pkg: x.toPkg });
-    rel('ADAPTER_IMPORTS', a, b, { line: x.line, specifier: x.specifier });
+    rel('ADAPTER_IMPORTS', a, b, { line: x.line, specifier: x.specifier, drivingShared: x.drivingShared, targetHelperOnly: x.targetHelperOnly });
   }
   for (const x of facts.transports) {
     const u = node(['CoreFile'], { file: x.file, role: x.role });
