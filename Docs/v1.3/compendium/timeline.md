@@ -181,6 +181,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-10-29 | **N2 pilot: bar not met** (16/21 = 0.762 against 0.80; 0 of 111 hallucinated citations); N2 reported as not run. PR #423 | `Docs/DiagnosticRuns/v15-n2-dsem-pilot-2026-10-29.md` |
 | 2026-10-29 | **v1.5 final study run and analysed**: H1 (DDD) supported, 85 vs 0 blocking identities, exact p 6.0 x 10^-8; H2 (Hexagonal) not rejected, 16 vs 12, with a delivery-coverage gap disclosed. N1(b) not run (DEV-2). PRs #424–#428 | `Docs/DiagnosticRuns/v15-final-study-2026-10-29.md` |
 | 2026-10-29 | **SO5 failure-pattern taxonomy started**: 266 episode cards (zero calls) and a first-coder codebook v0 (draft, not frozen). PR #429 | `experiments/so5-taxonomy/README.md` |
+| 2026-10-29 | Daily thesis sync: claims C10311–C10387 (part `v15-c`), nulls M274–M287, chronology rows 77–80, open items §14. Public PR #430 (merged). Private thesis: slot E6 in Kap9, PR tesis-msc-unal#40 left open (claim changes to flag; no TeX compiler available). Earlier private PRs #38 and #39 are still open and partly superseded by CAL-03 | #430 |
 | 2026-10-28 | Daily thesis sync: claims C10300–C10310 (part `v15-b`), nulls M272–M273, chronology row 76, open items §13. Public PR #406 (merged); private thesis PR cdcordobaa/tesis-msc-unal#39, open for the author (not compiled: no LaTeX here) | |
 
 ## What the timeline shows for the thesis
