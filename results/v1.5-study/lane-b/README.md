@@ -148,7 +148,7 @@ none with `D` null; 1 cell flagged (c008).
 
 ## Checks before commit
 
-No file under this directory contains `costUsd`, a canary (`grep -rl canary-` prints nothing), a personal absolute
+No file under this directory contains a spend field, a canary (the RUNBOOK §3 canary grep prints nothing), a personal absolute
 path or agent message text (the probe's answer is stored as `<agent text omitted>`; the only `message` field is the
 dry run's stub version-mismatch check). The private id map is committed after generation, as the RUNBOOK says.
 
