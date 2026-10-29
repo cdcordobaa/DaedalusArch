@@ -166,6 +166,17 @@ same rule hash, under its own bars. It is reported beside the study and is not a
 
 Every change after the registration commit is dated in this file before the data it would affect is seen.
 
+- **DEV-1 (2026-10-29, before any D_sem call and before any final-study output is scored).** N2's reference changes
+  from the author's audit to a **model panel**: three independent sessions (two `claude-fable-5-1`, one
+  `claude-opus-5-5`), each given only the 27 items of `experiments/v15-n2/audit-items.json` and the construct text,
+  blind to D_sem, to each other and to any rule finding, each answering yes / no / unsure per item. The reference
+  label is the majority (2 of 3); an item without a majority, or with a majority of "unsure", is excluded and counted.
+  The panel's own agreement (Fleiss' κ and pairwise raw agreement) is reported. The precondition bar is unchanged
+  (≥ 0.80 agreement with the reference, 0 hallucinated citations). **Reading narrowed:** N2 then measures agreement of
+  D_sem with an independent model panel, not with a human; because D_sem's interpreter and one rater share a model
+  family, this is stated as a limit. Any author answers given later are reported as a human spot-check beside it.
+  Reason: author time this week goes to the papers; the author asked for a model consensus instead.
+
 ## 7. Limitations, stated before the run
 
 - One vendor (Claude Code): the hooks exist only there, so the combined result is scoped to it.
