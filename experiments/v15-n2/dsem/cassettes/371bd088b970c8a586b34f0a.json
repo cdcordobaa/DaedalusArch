@@ -1,0 +1,39 @@
+{
+ "key": "371bd088b970c8a586b34f0acf34120921a1ee7e16de211d8b1069bf70729115",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A24",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:16.295Z",
+ "answer": {
+  "answer": "no",
+  "explanation": "GetJob.execute loads a RepairJob and maps it to a JobView. The only computation is dividing labourMinutes by 60 to give hours. That is a unit conversion for presentation in a read-only query. It is not a business rule such as an overrun check, a pricing rule or a status transition, and no decision is made from the aggregate's state and handed back to it. The aggregate keeps its own state and behaviour. So this is view mapping, not domain logic leaking into the application service.",
+  "severityClass": null,
+  "cites": [
+   "src/workshop/application/GetJob.ts:16"
+  ]
+ },
+ "invalidReason": null
+}

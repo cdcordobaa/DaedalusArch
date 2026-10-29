@@ -1,0 +1,42 @@
+{
+ "key": "df50bd85a571ebb9c002c9fdd5eefc4f6054a95270a19beca1199085e811ba94",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A02",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:12:12.214Z",
+ "answer": {
+  "explanation": "AgreementService keeps a private in-memory Set<string> (`sending`) of agreement ids. In send(), it rejects a second send if the id is already in the set. It adds the id before the async calls (allowance check, external sender, store save) and removes it in finally. This stops concurrent sends of the same agreement, which is an invariant the Agreement aggregate should own. The guard lives in the service's process memory instead of in the aggregate or in the store, for example through a status transition or optimistic versioning. It only works inside a single process, so it stands in for the aggregate's consistency boundary. Nothing is declared on the code, so the severity follows the rubric. The service does business-rule enforcement that belongs in the domain, so a layer is bypassed for logic in the wrong place. That makes it medium.",
+  "answer": "yes",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/services/AgreementService.ts:25",
+   "src/application/services/AgreementService.ts:44",
+   "src/application/services/AgreementService.ts:46",
+   "src/application/services/AgreementService.ts:59"
+  ]
+ },
+ "invalidReason": null
+}

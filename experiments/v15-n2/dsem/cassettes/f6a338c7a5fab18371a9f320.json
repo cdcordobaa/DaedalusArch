@@ -1,0 +1,39 @@
+{
+ "key": "f6a338c7a5fab18371a9f320e53c037c38a16fb9fda007cd73d0995b60364181",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A11",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:13:54.838Z",
+ "answer": {
+  "explanation": "addGuest in the application service loads a Visit, Pass, Lounge and Partner. It computes the prospective guest count itself (visit.guests + 1) from the entity's state. It then runs the guest-limit, cutoff and room rules through external check functions and only then calls visit.addGuest(). The Visit does not enforce the guest rules. The service derives the new count, decides the limits, and tells the entity to apply the change, which duplicates the increment. The rule functions might live in the domain, but the calculation over Visit state and the choice of which rules apply (pass.kind === 'airline') are orchestrated in the service. This is business logic that belongs in the aggregate, placed in the application layer.",
+  "answer": "yes",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/usecases/AdmissionService.ts:52-58"
+  ]
+ },
+ "invalidReason": null
+}

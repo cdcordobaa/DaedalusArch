@@ -1,0 +1,1555 @@
+{
+ "schema": "v15-n2-dsem-pilot-v1",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "deviation": "DEV-1",
+ "mode": "replay",
+ "at": "2026-10-29T02:18:20.020Z",
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "promptsSha256": "8c6188ac718ee08d47305182d7b402c36017dd56135ede4bf2d38c101c524485",
+ "systemSha256": "689350b4a500aaf4005f1f9f37fe5c1404c57a761a8db085c8e6c85c7cbb17f6",
+ "schemaSha256": "c4986182408e9ed55459180ea5fe505abfa32774911b0636a4df9485a078db88",
+ "requestedModel": "claude-sonnet-5-5",
+ "answeredModels": [
+  "claude-sonnet-5-5"
+ ],
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": null,
+  "pin": "2.1.312"
+ },
+ "runsPerItem": 2,
+ "finalRule": "the grounded answer given in both runs, otherwise unsure; a yes or no with no resolved cite is unsure",
+ "cap": 81,
+ "callsOnLedger": 54,
+ "truncated": false,
+ "stopped": null,
+ "truncatedRuns": [],
+ "bar": {
+  "agreement": 0.8,
+  "hallucinatedCitations": 0,
+  "unsureCountsAs": "disagreement"
+ },
+ "score": {
+  "labelled": 21,
+  "agree": 16,
+  "agreement": 0.7619047619047619,
+  "wilson95": {
+   "low": 0.5490841802765406,
+   "high": 0.8937214361088773
+  },
+  "unsureOnLabelled": 2,
+  "hallucinatedCitations": 0,
+  "citations": 111,
+  "pass": false,
+  "disagreements": [
+   {
+    "id": "A04",
+    "row": "K12",
+    "reference": "no",
+    "dsem": "yes",
+    "runs": [
+     "yes",
+     "yes"
+    ]
+   },
+   {
+    "id": "A13",
+    "row": "K12",
+    "reference": "no",
+    "dsem": "unsure",
+    "runs": [
+     "unsure",
+     "unsure"
+    ]
+   },
+   {
+    "id": "A20",
+    "row": "H06",
+    "reference": "yes",
+    "dsem": "unsure",
+    "runs": [
+     "no",
+     "yes"
+    ]
+   },
+   {
+    "id": "A22",
+    "row": "K12",
+    "reference": "no",
+    "dsem": "yes",
+    "runs": [
+     "yes",
+     "yes"
+    ]
+   },
+   {
+    "id": "A23",
+    "row": "K12",
+    "reference": "no",
+    "dsem": "yes",
+    "runs": [
+     "yes",
+     "yes"
+    ]
+   }
+  ],
+  "perRow": {
+   "K11": {
+    "labelled": 2,
+    "agree": 2
+   },
+   "H06": {
+    "labelled": 6,
+    "agree": 5
+   },
+   "K12": {
+    "labelled": 13,
+    "agree": 9
+   }
+  }
+ },
+ "items": [
+  {
+   "id": "A01",
+   "row": "K12",
+   "reference": "excluded",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:48",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:54",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:55",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:56",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:58",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service addGuest computes the new guest total (visit.guests + 1) from the Visit's state and runs business rules (checkGuests, checkCutoff, checkRoom) against it outside the aggregate. It then tells the Visit to addGuest(). The guest-limit and cutoff rules and the derived count are calculated in the service and handed to the entity, instead of being enforced inside Visit. The `inProgress` check is also done in the service."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:48",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:54",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:55",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:56",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:58",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service's addGuest computes the new guest count (visit.guests + 1) from the Visit's state. It then runs business rules (checkGuests, checkCutoff, checkRoom) over that state with the pass, lounge and partner. Only after that does it tell the Visit to record the guest. The rules and the calculation of the next guest count sit in the service, not in the Visit aggregate. The aggregate just receives the result and has no say in the limit checks. It also checks visit.inProgress from outside, which is a further invariant held in the service."
+    }
+   ]
+  },
+  {
+   "id": "A02",
+   "row": "K11",
+   "reference": "yes",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/services/AgreementService.ts:25",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:44",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:46",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:59",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "AgreementService keeps a private in-memory Set<string> (`sending`) of agreement ids. In send(), it rejects a second send if the id is already in the set. It adds the id before the async calls (allowance check, external sender, store save) and removes it in finally. This stops concurrent sends of the same agreement, which is an invariant the Agreement aggregate should own. The guard lives in the service's process memory instead of in the aggregate or in the store, for example through a status transition or optimistic versioning. It only works inside a single process, so it stands in for the aggregate's consistency boundary. Nothing is declared on the code, so the severity follows the rubric. The service does business-rule enforcement that belongs in the domain, so a layer is bypassed for logic in the wrong place. That makes it medium."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/services/AgreementService.ts:25",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:44",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:46",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:59",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "AgreementService keeps a private in-memory Set<string> (`sending`) of agreement ids. In send(), it rejects a second send if the id is already in the set, adds the id, does async work (allowance check, external sender call), then marks the agreement sent and saves it. The id is removed in `finally`. This process-local set acts as a concurrency guard so the same agreement is not sent twice at once. That guard is the job of the Agreement aggregate's consistency boundary, for example through its state or versioned persistence. The set only works inside one process. It does not work across multiple instances or restarts, and the service holds it instead of the aggregate or store."
+    }
+   ]
+  },
+  {
+   "id": "A03",
+   "row": "H06",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/MemoryPupilStore.ts:20-22",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The adapter method only returns all pupils from an in-memory map, sorted by id. Sorting is a deterministic ordering, not a branch on domain state to accept, reject, price or change anything. No business rule is decided here."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/MemoryPupilStore.ts:20-22",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The adapter method only returns all pupils from an in-memory store, sorted by id. The sort is an ordering detail, not a branch on domain state that accepts, rejects, prices or changes anything. No business rule is decided here."
+    }
+   ]
+  },
+  {
+   "id": "A04",
+   "row": "K12",
+   "reference": "no",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/RequestRideService.ts:27-35",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestRideService.ts:37",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestRideService.ts:45",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The service computes each pool's detour itself and hands it to the matching policy. For every pool with free seats it takes the stops with and without the rider (lines 27-28), gets travel times from the times port, and subtracts them to get addedSeconds (line 32). It passes that figure, with withoutSeconds, to matching.choose as a Candidate (line 37). That detour figure is business logic over the Pool's state, and it is worked out in the application service instead of in the Pool aggregate, which only supplies raw stop lists. The service also converts the added time to minutes (line 45). The travel-time lookup is an outside dependency, so the service has to orchestrate that call. The subtraction and the definition of added time are still domain rules in the wrong layer. The case is modest, since the arithmetic is small and the actual selection stays in the domain's matching policy."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/RequestRideService.ts:27-35",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestRideService.ts:37",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestRideService.ts:45",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/domain/pooling/Matching.ts:14",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "RequestRideService.request loops over pools with free seats. For each pool it asks the pool for its stops with and without the new rider, gets drive times from a time service, and works out the detour cost itself: `addedSeconds = withRider.seconds - without.seconds`. It also aggregates the `estimated` flag and converts seconds to minutes for the answer. This added-time figure is a business measure of the pool's route and is the main input to matching. It is computed in the application service from the pool's state, not inside Pool. The service then hands the figure to the matching policy through Candidate and uses it again to build the response. The pool only supplies raw stops, so the detour calculation sits outside the aggregate."
+    }
+   ]
+  },
+  {
+   "id": "A05",
+   "row": "K12",
+   "reference": "yes",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/RequestUnitsService.ts:19",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:20",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:37-40",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:50-51",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service computes business logic over the fridge's stock state. It takes the minimum of requested units and on-hand stock, works out the shortfall, and decides when an urgent red-cell request may be covered with O-negative stock. It then hands the results to the fridge (take) and to Fulfilment. The stock allocation and substitution rules sit in the service, not in the fridge aggregate or a domain policy. The fridge only exposes onHand and take, so the calculation is done outside the entity and the result is passed back to it."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/RequestUnitsService.ts:19-20",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:37-40",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:50-51",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service computes business rules over the fridge's stock state. It takes the minimum of requested units and on-hand stock, works out the shortfall, and decides on an urgent O-negative red-cell substitution. It then computes the cover quantities and the stock to take. It reads onHand from the fridge and calls take with the results, so the stock-allocation and substitution logic runs in the service instead of inside the fridge aggregate/entity. Fulfilment.of only wraps the computed numbers. The domain objects hold state, but the calculation is done outside them."
+    }
+   ]
+  },
+  {
+   "id": "A06",
+   "row": "K12",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/MemoryLockers.ts:19-21",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The adapter method only filters lockers by buildingId and sorts them by bay. This is a repository query for retrieval and ordering. It does no business calculation over the aggregate's state, and nothing is handed back to an application service."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/MemoryLockers.ts:19-21",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The code is a memory repository query that filters lockers by building and sorts them by bay. This is a read query for retrieval and ordering. It does not calculate any business value from an aggregate's state, and it is not in an application service."
+    }
+   ]
+  },
+  {
+   "id": "A07",
+   "row": "H06",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/InMemoryAdopterStore.ts:20-22",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The outbound in-memory adapter's all() only returns the stored adopters sorted by id. The sort is a technical ordering. It doesn't accept, reject, price or change anything based on domain state. The only business rule shown, rejecting an empty name, is in the domain's Adopter.register, not in the adapter."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/InMemoryAdopterStore.ts:20-22",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The outbound in-memory adapter's all() method returns the stored adopters sorted by id. The sort is a deterministic ordering of results. It doesn't branch on domain state to accept, reject, price or change anything. The name-validation rule sits in the domain's Adopter.register, not in the adapter."
+    }
+   ]
+  },
+  {
+   "id": "A08",
+   "row": "K12",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/application/workflows/TeacherWorkflow.ts:27-32",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The method loads a teacher, parses the date, fetches the teacher's time windows from a hours provider, sorts them by start time and maps them to labels to build a view. This is read-model assembly (sorting and formatting for presentation), not a business calculation over aggregate state that should live in the aggregate. The window labelling is delegated to the TimeWindow value object, and no business rule is computed from the teacher's state."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/application/workflows/TeacherWorkflow.ts:27-32",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The workflow method looks up a teacher, parses a date, fetches time windows from a hours service, sorts them by start time and maps them to labels for a view. This is read-only query/presentation assembly. It performs no business calculation over the teacher aggregate's state (such as an eligibility or availability rule) that would belong inside the aggregate. Sorting and labelling windows is view shaping, not domain logic pulled out of an entity."
+    }
+   ]
+  },
+  {
+   "id": "A09",
+   "row": "H06",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/MemoryStores.ts:37",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The in-memory outbound adapter method inProgressAt filters visits by loungeId and an inProgress flag, then sorts by entry time. This is a query and ordering implementation of a repository lookup. It does not accept, reject, price or change anything based on domain rules. The inProgress state is computed by the domain Visit, so the adapter only reads it."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/MemoryStores.ts:37",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The code is an outbound in-memory store query. It filters visits by loungeId and the inProgress flag, then sorts them by enteredAt. This is a read-only query and ordering. It does not accept, reject, price or change anything based on domain rules. The inProgress state is a property the domain object owns, and the adapter only uses it to select records. That is query filtering, not a business decision."
+    }
+   ]
+  },
+  {
+   "id": "A10",
+   "row": "K11",
+   "reference": "yes",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/services/AgreementService.ts:22",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:47",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:49",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:56",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "AgreementService.send uses a private in-memory Set (`sending`) as a guard: it rejects a second send for the same agreement id while one is in flight, adds the id before awaiting the allowance check, the envelope send and the save, and removes it in finally. This is an in-process lock in a service that stands in for the Agreement aggregate's consistency boundary. It is not a versioned or transactional guard in the store, such as optimistic concurrency, so it does nothing across processes or instances. Only the aggregate's own invariant (assertSendable) is enforced in the aggregate. The concurrency protection sits in the service's memory. Nothing is declared on this code, so the severity follows what the dependency does. It is a layer-bypass style misplacement of consistency logic in the application service, which fits medium."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/services/AgreementService.ts:22",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:47",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:49",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/services/AgreementService.ts:56",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "AgreementService.send uses a private in-memory Set<string> (`sending`) keyed by agreement id to stop concurrent sends of the same agreement. The set is checked, added to, and cleared in a finally block around the envelope send and save. This is an in-process lock in the service, used in place of a consistency boundary on the Agreement aggregate (such as a version check, a persisted \"sending\" state, or a store-level atomic operation). It only works within one process, so it fails with multiple instances. The check on line 47 and the add on line 49 are separated by no await, so they are atomic within one process. The `store.get` on line 45 happens before the check, so the aggregate could be stale. Nothing is declared on this code. The construct is application-layer logic that stands in for aggregate invariants, so it is a medium severity case: business concurrency control sits in the wrong place."
+    }
+   ]
+  },
+  {
+   "id": "A11",
+   "row": "K12",
+   "reference": "excluded",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:52-58",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "addGuest in the application service loads a Visit, Pass, Lounge and Partner. It computes the prospective guest count itself (visit.guests + 1) from the entity's state. It then runs the guest-limit, cutoff and room rules through external check functions and only then calls visit.addGuest(). The Visit does not enforce the guest rules. The service derives the new count, decides the limits, and tells the entity to apply the change, which duplicates the increment. The rule functions might live in the domain, but the calculation over Visit state and the choice of which rules apply (pass.kind === 'airline') are orchestrated in the service. This is business logic that belongs in the aggregate, placed in the application layer."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:53",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:54",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:58",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "AdmissionService.addGuest reads the Visit's state (visit.guests), computes the new guest total itself (guests = visit.guests + 1), and feeds that figure into the business-rule checks checkGuests, checkCutoff and checkRoom. Only then does it call visit.addGuest(). The Visit aggregate has a private guestCount and an addGuest method, but the service does the arithmetic on its state and the rule evaluation around it. The aggregate is not asked to enforce its own guest limit. The checks may be domain-level functions, but the service orchestrates the calculation and passes the result back. This matches the construct, though the evidence is partial because the check functions aren't shown."
+    }
+   ]
+  },
+  {
+   "id": "A12",
+   "row": "K12",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/MemoryLessonLedger.ts:22",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The code is a repository-style query in an in-memory adapter. It filters lessons by teacher and date and sorts them by slot start. This is retrieval and ordering, not a business calculation over an aggregate's state that is handed back to an application service. No domain rule is computed here, such as overlap or availability, so the construct is not present."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/MemoryLessonLedger.ts:21-23",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The code is a repository-style query in an in-memory adapter. It filters lessons by teacher and date and sorts them by slot start time. That is retrieval and ordering, not a business calculation over an aggregate's state. The overlap and containment logic lives in TimeWindow, a domain type, and it isn't used here. Nothing is computed outside the domain and handed back."
+    }
+   ]
+  },
+  {
+   "id": "A13",
+   "row": "K12",
+   "reference": "no",
+   "final": "unsure",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "unsure",
+     "answer": "unsure",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/application/RequestRideService.ts:35",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestRideService.ts:42",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestRideService.ts:49",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The service validates the request and builds Locations. It then gathers open pools and builds Candidate objects through this.candidates(...), which carry addedSeconds and withoutSeconds for each pool. It falls back to estimates when the drive-time quota is exhausted, and a matching policy picks one candidate. The chosen Pool then gets take(...) and is saved. The route-time calculation per pool may be business logic over aggregate state done in the service. But the body of candidates() isn't shown, so I can't see whether it reads the pool's internal state or delegates to the pool. The service also doesn't pass the computed result into the aggregate, because take receives only the rider and locations. The code shown doesn't settle it."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "unsure",
+     "answer": "unsure",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/application/RequestRideService.ts:35",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestRideService.ts:43",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestRideService.ts:49",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "request() orchestrates the ride request. It validates input, checks areas, and gets drive times from an external port with a fallback to an estimate when the quota is exhausted. It then builds candidates, delegates selection to a domain `matching.choose`, and calls `Pool.open` or `pool.take` on the aggregate. The visible code does not do the business calculation itself. Choosing the pool and adding the rider are domain operations, and the only arithmetic in the service is rounding seconds to minutes for the response. The detour calculation (`addedSeconds`, `withoutSeconds`) sits in `this.candidates(...)`, whose body is not shown. That calculation combines pool state with drive times, so it may be business logic computed outside the aggregate, or it may be delegated to the pool or the domain. The code shown cannot settle this."
+    }
+   ]
+  },
+  {
+   "id": "A14",
+   "row": "H06",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/InMemoryApplicationStore.ts:28-30",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The shown code is an in-memory store's all() method. It returns every stored application sorted by id. The sort is a deterministic ordering and does not branch on domain state to accept, reject, price or change anything. No business rule is decided here."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/InMemoryApplicationStore.ts:29",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The shown code is an in-memory store's all() method. It copies the stored rows and sorts them by id. Sorting by id is a technical ordering detail. It does not accept, reject, price or change anything based on domain state or values, so it contains no business rule."
+    }
+   ]
+  },
+  {
+   "id": "A15",
+   "row": "K12",
+   "reference": "yes",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/services/CheckoutService.ts:23-25",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "CheckoutService computes a surcharge from the order's total cents (rounded half up, using a per-thousand rate) and adds it to the total to get the charged amount. This is a business pricing calculation over the Order's state. It lives in the application service instead of in the Order or Money. The service then passes the result to the charges port. The Order should own this calculation."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/services/CheckoutService.ts:23-25",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service CheckoutService computes a payment surcharge from the order's total (cents * SURCHARGE_PER_THOUSAND with half-up rounding) and adds it to the total to get the charged amount. This is a business pricing rule over the Order's state (its total and currency). It runs in the service rather than in the Order or Money, and the result is passed to the charge port. The service pulls the state out of the order (order.total.cents) and does the math itself, so the domain model holds no such rule."
+    }
+   ]
+  },
+  {
+   "id": "A16",
+   "row": "K12",
+   "reference": "excluded",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/RequestUnitsService.ts:17-18",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:47-50",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:25",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/domain/UnitRequest.ts:8-15",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service RequestUnitsService.request computes business logic itself. It decides how many units come from stock (Math.min against fridge.onHand), works out the missing amount, and applies supplier-hold expiry rules. It also applies a substitution rule: urgent red cells for a non-O- group may be covered with O- stock. This logic reads state from the fridge (stock on hand) and from the UnitRequest. UnitRequest is an anonymous value object with only readonly fields and no behaviour. The service does the calculation and does not delegate it to a domain aggregate or entity, so the domain model is anemic here."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/RequestUnitsService.ts:17-18",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:25",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/RequestUnitsService.ts:47-50",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service computes business rules itself: how much comes from stock (min of requested and on-hand), how much is missing, supplier hold expiry, and the urgent red-cell fallback to O- substitution. These calculations use the request's state (component, group, units, urgent) and the fridge's stock. They sit in the service instead of in the UnitRequest or a stock aggregate. UnitRequest is only a value holder with a factory. So the domain logic is in the wrong layer."
+    }
+   ]
+  },
+  {
+   "id": "A17",
+   "row": "K12",
+   "reference": "yes",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:82",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:83",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "retryAfter in the application service computes the remaining time of each in-progress Visit. It uses a hard-coded 180-minute stay limit and the visit's enteredAt, then takes the minimum. This is a business rule (how long a visit may last and when it ends) calculated from the Visit entity's state in the service, not inside Visit. Visit only exposes enteredAt and has no method for remaining time."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:82",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/AdmissionService.ts:83",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service's retryAfter computes remaining stay time for each in-progress visit as 180 minus the minutes since v.enteredAt. It then takes the minimum to get the retry delay. The 180-minute maximum stay is a business rule, and the calculation reads Visit state (enteredAt). It runs in the service instead of in the Visit entity, which exposes only the data. Visit could own a method such as remainingMinutes(now)."
+    }
+   ]
+  },
+  {
+   "id": "A18",
+   "row": "H06",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/InMemoryPetStore.ts:29",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The shown code is an outbound in-memory adapter method that returns all pets sorted by id. The sort is a deterministic ordering of stored rows. It doesn't accept, reject, price or change anything based on domain state or values, so it contains no business rule."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/out/memory/InMemoryPetStore.ts:28-30",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The shown code is an in-memory store's all() method. It returns every stored Pet sorted by id. The sort is an ordering for presentation or determinism and does not accept, reject, price or change anything based on domain state. No business rule is decided in this adapter."
+    }
+   ]
+  },
+  {
+   "id": "A19",
+   "row": "K12",
+   "reference": "excluded",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/services/PriceProductService.ts:34",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/domain/model/Product.ts:2-6",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service converts a product's price into a foreign currency itself. It reads the product's euroCents state, multiplies it by the exchange rate mid, and rounds the result with roundPrice using the rate's minor units. Product is a plain readonly data interface with no behaviour, so this pricing calculation happens in the service instead of in the entity. The EUR case is delegated to this.prices.euroPrice, but the non-EUR conversion is a business calculation over entity state done in the service layer."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/services/PriceProductService.ts:34",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/domain/model/Product.ts:2-6",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "PriceProductService converts a Product's euroCents into a foreign currency in the application service. It reads product.euroCents, multiplies by the exchange rate's mid, and rounds the result with roundPrice. Product is a plain readonly data interface with no behavior, so the pricing calculation sits in the service and not in the domain entity. The service does not hand the result back to the entity. It computes over the entity's state and returns a view. The construct is an anemic-model calculation in the application layer, and it matches."
+    }
+   ]
+  },
+  {
+   "id": "A20",
+   "row": "H06",
+   "reference": "yes",
+   "final": "unsure",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/cellar/infrastructure/MemoryBatchStore.ts:15",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "This is an in-memory outbound adapter for a batch store. It generates sequential IDs, looks batches up, and records them. It also posts the batch's raised events to a mailbox. The only branch on domain state is `batch.status !== 'planned'` in `record`. That branch keeps a brew-order index, which is persistence bookkeeping so that `brewedNewestFirst` can answer a query. It doesn't accept, reject, price, or change any domain outcome. The adapter does lean a little on the meaning of 'planned', but it enforces no business rule such as fermentation days or lot usage."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/cellar/infrastructure/MemoryBatchStore.ts:15",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/cellar/infrastructure/MemoryBatchStore.ts:13",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "This is an outbound in-memory store adapter for batches. In `record`, it branches on the domain field `batch.status` (`!== 'planned'`) to decide whether a batch enters `brewOrder`. That order is what `brewedNewestFirst` returns. So the adapter holds the business rule that a batch counts as brewed once it leaves 'planned'. That rule belongs in the domain, not in persistence. The other code is plain storage: id generation, lookup, mailbox posting. The status check is a domain decision, not transport-shape validation. It only affects which batches a read returns, and one file could undo it, so I rank it medium because business logic sits in the wrong layer."
+    }
+   ]
+  },
+  {
+   "id": "A21",
+   "row": "K12",
+   "reference": "excluded",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "low",
+     "cites": [
+      {
+       "cite": "src/bookings/application/BookClass.ts:31",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/bookings/application/BookClass.ts:32",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service BookClass sums the sessions across the booking's classes (a business calculation over the Booking aggregate's state) at line 31. It then passes the result to the member directory's addVisits at line 32. The visit count is derived from booking.classes, which is aggregate state. The service computes it and hands it on instead of the Booking aggregate exposing it, for example as booking.totalSessions(). By contrast, total() and discount() are computed inside Booking. The visit tally is the leaked calculation."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "low",
+     "cites": [
+      {
+       "cite": "src/bookings/application/BookClass.ts:31",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/bookings/application/BookClass.ts:32",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The BookClass application service builds a Booking, then computes the number of visits itself by reducing over booking.classes and summing sessions (line 31). It passes that figure to the member directory (line 32). Summing the sessions of a booking's state is a business calculation on the aggregate's data. It sits in the application service and not in Booking, for example as a booking.totalSessions() method. Booking already exposes total() and discount() as domain behaviour, so this one leaked out."
+    }
+   ]
+  },
+  {
+   "id": "A22",
+   "row": "K12",
+   "reference": "no",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "low",
+     "cites": [
+      {
+       "cite": "src/application/usecases/FinanceExportService.ts:18-26",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/FinanceExportService.ts:31-37",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service FinanceExportService.financeExport loads orders and pupils and computes the business figures itself. It skips cancelled orders, groups by pupil class, and sums meal counts and amounts from order prices into per-class and overall totals. This is done outside the aggregates. MealOrder, the domain type, only holds status and a cancel method. It has no billing or takings logic. Formatting the CSV and writing the file are legitimate adapter work. The aggregation of order prices by class, including the rule that cancelled orders don't count, is a business calculation over entity state that sits in the service, not the domain. The calculation is read-only, so the impact is limited."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "low",
+     "cites": [
+      {
+       "cite": "src/application/usecases/FinanceExportService.ts:18-26",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/FinanceExportService.ts:31-37",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/domain/model/MealOrder.ts:7-12",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service FinanceExportService.financeExport loads meal orders and pupils, then does the business calculation itself. It skips cancelled orders, groups by the pupil's class, and sums meal counts and amounts per class and in total. It does this by reading the order's status and price and the pupil's className directly. The MealOrder entity holds only state and a cancel() method, and none of this takings logic sits in the domain. The calculation therefore lives in the service. Part of the method is CSV formatting and file writing, which is a legitimate adapter concern. The pricing and aggregation of takings per class is business logic placed outside the domain objects. No intent is declared, and this is a read-only calculation in the wrong layer, so the severity is low."
+    }
+   ]
+  },
+  {
+   "id": "A23",
+   "row": "K12",
+   "reference": "no",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/usecases/FinanceExportService.ts:19-30",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/FinanceExportService.ts:32-41",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "FinanceExportService, an application service, loads orders and pupils and does the business calculation itself. It skips cancelled orders, groups by pupil class, and sums meal counts and price amounts per class and overall. It then formats the result as CSV and writes it. The aggregation reads order state (status, price, pupilId) and pupil state (className) from outside the entities. The MealOrder entity shown has no behaviour for this, and the totals are not computed in the domain. This is a business calculation over entity state done in the application service. It is a read-only report and does not change state."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/application/usecases/FinanceExportService.ts:19-30",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/application/usecases/FinanceExportService.ts:32-41",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "FinanceExportService, an application service, loads orders for a day and skips cancelled ones. It reads each order's status and price, groups them by pupil class, and sums meals and amounts per class and in total. This is a business calculation (takings) over the state of MealOrder entities. It happens in the service, not in a domain object. MealOrder only exposes the price and status, and has no behavior for this. The service does also format CSV and write a file, but the aggregation and totals are domain-level logic in the wrong layer. It is read-only and changes no state."
+    }
+   ]
+  },
+  {
+   "id": "A24",
+   "row": "K12",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/workshop/application/GetJob.ts:16",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "GetJob.execute loads a RepairJob and maps it to a JobView. The only computation is dividing labourMinutes by 60 to give hours. That is a unit conversion for presentation in a read-only query. It is not a business rule such as an overrun check, a pricing rule or a status transition, and no decision is made from the aggregate's state and handed back to it. The aggregate keeps its own state and behaviour. So this is view mapping, not domain logic leaking into the application service."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/workshop/application/GetJob.ts:16",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "GetJob.execute loads a RepairJob and maps it to a JobView. It copies status and converts labourMinutes to hours by dividing by 60. The division is a unit conversion for the read model, and it has no business rule behind it. There is no rate, overrun check, threshold or approval logic. The aggregate keeps its own rules, such as overrunApproved and the pending events. The service only reformats one value for display, so this is not a business calculation that belongs in the aggregate."
+    }
+   ]
+  },
+  {
+   "id": "A25",
+   "row": "H06",
+   "reference": "excluded",
+   "final": "unsure",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts:24",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts:30-33",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The outbound adapter rejects a send when the recipient's phone number is in an adapter-held optedOut set (line 24) and adds numbers to that set when the provider reports OPTED_OUT (lines 30-33). Deciding that opted-out recipients must not be texted is a consent/compliance rule that branches on a domain value to reject an operation, and it sits in the adapter instead of the domain or an application service. The rest of the code (carrier blocked, throttled) is error translation, which is transport mapping."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts:24",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts:29-36",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The outbound adapter sends a text through the Textwave client. It keeps an opted-out set and refuses to send to numbers in it (line 24). It also translates vendor errors into domain errors: blockReason 'OPTED_OUT' and 'CARRIER_BLOCKED' map to Texts*Error, and throttling maps to TextsThrottledError. The branches test the vendor's block reason and the adapter's own cache of opted-out numbers. They don't test domain state or domain values such as customer status, price or eligibility. The opt-out check is a delivery-channel suppression list that mirrors what the provider reports, and the error mapping is transport translation. Whether opted-out recipients may be texted could arguably be a business rule, but here it only caches the provider's own verdict, so it isn't the adapter deciding a business rule."
+    }
+   ]
+  },
+  {
+   "id": "A26",
+   "row": "K12",
+   "reference": "no",
+   "final": "no",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/bookings/application/SendConfirmation.ts:14",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The handler formats an event's totalCents into a display string (cents / 100, toFixed(2)) for a confirmation message. This is presentation formatting of an immutable event's data, not a business calculation over an aggregate's or entity's state that should live in the aggregate. The event is a value carrier, and no business rule (pricing, totals, discounts) is computed here."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "no",
+     "answer": "no",
+     "severityClass": null,
+     "cites": [
+      {
+       "cite": "src/bookings/application/SendConfirmation.ts:14",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The handler reacts to a BookingMade event and formats the total as a display string (cents divided by 100, shown with two decimals) for a confirmation message. This is presentation formatting of event data, not a business calculation over an aggregate's or entity's state. It reads no aggregate, applies no business rule, and hands no result back to a domain object. The construct is not present."
+    }
+   ]
+  },
+  {
+   "id": "A27",
+   "row": "K12",
+   "reference": "yes",
+   "final": "yes",
+   "runs": [
+    {
+     "run": 0,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/bookings/application/BookClass.ts:28",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/bookings/application/BookClass.ts:32",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service BookClass.execute computes the discount rate from the member's level (DISCOUNT_BY_LEVEL lookup) and sums the sessions across booking.classes with a reduce. It then passes the rate into Booking.make and the visit total into directory.addVisits. The discount-rate decision and the visit total are business calculations over the booking's state. They are done in the service and handed back to the aggregate or directory instead of inside the Booking aggregate. The total and discount are computed in the aggregate, but the rate derivation and the session sum are not."
+    },
+    {
+     "run": 1,
+     "rawAnswer": "yes",
+     "answer": "yes",
+     "severityClass": "medium",
+     "cites": [
+      {
+       "cite": "src/bookings/application/BookClass.ts:28",
+       "resolved": true,
+       "reason": null
+      },
+      {
+       "cite": "src/bookings/application/BookClass.ts:32",
+       "resolved": true,
+       "reason": null
+      }
+     ],
+     "model": "claude-sonnet-5-5",
+     "invalid": null,
+     "explanation": "The application service BookClass computes the discount rate from the member level (a lookup in DISCOUNT_BY_LEVEL) and sums sessions across booking.classes with reduce, then passes these to the booking/directory. The discount rate derivation is business logic done in the service and handed to Booking.make. The session total is a calculation over the aggregate's state done in the service and handed to the directory. Total and discount are computed inside Booking, which is fine, but the sessions sum and rate selection sit in the wrong layer."
+    }
+   ]
+  }
+ ],
+ "excluded": [
+  {
+   "id": "A01",
+   "row": "K12",
+   "panelAnswers": [
+    "no",
+    "unsure",
+    "unsure"
+   ],
+   "dsem": "yes"
+  },
+  {
+   "id": "A11",
+   "row": "K12",
+   "panelAnswers": [
+    "no",
+    "unsure",
+    "unsure"
+   ],
+   "dsem": "yes"
+  },
+  {
+   "id": "A16",
+   "row": "K12",
+   "panelAnswers": [
+    "yes",
+    "unsure",
+    "unsure"
+   ],
+   "dsem": "yes"
+  },
+  {
+   "id": "A19",
+   "row": "K12",
+   "panelAnswers": [
+    "unsure",
+    "no",
+    "unsure"
+   ],
+   "dsem": "yes"
+  },
+  {
+   "id": "A21",
+   "row": "K12",
+   "panelAnswers": [
+    "yes",
+    "no",
+    "unsure"
+   ],
+   "dsem": "yes"
+  },
+  {
+   "id": "A25",
+   "row": "H06",
+   "panelAnswers": [
+    "unsure",
+    "unsure",
+    "yes"
+   ],
+   "dsem": "unsure"
+  }
+ ]
+}

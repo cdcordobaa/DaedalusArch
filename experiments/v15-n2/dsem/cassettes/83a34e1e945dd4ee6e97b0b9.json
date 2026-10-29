@@ -1,0 +1,42 @@
+{
+ "key": "83a34e1e945dd4ee6e97b0b966b738502520c4ffd5739068cf022d24c6cecb94",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A10",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:13:38.564Z",
+ "answer": {
+  "explanation": "AgreementService.send uses a private in-memory Set (`sending`) as a guard: it rejects a second send for the same agreement id while one is in flight, adds the id before awaiting the allowance check, the envelope send and the save, and removes it in finally. This is an in-process lock in a service that stands in for the Agreement aggregate's consistency boundary. It is not a versioned or transactional guard in the store, such as optimistic concurrency, so it does nothing across processes or instances. Only the aggregate's own invariant (assertSendable) is enforced in the aggregate. The concurrency protection sits in the service's memory. Nothing is declared on this code, so the severity follows what the dependency does. It is a layer-bypass style misplacement of consistency logic in the application service, which fits medium.",
+  "answer": "yes",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/services/AgreementService.ts:22",
+   "src/application/services/AgreementService.ts:47",
+   "src/application/services/AgreementService.ts:49",
+   "src/application/services/AgreementService.ts:56"
+  ]
+ },
+ "invalidReason": null
+}

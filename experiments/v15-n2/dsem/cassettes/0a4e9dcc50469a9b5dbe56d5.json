@@ -1,0 +1,43 @@
+{
+ "key": "0a4e9dcc50469a9b5dbe56d5a52bdf3b6c346a16bc974579ba8858873ed24df6",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A01",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:12:01.936Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service addGuest computes the new guest total (visit.guests + 1) from the Visit's state and runs business rules (checkGuests, checkCutoff, checkRoom) against it outside the aggregate. It then tells the Visit to addGuest(). The guest-limit and cutoff rules and the derived count are calculated in the service and handed to the entity, instead of being enforced inside Visit. The `inProgress` check is also done in the service.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/usecases/AdmissionService.ts:48",
+   "src/application/usecases/AdmissionService.ts:54",
+   "src/application/usecases/AdmissionService.ts:55",
+   "src/application/usecases/AdmissionService.ts:56",
+   "src/application/usecases/AdmissionService.ts:58"
+  ]
+ },
+ "invalidReason": null
+}

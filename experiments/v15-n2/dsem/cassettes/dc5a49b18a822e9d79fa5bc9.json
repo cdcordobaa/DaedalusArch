@@ -1,0 +1,40 @@
+{
+ "key": "dc5a49b18a822e9d79fa5bc98e59164e5ae7a9edfcf188988929ed71cc18e24d",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A21",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:15:46.318Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service BookClass sums the sessions across the booking's classes (a business calculation over the Booking aggregate's state) at line 31. It then passes the result to the member directory's addVisits at line 32. The visit count is derived from booking.classes, which is aggregate state. The service computes it and hands it on instead of the Booking aggregate exposing it, for example as booking.totalSessions(). By contrast, total() and discount() are computed inside Booking. The visit tally is the leaked calculation.",
+  "severityClass": "low",
+  "cites": [
+   "src/bookings/application/BookClass.ts:31",
+   "src/bookings/application/BookClass.ts:32"
+  ]
+ },
+ "invalidReason": null
+}

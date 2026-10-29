@@ -1,0 +1,39 @@
+{
+ "key": "a14a1fa972d99a1411b2e4e5581dacbe084254c6101c5944c77d4e4eb25d78ac",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A20",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:15:34.084Z",
+ "answer": {
+  "answer": "no",
+  "explanation": "This is an in-memory outbound adapter for a batch store. It generates sequential IDs, looks batches up, and records them. It also posts the batch's raised events to a mailbox. The only branch on domain state is `batch.status !== 'planned'` in `record`. That branch keeps a brew-order index, which is persistence bookkeeping so that `brewedNewestFirst` can answer a query. It doesn't accept, reject, price, or change any domain outcome. The adapter does lean a little on the meaning of 'planned', but it enforces no business rule such as fermentation days or lot usage.",
+  "severityClass": null,
+  "cites": [
+   "src/cellar/infrastructure/MemoryBatchStore.ts:15"
+  ]
+ },
+ "invalidReason": null
+}

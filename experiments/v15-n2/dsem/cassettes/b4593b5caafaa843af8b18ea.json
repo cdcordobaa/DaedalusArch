@@ -1,0 +1,40 @@
+{
+ "key": "b4593b5caafaa843af8b18ead755d3f4aa85482b3a712dea0bf4f74da3a39191",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A22",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:15:55.414Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service FinanceExportService.financeExport loads orders and pupils and computes the business figures itself. It skips cancelled orders, groups by pupil class, and sums meal counts and amounts from order prices into per-class and overall totals. This is done outside the aggregates. MealOrder, the domain type, only holds status and a cancel method. It has no billing or takings logic. Formatting the CSV and writing the file are legitimate adapter work. The aggregation of order prices by class, including the rule that cancelled orders don't count, is a business calculation over entity state that sits in the service, not the domain. The calculation is read-only, so the impact is limited.",
+  "severityClass": "low",
+  "cites": [
+   "src/application/usecases/FinanceExportService.ts:18-26",
+   "src/application/usecases/FinanceExportService.ts:31-37"
+  ]
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,41 @@
+{
+ "key": "0506fa0c29d8375587794f9860c7164e406d2a91d20097ab59584d4201e581f8",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A11",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:14:04.034Z",
+ "answer": {
+  "explanation": "AdmissionService.addGuest reads the Visit's state (visit.guests), computes the new guest total itself (guests = visit.guests + 1), and feeds that figure into the business-rule checks checkGuests, checkCutoff and checkRoom. Only then does it call visit.addGuest(). The Visit aggregate has a private guestCount and an addGuest method, but the service does the arithmetic on its state and the rule evaluation around it. The aggregate is not asked to enforce its own guest limit. The checks may be domain-level functions, but the service orchestrates the calculation and passes the result back. This matches the construct, though the evidence is partial because the check functions aren't shown.",
+  "answer": "yes",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/usecases/AdmissionService.ts:53",
+   "src/application/usecases/AdmissionService.ts:54",
+   "src/application/usecases/AdmissionService.ts:58"
+  ]
+ },
+ "invalidReason": null
+}

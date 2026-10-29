@@ -1,0 +1,40 @@
+{
+ "key": "2fda18d326fd3d24b52ad0d47ca8b329e7547c781b26e12119a794bd6595644f",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A17",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:15:07.840Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service's retryAfter computes remaining stay time for each in-progress visit as 180 minus the minutes since v.enteredAt. It then takes the minimum to get the retry delay. The 180-minute maximum stay is a business rule, and the calculation reads Visit state (enteredAt). It runs in the service instead of in the Visit entity, which exposes only the data. Visit could own a method such as remainingMinutes(now).",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/usecases/AdmissionService.ts:82",
+   "src/application/usecases/AdmissionService.ts:83"
+  ]
+ },
+ "invalidReason": null
+}
