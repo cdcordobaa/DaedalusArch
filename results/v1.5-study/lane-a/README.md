@@ -130,7 +130,7 @@ was run.
 - `scores/` and `private-id-map.json`.
 - The interrupted c007 has no `session.json`, so its partial files stay out of the records, as the RUNBOOK copy
   rule implies.
-- Pre-commit checks: `grep -rl canary-` printed nothing. No file holds `costUsd`, a personal absolute path or agent
+- Pre-commit checks: the RUNBOOK canary grep printed nothing. No file holds a spend field, a personal absolute path or agent
   message text.
 
 ## Anything unexpected
