@@ -1,0 +1,35 @@
+{
+  "id": "p1-campsite-payments-L2",
+  "split": "pilot",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "tillpay-sdk": "vendor/tillpay-sdk"
+  },
+  "pilot": {
+    "task": "p1-campsite-payments",
+    "level": "L2",
+    "levers": [
+      "a",
+      "b"
+    ]
+  },
+  "trapFamily": {
+    "trap": "vendor literals compared in core logic: the booking service tests the vendor's intent statuses (requires_capture, succeeded, requires_action)"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5-literal",
+      "check": "literal-compare",
+      "steps": [
+        "confirm-on-hold",
+        "take-at-check-in"
+      ],
+      "rule": "The core decides on its own terms: no vendor status or code is compared in the core; the adapter turns the vendor's intent statuses into the application's own hold state."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}

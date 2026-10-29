@@ -3205,3 +3205,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.5 exploratory; zero model calls; PR 389.
 
 ---
+
+## Construction: TRAP-PILOT-v2 pilot trap tasks (three difficulty levels)
+**Timestamp**: 2026-10-29T19:30:00Z
+**User Input**: "Build six blind pilot trap tasks for Hexagonal TypeScript, each at three difficulty levels, to calibrate trap temptation before the study tasks are built; verify every invariant mechanically; no agent runs."
+**AI Response**: "Built experiments/trap-pilot-v2/: six new domains (P1 vendor literals compared, P2 vendor field names, P3 renamed value-set copy, P4 vendor error codes and unit field, P5 core constructs the vendor client, P6 transport detail in a core error), each at L1 (no lever), L2 (a, b) and L3 (a to f), with a builder, a shared oracle library and verify.ts. All 18 variants hold every invariant (seed fails tests; clean passes tests and oracle; trap passes tests and fails oracle; type check clean; hint audit 0 FAIL)."
+**Context**: CONSTRUCTION, v1.5 pilot (calibration only, not a study task); zero model calls.
+
+---

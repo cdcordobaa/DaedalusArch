@@ -1,0 +1,40 @@
+{
+  "id": "p4-dental-calendar-L3",
+  "split": "pilot",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "slotbook-sdk": "vendor/slotbook-sdk"
+  },
+  "pilot": {
+    "task": "p4-dental-calendar",
+    "level": "L3",
+    "levers": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f"
+    ]
+  },
+  "trapFamily": {
+    "trap": "vendor error codes and the vendor's seconds field carried into core errors and values: the core error holds the vendor code (and retryAfterSec) and the service branches on SLOT_TAKEN, RATE_LIMITED, CALENDAR_LOCKED"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5-codes",
+      "check": "error-codes",
+      "steps": [
+        "slot-taken",
+        "busy-calendar",
+        "night-lock"
+      ],
+      "rule": "Calendar refusals reach the core as the application's own errors: no vendor error code is held in the core, no core error carries a raw code string, and no core field takes the vendor's unit-named field."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}

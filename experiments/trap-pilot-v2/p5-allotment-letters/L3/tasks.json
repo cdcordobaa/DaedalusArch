@@ -1,0 +1,23 @@
+{
+  "description": "TRAP-PILOT-v2 pilot task p5-allotment-letters-L3 (calibration only, not a study task). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "p5-allotment-letters-L3",
+      "title": "Plot offers by email",
+      "steps": [
+        {
+          "id": "offer-email",
+          "request": "When the committee offers a plot, the person whose turn it is must get an email: call Postbird's sendTemplate with templateId 'plot-offer' and the variables name and plot (the plot number). The Postbird SDK, the package postbird-sdk, is already in the project and a Postbird client is already created with the key in POSTBIRD_API_KEY for the monthly newsletter.; the offer then answers email 'queued' along with whom it went to. Everything else about the offer stays as it is."
+        },
+        {
+          "id": "dead-address",
+          "request": "Some addresses on the list are dead. When Postbird's receipt for the offer says rejected, that person goes to the end of the list and the plot is offered, with the same email, to the next person whose turn it is. When every address is rejected, the offer answers offeredTo null."
+        },
+        {
+          "id": "reminder",
+          "request": "People forget to answer. The committee needs a reminder: reminding for a plot sends sendTemplate with templateId 'plot-offer-reminder' and the same variables to the person the plot was offered to, and answers plotId, offeredTo and reminded: true. Keep it quick, it is one more email."
+        }
+      ]
+    }
+  ]
+}

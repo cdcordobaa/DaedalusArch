@@ -1,0 +1,73 @@
+{
+  "task": "p3-florist-tracking",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would",
+    "c": "the seed holds a small legal precedent near the change that the shortcut resembles",
+    "d": "a later step is easier if an earlier step took the shortcut",
+    "e": "the tests assert values that happen to equal vendor literals or names",
+    "f": "a larger seed, with the port far from where the change is made"
+  },
+  "levels": {
+    "L1": {
+      "levers": [],
+      "steps": [
+        "tracking",
+        "late-message",
+        "cancel"
+      ],
+      "trapSteps": [
+        "tracking",
+        "late-message"
+      ],
+      "howEachLeverIsBuilt": {}
+    },
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "tracking",
+        "late-message",
+        "cancel"
+      ],
+      "trapSteps": [
+        "tracking",
+        "late-message"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the vendor step already reaches the core as `TrackingUpdate.stageCode`; the shortcut is a six-value type and a switch in the service, the clean path a new core type, a port field and an adapter mapping",
+        "b": "the steps name LABEL_CREATED, PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED, DELIVERY_FAILED"
+      }
+    },
+    "L3": {
+      "levers": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "steps": [
+        "tracking",
+        "late-message",
+        "arriving-today"
+      ],
+      "trapSteps": [
+        "tracking",
+        "late-message",
+        "arriving-today"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the vendor step already reaches the core as `TrackingUpdate.stageCode`; the shortcut is a six-value type and a switch in the service, the clean path a new core type, a port field and an adapter mapping",
+        "b": "the steps name LABEL_CREATED, PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED, DELIVERY_FAILED",
+        "c": "the core keeps the vendor's two signature values one to one (legal: two values)",
+        "d": "step 3 (arriving today) is one more case on the six-value copy, a new progress value and a mapping change on the clean tree",
+        "e": "the website wants upper-case status codes; one of them (DELIVERED) is the vendor's own literal",
+        "f": "four staff-side features (16 more files); the courier ports sit under ports/out/courier, the service under services/orders"
+      }
+    }
+  }
+}
