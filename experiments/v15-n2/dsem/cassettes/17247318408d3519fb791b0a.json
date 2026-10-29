@@ -1,0 +1,40 @@
+{
+ "key": "17247318408d3519fb791b0a0a3716fa71e9deaf75136b43349a0be0ea5ba08e",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A19",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:15:26.225Z",
+ "answer": {
+  "explanation": "PriceProductService converts a Product's euroCents into a foreign currency in the application service. It reads product.euroCents, multiplies by the exchange rate's mid, and rounds the result with roundPrice. Product is a plain readonly data interface with no behavior, so the pricing calculation sits in the service and not in the domain entity. The service does not hand the result back to the entity. It computes over the entity's state and returns a view. The construct is an anemic-model calculation in the application layer, and it matches.",
+  "answer": "yes",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/services/PriceProductService.ts:34",
+   "src/domain/model/Product.ts:2-6"
+  ]
+ },
+ "invalidReason": null
+}

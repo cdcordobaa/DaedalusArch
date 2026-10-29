@@ -1,0 +1,43 @@
+{
+ "key": "b6f005c183c9d77a417a138f75d7856c957e86c590f0ab29bf35dfe5e5fc2f87",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A01",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:12:06.653Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service's addGuest computes the new guest count (visit.guests + 1) from the Visit's state. It then runs business rules (checkGuests, checkCutoff, checkRoom) over that state with the pass, lounge and partner. Only after that does it tell the Visit to record the guest. The rules and the calculation of the next guest count sit in the service, not in the Visit aggregate. The aggregate just receives the result and has no say in the limit checks. It also checks visit.inProgress from outside, which is a further invariant held in the service.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/usecases/AdmissionService.ts:48",
+   "src/application/usecases/AdmissionService.ts:54",
+   "src/application/usecases/AdmissionService.ts:55",
+   "src/application/usecases/AdmissionService.ts:56",
+   "src/application/usecases/AdmissionService.ts:58"
+  ]
+ },
+ "invalidReason": null
+}

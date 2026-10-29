@@ -1,0 +1,42 @@
+{
+ "key": "106828c4b0f58aa506ad9f4d98c7b8cc4ade528e5fb73436566310474e814d1d",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A10",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:13:46.595Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "AgreementService.send uses a private in-memory Set<string> (`sending`) keyed by agreement id to stop concurrent sends of the same agreement. The set is checked, added to, and cleared in a finally block around the envelope send and save. This is an in-process lock in the service, used in place of a consistency boundary on the Agreement aggregate (such as a version check, a persisted \"sending\" state, or a store-level atomic operation). It only works within one process, so it fails with multiple instances. The check on line 47 and the add on line 49 are separated by no await, so they are atomic within one process. The `store.get` on line 45 happens before the check, so the aggregate could be stale. Nothing is declared on this code. The construct is application-layer logic that stands in for aggregate invariants, so it is a medium severity case: business concurrency control sits in the wrong place.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/services/AgreementService.ts:22",
+   "src/application/services/AgreementService.ts:47",
+   "src/application/services/AgreementService.ts:49",
+   "src/application/services/AgreementService.ts:56"
+  ]
+ },
+ "invalidReason": null
+}

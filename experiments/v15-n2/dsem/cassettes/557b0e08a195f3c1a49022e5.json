@@ -1,0 +1,39 @@
+{
+ "key": "557b0e08a195f3c1a49022e57b755a57fac88fed6f6afab5ac724edcddf66c1c",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A15",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:14:49.699Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service CheckoutService computes a payment surcharge from the order's total (cents * SURCHARGE_PER_THOUSAND with half-up rounding) and adds it to the total to get the charged amount. This is a business pricing rule over the Order's state (its total and currency). It runs in the service rather than in the Order or Money, and the result is passed to the charge port. The service pulls the state out of the order (order.total.cents) and does the math itself, so the domain model holds no such rule.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/services/CheckoutService.ts:23-25"
+  ]
+ },
+ "invalidReason": null
+}

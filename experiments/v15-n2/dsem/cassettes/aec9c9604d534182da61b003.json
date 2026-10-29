@@ -1,0 +1,39 @@
+{
+ "key": "aec9c9604d534182da61b0031b09293e650a9f97f04e512d1fad4d79b1c57ee8",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A26",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:41.221Z",
+ "answer": {
+  "explanation": "The handler formats an event's totalCents into a display string (cents / 100, toFixed(2)) for a confirmation message. This is presentation formatting of an immutable event's data, not a business calculation over an aggregate's or entity's state that should live in the aggregate. The event is a value carrier, and no business rule (pricing, totals, discounts) is computed here.",
+  "answer": "no",
+  "severityClass": null,
+  "cites": [
+   "src/bookings/application/SendConfirmation.ts:14"
+  ]
+ },
+ "invalidReason": null
+}

@@ -1,0 +1,40 @@
+{
+ "key": "e1988dcb5ea6cb5407752b773fb64e00bee8bf89931602022c5466711c593323",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A27",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:57.482Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service BookClass computes the discount rate from the member level (a lookup in DISCOUNT_BY_LEVEL) and sums sessions across booking.classes with reduce, then passes these to the booking/directory. The discount rate derivation is business logic done in the service and handed to Booking.make. The session total is a calculation over the aggregate's state done in the service and handed to the directory. Total and discount are computed inside Booking, which is fine, but the sessions sum and rate selection sit in the wrong layer.",
+  "severityClass": "medium",
+  "cites": [
+   "src/bookings/application/BookClass.ts:28",
+   "src/bookings/application/BookClass.ts:32"
+  ]
+ },
+ "invalidReason": null
+}

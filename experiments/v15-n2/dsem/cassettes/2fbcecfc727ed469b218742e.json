@@ -1,0 +1,39 @@
+{
+ "key": "2fbcecfc727ed469b218742e77975637aa814c47b2d0aff1d11ec5245e8e812f",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A03",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:12:22.455Z",
+ "answer": {
+  "explanation": "The adapter method only returns all pupils from an in-memory map, sorted by id. Sorting is a deterministic ordering, not a branch on domain state to accept, reject, price or change anything. No business rule is decided here.",
+  "answer": "no",
+  "severityClass": null,
+  "cites": [
+   "src/adapters/out/memory/MemoryPupilStore.ts:20-22"
+  ]
+ },
+ "invalidReason": null
+}

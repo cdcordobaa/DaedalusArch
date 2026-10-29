@@ -1,0 +1,42 @@
+{
+ "key": "e26ace24fe2265b04fcfe569f895f787735d4a7b057463d373e9aaeed4d77086",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A04",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:12:47.190Z",
+ "answer": {
+  "explanation": "RequestRideService.request loops over pools with free seats. For each pool it asks the pool for its stops with and without the new rider, gets drive times from a time service, and works out the detour cost itself: `addedSeconds = withRider.seconds - without.seconds`. It also aggregates the `estimated` flag and converts seconds to minutes for the answer. This added-time figure is a business measure of the pool's route and is the main input to matching. It is computed in the application service from the pool's state, not inside Pool. The service then hands the figure to the matching policy through Candidate and uses it again to build the response. The pool only supplies raw stops, so the detour calculation sits outside the aggregate.",
+  "answer": "yes",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/RequestRideService.ts:27-35",
+   "src/application/RequestRideService.ts:37",
+   "src/application/RequestRideService.ts:45",
+   "src/domain/pooling/Matching.ts:14"
+  ]
+ },
+ "invalidReason": null
+}

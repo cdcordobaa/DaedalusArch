@@ -1,0 +1,40 @@
+{
+ "key": "8c0150611689b6acadc7a915542c934321be983c984a8c422fc81665cbcead6c",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A25",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:36.461Z",
+ "answer": {
+  "answer": "no",
+  "explanation": "The outbound adapter sends a text through the Textwave client. It keeps an opted-out set and refuses to send to numbers in it (line 24). It also translates vendor errors into domain errors: blockReason 'OPTED_OUT' and 'CARRIER_BLOCKED' map to Texts*Error, and throttling maps to TextsThrottledError. The branches test the vendor's block reason and the adapter's own cache of opted-out numbers. They don't test domain state or domain values such as customer status, price or eligibility. The opt-out check is a delivery-channel suppression list that mirrors what the provider reports, and the error mapping is transport translation. Whether opted-out recipients may be texted could arguably be a business rule, but here it only caches the provider's own verdict, so it isn't the adapter deciding a business rule.",
+  "severityClass": null,
+  "cites": [
+   "src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts:24",
+   "src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts:29-36"
+  ]
+ },
+ "invalidReason": null
+}

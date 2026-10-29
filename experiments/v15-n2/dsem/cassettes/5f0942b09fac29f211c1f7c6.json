@@ -1,0 +1,41 @@
+{
+ "key": "5f0942b09fac29f211c1f7c6123c3a446b1cd1efa8b9e0613cd0a9b5a319492e",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A05",
+ "run": 1,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:12:56.236Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service computes business rules over the fridge's stock state. It takes the minimum of requested units and on-hand stock, works out the shortfall, and decides on an urgent O-negative red-cell substitution. It then computes the cover quantities and the stock to take. It reads onHand from the fridge and calls take with the results, so the stock-allocation and substitution logic runs in the service instead of inside the fridge aggregate/entity. Fulfilment.of only wraps the computed numbers. The domain objects hold state, but the calculation is done outside them.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/RequestUnitsService.ts:19-20",
+   "src/application/RequestUnitsService.ts:37-40",
+   "src/application/RequestUnitsService.ts:50-51"
+  ]
+ },
+ "invalidReason": null
+}

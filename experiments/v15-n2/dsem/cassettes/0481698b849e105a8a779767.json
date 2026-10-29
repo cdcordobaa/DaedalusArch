@@ -1,0 +1,40 @@
+{
+ "key": "0481698b849e105a8a7797679c47175d4026bc4300680d1f8c9c02881f471e43",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A17",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:15:03.106Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "retryAfter in the application service computes the remaining time of each in-progress Visit. It uses a hard-coded 180-minute stay limit and the visit's enteredAt, then takes the minimum. This is a business rule (how long a visit may last and when it ends) calculated from the Visit entity's state in the service, not inside Visit. Visit only exposes enteredAt and has no method for remaining time.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/usecases/AdmissionService.ts:82",
+   "src/application/usecases/AdmissionService.ts:83"
+  ]
+ },
+ "invalidReason": null
+}

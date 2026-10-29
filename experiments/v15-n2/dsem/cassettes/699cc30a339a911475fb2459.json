@@ -1,0 +1,40 @@
+{
+ "key": "699cc30a339a911475fb24597d2abeb958f7ae1f9f4a422e49d2f52dd8c5fc79",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A25",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:30.991Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The outbound adapter rejects a send when the recipient's phone number is in an adapter-held optedOut set (line 24) and adds numbers to that set when the provider reports OPTED_OUT (lines 30-33). Deciding that opted-out recipients must not be texted is a consent/compliance rule that branches on a domain value to reject an operation, and it sits in the adapter instead of the domain or an application service. The rest of the code (carrier blocked, throttled) is error translation, which is transport mapping.",
+  "severityClass": "medium",
+  "cites": [
+   "src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts:24",
+   "src/adapters/outbound/textwave/TextwaveTextMessagesAdapter.ts:30-33"
+  ]
+ },
+ "invalidReason": null
+}

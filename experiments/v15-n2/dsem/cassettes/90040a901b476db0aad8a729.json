@@ -1,0 +1,40 @@
+{
+ "key": "90040a901b476db0aad8a7294ccc482f820fc4142955b83d2fdf4fa6c25d02ab",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A23",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:16:06.337Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "FinanceExportService, an application service, loads orders and pupils and does the business calculation itself. It skips cancelled orders, groups by pupil class, and sums meal counts and price amounts per class and overall. It then formats the result as CSV and writes it. The aggregation reads order state (status, price, pupilId) and pupil state (className) from outside the entities. The MealOrder entity shown has no behaviour for this, and the totals are not computed in the domain. This is a business calculation over entity state done in the application service. It is a read-only report and does not change state.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/usecases/FinanceExportService.ts:19-30",
+   "src/application/usecases/FinanceExportService.ts:32-41"
+  ]
+ },
+ "invalidReason": null
+}

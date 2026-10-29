@@ -1,0 +1,42 @@
+{
+ "key": "93225cce6c55212c6f09218103148d7f8588fea9824d15184707da407e65efa9",
+ "dsemVersion": "v15-n2-dsem-v1",
+ "item": "A16",
+ "run": 0,
+ "promptVersion": "c4-v0.2+u3-r1+n2-r1",
+ "requestedModel": "claude-sonnet-5-5",
+ "model": "claude-sonnet-5-5",
+ "route": {
+  "kind": "judge",
+  "binary": "claude",
+  "configDir": "~/.firewall/judge-claude-config",
+  "argv": [
+   "-p",
+   "--model",
+   "--output-format=json",
+   "--json-schema",
+   "--system-prompt",
+   "--setting-sources=project",
+   "--strict-mcp-config",
+   "--disable-slash-commands",
+   "--no-session-persistence",
+   "--tools="
+  ],
+  "env": "judge allow-list + CLAUDE_CONFIG_DIR + DISABLE_AUTOUPDATER=1",
+  "cliVersion": "2.1.312",
+  "pin": "2.1.312"
+ },
+ "date": "2026-10-29T02:14:54.599Z",
+ "answer": {
+  "answer": "yes",
+  "explanation": "The application service RequestUnitsService.request computes business logic itself. It decides how many units come from stock (Math.min against fridge.onHand), works out the missing amount, and applies supplier-hold expiry rules. It also applies a substitution rule: urgent red cells for a non-O- group may be covered with O- stock. This logic reads state from the fridge (stock on hand) and from the UnitRequest. UnitRequest is an anonymous value object with only readonly fields and no behaviour. The service does the calculation and does not delegate it to a domain aggregate or entity, so the domain model is anemic here.",
+  "severityClass": "medium",
+  "cites": [
+   "src/application/RequestUnitsService.ts:17-18",
+   "src/application/RequestUnitsService.ts:47-50",
+   "src/application/RequestUnitsService.ts:25",
+   "src/domain/UnitRequest.ts:8-15"
+  ]
+ },
+ "invalidReason": null
+}
