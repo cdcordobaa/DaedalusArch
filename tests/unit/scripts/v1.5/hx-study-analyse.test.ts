@@ -1,5 +1,5 @@
 import { dropNoTrap } from '../../../../scripts/v1.5/lib/final-study-analyse';
-import { analyseHx, decideHx, dropTasksWithoutTrap, hxBlocks, plantedHx, semSecondary, sizeFromPilot, type HxCell } from '../../../../scripts/v1.5/lib/hx-study-analyse';
+import { analyseHx, decideHx, dropTasksWithoutTrap, hxBlocks, jointReading, jointTable, plantedHx, semSecondary, sizeFromPilot, type HxCell } from '../../../../scripts/v1.5/lib/hx-study-analyse';
 
 const cell = (task: string, rep: number, arm: 'none' | 'combined', D: number | null, Dsem = 0): HxCell => ({ task, style: 'hexagonal', rep, arm, D, trapFailed: D !== null && D > 0, accepted: true, Dsem });
 const C = [...Array.from({ length: 8 }, () => 0.58), ...Array.from({ length: 5 }, () => 0)];
@@ -31,6 +31,23 @@ describe('v1.5 Hexagonal study analysis (draft registration)', () => {
     const cells = [cell('a', 1, 'none', 0, 3), cell('a', 1, 'combined', 0, 0)];
     expect(analyseHx(hxBlocks(cells), { draws: 9, intervals: false }).T).toBe(0);
     expect(semSecondary(cells).T).toBe(-3);
+  });
+});
+
+describe('joint reading (evasion guard)', () => {
+  it('qualifies "supported" when the trap rate does not move with D, and tabulates (D fell, trap persisted)', () => {
+    const cells: HxCell[] = [];
+    // D falls in every block, but the combined cell still fails its trap (the agent hid the finding, not the trap)
+    for (let t = 0; t < 8; t++) for (let r = 1; r <= 2; r++) {
+      cells.push({ ...cell(`t${String(t)}`, r, 'none', 2), trapFailed: true });
+      cells.push({ ...cell(`t${String(t)}`, r, 'combined', 0), trapFailed: true });
+    }
+    const bs = hxBlocks(cells);
+    const d = decideHx(analyseHx(bs, { draws: 99, resamples: 50 }));
+    expect(d.supported).toBe(true);
+    expect(jointReading(d, { positive: 0, negative: 0, p: 1 }).reading).toBe('supported, qualified: rule findings reduced, trap rate not');
+    expect(jointReading(d, { positive: 0, negative: 9, p: 0.004 }).reading).toBe('supported');
+    expect(jointTable(bs)).toMatchObject({ dFellTrapPersisted: 16, dFellTrapGone: 0, dNotFellTrapPersisted: 0, dNotFellTrapGone: 0 });
   });
 });
 

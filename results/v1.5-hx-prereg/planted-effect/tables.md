@@ -2,6 +2,13 @@
 |---|---|---|---|---|---|---|---|---|
 | 104 | 13 | 84 | 17 | 0.20 [0.11, 0.32] | -0.64 [-0.80, -0.48] | 1.35e-8 | 8/0/7.81e-3 | supported |
 
+Joint reading (§1): supported, qualified: rule findings reduced, trap rate not (trap paired sign: 23 − / 15 +, p 2.56e-1)
+
+| per block | combined trap persisted | combined trap gone |
+|---|---|---|
+| D fell | 18 | 23 |
+| D did not fall | 16 | 47 |
+
 Sensitivity dropTasksWithoutTrap: supported (p 1.35e-8, 64 blocks)
 
 Sensitivity firstStudyDropNoTrapBiased: supported (p 9.09e-13, 42 blocks)

@@ -2,6 +2,13 @@
 |---|---|---|---|---|---|---|---|---|
 | 104 | 13 | 84 | 68 | 0.81 [0.60, 1.09] | -0.15 [-0.37, 0.06] | 2.56e-1 | 5/2/4.53e-1 | not rejected: no difference detected at the stated MDE |
 
+Joint reading (§1): not rejected: no difference detected at the stated MDE (trap paired sign: 23 − / 15 +, p 2.56e-1)
+
+| per block | combined trap persisted | combined trap gone |
+|---|---|---|
+| D fell | 0 | 23 |
+| D did not fall | 34 | 47 |
+
 Sensitivity dropTasksWithoutTrap: not rejected: no difference detected at the stated MDE (p 2.56e-1, 64 blocks)
 
 Sensitivity firstStudyDropNoTrapBiased: supported (p 2.38e-7, 42 blocks)

@@ -9,7 +9,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { dropFlagged, dropNoTrap, halves, pairedBooleanSign, rate } from './lib/final-study-analyse';
-import { analyseHx, decideHx, dropTasksWithoutTrap, hxBlocks, plantedHx, powerHx, semSecondary, type HxCell } from './lib/hx-study-analyse';
+import { analyseHx, decideHx, dropTasksWithoutTrap, hxBlocks, jointReading, jointTable, plantedHx, powerHx, semSecondary, type HxCell } from './lib/hx-study-analyse';
 
 const argOf = (k: string): string | undefined => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : undefined; };
 const out = argOf('--out') ?? 'results/v1.5-hx-study/analysis';
@@ -60,14 +60,20 @@ const secondary = {
   sem: semSecondary(cells),
   trapRate: rate(cells, 'hexagonal', (c) => c.trapFailed), trapPairedSign: pairedBooleanSign(bs, (c) => c.trapFailed),
   acceptance: rate(cells, 'hexagonal', (c) => c.accepted), pZero: rate(cells, 'hexagonal', (c) => (c.D === null ? null : c.D === 0)),
+  jointTable: jointTable(bs),
 };
-fs.writeFileSync(path.join(out, 'analysis.json'), `${JSON.stringify({ input: plantedKind ? `planted:${plantedKind}` : argOf('--cells'), primary, sensitivity, secondary }, null, 1)}\n`);
+const joint = jointReading(primary.decision, secondary.trapPairedSign);
+fs.writeFileSync(path.join(out, 'analysis.json'), `${JSON.stringify({ input: plantedKind ? `planted:${plantedKind}` : argOf('--cells'), primary, joint, sensitivity, secondary }, null, 1)}\n`);
 const f = (x: number | null | undefined, d = 3): string => (x === null || x === undefined || Number.isNaN(x) ? '—' : x.toFixed(d));
 const r = primary.result;
 const lines = [
   '| blocks | tasks | ΣD none | ΣD combined | RR [within] | d̄ [within] | exact p | task sign (−/+/p) | reading |', '|---|---|---|---|---|---|---|---|---|',
   `| ${String(r.blocks)} | ${String(r.tasks)} | ${String(r.sumNone)} | ${String(r.sumCombined)} | ${f(r.rr, 2)} [${f(r.rrWithin?.low, 2)}, ${f(r.rrWithin?.high, 2)}] | ${f(r.dBar, 2)} [${f(r.dBarWithin?.low, 2)}, ${f(r.dBarWithin?.high, 2)}] | ${r.pExact.toExponential(2)} | ${String(r.taskSign.negative)}/${String(r.taskSign.positive)}/${r.taskSign.p.toExponential(2)} | ${primary.decision.reading} |`,
 ];
+const jt = secondary.jointTable;
+lines.push('', `Joint reading (§1): ${joint.reading} (trap paired sign: ${String(secondary.trapPairedSign.negative)} − / ${String(secondary.trapPairedSign.positive)} +, p ${secondary.trapPairedSign.p.toExponential(2)})`,
+  '', '| per block | combined trap persisted | combined trap gone |', '|---|---|---|',
+  `| D fell | ${String(jt.dFellTrapPersisted)} | ${String(jt.dFellTrapGone)} |`, `| D did not fall | ${String(jt.dNotFellTrapPersisted)} | ${String(jt.dNotFellTrapGone)} |`);
 for (const [k, v] of Object.entries(sensitivity)) lines.push('', `Sensitivity ${k}: ${v.decision.reading} (p ${v.result.pExact.toExponential(2)}, ${String(v.result.blocks)} blocks)`);
 lines.push('', `Secondary R-MIRROR-SEM: ΣDsem none ${String(secondary.sem.sumNone)}, combined ${String(secondary.sem.sumCombined)}, exact p ${secondary.sem.pExact.toExponential(2)} (no decision)`);
 fs.writeFileSync(path.join(out, 'tables.md'), `${lines.join('\n')}\n`);

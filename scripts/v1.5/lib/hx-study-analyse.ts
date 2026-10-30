@@ -102,6 +102,24 @@ export function dropTasksWithoutTrap(bs: readonly Block[]): Block[] {
   return bs.filter((b) => trapped.has(b.task));
 }
 
+/**
+ * §1 joint reading (evasion guard). Secondary 1's paired exact sign test on trap failure (combined − none per block)
+ * moves with D when it is significant in the predicted direction: p <= 0.05 and more blocks lose the trap under
+ * `combined` than gain it. A "supported" H-HX without that is qualified: "rule findings reduced, trap rate not".
+ * (Direction alone is not enough: on planted data whose trap rate does not change it goes either way by chance.)
+ */
+export function jointReading(d: HxDecision, trapSign: { readonly positive: number; readonly negative: number; readonly p: number }, alpha = HX_ALPHA): { readonly reading: string; readonly trapSameDirection: boolean } {
+  const same = trapSign.negative > trapSign.positive && trapSign.p <= alpha;
+  return { reading: d.supported && !same ? 'supported, qualified: rule findings reduced, trap rate not' : d.reading, trapSameDirection: same };
+}
+
+/** §1 per-block table: did D fall (d_b < 0), and did the `combined` cell still fail a trap at its final step? */
+export function jointTable(bs: readonly Block[]): { readonly dFellTrapPersisted: number; readonly dFellTrapGone: number; readonly dNotFellTrapPersisted: number; readonly dNotFellTrapGone: number; readonly unknownTrap: number; readonly rows: readonly { task: string; rep: number; d: number; combinedTrapFailed: boolean | null }[] } {
+  const rows = bs.map((b) => ({ task: b.task, rep: b.rep, d: (b.combined.D ?? 0) - (b.none.D ?? 0), combinedTrapFailed: b.combined.trapFailed }));
+  const n = (fell: boolean, persisted: boolean): number => rows.filter((r) => r.combinedTrapFailed !== null && (r.d < 0) === fell && r.combinedTrapFailed === persisted).length;
+  return { dFellTrapPersisted: n(true, true), dFellTrapGone: n(true, false), dNotFellTrapPersisted: n(false, true), dNotFellTrapGone: n(false, false), unknownTrap: rows.filter((r) => r.combinedTrapFailed === null).length, rows };
+}
+
 /** The registered secondary on R-MIRROR-SEM identities (no decision weight): the same block test on `Dsem`. */
 export function semSecondary(cells: readonly HxCell[]): { readonly blocks: number; readonly T: number; readonly pExact: number; readonly sumNone: number; readonly sumCombined: number } {
   const semCells: Cell[] = cells.map((c) => ({ ...c, D: c.Dsem === undefined ? null : c.Dsem }));
