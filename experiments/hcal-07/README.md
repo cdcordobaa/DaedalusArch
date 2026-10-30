@@ -3,7 +3,9 @@
 Sealed before any scoring. Brief: `BRIEF.md`. Seal: `SEAL.sha256` (cases), `RULES-FROZEN.sha256` (rule sources and
 scorer, taken before scoring, see "Rule freeze" below), `SEAL.root` (root hashes and the verify commands). The rules
 were being changed while this set was built, so the rule hash was taken after the rules PR merged and before any case
-was scored. Scored from a scoring copy without the glossary key (see "Label-leak check" below).
+was scored. Scored from a scoring copy without the glossary key (see "Label-leak check" below). Scored once on
+2026-10-29 (local) at `main` `87682d49c`: `result.json`, `results/`, report
+`Docs/DiagnosticRuns/v15-hcal07-admission-2026-10-30.md`.
 
 ## Layout
 
