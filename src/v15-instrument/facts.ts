@@ -24,6 +24,8 @@ import type { DetectSpec, Role } from './spec.js';
 import { globMatch } from './spec.js';
 import { baselineTokens, coreTermsOf, genericVendorTerm, specTokens, vendorTermsOf } from './vendor-lexicon.js';
 import type { CoreTermFact, VendorTermFact } from './vendor-lexicon.js';
+import { baselineSetSignatures, domainTextOf, mirrorCandidatesOf } from './mirror-sem.js';
+import type { MirrorCandidateFact, VendorValueSet } from './mirror-sem.js';
 
 export const MAX_DEPTH = 4;
 
@@ -96,6 +98,8 @@ export interface Facts {
   /** R-MIRROR2 (H11 v2): the vendor lexicon and the core terms (`vendor-lexicon.ts`). */
   readonly vendorTerms: readonly VendorTermFact[];
   readonly coreTerms: readonly CoreTermFact[];
+  /** R-MIRROR-SEM (H11, exploratory): core value sets an adapter maps a vendor value set into (`mirror-sem.ts`). */
+  readonly mirrorCandidates: readonly MirrorCandidateFact[];
   readonly repoMulti: readonly RepoMultiFact[];
   readonly contracts: readonly ContractFact[];
   readonly portMechanisms: readonly PortMechFact[];
@@ -1854,9 +1858,41 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   }
   bump('vendorTerms', vendorTerms.length); bump('coreTerms', coreTerms.length);
 
+  // ── R-MIRROR-SEM candidates (H11, exploratory, 2026-10-29): symbolic, zero model calls; the fact and the rule are elsewhere ──
+  let mirrorCandidates: MirrorCandidateFact[] = [];
+  if (vendorExports.length > 0) {
+    const bySet = new Map<string, { module: string; name: string; members: string[]; decl: string }>();
+    for (const v of vendorExports) {
+      const declOf = (name: string): string => {
+        const ex = v.exportsOf.find((e) => e.name === name.split('.')[0]);
+        const d = ex?.decls[0];
+        return d === undefined ? '' : d.getFullText().replace(/^\s*\n/, '').trimEnd().slice(0, 2500);
+      };
+      for (const t of vendorTermsOf(v.mod, v.exportsOf)) {
+        if (t.kind !== 'literal' || t.set === '') continue;
+        const k = `${v.mod}|${t.set}`;
+        let e = bySet.get(k);
+        if (e === undefined) { e = { module: v.mod, name: t.set, members: [], decl: declOf(t.set) || declOf(t.decl) }; bySet.set(k, e); }
+        if (!e.members.includes(t.text)) e.members.push(t.text);
+      }
+    }
+    const vendorSets: VendorValueSet[] = [...bySet.values()].filter((x) => x.members.length >= 2);
+    const coreFiles: { sf: SourceFile; file: string; role: Role }[] = [];
+    const adapterFiles: { sf: SourceFile; file: string }[] = [];
+    for (const sf of files) {
+      const f = fileOf(sf);
+      const role = spec.roleOf(f);
+      if (role === 'domain' || role === 'application' || role === 'port') coreFiles.push({ sf, file: f, role });
+      else if (role === 'adapter') adapterFiles.push({ sf, file: f });
+    }
+    const baseSets = opts.baseline !== undefined ? baselineSetSignatures(opts.baseline, (f) => spec.roleOf(f)) : new Set<string>();
+    mirrorCandidates = mirrorCandidatesOf({ coreFiles, adapterFiles, vendorSets, baseline: baseSets, domainText: domainTextOf(root, opts.specFile) });
+  }
+  bump('mirrorCandidates', mirrorCandidates.length);
+
   return {
     roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
-    locators, coreIo, entityOut, adapterRules, mirrors, vendorTerms, coreTerms, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
+    locators, coreIo, entityOut, adapterRules, mirrors, vendorTerms, coreTerms, mirrorCandidates, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
 

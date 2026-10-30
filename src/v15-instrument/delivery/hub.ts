@@ -44,6 +44,7 @@ import { GATED_TOOLS, insideTree, keyOf, parseHookEvent, postToolUseReply, stopR
 import { changedSince, escapingLinks, treeHashes } from '../edit-gate/hub.js';
 import { checkLayers, LAYER_RULES, toKeyed } from '../edit-gate/layers.js';
 import { CHECK_CONSISTENCY, CONSISTENCY_SHAPE } from '../mcp/server.js';
+import { MIRROR_SEM_RULE, sessionJudgeFromEnv, type JudgeStats, type MirrorJudge } from '../mirror-sem.js';
 import { preflightSpec } from '../preflight.js';
 import { cypherRules, frozenRules, scoredStyle, type Style } from '../rule-set.js';
 import { loadSpec } from '../spec.js';
@@ -88,6 +89,12 @@ export interface DeliveryHubOptions {
   /** Test seams. */
   readonly check?: typeof checkConsistency;
   readonly checkLayers?: typeof checkLayers;
+  /**
+   * R-MIRROR-SEM's model fact, one judge per cell (its session cache: an unchanged candidate is never re-asked in a
+   * session; the disk cache by content hash under it). Default `sessionJudgeFromEnv` (the Claude CLI route, live, unless
+   * `DAEDALUS_MIRROR_SEM=off|replay` or under jest). Only built for a cell whose delivered set holds R-MIRROR-SEM.
+   */
+  readonly mirrorJudge?: (ledger: string) => MirrorJudge | null;
 }
 
 const sha = (s: string): string => createHash('sha256').update(s).digest('hex');
@@ -106,6 +113,7 @@ interface Session {
   readonly rules: DeliveredRules;
   hookEvents: number;
   failOpen: number;
+  readonly judge: MirrorJudge | null;
 }
 
 export class DeliveryHub {
@@ -124,6 +132,14 @@ export class DeliveryHub {
   ) {
     this.check = options.check ?? checkConsistency;
     this.layers = options.checkLayers ?? checkLayers;
+    this.judgeOf = options.mirrorJudge ?? ((ledger) => sessionJudgeFromEnv(process.env, ledger));
+  }
+
+  private readonly judgeOf: (ledger: string) => MirrorJudge | null;
+
+  /** R-MIRROR-SEM's judge counters of the open cell (null: no judge). */
+  get mirrorSemStats(): Readonly<JudgeStats> | null {
+    return this.s?.judge?.stats ?? null;
   }
 
   get ledger(): FindingLedger | null {
@@ -146,7 +162,8 @@ export class DeliveryHub {
     const base = cell.baseline ?? cell.project;
     fs.cpSync(base, seedCopy, { recursive: true, filter: (src) => path.relative(base, src).split(path.sep)[0] !== 'node_modules' });
     const rules = deliveredRulesOf(cell);
-    this.s = { cell, seed: treeHashes(base), ledger: new FindingLedger(), scratch, seedCopy, cache: new Map(), rules, hookEvents: 0, failOpen: 0 };
+    const judge = rules.cypher.includes(MIRROR_SEM_RULE) ? this.judgeOf(path.join(this.logDir, `${cell.id}.mirror-sem.jsonl`)) : null;
+    this.s = { cell, seed: treeHashes(base), ledger: new FindingLedger(), scratch, seedCopy, cache: new Map(), rules, hookEvents: 0, failOpen: 0, judge };
     await this.check(this.checkOptions(this.s, null)).catch(() => undefined); // warm, not logged
   }
 
@@ -220,7 +237,17 @@ export class DeliveryHub {
    * not deliver what the seed already has. The scorers pass the same seed (`experiments/v15-study/score-study.ts`).
    */
   private checkOptions(s: Session, files: readonly string[] | null): CheckOptions {
-    return { root: s.cell.project, spec: s.cell.spec, scratch: s.scratch, rules: s.rules.cypher, baseline: s.seedCopy, ...(files !== null ? { files } : {}) };
+    return { root: s.cell.project, spec: s.cell.spec, scratch: s.scratch, rules: s.rules.cypher, baseline: s.seedCopy, ...(files !== null ? { files } : {}), ...(s.judge !== null ? { mirrorJudge: s.judge } : {}) };
+  }
+
+  /** The judge counters now, to log what one push or pull added (asked, from the session map, from disk, real calls, their ms). */
+  private judgeMark(s: Session): JudgeStats | null {
+    return s.judge === null ? null : { ...s.judge.stats };
+  }
+  private judgeDelta(s: Session, before: JudgeStats | null): Record<string, number> | null {
+    if (s.judge === null || before === null) return null;
+    const a = s.judge.stats;
+    return { asked: a.asked - before.asked, session: a.session - before.session, disk: a.disk - before.disk, calls: a.calls - before.calls, misses: a.misses - before.misses, errors: a.errors - before.errors, callMs: a.callMs - before.callMs };
   }
 
   // ── Push ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -269,6 +296,7 @@ export class DeliveryHub {
       const hashes = treeHashes(s.cell.project);
       const changed = changedSince(s.seed, hashes);
       const t1 = performance.now();
+      const jm = this.judgeMark(s);
       const dv = changed.length === 0 ? null : await this.deliver(s, hashes, changed);
       const keyed = dv?.keyed ?? [];
       const d = s.ledger.push(keyed, seq);
@@ -276,6 +304,7 @@ export class DeliveryHub {
         event: ev.event, file, treeDigest: digestOf(hashes).slice(0, 16), checkMs: Math.round(performance.now() - t1), changedFiles: changed.length, findings: keyed.length,
         pushed: d.fresh.map((f) => f.number), withheld: d.withheld.map((w) => ({ finding: w.number, shownBy: w.shownBy })), resolved: d.resolved.map((f) => f.number), open: d.open.map((f) => f.number),
         allowOverlay, layerFindings: dv?.frozenCount ?? 0, layerError: dv?.frozenError ?? null,
+        ...(s.judge !== null ? { mirrorSem: this.judgeDelta(s, jm) } : {}),
       };
       if (ev.event === 'PostToolUse') return done(common, postToolUseReply(pushMessage(d.fresh, d.resolved)));
       const block = d.open.length > 0 && !ev.stopHookActive && s.ledger.claimStop(s.cell.turn);

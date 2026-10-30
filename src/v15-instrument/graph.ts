@@ -14,6 +14,8 @@ import { fromDriver, toDriver } from '../cypher-interp/driver-values.js';
 import type { GraphNode } from '../cypher-interp/values.js';
 import { computeFacts } from './facts.js';
 import type { Facts } from './facts.js';
+import { MIRROR_SEM_RULE, structureHolds } from './mirror-sem.js';
+import type { MirrorJudge } from './mirror-sem.js';
 import { preflightSpec } from './preflight.js';
 import type { PreflightResult } from './preflight.js';
 import { findSpec, loadSpec } from './spec.js';
@@ -109,6 +111,11 @@ export interface BuildOptions {
   readonly spec?: string | undefined; readonly style?: string | undefined; readonly withApg?: boolean | undefined; readonly scratch?: string | undefined; readonly tsconfig?: string | undefined;
   /** R-MIRROR2 stoplist: a baseline tree (for example the task's seed) whose core terms are the project's own. */
   readonly baseline?: string | undefined;
+  /**
+   * R-MIRROR-SEM (H11, exploratory): the model fact. Every candidate whose structure holds is asked (cached by content
+   * hash); without a judge no candidate is judged and the rule never fires (zero model calls).
+   */
+  readonly mirrorJudge?: MirrorJudge | undefined;
 }
 
 export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise<{ graph: MemoryGraph; facts: Facts; spec: DetectSpec; stats: Record<string, number>; preflight?: PreflightResult }> {
@@ -257,6 +264,22 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
       rel('TERM_TOKEN', g, tok(c.token));
     }
   }
+  // R-MIRROR-SEM (H11, exploratory): candidates (symbolic) and, when a judge is given, the model's fact on each.
+  const judged = await Promise.all(facts.mirrorCandidates.map(async (c) => (opts.mirrorJudge !== undefined && structureHolds(c) ? opts.mirrorJudge.judge(c) : null)));
+  facts.mirrorCandidates.forEach((c, i) => {
+    const g = node(['MirrorCandidate'], {
+      id: c.id, file: c.file, line: c.line, role: c.role, coreSet: c.coreSet, coreKind: c.coreKind, coreSize: c.coreMembers.length, module: c.module, vendorSet: c.vendorSet,
+      vendorSize: c.vendorMembers.length, mappedFrom: c.mappedFrom, mappedTo: c.mappedTo, oneToOne: c.oneToOne, branchCount: c.branches.length, ownedBy: c.ownedBy,
+      pairs: c.pairs.map((p) => `${p.from} -> ${p.to}`), mapSite: c.pairs[0] !== undefined ? `${c.pairs[0].file}:${String(c.pairs[0].line)}` : '',
+      branchSites: c.branches.map((b) => `${b.file}:${String(b.line)}`),
+    });
+    const j = judged[i];
+    if (j === null || j === undefined) { stats.mirrorSemUnasked = (stats.mirrorSemUnasked ?? 0) + 1; return; }
+    if (j.verdict === null) { stats.mirrorSemNoAnswer = (stats.mirrorSemNoAnswer ?? 0) + 1; return; }
+    const k = j.verdict.mirror === 'yes' ? 'mirrorSemYes' : j.verdict.mirror === 'no' ? 'mirrorSemNo' : 'mirrorSemUnsure';
+    stats[k] = (stats[k] ?? 0) + 1;
+    rel('JUDGED', g, node(['MirrorJudgement'], { mirror: j.verdict.mirror, reason: j.verdict.reason, key: j.key.slice(0, 24), from: j.from }));
+  });
   for (const x of facts.repoMulti) {
     const a = node(['RepositoryMethod'], { name: `${x.repo}.${x.method}`, file: x.file, line: x.line });
     const r = roots.get(x.root) ?? node(['Root'], { name: x.root });
@@ -298,7 +321,8 @@ const num = (v: unknown): number | null =>
 
 export async function runTree(tree: string, rules: readonly Rule[], opts: BuildOptions = {}): Promise<TreeResult> {
   const t0 = Date.now();
-  const { graph, facts, spec, stats, preflight } = await buildGraph(tree, opts);
+  // R-MIRROR-SEM's model fact is asked only when the rule runs
+  const { graph, facts, spec, stats, preflight } = await buildGraph(tree, rules.some((r) => r.id === MIRROR_SEM_RULE) ? opts : { ...opts, mirrorJudge: undefined });
   const findings: Finding[] = [];
   for (const r of rules) {
     if (r.id === 'R-INJ' && spec.style === 'layered') continue; // Layered services may depend on concrete persistence

@@ -38,6 +38,7 @@ export const RULE_LABELS: Readonly<Record<string, string>> = {
   'R-ADAPTER-RULE': 'business rule in an adapter',
   'R-MIRROR': 'vendor vocabulary in the core',
   'R-MIRROR2': 'vendor term in the core',
+  'R-MIRROR-SEM': 'vendor value set copied into the core',
   'FF-S01': 'FF-S01 dependency-direction',
   'FF-S02': 'FF-S02 no-cyclic-deps',
   'FF-S03': 'FF-S03 no-layer-skip',
@@ -74,6 +75,7 @@ export const RULE_TEXT: Readonly<Record<string, string>> = {
   'R-ADAPTER-RULE': 'Adapters translate between a technology and the core. A decision that accepts, rejects, prices or changes domain state belongs to the domain or a use case, not to an adapter.',
   'R-MIRROR': 'The core uses its own vocabulary. An outbound adapter translates a vendor\'s codes and field names into it, so a vendor change stays inside the adapter.',
   'R-MIRROR2': 'Domain, application and port code use only terms the domain owns. A vendor SDK\'s codes, error names, field and method names stay in the outbound adapter, which translates them into the core\'s terms, so a vendor change stays inside the adapter.',
+  'R-MIRROR-SEM': 'The core\'s values express distinctions the domain owns. An outbound adapter translates a vendor\'s values into them, so a vendor that adds, splits or renames a value changes the adapter, not the core\'s decisions.',
   'FF-S01': 'Each layer imports only the layers the architecture allows it to depend on, so dependencies point toward the core.',
   'FF-S02': 'Modules do not import each other in a cycle.',
   'FF-S03': 'An import follows an allowed edge between two layers. A layer does not reach a layer it has no edge to (for example an inbound adapter importing an outbound adapter).',
@@ -192,6 +194,15 @@ const BUILDERS: Readonly<Record<string, Builder>> = {
           ? `Translate at the adapter: catch ${mod}'s error there and raise or return a core error the domain owns (for example a named refusal or a provider outage), so the core never compares '${term}'.`
           : `Translate at the adapter into a core term the domain owns: map ${mod}'s '${term}' to a value of a core type in the outbound adapter, and let the core compare only its own terms.`;
     return { why: `${at(f)}: ${detail} (the vendor term ${shape === 'field-set' ? `set ${term}` : `'${term}'`}, from ${mod}).`, fix };
+  },
+  'R-MIRROR-SEM': (f) => {
+    const m = /^\[value-set\] \S+:\d+ (\S+) mirrors (\S+) of (\S+) \((.+?); mapped at (\S+?)(, one to one)?\) and the core branches on it at (\S+) \| model fact: (.*)$/.exec(f.evidence);
+    if (m === null) return null;
+    const [, core, vendor, mod, pairs, mapAt, , branch, reason] = m as unknown as [string, string, string, string, string, string, string | undefined, string, string];
+    return {
+      why: `${core} (${at(f)}) renames ${vendor} of ${mod} value for value (${pairs}; the adapter maps it at ${mapAt}), and the core decides on it at ${branch}: the core's distinctions are the vendor's. ${reason}`,
+      fix: `Give ${core} the distinctions the domain needs (the ones its spec and rules name, often fewer than ${vendor}'s), map ${mod}'s values onto them in the adapter at ${mapAt.split(':')[0]}, and let the core decide only on its own members.`,
+    };
   },
   'R-PURE': (f) => {
     const m = /^domain code imports (.+?) \((.+)\)$/.exec(f.evidence);
