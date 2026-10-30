@@ -73,12 +73,12 @@ export function deliveredRulesOf(cell: Pick<DeliveryCell, 'spec' | 'project' | '
   return style === null ? { style, cypher: [], frozen: [] } : { style, cypher: cypherRules(style), frozen: frozenRules(style) };
 }
 
-/** The hub's `check_consistency` description: the whole delivered set, not only the consistency pair. */
+/** The hub's `check_consistency` description: the whole delivered set, not only the consistency pair. Since v1.5.4 a Hexagonal check may make one R-MIRROR-SEM model call (2026-10-29: "no model call" removed). */
 export const HUB_CHECK_DESCRIPTION =
   'Checks the code against the architecture rules of the spec: its layers, its ports and adapters, and its aggregates and bounded contexts, as the spec declares them. These are the same checks that run automatically after each file you create or edit. '
   + 'WHEN: after you change code, and always before you finish a step. '
   + 'Each finding gives file:line, the rule in plain words, why this code breaks it (the files and symbols involved) and a fix; a finding you have already been shown is listed by its number only. status is clean or violations. '
-  + 'Fast and deterministic (no model call). Pass `files` (changed files, project-relative) to see only findings in them, or nothing to check the whole project.';
+  + 'Hexagonal checks may ask a model one question about a new value set; the rules decide. Pass `files` (changed files, project-relative) to see only findings in them, or nothing to check the whole project.';
 
 export interface DeliveryHubOptions {
   /**
