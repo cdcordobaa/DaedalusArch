@@ -1,7 +1,8 @@
 # HCAL-06: blind admission set for H11 (revised), H11-SEM and H03
 
 Sealed before any scoring. Brief: `BRIEF.md`. Seal: `SEAL.sha256` (cases), `RULES-FROZEN.sha256` (rule sources and
-scorer), `SEAL.root` (root hashes and the verify commands). Not scored yet.
+scorer), `SEAL.root` (root hashes and the verify commands). Scored once on 2026-10-29 (local) at `main` `dfb96bde1` with the
+re-frozen hash (see below): `result.json`, `results/`, report `Docs/DiagnosticRuns/v15-hcal06-admission-2026-10-30.md`.
 
 ## Layout
 
