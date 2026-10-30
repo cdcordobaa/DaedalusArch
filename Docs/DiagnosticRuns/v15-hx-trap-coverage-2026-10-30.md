@@ -8,6 +8,15 @@ something new in 5 (0.12 [0.05, 0.25]). All 5 are R-MIRROR2 findings. A hand rea
 (0.07 [0.02, 0.19]) and finds that the other 2 are vendor field names the oracle does not look for. Rows H01–H10 report
 nothing on any clean tree (0 of 43).
 
+The scorer on `main` now has two ways of counting R-MIRROR2 (PR 452, `hxCounted`). Option (ii) counts every shape
+word; the figures above are option (ii). The default, option (i), counts only `[literal]` and `[error]`. Under option
+(i), coverage is 14 of 19, 0.74 [0.51, 0.88], and 1 of 43 clean trees has a counted finding, 0.02 [0.00, 0.12]. That
+one is the lever-(e) false positive.
+
+The study set's own reference solutions (`experiments/hx-study-set/`, which merged while this ran) give 6 of 9 traps
+seen after the hand read. The three misses are one generic-word vendor literal task and both renamed-copy tasks. One
+of the 9 clean references has a counted finding (§8).
+
 This is exploratory input for the draft Hexagonal pre-registration (draft PR 451, power section, q). It is not study
 data, and it changes nothing frozen.
 
@@ -21,7 +30,10 @@ data, and it changes nothing frozen.
   passes on all 45 files. Root `098d67bd4fdc97c5` (the first 16 hex of the sha256 of the manifest) matches. `main`
   `3011ce082` has 44 tracked non-test instrument files plus `experiments/cal-01/score.ts`, the same list. Instrument
   `v1.5.5-hx-rules-v3`.
-- **Date:** 2026-10-30, local, from `origin/main` `3011ce082`.
+- **Date:** 2026-10-30, local. First run from `origin/main` `3011ce082`. Final run (the figures here and in
+  `coverage.json`) on this branch merged with `main` `2bd8790ee` (PR 452's scorer with `Hit.shape` and `hxCounted`;
+  PRs 449 and 450's study set). The rules root was verified again at that head: 45 of 45 OK. The agent-tree results of
+  the two runs are identical.
 
 ## 1. Inputs
 
@@ -30,7 +42,7 @@ data, and it changes nothing frozen.
 | `results/v1.5-pilot-ladder/` (TRAP-PILOT-v2 ladder, 36 sessions) | committed step snapshots | 11 | 25 |
 | `results/v1.5-traprate-01/`, Hexagonal sessions (26) | rebuilt from the committed seed and step diffs (`restoreSession`); 104 of 104 trees matched the driver's recorded tree hash | 8 | 18 |
 | First final study, lane B (`results/v15-lane-b`) | **none kept**: the branch holds `run/sessions/*.json`, hub ledgers and scores only (DEV-2), so nothing could be scored | – | – |
-| `experiments/hx-study-set/` parts A and B, reference trap and clean solutions | **skipped**: not on `main` (PRs 449 and 450 still open when this ran) | – | – |
+| `experiments/hx-study-set/` parts A and B, reference trap and clean solutions (9 tasks) | each scored as a one-step session (step-00 = seed, step-01 = the reference); PRs 449 and 450 merged during this work | 9 | 9 |
 
 The scorer reproduced every oracle verdict on the final tree: 11 and 8 trap failures, the same sessions as
 `pilot-scores.json` and TRAPRATE-01's `sessions.json`.
@@ -43,6 +55,8 @@ The scorer reproduced every oracle verdict on the final tree: 11 and 8 trap fail
   would change nothing.
 - **Reported separately, not counted:** R-MIRROR (status open, B3) and R-MIRROR-SEM. R-MIRROR-SEM needs the judge, which
   was off here, so it could not fire.
+- **Two counting options for R-MIRROR2** (scorer `hxCounted`, PR 452): (ii) every shape word; (i), the draft's
+  default, `[literal]` and `[error]` only.
 - **"Seen":** a counted identity that is new against the seed on the final tree, in a file the oracle names in its
   failing evidence. Every row was then hand-read against the oracle evidence.
 
@@ -83,10 +97,11 @@ trap file). A counted rule sees all 6 as well, so R-MIRROR adds no coverage. R-M
 | Renamed one-to-one vendor value set (H11-SEM) | 1 (p3 L3) | 0 | 0 | none (judge territory) |
 | Transport detail in the core (H07) | 4 (p6 ×4) | 2 (L3) | 2 | R-TRANSPORT |
 | Adapter imports another adapter (H03) | 2 (f24 ×2) | 2 | 2 | R-AXA |
-| **All** | **19** | **16: 0.84 [0.62, 0.95]** | **4: 0.21 [0.09, 0.43]** | |
+| **All, option (ii)** | **19** | **16: 0.84 [0.62, 0.95]** | **4: 0.21 [0.09, 0.43]** | |
+| **All, option (i)** (`[literal]`, `[error]`) | 19 | **14: 0.74 [0.51, 0.88]** | 4 | the f16 `[field]` traps drop out |
 
 - By source: pilot 8 of 11, 0.73 [0.43, 0.90]; TRAPRATE-01 8 of 8, 1.00 [0.68, 1.00].
-- **The sub-shape question (B1):** if the `[field]` shape word could not be counted (it fires on both H11-c and H11-d),
+- **The sub-shape question (B1):** under option (i), where `[field]` is not counted (it fires on both H11-c and H11-d),
   coverage falls to 14 of 19, 0.74 [0.51, 0.88]. Only the two f16 traps depend on `[field]` alone. In p4 the field
   finding comes with `[error]` findings on the same trap. No trap here is seen only through `[field-set]` or
   `[field-list]` (H11-d).
@@ -128,24 +143,54 @@ are R-MIRROR2. Rows H01–H10 report nothing on any of the 43: 0, [0.00, 0.08].
 | traprate c38 | f15 | R-MIRROR2 `[field]` `TextsThrottledError.constructor.retryAfterSeconds` | **not a false positive**, same reason |
 
 After the hand read: 3 of 43 false positives, 0.07 [0.02, 0.19]. Two come from R-MIRROR2 `[field]` and one from
-`[literal]` (lever e).
+`[literal]` (lever e). Under option (i), only c021 remains: 1 of 43, 0.02 [0.00, 0.12].
 
 ## 7. Reading for the power section (draft PR 451)
 
-- q is near the draft's q = 1 scenario only if R-MIRROR2 is counted with its `[literal]`, `[error]` and `[field]`
-  findings. On the 19 traps with kept trees, q = 0.84 [0.62, 0.95]. It is 0.73 [0.43, 0.90] on the out-of-sample pilot
-  trees, and 0.74 if `[field]` is excluded. Without R-MIRROR2, q = 0.21, which is below the old 0.40.
+- q is near the draft's q = 1 scenario only if R-MIRROR2 is counted. On the 19 agent traps with kept trees, q = 0.84
+  [0.62, 0.95] under option (ii) and 0.74 [0.51, 0.88] under option (i). On the out-of-sample pilot trees it is 0.73
+  [0.43, 0.90] under both. On the study set's own reference traps it is 0.67 [0.35, 0.88] after the hand read. Without
+  R-MIRROR2, q = 0.21, which is below the old 0.40. A planning value of q ≈ 0.7 is better supported than q = 1.
 - The trap mix of the planned study (vendor literals ×3, vendor error codes ×2, renamed copy ×2, HTTP detail ×2, plus
-  f14, f16, f24 and B4's f13) leans on the shapes R-MIRROR2 sees. It also contains the two shapes missed here: renamed
-  copies, which only R-MIRROR-SEM can see, and HTTP detail written positionally. Those tasks will have a lower q than
-  this pool unless their trap is written in a form the rules read.
-- The R-MIRROR2 false positives (an envelope id, and a test-required code equal to a vendor literal) put noise into
-  D_hx in both arms. Arm `combined` may then "fix" non-traps.
+  f14, f16, f24 and B4's f13) leans on the shapes R-MIRROR2 sees. It also contains the shapes missed here. The two
+  renamed-copy tasks (hxpb1, hxpb2) are unseen even on their reference traps, and only R-MIRROR-SEM (or the uncounted
+  R-MIRROR) could see them. hxa1's vendor values are one-word generic terms. The HTTP tasks are seen on their
+  references, but agents on the p6 L2 template wrote the status positionally and were missed.
+- The R-MIRROR2 false positives put noise into D_hx in both arms, and arm `combined` may then "fix" non-traps. Under
+  option (ii) they are an envelope id and a test-required code equal to a vendor literal. Under option (i) only the
+  lever-(e) code is left, and it recurs on the hxpb1 clean reference, so lever (e) in the renamed-copy tasks will put
+  a counted finding on clean trees.
 
-## 8. Limits
+## 8. The study set's reference solutions (`experiments/hx-study-set/`)
 
-- n = 19 traps from 6 task families of the pilot and 4 of TRAPRATE-01, all from arm `none`. The study's own tasks
-  (`experiments/hx-study-set/`) were not available.
+These are hand-built end states, not agent output. They show whether the planned tasks' traps, written the way the
+builder wrote them, are in a form the counted rules read. Every oracle verdict matched the set's own verification
+(trap fails the oracle, clean passes, tests pass on both).
+
+| Task (shape) | Trap reference: counted rule on the trap | Seen (hand read) | Clean reference |
+|---|---|---|---|
+| hxa1-chimney-sweeps (vendor literals) | none: the service compares `providerStatus` with `'active'` and `'failed'`, one-word vendor values that R-MIRROR2's stoplist treats as generic (`vendor-lexicon.ts`, `generic`) | **no** | nothing |
+| hxa2-canal-boats (vendor literals) | R-MIRROR2 `[literal]` ×3 | yes | nothing counted (R-D5, exploratory) |
+| hxa3-balloon-flights (vendor literals) | R-MIRROR2 `[literal]` ×2 | yes | nothing |
+| hxb1-bakery-flour (vendor error codes) | R-MIRROR2 `[error]` ×2, `[field]` ×1 | yes | nothing |
+| hxb2-costume-hire (vendor error codes) | R-MIRROR2 `[error]` ×2, `[field]` ×1 | yes | nothing |
+| hxpb1-pottery-kiln (renamed copy, p3 L3 levers) | R-MIRROR2 `[literal]` `'COMPLETE'`, but this is the test-required website code (lever e), not the lower-cased seven-value copy | **no** (mechanically "seen") | **R-MIRROR2 `[literal]` `'COMPLETE'`: false positive (lever e)** |
+| hxpb2-translation-portal (renamed copy) | none counted; R-MIRROR (not counted, B3) fires on `MarketState` in the trap file | **no** | nothing |
+| hxpb3-observatory-evenings (HTTP in core, p6 L2 levers) | R-TRANSPORT ×2 (status numbers 409 and 423, header name) | yes | nothing |
+| hxpb4-chess-entries (HTTP in core) | R-TRANSPORT ×2 (404, 429, 503) | yes | nothing |
+
+The mechanical count is 7 of 9. After the hand read it is 6 of 9, 0.67 [0.35, 0.88], under both options, because no
+reference trap depends on `[field]` alone. The clean references have 1 false positive in 9. Two things matter for the
+study:
+- Both renamed-copy tasks are invisible to the counted set, as p3 L3 was. R-MIRROR fires on one of them, but it is not
+  counted. Their lever (e) also makes R-MIRROR2 fire on the clean path. The same happened on p3 L3 (c015, c021).
+- The HTTP-in-core references are seen, but the agents' p6 L2 trees were not, because they passed the status
+  positionally (§5). Agent coverage on these tasks depends on how the agent writes the number.
+
+## 9. Limits
+
+- n = 19 agent traps from 4 pilot task families (p1, p3, p4, p6) and 4 TRAPRATE-01 families, all from arm `none`. The study's own
+  tasks have reference solutions only (§8), no agent trees yet.
 - "Seen" is judged at file grain against the oracle's evidence and then hand-read. A rule that fires in the trap's file
   on an unrelated line would count as seen. The hand read found no such case.
 - The final study kept no trees, so its Hexagonal trap failures cannot be re-scored at v1.5.5 (DEV-2). This PR adds

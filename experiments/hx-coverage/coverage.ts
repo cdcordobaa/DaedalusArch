@@ -14,12 +14,15 @@
  * Each session is scored by the study scorer's `scoreSessionSteps` (`experiments/v15-study/score-study.ts`, unchanged:
  * the v1.5 rules with step-00 as the baseline, the frozen file rules, the task's tests and oracle on every step). The
  * pilot variants are passed as task paths relative to the scorer's families root, so the scorer reads each variant's
- * own spec, oracle and tests. The final tree is then re-run once through `scoreTreeV15` to read R-MIRROR2's shape word
- * (the scorer's `Hit` drops the evidence), and the variant's oracle once more for its evidence lines.
+ * own spec, oracle and tests; R-MIRROR2's shape word is the scorer's `Hit.shape`. The variant's oracle is run once more
+ * on the final scored copy for its evidence lines.
+ * - `experiments/hx-study-set/` parts A and B: each task's reference `solutions/trap` and `solutions/clean` scored as a
+ *   one-step session (step-00 = the seed, step-01 = the reference tree).
  *
  * Per session: the identities on the final tree that are new against the seed, by rule group:
  * - counted: the rule ids of rows H01 H02 H03 H04 H05 H07 H08 H09 H10, without FF-S03 and FF-P02 (advisory in the
- *   draft registration), plus R-MIRROR2;
+ *   draft registration), plus R-MIRROR2 (= the scorer's `HX_COUNTED_RULES` + R-MIRROR2). Two readings of R-MIRROR2:
+ *   option (ii), every shape word, and option (i), `literal` and `error` only (the scorer's `hxCounted`);
  * - advisory: FF-S03, FF-P02 (reported, never counted);
  * - notCounted: R-MIRROR (status open, B3) and R-MIRROR-SEM (needs the judge; off here);
  * - other: any other rule (R-ADAPTER-RULE, R-D4 …).
@@ -32,7 +35,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { loadRules } from '../../src/v15-instrument/index.js';
 import { HEX_ROW_RULES, INSTRUMENT_ID, instrumentRuleHash } from '../../src/v15-instrument/rule-set.js';
-import { scoreSessionSteps, scoreTreeV15, type Hit, type SessionScoringContext } from '../v15-study/score-study.js';
+import { HX_COUNTED_RULES, hxCounted, scoreSessionSteps, type Hit, type SessionScoringContext } from '../v15-study/score-study.js';
 import { restoreSession, wilson } from '../traprate-01/score-traprate.js';
 
 const REPO = process.cwd();
@@ -42,10 +45,9 @@ export const COUNTED_ROWS = ['H01', 'H02', 'H03', 'H04', 'H05', 'H07', 'H08', 'H
 export const ADVISORY = ['FF-S03', 'FF-P02'] as const;
 export const NOT_COUNTED = ['R-MIRROR', 'R-MIRROR-SEM'] as const;
 export const COUNTED: readonly string[] = [...new Set([...COUNTED_ROWS.flatMap((r) => HEX_ROW_RULES[r] ?? []).filter((r) => !(ADVISORY as readonly string[]).includes(r)), 'R-MIRROR2'])].sort();
+if (JSON.stringify(COUNTED) !== JSON.stringify([...HX_COUNTED_RULES, 'R-MIRROR2'].sort())) throw new Error('counted set differs from the scorer HX_COUNTED_RULES + R-MIRROR2');
 export const groupOf = (rule: string): 'counted' | 'advisory' | 'notCounted' | 'other' =>
   COUNTED.includes(rule) ? 'counted' : (ADVISORY as readonly string[]).includes(rule) ? 'advisory' : (NOT_COUNTED as readonly string[]).includes(rule) ? 'notCounted' : 'other';
-/** R-MIRROR2's shape word: the first token of its evidence (`[literal]`, `[error]`, `[field]`, `[field-set]`, `[decl]`, `[field-list]`). */
-export const shapeWord = (evidence: string): string | null => /^\[([a-z-]+)\]/.exec(evidence)?.[1] ?? null;
 /** Files an oracle evidence line names (`SG1: src/x.ts:3 …` or `src/x.ts:3 …`). */
 export const evidenceFiles = (lines: readonly string[]): string[] => [...new Set(lines.map((l) => /(src\/[^\s:]+\.ts)/.exec(l)?.[1]).filter((x): x is string => x !== undefined))].sort();
 
@@ -55,8 +57,8 @@ function tsxJson(args: string[]): Record<string, unknown> | null {
   try { return line === undefined ? null : (JSON.parse(line) as Record<string, unknown>); } catch { return null; }
 }
 
-interface Src { readonly source: 'pilot-ladder' | 'traprate-01'; readonly id: string; readonly sessionsDir: string; readonly taskDir: string; readonly label: string; readonly nSteps: number; readonly verdict: string }
-interface NewHit { readonly rule: string; readonly group: string; readonly file: string; readonly subject: string; readonly shape: string | null; readonly onTrapFile: boolean }
+interface Src { readonly source: 'pilot-ladder' | 'traprate-01' | 'hx-study-set'; readonly id: string; readonly sessionsDir: string; readonly taskDir: string; readonly label: string; readonly nSteps: number; readonly verdict: string }
+interface NewHit { readonly rule: string; readonly group: string; readonly file: string; readonly subject: string; readonly shape: string | null; readonly onTrapFile: boolean; readonly countedI: boolean }
 
 async function main(): Promise<number> {
   if (process.env['DAEDALUS_MIRROR_SEM'] !== 'off') { process.stderr.write('run with DAEDALUS_MIRROR_SEM=off (zero calls)\n'); return 2; }
@@ -92,10 +94,24 @@ async function main(): Promise<number> {
     treesVerified += rep.verified.filter(Boolean).length;
     srcs.push({ source: 'traprate-01', id, sessionsDir: restored, taskDir: path.join(FAM, m.task), label: m.task, nSteps: s.steps.length, verdict: s.verdict });
   }
+  // HX study set: each reference tree as a one-step session (seed, reference).
+  const refs = path.join(scratch, 'hx-refs');
+  for (const part of ['part-a', 'part-b']) {
+    const pdir = path.join(REPO, 'experiments', 'hx-study-set', part);
+    if (!fs.existsSync(pdir)) continue;
+    for (const t of fs.readdirSync(pdir).filter((d) => fs.existsSync(path.join(pdir, d, 'oracle.ts'))).sort()) {
+      for (const kind of ['trap', 'clean']) {
+        const id = `${t}--${kind}`;
+        fs.cpSync(path.join(pdir, t, 'seed'), path.join(refs, id, 'snap', 'step-00'), { recursive: true });
+        fs.cpSync(path.join(pdir, t, 'solutions', kind), path.join(refs, id, 'snap', 'step-01'), { recursive: true });
+        srcs.push({ source: 'hx-study-set', id, sessionsDir: refs, taskDir: path.join(pdir, t), label: `${part}/${t} ${kind}`, nSteps: 1, verdict: 'done' });
+      }
+    }
+  }
   const rows: Record<string, unknown>[] = [];
   try {
     for (const s of srcs) {
-      const sid = `${s.source === 'pilot-ladder' ? 'pl' : 'tr'}-${s.id}`;
+      const sid = `${s.source === 'pilot-ladder' ? 'pl' : s.source === 'traprate-01' ? 'tr' : 'hx'}-${s.id}`;
       // The study scorer reads `<families root>/<task>`; a pilot variant is given relative to that root.
       const sc = await scoreSessionSteps({ ...ctx, scratch: path.join(scratch, sid) }, { id: s.id, sessionsDir: s.sessionsDir, task: path.relative(FAM, s.taskDir), style: 'hexagonal', nSteps: s.nSteps, verdict: s.verdict, cell: 'none' });
       const n = sc.snaps.length - 1;
@@ -104,9 +120,6 @@ async function main(): Promise<number> {
       const subGoals = (oracle?.subGoals as { id: string; pass: boolean; evidence?: string[] }[] | undefined) ?? [];
       const ev = subGoals.filter((g) => !g.pass).flatMap((g) => (g.evidence ?? []).map((e) => `${g.id}: ${e}`));
       const trapFiles = evidenceFiles(ev);
-      // R-MIRROR2 evidence (shape word) on the final scored copy, seed as baseline, as the scorer runs it.
-      const r = await scoreTreeV15(finalCopy, ctx.rules, path.join(s.taskDir, 'spec.yaml'), path.join(scratch, sid, '_s2'), sc.snaps[0] as string);
-      const shapeOf = new Map(r.findings.filter((f) => f.status === 'violation' && f.rule === 'R-MIRROR2').map((f) => [`${f.rule}|${f.file}|${f.subject}`, shapeWord(f.evidence)]));
       const key = (h: Pick<Hit, 'rule' | 'file' | 'subject'>): string => `${h.rule}|${h.file}|${h.subject}`;
       const seedKeys = new Set((sc.hitsPerStep[0] ?? []).map(key));
       const seen = new Set<string>();
@@ -115,7 +128,7 @@ async function main(): Promise<number> {
         const k = key(h);
         if (seedKeys.has(k) || seen.has(k)) continue;
         seen.add(k);
-        fresh.push({ rule: h.rule, group: groupOf(h.rule), file: h.file, subject: h.subject, shape: h.rule === 'R-MIRROR2' ? (shapeOf.get(k) ?? null) : null, onTrapFile: trapFiles.includes(h.file) });
+        fresh.push({ rule: h.rule, group: groupOf(h.rule), file: h.file, subject: h.subject, shape: h.shape ?? null, onTrapFile: trapFiles.includes(h.file), countedI: hxCounted(h, 'i') });
       }
       const final = sc.steps.at(-1) as { trapFailed: boolean | null; testsPass: boolean } | undefined;
       const counted = fresh.filter((h) => h.group === 'counted');
@@ -125,6 +138,8 @@ async function main(): Promise<number> {
         oracleEvidence: ev, trapFiles,
         countedOnTrap: counted.filter((h) => h.onTrapFile).length > 0,
         countedAnywhere: counted.length > 0,
+        countedOnTrapI: counted.filter((h) => h.onTrapFile && h.countedI).length > 0,
+        countedAnywhereI: counted.filter((h) => h.countedI).length > 0,
         newOnFinal: fresh.sort((a, b) => (key(a) < key(b) ? -1 : 1)),
         D_admittedOld: sc.dv.D,
       };
@@ -134,10 +149,17 @@ async function main(): Promise<number> {
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
   }
-  const traps = rows.filter((r) => r.trapFailed === true);
-  const clean = rows.filter((r) => r.trapFailed === false);
-  const k = traps.filter((r) => r.countedOnTrap === true).length;
-  const fp = clean.filter((r) => r.countedAnywhere === true);
+  const summarise = (rs: Record<string, unknown>[]) => {
+    const traps = rs.filter((r) => r.trapFailed === true);
+    const clean = rs.filter((r) => r.trapFailed === false);
+    const one = (onTrap: string, any: string) => {
+      const k = traps.filter((r) => r[onTrap] === true).length;
+      const f = clean.filter((r) => r[any] === true).length;
+      return { seen: k, coverage: traps.length === 0 ? null : +(k / traps.length).toFixed(3), wilson95: wilson(k, traps.length), cleanWithCountedFinding: f, fpRate: clean.length === 0 ? null : +(f / clean.length).toFixed(3), fpWilson95: wilson(f, clean.length) };
+    };
+    return { trapFailures: traps.length, cleanTrees: clean.length, optionII_allShapes: one('countedOnTrap', 'countedAnywhere'), optionI_literalError: one('countedOnTrapI', 'countedAnywhereI') };
+  };
+  const agentRows = rows.filter((r) => r.source !== 'hx-study-set');
   const rh = instrumentRuleHash();
   const out = {
     schema: 'v15-hx-coverage/v1', modelCalls: 0, mirrorSem: 'off', instrumentId: INSTRUMENT_ID, instrumentRuleHash: rh.hash,
@@ -145,11 +167,8 @@ async function main(): Promise<number> {
     counted: COUNTED, advisory: ADVISORY, notCounted: NOT_COUNTED,
     traprateTreesVerified: treesVerified,
     finalStudy: 'no trees kept (DEV-2): not scored',
-    hxStudySet: 'experiments/hx-study-set not on main (PRs 449, 450 open): not scored',
-    summary: {
-      trapFailures: traps.length, seenByCounted: k, coverage: traps.length === 0 ? null : +(k / traps.length).toFixed(3), wilson95: wilson(k, traps.length),
-      cleanTrees: clean.length, cleanWithCountedFinding: fp.length, fpRate: clean.length === 0 ? null : +(fp.length / clean.length).toFixed(3), fpWilson95: wilson(fp.length, clean.length),
-    },
+    hxStudySet: 'reference trap and clean solutions of parts A and B, each scored as a one-step session from the seed',
+    summary: { agentTrees: summarise(agentRows), pilotLadder: summarise(rows.filter((r) => r.source === 'pilot-ladder')), traprate01: summarise(rows.filter((r) => r.source === 'traprate-01')), hxStudySetReferences: summarise(rows.filter((r) => r.source === 'hx-study-set')) },
     rows,
   };
   fs.mkdirSync(outDir, { recursive: true });
