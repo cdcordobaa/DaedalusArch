@@ -1,0 +1,9 @@
+import { WardrobeError } from './WardrobeError';
+
+/** The cleaners would not take the costume; detail is what they said, shown to the wardrobe staff as is; waitMin is how long they ask us to wait, when they say. */
+export class CleaningRefused extends WardrobeError {
+  constructor(readonly detail: string, readonly waitMin?: number) {
+    super('The cleaners refused the costume (' + detail + ')');
+    this.name = 'CleaningRefused';
+  }
+}
