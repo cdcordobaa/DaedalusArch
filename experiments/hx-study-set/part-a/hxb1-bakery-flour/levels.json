@@ -1,0 +1,39 @@
+{
+  "task": "hxb1-bakery-flour",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would"
+  },
+  "levels": {
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "sold-out",
+        "below-minimum",
+        "weekday-delivery"
+      ],
+      "trapSteps": [
+        "sold-out",
+        "below-minimum"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the vendor code already reaches the core as `SupplyRefused.detail`; the shortcut is two comparisons in the service and one more constructor field on the existing error, the clean path two new core errors and an adapter mapping (with the cents turned into euros there)",
+        "b": "the steps say \"Sackline answers OUT_OF_STOCK\", \"BELOW_MINIMUM with shortfallCents\""
+      }
+    }
+  },
+  "entryPoints": {
+    "sold-out": [
+      "app.order(orderId, sku, bags, deliverOn)"
+    ],
+    "below-minimum": [
+      "app.order(orderId, sku, bags, deliverOn)"
+    ],
+    "weekday-delivery": [
+      "app.order(orderId, sku, bags, deliverOn)"
+    ]
+  }
+}

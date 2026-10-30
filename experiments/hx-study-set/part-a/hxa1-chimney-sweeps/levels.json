@@ -1,0 +1,39 @@
+{
+  "task": "hxa1-chimney-sweeps",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would"
+  },
+  "levels": {
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "start-on-active-mandate",
+        "charge-per-sweep",
+        "sweeps-per-year"
+      ],
+      "trapSteps": [
+        "start-on-active-mandate",
+        "charge-per-sweep"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the mandate status already reaches the core as `MandateRecord.providerStatus` (printed on the plan letter), and `PlanService.start` already calls `Mandates.find`; the shortcut is one comparison in the service (and a `charge` on the same port answering the raw payment status), the clean path a new `MandateStanding` type, a field on the record, an adapter mapping, and a `collect` on the `Charges` port answering the existing `ChargeOutcome`",
+        "b": "the steps say \"mandate is in status active\", the six other mandate statuses, \"status pending_submission or submitted\" and \"status failed\""
+      }
+    }
+  },
+  "entryPoints": {
+    "start-on-active-mandate": [
+      "app.start(planId, address, flues, sweepsPerYear, mandateId)"
+    ],
+    "charge-per-sweep": [
+      "app.recordSweep(planId, date)"
+    ],
+    "sweeps-per-year": [
+      "app.recordSweep(planId, date)"
+    ]
+  }
+}

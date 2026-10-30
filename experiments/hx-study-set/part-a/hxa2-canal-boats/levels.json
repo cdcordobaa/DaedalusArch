@@ -1,0 +1,39 @@
+{
+  "task": "hxa2-canal-boats",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would"
+  },
+  "levels": {
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "reserve-when-bound",
+        "policy-at-handover",
+        "one-boat-one-hire"
+      ],
+      "trapSteps": [
+        "reserve-when-bound",
+        "policy-at-handover"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the quote state already reaches the core as `CoverQuote.insurerState` (printed on the quote line), and `HireService.reserve` already calls `CoverQuotes.find` for the premium; the shortcut is two comparisons in the service (and a `policy` on the same port answering the raw policy state), the clean path a new `CoverStanding` type, a field on the quote, an adapter mapping, a `PolicyCheck` type, a new `Policies` port, its adapter and the wiring",
+        "b": "the steps say \"the Covernest quote is BOUND\", \"A REFERRED quote\", \"QUOTED, DECLINED, LAPSED\", \"IN_FORCE\" and \"PENDING_DOCS\""
+      }
+    }
+  },
+  "entryPoints": {
+    "reserve-when-bound": [
+      "app.reserve(hireId, boatId, from, nights, hirerRef, quoteRef)"
+    ],
+    "policy-at-handover": [
+      "app.handOver(hireId)"
+    ],
+    "one-boat-one-hire": [
+      "app.reserve(hireId, boatId, from, nights, hirerRef, quoteRef)"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "description": "HX study set part A task hxb1-bakery-flour. Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "hxb1-bakery-flour",
+      "title": "Flour orders when the wholesaler says no",
+      "steps": [
+        {
+          "id": "sold-out",
+          "request": "Our buyer orders flour from the Sackline wholesaler. The Sackline SDK, the package sackline-sdk, is already in the project and the Sackline client is already created with the token in SACKLINE_TOKEN for the flour list; use the same client. When Sackline answers OUT_OF_STOCK (the depot ran out after the list was loaded), app.order(orderId, sku, bags, deliverOn) must not give an error: it answers status 'sold_out' with alternative, the sku of the cheapest other flour of the same grade that still has at least that many bags in stock, or null when there is none."
+        },
+        {
+          "id": "below-minimum",
+          "request": "The depot also has a minimum order value. When Sackline answers BELOW_MINIMUM with shortfallCents, app.order(orderId, sku, bags, deliverOn) answers status 'too_small' with missing, the amount in euros the order still lacks (null when Sackline does not say). Other Sackline refusals stay errors."
+        },
+        {
+          "id": "weekday-delivery",
+          "request": "The bakery takes deliveries Monday to Friday only. app.order(orderId, sku, bags, deliverOn) with a deliverOn that falls on a Saturday or a Sunday answers the error 'We take deliveries Monday to Friday only.' and nothing is ordered."
+        }
+      ]
+    }
+  ]
+}
