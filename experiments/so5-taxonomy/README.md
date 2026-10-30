@@ -152,3 +152,8 @@ sources, zero by design. Oracle failures adjudicated as not a violation are list
 - PUZZLE-04 adjudications are the coordinator's committed proposals, not the author's decisions; the sensitivity of the PUZZLE-04 cards to them is the 8 excluded gate-arm failures above (plus 3 trap proposals kept).
 - PUZZLE sources are trap tasks, so frequencies reflect the traps offered (design section 6).
 - Study 1 cards include advisory-tier coupling findings (for example instability), which are metric findings, not necessarily a construct; the tier is in the evidence.
+
+## Second coder and freeze (2026-10-30)
+
+A model panel coded all 266 cards (`panel/PROTOCOL.md`); Cohen's κ first coder vs panel majority 0.709, 0 unresolved.
+Codebook v1 = v0 unchanged, frozen in `codebook-v1.md`. Report and counts: `panel-report.md`.
