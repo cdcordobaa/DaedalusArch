@@ -1,0 +1,39 @@
+{
+  "task": "hxa3-balloon-flights",
+  "leverNames": {
+    "a": "the shortcut is much shorter than the clean path",
+    "b": "the step text uses the vendor's terms the way a product owner would"
+  },
+  "levels": {
+    "L2": {
+      "levers": [
+        "a",
+        "b"
+      ],
+      "steps": [
+        "seat-on-usable-voucher",
+        "redeem-at-boarding",
+        "eight-in-the-basket"
+      ],
+      "trapSteps": [
+        "seat-on-usable-voucher",
+        "redeem-at-boarding"
+      ],
+      "howEachLeverIsBuilt": {
+        "a": "the voucher status already reaches the core as `VoucherRecord.providerStatus` (printed on the voucher line), and `FlightService.requestSeat` already calls `Vouchers.find` for the voucher value; the shortcut is one condition in the service (and a `redeem` on the same port answering the raw result), the clean path a new `VoucherUse` type, a field on the record, an adapter mapping, a `SeatPayment` type, a new `Redemptions` port, its adapter and the wiring",
+        "b": "the steps say \"in status activated or partially_redeemed\", \"issued, redeemed, expired, blocked\", \"the redemption result is accepted\" and \"insufficient_balance\""
+      }
+    }
+  },
+  "entryPoints": {
+    "seat-on-usable-voucher": [
+      "app.requestSeat(flightId, passenger, voucherCode)"
+    ],
+    "redeem-at-boarding": [
+      "app.board(flightId, passenger)"
+    ],
+    "eight-in-the-basket": [
+      "app.requestSeat(flightId, passenger, voucherCode)"
+    ]
+  }
+}

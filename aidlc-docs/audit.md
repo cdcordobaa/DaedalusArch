@@ -3213,3 +3213,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.5 pilot (calibration only, not a study task); zero model calls.
 
 ---
+
+## Construction: HX study set part A (five Hexagonal tasks at the pilot L2 lever set)
+**Timestamp**: 2026-10-30T04:27:01Z
+**User Input**: "Build part A of the new Hexagonal study task set: three vendor-literals tasks at the p1 L2 lever set and two error-codes tasks at the p4 L2 lever set, each with a fresh domain and vendor, a seed, three chained steps, tests, clean and trap references and a rule-blind oracle; fix the pilot's test-surface defect; verify mechanically; do not seal."
+**AI Response**: "Built experiments/hx-study-set/part-a/: hxa1-chimney-sweeps, hxa2-canal-boats, hxa3-balloon-flights (vendor literals) and hxb1-bakery-flour, hxb2-costume-hire (error codes and units), with a builder, verify.ts and similarity.ts. Every step text names the app entry point the tests call; answers are checked field by field. All five hold every invariant (seed fails tests; clean passes tests and oracle; trap passes tests and fails oracle; type check clean; hint audit 0 FAIL; similarity below 0.6, the shape reading calibrated on PR 398's excluded pairs)."
+**Context**: CONSTRUCTION, v1.5 HX study set, part A (unsealed; sealed later with part B); zero model calls.
+
+---

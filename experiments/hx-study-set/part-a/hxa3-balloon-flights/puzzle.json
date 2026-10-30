@@ -1,0 +1,37 @@
+{
+  "id": "hxa3-balloon-flights",
+  "split": "study",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "giftjar-sdk": "vendor/giftjar-sdk"
+  },
+  "hxStudySet": {
+    "part": "A",
+    "shape": "vendor-literals",
+    "template": "experiments/trap-pilot-v2/p1-campsite-payments/L2",
+    "level": "L2",
+    "levers": [
+      "a",
+      "b"
+    ]
+  },
+  "trapFamily": {
+    "trap": "vendor literals compared in core logic: the flight service tests the voucher company's voucher statuses and redemption result (activated, partially_redeemed, insufficient_balance)"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5-literal",
+      "check": "literal-compare",
+      "steps": [
+        "seat-on-usable-voucher",
+        "redeem-at-boarding"
+      ],
+      "rule": "The core decides on its own terms: no vendor status or result is compared in the core; the adapters turn the voucher statuses and the redemption result into the application's own voucher use and seat payment."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}
