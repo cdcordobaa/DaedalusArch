@@ -109,3 +109,28 @@ each case's `spec.yaml` in the scoring copy, and records that it did.
 ```
 (cd experiments/hcal-07 && shasum -a 256 -c SEAL.sha256)
 ```
+
+## Label-leak check (2026-10-29, before any scoring)
+
+Every route from a case's `spec.yaml` into the instrument, at `main` `d452ca0aa` (instrument `v1.5.5-hx-rules-v3`):
+
+- **R-MIRROR-SEM judge (the only model call).** `domainTextOf` in `src/v15-instrument/mirror-sem.ts` parses the spec
+  with `YAML.parse`, drops the instrument's own sections and re-serialises the rest with `YAML.stringify`. Parsing drops
+  comments, so the glossary key does not reach the prompt. (If parsing failed, the fallback drops every `#` line.) The
+  `glossary` entries do reach it, as intended.
+- **The admission scorer** (`experiments/cal-01/score.ts`). It reads `labels.json` only to score. The frozen check gets a
+  spec rebuilt with `YAML.parse` and `YAML.stringify`, so no comments. No model is called outside the judge.
+- **R-MIRROR2's stoplist: the key leaks here.** `specTokens` in `src/v15-instrument/vendor-lexicon.ts` reads the raw
+  spec text, comments included, and splits it into tokens. A vendor term whose token appears in the spec is marked
+  `ownedBy: 'spec'` (for declaration names, `declOwnedBy: 'spec'`), and the rule then does not fire on it. The key lists
+  each case's vendor terms, so it would silence R-MIRROR2 on exactly the terms it should catch.
+- No other rule reads the spec's glossary or comments (`glossary` appears only in `mirror-sem.ts`). Code comments in the
+  case and base sources carry no label words.
+
+So the set is scored from a scoring copy, `experiments/hcal-07/scoring-copy.ts`. Bases, labels and every case file
+other than `spec.yaml` are copied unchanged. In each case's `spec.yaml` the trailing glossary key is removed: the header
+line `# Glossary key (HCAL-07 answer key for case <ID>).` (its id must match the folder), every line after it (all of
+them must be comments or empty), and the empty lines just before it. The file then ends with one newline.
+`SCORING-COPY.sha256` holds the sha256 of the 50 stripped specs. The script checks the copy it writes against that
+file. After the strip, 44 case specs are byte-identical to their base spec. The other 6 add glossary terms, as the
+README says above.
