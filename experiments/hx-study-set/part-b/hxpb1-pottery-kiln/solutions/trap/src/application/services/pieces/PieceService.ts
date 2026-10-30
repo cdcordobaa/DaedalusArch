@@ -59,7 +59,7 @@ export class PieceService implements StudioPieces {
       case 'holding':
         return { pieceId, status: 'IN_THE_KILN' };
       case 'cooling': return { pieceId, status: 'COOLING_DOWN' };
-      case 'complete': return { pieceId, status: 'COMPLETE' };
+      case 'complete': return { pieceId, status: 'READY_FOR_PICKUP' };
       case 'faulted': return { pieceId, status: 'FIRING_FAILED' };
     }
   }

@@ -11,8 +11,8 @@ import type { JobLookup } from '../../ports/out/marketplace/JobLookup';
 const SHOWN: Record<JobProgress, string> = {
   unassigned: 'FINDING_TRANSLATOR',
   translating: 'IN_TRANSLATION',
-  checking: 'PROOFREADING',
-  done: 'DELIVERED',
+  checking: 'BEING_CHECKED',
+  done: 'READY_TO_DOWNLOAD',
   onHold: 'ON_HOLD',
 };
 

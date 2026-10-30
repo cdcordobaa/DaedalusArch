@@ -1,7 +1,7 @@
 // Typings of the Debitora direct debit SDK (debitora-sdk 3.2), as shipped by the vendor. Amounts are in cents.
 declare module 'debitora-sdk' {
-  export type DebitoraMandateStatus = 'pending_customer_approval' | 'pending_submission' | 'submitted' | 'active' | 'suspended_by_payer' | 'cancelled' | 'expired';
-  export type DebitoraPaymentStatus = 'pending_submission' | 'submitted' | 'confirmed' | 'paid_out' | 'failed' | 'charged_back';
+  export type DebitoraMandateStatus = 'pending_customer_approval' | 'pending_submission' | 'submitted' | 'mandate_active' | 'suspended_by_payer' | 'cancelled' | 'expired';
+  export type DebitoraPaymentStatus = 'pending_submission' | 'submitted' | 'confirmed' | 'paid_out' | 'collection_failed' | 'charged_back';
   export interface DebitoraMandate {
     id: string;
     status: DebitoraMandateStatus;

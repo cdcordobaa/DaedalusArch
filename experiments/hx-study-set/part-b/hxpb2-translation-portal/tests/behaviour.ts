@@ -90,7 +90,7 @@ export const cases: TestCase[] = [
       assert.equal(await stage(app, 'T-9'), 'RECEIVED');
       const jobId = await posted(app);
       assert.equal(await stage(app), 'FINDING_TRANSLATOR');
-      for (const [state, shown] of [['claimed', 'IN_TRANSLATION'], ['drafting', 'IN_TRANSLATION'], ['delivered', 'DELIVERED']]) {
+      for (const [state, shown] of [['claimed', 'IN_TRANSLATION'], ['drafting', 'IN_TRANSLATION'], ['delivered', 'READY_TO_DOWNLOAD']]) {
         move(fake, jobId, state!);
         assert.equal(await stage(app), shown, state);
       }
@@ -127,9 +127,9 @@ export const cases: TestCase[] = [
       move(fake, jobId, 'drafting');
       assert.equal(await stage(app), 'IN_TRANSLATION');
       move(fake, jobId, 'proofreading');
-      assert.equal(await stage(app), 'PROOFREADING');
+      assert.equal(await stage(app), 'BEING_CHECKED');
       move(fake, jobId, 'delivered');
-      assert.equal(await stage(app), 'DELIVERED');
+      assert.equal(await stage(app), 'READY_TO_DOWNLOAD');
     },
   },
 ];

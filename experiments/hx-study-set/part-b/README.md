@@ -75,7 +75,7 @@ there; clean and trap pass every case; seed and clean pass the oracle, trap fail
 | Item | Value |
 |---|---|
 | Domain (vendor stand-in) | pottery studio, pieces fired in a kiln watched by a cloud controller (`kilnwise-sdk`) |
-| Shape, lever set | renamed copy of the vendor's value set; p3 L3 (a, b, c, d, e, f) |
+| Shape, lever set | renamed copy of the vendor's value set; p3 L3 without lever (e) (a, b, c, d, f) |
 | Steps (entry point) | `pickup-status` (`pieceStatus(pieceId)`), `withdraw` (new `withdrawPiece(pieceId)`), `cooling-down` (`pieceStatus(pieceId)`) |
 | Trap | the service keeps the vendor's seven kiln phases one to one (`KilnPhase`, lower case) and switches on them |
 | Clean | core `FiringProgress` (five values), a `progress` field on `KilnReading`, the adapter maps seven phases many to one |
@@ -92,7 +92,7 @@ there; clean and trap pass every case; seed and clean pass the oracle, trap fail
 | Item | Value |
 |---|---|
 | Domain (vendor stand-in) | translation bureau posting customers' documents as jobs on a translator marketplace (`wordmarket-sdk`) |
-| Shape, lever set | renamed copy of the vendor's value set; p3 L3 (a, b, c, d, e, f) |
+| Shape, lever set | renamed copy of the vendor's value set; p3 L3 without lever (e) (a, b, c, d, f) |
 | Steps (entry point) | `progress` (`progress(orderNo)`), `invoice` (new `invoice(orderNo)`), `proofreading` (`progress(orderNo)`) |
 | Trap | the service keeps the marketplace's six job states one to one (`MarketState`) in a lookup table; the invoice compares `'delivered'` |
 | Clean | core `JobProgress` (five values), a `progress` field on `JobSnapshot`, the adapter maps six states many to one |
@@ -147,10 +147,12 @@ hxpb3/hxpb4 0.200.
   table in the service). In hxpb3 and hxpb4 the trap still touches the core error, the adapter, the service and the
   inbound reply, so the shortcut is only a little smaller than the clean path (5 against 6 files), the same as the
   pilot's p6 L2, which trapped 2/2 at that level.
-- **Lever (e).** The status words the tests assert include the vendor's own words in upper case (hxpb1 `COMPLETE`,
-  hxpb2 `DELIVERED` and `PROOFREADING`); the clean trees write them only as output strings, which the
-  `value-set-copy` check does not count. An agent tree that fails the oracle is hand-read before it counts, as the
-  pilot report requires.
+- **Lever (e), excluded before the seal (pre-registration D2, 2026-10-30).** As built, the status words the tests
+  asserted included the vendor's own words in upper case (hxpb1 `COMPLETE`, hxpb2 `DELIVERED` and `PROOFREADING`). They
+  are rewritten so that none equals a vendor word: hxpb1 `READY_FOR_PICKUP`; hxpb2 `READY_TO_DOWNLOAD` and
+  `BEING_CHECKED` (step texts, tests, both solutions). The builder's checks were re-run after the change
+  (`verification.json`, `_checks/similarity-2026-10-30.json`). An agent tree that fails the oracle is hand-read before
+  it counts, as the pilot report requires.
 - **Oracle limits** are those of `pilot-oracle.ts`: values passed through `any`, codes rebuilt from pieces and a copied
   value set of a different size are not seen; a business number from 100 to 599 in an hxpb3 / hxpb4 core is flagged and
   must be hand-read (the clean cores hold none).

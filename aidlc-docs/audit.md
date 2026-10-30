@@ -3245,3 +3245,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.5 exploratory input to the draft Hexagonal pre-registration; zero model calls.
 
 ---
+
+## Construction: Hexagonal study preparation, decisions D1–D9 applied, rule-visibility check (stopped at a red item)
+**Timestamp**: 2026-10-30T19:10:08Z
+**User Input**: "Apply the settled decisions D1–D9 to the Hexagonal pre-registration draft and its code on the draft branch, run the per-task rule-visibility check, seal the 13 task folders, run the agent pilot and dress rehearsal, and stop at any red item; do not register or start the study."
+**AI Response**: "Merged main into the draft branch. D2: hxpb1 and hxpb2 asserted status words rewritten (READY_FOR_PICKUP; READY_TO_DOWNLOAD, BEING_CHECKED), lever (e) recorded as excluded; part B verify.ts, similarity, tsc and hint audit re-run, all ok. D7: hxa1 vendor statuses rewritten to mandate_active and collection_failed; part A verify.ts ok. D8: semOnly in study-set.json; the scorer writes primary, taskName and Dsem per cell under --counted; the analysis uses primaryCells for the primary and secondaries 1-7 and all cells for secondary 8. D9: power over the 11 primary tasks at RR 0.25 with q = 14/19 is 0.645 at r = 8, so r = 10 (0.765). Power table and planted tests re-run; registered hint audit 0 FAIL in 39 units; unit tests 191 pass. Visibility: all 11 primary tasks pass (trap seen by a counted rule in the oracle's trap file, clean D_hx = 0). R-MIRROR-SEM with a live judge on a fresh cache (2 calls, both on clean trees, both answered no) does not see the hxpb1 or hxpb2 reference trap: no candidate's structure holds, since the vendor code reaches the core as an opaque string and is cast in the service, with no adapter map. Recorded as B11 (red) in the draft. Stopped before the seal, the pilot and the dress rehearsal."
+**Context**: CONSTRUCTION, v1.5 Hexagonal study preparation (draft PR 451, not registered); 2 model calls (R-MIRROR-SEM judge, visibility check only).
+
+---
+
+## Construction: Hexagonal study preparation, B11 decided, task set sealed, ready for registration review
+**Timestamp**: 2026-10-30T19:20:38Z
+**User Input**: "Drop the two renamed-copy tasks (their traps are seen by no scored rule; no trap rebuild, no rule change), withdraw the R-MIRROR-SEM secondary and record renamed copies as a known blind spot; keep r = 10 and state its power plainly; keep the draft's order of events; seal the 11 task folders, retake the hashes, re-run tests and the hint audit, push, and mark PR 451 ready for review without merging."
+**AI Response**: "Study set reduced to 11 tasks (neutral ids t01-t11); semOnly/Dsem/primaryCells code removed (scorer and study-set loader back to main); visibility re-run: 11 of 11 pass; power, D9 and planted tests unchanged (r = 10, 0.765 under scenario A, below 0.80, no further step); caps recomputed (pilot 132 turns, cap 140, calls 143; study 660, cap 700, calls 703); pilot gate (c) set to 8 of 11; hint audit 0 FAIL in 33 units; sealed the 11 task folders plus study-set.json, root db7347acf8106989 (752 files, verify-seal.sh); script hashes taken at the seal; 190 unit tests pass; first-study inputs byte-identical. Draft updated (limitations, decisions table, B11 closed by decision); order of events unchanged."
+**Context**: CONSTRUCTION, v1.5 Hexagonal study preparation (PR 451, not registered); zero model calls.
+
+---

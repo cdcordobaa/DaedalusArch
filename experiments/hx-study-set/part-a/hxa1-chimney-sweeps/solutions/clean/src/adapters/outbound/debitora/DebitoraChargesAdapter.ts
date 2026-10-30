@@ -17,6 +17,6 @@ export class DebitoraChargesAdapter implements Charges {
 
 function outcomeOf(status: DebitoraPaymentStatus): ChargeOutcome {
   if (status === 'confirmed' || status === 'paid_out') return 'collected';
-  if (status === 'failed' || status === 'charged_back') return 'bounced';
+  if (status === 'collection_failed' || status === 'charged_back') return 'bounced';
   return 'on_its_way';
 }
