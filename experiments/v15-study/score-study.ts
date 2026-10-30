@@ -3,6 +3,12 @@
  * attribution) and §7 step 6.
  *
  *   npx tsx experiments/v15-study/score-study.ts --results <outRoot> --input <input.json> [--node-modules <dir>] [--hub <dir>] [--out <dir>]
+ *       [--study-set <manifest>] [--counted hx-i|hx-ii] [--require-delivery-audit]
+ *
+ * `--study-set` (the Hexagonal study, B9): the task set's manifest (`lib/study-set.ts`; default the trap-families one,
+ * or the input's `studySet` when `make-input.ts` wrote one); each task's directory comes from it. With `--counted`, every
+ * step also records its tree digest (the hub's format) and its symbolic findings new against the seed, the input of
+ * the gate (b) check (`scripts/v1.5/hx-gate-b.ts`). Without these options the output is the first study's.
  *
  * For every session with a `session.json` (`<results>/sessions/<id>/`), on every step snapshot (`snap/step-00` = seed):
  * - the task's behaviour tests (`experiments/puzzle-01/tools/run-tests.ts`) and every oracle sub-goal (`oracle.ts`;
@@ -49,6 +55,7 @@ import { SourceFacts } from '../../scripts/v1.3/lib/labelling/source-facts.js';
 import { loadSpecView } from '../../scripts/v1.3/lib/labelling/spec-facts.js';
 import { frozenSpec } from '../cal-01/score.js';
 import { auditVerdict, findingsAgreement, treeDigest, type AuditVerdict, type CheckRecord } from './lib/delivery-audit.js';
+import { DEFAULT_STUDY_SET, loadStudySet } from './lib/study-set.js';
 import { ADMITTED_DDD_ROWS, ADMITTED_HEX_ROWS, INSTRUMENT_ID, ROW_OVERRIDES, admittedRules, cypherRules, exploratoryRules, frozenRules, instrumentRuleHash, ruleMatches, type Style } from '../../src/v15-instrument/rule-set.js';
 
 // ── The admitted rules (CAL-03 for DDD, HCAL-03 for Hexagonal). Fixed before any study call; the one rule list
@@ -285,6 +292,8 @@ export interface SessionScoringContext {
   readonly onEvaluationFailure: () => void;
   /** Hexagonal study: count by `hxCounted` under this option instead of `admittedRules` (first study: undefined). */
   readonly counted?: HxOption;
+  /** The task's directory, repository-relative (`--study-set`); undefined: `experiments/trap-families/<task>`. */
+  readonly taskDir?: (task: string) => string;
 }
 export interface SessionToScore { readonly id: string; readonly sessionsDir: string; readonly task: string; readonly style: Style; readonly nSteps: number; readonly verdict: string; readonly cell: string; readonly deliveryAudit?: readonly CheckRecord[] }
 
@@ -300,7 +309,8 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
   const agreement: Record<string, unknown>[] = [];
   const m = { task: s.task, style: s.style };
   const sess = { verdict: s.verdict, arm: s.cell };
-  const taskDir = path.join(REPO, FAM, m.task);
+  const taskRel = ctx.taskDir?.(m.task) ?? path.join(FAM, m.task);
+  const taskDir = path.join(REPO, taskRel);
   const spec = path.join(taskDir, 'spec.yaml');
   const snaps = Array.from({ length: nSteps + 1 }, (_, k) => path.join(sessionsDir, id, 'snap', `step-0${String(k)}`)).filter((p) => fs.existsSync(p));
   const complete = sess.verdict === 'done' && snaps.length === nSteps + 1;
@@ -321,7 +331,7 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
     neutralise(tree, snaps[0] as string, cands);
     for (const c of cands) evasion.set(c.path, { ...c, steps: [...(evasion.get(c.path)?.steps ?? []), `step-0${String(k)}`] });
     const tests = tsxJson(['experiments/puzzle-01/tools/run-tests.ts', '--puzzle', taskDir, '--tree', tree]) as TestsResult | null;
-    const oracle = tsxJson([path.join(FAM, m.task, 'oracle.ts'), tree]);
+    const oracle = tsxJson([path.join(taskRel, 'oracle.ts'), tree]);
     const sg = (oracle?.subGoals as SubGoal[] | undefined) ?? null;
     const r = await scoreTreeV15(tree, rules, spec, path.join(scratch, '_s'), snaps[0] as string);
     let frozenHitsK: Hit[] = [];
@@ -367,6 +377,8 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
       exploratoryNewVsSeed: newAgainst(identitiesOf(hits, exploratoryRules(m.style)), identitiesOf(seedHits, exploratoryRules(m.style))),
       evasionCandidates: cands.map((c) => `${c.kind} ${c.path}`),
       frozenFileRulesError: frozenError,
+      // Hexagonal study (gate (b) input): the snapshot's digest and its symbolic findings new against the seed.
+      ...(ctx.counted !== undefined ? { treeDigest: treeDigest(snap), symbolicNewVsSeed: newHits(hits, seedHits, (h) => hxCounted(h, ctx.counted)) } : {}),
     });
   }
   const final = steps.at(-1) as { testsPass: boolean; trapFailed: boolean | null; exploratoryNewVsSeed: string[] } | undefined;
@@ -385,6 +397,14 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
   return { spec, snaps, complete, steps, hitsPerStep, frozenIds, commits, rhos, evasion, final, y, dv, dFrozen, agreement };
 }
 
+/** The hits whose identity (rule | file | subject) the seed does not have, sorted, each marked counted or not (gate (b) input). */
+export function newHits(hits: readonly Hit[], seedHits: readonly Hit[], isCounted: (h: Hit) => boolean): (Hit & { readonly counted: boolean })[] {
+  const seed = new Set(seedHits.map(identity));
+  const key = (h: Hit): string => `${h.rule}|${h.file}|${String(h.line ?? '')}|${h.subject}|${h.source}`;
+  return hits.filter((h) => !seed.has(identity(h))).sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0))
+    .map((h) => ({ rule: h.rule, file: h.file, subject: h.subject, line: h.line, source: h.source, ...(h.shape !== undefined ? { shape: h.shape } : {}), counted: isCounted(h) }));
+}
+
 interface MapEntry { readonly task: string; readonly style: Style; readonly confirmatory: boolean }
 
 async function main(): Promise<number> {
@@ -396,10 +416,14 @@ async function main(): Promise<number> {
     process.stderr.write('usage: score-study.ts --results <outRoot> --input <input.json> [--node-modules <dir>] [--hub <dir>] [--out <dir>]\n');
     return 2;
   }
-  const input = JSON.parse(fs.readFileSync(inputFile, 'utf8')) as { vault: string; tasks: { id: string; steps: string[] }[] };
+  const input = JSON.parse(fs.readFileSync(inputFile, 'utf8')) as { vault: string; tasks: { id: string; steps: string[] }[]; studySet?: string };
   const map = JSON.parse(fs.readFileSync(path.join(input.vault, 'private-id-map.json'), 'utf8')) as Record<string, MapEntry>;
   // Confirmatory status is read from study-set.json at scoring time too (it must agree with the input's map).
-  const studySet = JSON.parse(fs.readFileSync(path.join(REPO, FAM, 'study-set.json'), 'utf8')) as { confirmatory: { ddd: string[]; hexagonal: string[] } };
+  // `--study-set` (or the input's `studySet`): the manifest, and each task's directory from it.
+  const setArg = arg('study-set');
+  if (setArg !== undefined && input.studySet !== undefined && path.posix.normalize(setArg) !== input.studySet) { process.stderr.write(`--study-set ${setArg} differs from the input's studySet ${input.studySet}\n`); return 2; }
+  const manifest = setArg ?? input.studySet;
+  const studySet = loadStudySet(REPO, manifest ?? DEFAULT_STUDY_SET);
   const confirmatorySet = new Set([...studySet.confirmatory.ddd, ...studySet.confirmatory.hexagonal]);
   const hubDir = path.resolve(arg('hub') ?? path.join(results, 'hub'));
   const outDir = path.resolve(arg('out') ?? path.join(results, 'scores'));
@@ -425,7 +449,7 @@ async function main(): Promise<number> {
   const head = (() => { try { return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).trim(); } catch { return null; } })();
   const runs: Record<string, unknown>[] = [];
   let evaluationFailures = 0;
-  const sctx: SessionScoringContext = { scratch, scrub, rules, frozenEnabled, nm, env, deps, head, onEvaluationFailure: () => { evaluationFailures++; }, ...(counted !== undefined ? { counted } : {}) };
+  const sctx: SessionScoringContext = { scratch, scrub, rules, frozenEnabled, nm, env, deps, head, onEvaluationFailure: () => { evaluationFailures++; }, ...(counted !== undefined ? { counted } : {}), ...(manifest !== undefined ? { taskDir: studySet.dirOf } : {}) };
   try {
     for (const id of ids) {
       if (schedule !== null && !schedule.has(id) && !redrawn.has(id)) continue;

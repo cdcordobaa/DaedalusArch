@@ -3230,6 +3230,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Construction: HX study runner, blocking items B9 (scorer task root) and B10 (gate (b) check)
+**Timestamp**: 2026-10-30T05:23:00Z
+**User Input**: "Close B9 and B10 of the Hexagonal study pre-registration draft: let the input maker and the scorer read the study's tasks from one manifest spanning hx-study-set part A, part B and four trap-family tasks, with the old behaviour byte-identical; and write the gate (b) check of scorer findings against the hub's recorded checks, with unit tests. Zero model calls."
+**AI Response**: "Added experiments/v15-study/lib/study-set.ts and the --study-set option to make-input.ts and score-study.ts (the input records studySet; the scorer reads it, or the flag); wrote experiments/hx-study-set/study-set.json (13 tasks: hxa1-3, hxb1-2, hxpb1-4, f2, f14, f16, f24). With --counted the scorer also records per step the tree digest and the symbolic findings new against the seed. Added scripts/v1.5/hx-gate-b.ts (lib in scripts/v1.5/lib/hx-gate-b.ts): per combined step snapshot, counted findings against the hub checks on the same tree digest, with the documented differences (evasion steps not comparable, R-MIRROR-SEM left out, frozen line keying, cache hits by digest); exit 1 on any missing counted finding. study-input-diff.sh: identical to origin/main. Unit tests on synthetic sessions pass."
+**Context**: CONSTRUCTION, v1.5 Hexagonal study runner (pre-registration items B9, B10); zero model calls.
+
+---
+
 ## Construction: v1.5 HX-COVERAGE, trap coverage of the Hexagonal counted rules, and study records (B8)
 **Timestamp**: 2026-10-30T04:46:17Z
 **User Input**: "Measure, with zero calls, what share of real agent trap failures the candidate counted rules of the Hexagonal study see at instrument v1.5.5, and fix the study runner's record keeping (B8)."

@@ -27,12 +27,20 @@
  * (`p1/L1` for `p1-campsite-payments/L1`). `--arms` restricts the plan to a subset of the arms (`none`), `--runs` is a
  * synonym of `--replicates`, `--binary` / `--cli-binary` point at a local CLI, `--results-dir` overrides the results
  * directory, and the input gains `taskRoot`. Without these options the output is the study's, unchanged.
+ *
+ * Study-set option (the Hexagonal study, pre-registration B9): `--study-set <manifest>` (repository-relative, e.g.
+ * `experiments/hx-study-set/study-set.json`) reads the task set from that manifest instead of the trap-families one;
+ * its `taskDirs` name each task's directory, so tasks from several roots (`hx-study-set/part-a`, `part-b`,
+ * `trap-families`) form one set (`lib/study-set.ts`). The neutral ids follow the manifest's order; the manifest and every
+ * task root are added to the denied paths, `hx-study-set` to the sweep patterns, and the input gains `studySet`.
+ * Without the option the output is byte-identical (`study-input-diff.sh`). Not combinable with `--task-root`.
  */
 import { createHash, randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { ARMS, ORDER_SEED, DEFAULT_REPLICATES, buildPlan, capsFor, plannedTurns, type Arm } from './lib/plan.js';
 import { FRAME_COMBINED_SHA256 } from './lib/arms.js';
+import { loadStudySet } from './lib/study-set.js';
 
 const arg = (k: string, d?: string): string => { const i = process.argv.indexOf(k); const v = i >= 0 ? process.argv[i + 1] : d; if (v === undefined) throw new Error(`missing ${k}`); return v; };
 const O = path.resolve(arg('--o'));
@@ -53,6 +61,9 @@ const RUN_ARMS: readonly Arm[] = process.argv.includes('--arms') ? arg('--arms')
 for (const a of RUN_ARMS) if (!ARMS.includes(a)) throw new Error(`--arms: unknown arm ${a}`);
 if (RUN_ARMS.length === 0 || new Set(RUN_ARMS).size !== RUN_ARMS.length) throw new Error('--arms must name each arm at most once');
 const ORDERED_ARMS: readonly Arm[] = ARMS.filter((a) => RUN_ARMS.includes(a));
+// Study-set option: one manifest whose tasks may live under several roots; absent, the trap-families set.
+const STUDY_SET = process.argv.includes('--study-set') ? loadStudySet(process.cwd(), arg('--study-set')) : null;
+if (STUDY_SET !== null && TASK_ROOT !== null) throw new Error('--study-set and --task-root are exclusive');
 
 const sha256 = (s: string | Buffer): string => createHash('sha256').update(s).digest('hex');
 // the driver's `filesOf` / `treeSha` (top-level node_modules skipped, regular files only, default sort)
@@ -76,10 +87,11 @@ const treeSha = (dir: string): string => sha256(`${filesOf(dir).map((f) => `${f}
 // With --task-root, every variant directory `<task>/<level>/` holding a `puzzle.json` (sorted), none confirmatory.
 const pilotIds = (root: string): string[] => fs.readdirSync(root, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort()
   .flatMap((t) => fs.readdirSync(path.join(root, t), { withFileTypes: true }).filter((e) => e.isDirectory() && fs.existsSync(path.join(root, t, e.name, 'puzzle.json'))).map((e) => `${t}/${e.name}`).sort());
-const set = TASK_ROOT === null
+const set = STUDY_SET !== null ? STUDY_SET : TASK_ROOT === null
   ? JSON.parse(fs.readFileSync(path.join(FAM, 'study-set.json'), 'utf8')) as { confirmatory: { ddd: string[]; hexagonal: string[] }; exploratory?: { ddd?: string[]; hexagonal?: string[] } }
   : { confirmatory: { ddd: [], hexagonal: [] }, exploratory: { hexagonal: pilotIds(TASK_ROOT) } };
 const TASKS_DIR = TASK_ROOT ?? FAM;
+const taskDir = (task: string): string => (STUDY_SET !== null ? STUDY_SET.dirOf(task) : path.join(TASKS_DIR, task));
 const confirmatory = new Set([...set.confirmatory.ddd, ...set.confirmatory.hexagonal]);
 const ids = [...set.confirmatory.ddd, ...set.confirmatory.hexagonal, ...(set.exploratory?.ddd ?? []), ...(set.exploratory?.hexagonal ?? [])];
 if (new Set(ids).size !== ids.length) throw new Error('a task is listed twice in study-set.json');
@@ -92,7 +104,7 @@ const tasks: { id: string; seedDir: string; seedTreeSha256: string; specPath: st
 const map: Record<string, { task: string; style: string; confirmatory: boolean }> = {};
 for (const [i, task] of ids.entries()) {
   const tid = `t${String(i + 1).padStart(2, '0')}`;
-  const dir = path.join(TASKS_DIR, task);
+  const dir = taskDir(task);
   const doc = JSON.parse(fs.readFileSync(path.join(dir, 'tasks.json'), 'utf8')) as { tasks: { steps: { request: string }[] }[] };
   const steps = doc.tasks[0]!.steps.map((s) => s.request);
   const seedDir = path.join(O, 'seeds', tid);
@@ -135,8 +147,8 @@ fs.writeFileSync(path.join(VAULT, 'private-id-map.json'), `${JSON.stringify(map,
 
 // READ probe (PUZZLE-01 isolation check 3): the first task's README at its clone path, both canaries, a spec copy.
 const probeTask = ids[0]!;
-const readmeFirst = fs.readFileSync(path.join(TASKS_DIR, probeTask, 'README.md'), 'utf8').split('\n').find((l) => l.trim() !== '')!.replace(/^#+\s*/, '').trim();
-const probePaths = [path.join(CLONE, TASKS_DIR, probeTask, 'README.md'), path.join(VAULT, 'canary.txt'), path.join(O, 'canary.txt'), runTasks[0]!.specPath];
+const readmeFirst = fs.readFileSync(path.join(taskDir(probeTask), 'README.md'), 'utf8').split('\n').find((l) => l.trim() !== '')!.replace(/^#+\s*/, '').trim();
+const probePaths = [path.join(CLONE, taskDir(probeTask), 'README.md'), path.join(VAULT, 'canary.txt'), path.join(O, 'canary.txt'), runTasks[0]!.specPath];
 const canaryStrings = Object.values(canaries).flatMap((c) => [`canary-${c}`, c]);
 // An id that is part of a probe path is echoed back in the agent's refusal ("cannot read …/<id>/README.md") and is
 // no leak; only file contents and the other ids count (the TRAPRATE-01 probe-id fix).
@@ -173,16 +185,19 @@ const input = {
       path.join(CLONE, FAM, 'study-set.json'), path.join(CLONE, 'experiments', 'hcal-03'), path.join(CLONE, 'experiments', 'v15-study', 'run-study.ts'),
       '/root', '/tmp/claude-0', '/tmp/tsx-0',
       ...(TASK_ROOT === null ? [] : [path.join(CLONE, TASK_ROOT)]),
+      ...(STUDY_SET === null ? [] : [path.join(CLONE, STUDY_SET.manifest), ...STUDY_SET.roots.filter((r) => r !== FAM).map((r) => path.join(CLONE, r))]),
     ],
     canaries: canaryStrings,
     sweepPatternsFile: path.join(VAULT, 'sweep-patterns.txt'),
   },
   ...(TASK_ROOT === null ? {} : { taskRoot: TASK_ROOT }),
+  ...(STUDY_SET === null ? {} : { studySet: STUDY_SET.manifest }),
 };
 
 // Fingerprint patterns (§6 item 2): canaries, the TRAPRATE set, note title, hub header, spec header, task phrases.
 const pats = new Set<string>([...forbidden, 'trap-families', 'TRAP-FAMILIES', 'TRAPRATE-01', 'winning line', 'trap line',
   'v1.5 final study: combined delivery', 'v1.5 combined delivery hub', 'Edit-gate dummy project spec', 'v1.5 final study: the run plan']);
+if (STUDY_SET !== null) pats.add('hx-study-set');
 for (const t of tasks) for (const s of t.steps.slice(1)) pats.add(s.slice(0, 40));
 for (const v of Object.values(map)) pats.add(v.task);
 fs.writeFileSync(path.join(VAULT, 'sweep-patterns.txt'), `${[...pats].filter((p) => p.length >= 8).join('\n')}\n`);
