@@ -3229,3 +3229,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.5 study task set (draft, not sealed, not registered); zero model calls.
 
 ---
+
+## Construction: v1.5 HX-COVERAGE, trap coverage of the Hexagonal counted rules, and study records (B8)
+**Timestamp**: 2026-10-30T04:46:17Z
+**User Input**: "Measure, with zero calls, what share of real agent trap failures the candidate counted rules of the Hexagonal study see at instrument v1.5.5, and fix the study runner's record keeping (B8)."
+**AI Response**: "Verified the rules root 098d67bd4fdc97c5, then scored the 11 pilot-ladder and 8 TRAPRATE-01 Hexagonal trap failures and 43 clean trees with the unchanged study scorer (judge off). Counted set sees 16/19 (0.84 [0.62, 0.95]); misses are positional HTTP status in a core error (p6 L2 ×2) and a lower-cased vendor value-set copy (p3 L3). 5/43 clean trees have a counted finding, 3 after hand read, all R-MIRROR2. Under the scorer's default option (i) (R-MIRROR2 literal and error only): 14/19 and 1/43. The HX study set's reference traps (merged during the work): 6/9 seen after hand read; both renamed-copy tasks and one generic-literal task unseen. The final study kept no trees. Added run-study.ts --keep-trees (hash and canary checks, unit test), a .gitignore exception for results/v1.5-hx-study jsonl, and RUNBOOK §2.6."
+**Context**: CONSTRUCTION, v1.5 exploratory input to the draft Hexagonal pre-registration; zero model calls.
+
+---

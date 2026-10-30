@@ -56,7 +56,10 @@ npx tsx $D/run-study.ts --sessions --input $I
 # 2.5 Score (zero calls): scores.json and cells.json.
 npx tsx $D/score-study.ts --results /srv/o/$PH/out --input $I --node-modules /srv/h/skeleton-install/node_modules --out $RES/scores
 
-# 2.6 Records (no envelopes, no prompts, no trees). Then reopen the clone.
+# 2.6 Records (no envelopes, no prompts). Session trees are kept (the first study lost them, DEV-2): --keep-trees copies
+#     every session's snap/step-00..n and session.json to $RES/sessions/<id>/, after checking the recorded tree hashes
+#     and the canaries (zero calls). Then reopen the clone.
+npx tsx $D/run-study.ts --keep-trees --input $I
 O=/srv/o/$PH/out; mkdir -p $RES/run/sessions $RES/run/hub $RES/smoke $RES/probes
 cp $O/calls.jsonl $O/turns.jsonl $O/schedule.json $O/state.json $RES/run/ 2>/dev/null || true
 cp $O/redraws.jsonl $O/resumes.jsonl $RES/run/ 2>/dev/null || true
@@ -88,6 +91,12 @@ grep -rl canary- $RES
 ```
 
 This must print nothing.
+
+`*.jsonl` is ignored at the root; a phase's `run/*.jsonl` reaches the commit only under an exception. The Hexagonal
+study writes to `results/v1.5-hx-study/` (`make-input.ts --results-dir results/v1.5-hx-study`), which has one
+(`!results/v1.5-hx-study/**/*.jsonl`). Before committing, `git status --short --ignored $RES` must list no
+`run/*.jsonl` and no file under `sessions/` (an ignored build folder name such as `dist/` in an agent tree would be
+dropped; `ports/out/` and `adapters/out/` are excepted).
 
 The analysis reads the two lanes' `scores/cells.json` together; the lanes are one study with one plan per lane.
 Stage 1 is never pooled with the study.
