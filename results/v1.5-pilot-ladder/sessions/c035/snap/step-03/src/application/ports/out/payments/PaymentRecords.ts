@@ -1,0 +1,5 @@
+import type { PaymentRecord } from '../../../../domain/model/PaymentRecord';
+
+export interface PaymentRecords {
+  find(paymentId: string): Promise<PaymentRecord>;
+}

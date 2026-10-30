@@ -1,0 +1,14 @@
+export type Binding = 'hardback' | 'paperback' | 'other';
+
+/** One second-hand copy on our shelves; the price is in euros. */
+export interface Copy {
+  readonly copyId: string;
+  readonly isbn: string;
+  readonly title: string;
+  readonly author: string;
+  readonly year: number;
+  readonly pages: number;
+  readonly binding: Binding;
+  readonly condition: 'as new' | 'good' | 'worn';
+  readonly price: number;
+}

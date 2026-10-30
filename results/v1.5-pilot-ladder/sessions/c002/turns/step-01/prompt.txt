@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Online bookings come with the id of the guest's Tillpay payment intent (paymentId); the website creates it with manual capture. The Tillpay SDK, the package tillpay-sdk, is already in the project and the Tillpay client is already created with the key in TILLPAY_API_KEY for receipts and deposit refunds; use the same client. A booking must now be confirmed only when its payment intent is in status requires_capture. A confirmed booking answers status 'confirmed' as today. For any other intent status (requires_payment_method, processing, canceled and so on) the booking answers status 'unpaid' with the reason 'The payment has not gone through yet.' and is not kept.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+<run>/srv/h/bin/tsc --noEmit --incremental false -p <run>/srv/h/runs/c/c002/tsconfig.json

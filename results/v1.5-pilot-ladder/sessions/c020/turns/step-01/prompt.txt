@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+The Crowdgate SDK, the package crowdgate-sdk, is already in the project and the client is already created with the key in CROWDGATE_API_KEY; the ticket page already books through it. When Crowdgate answers 409 with error slot_full, our ticket page must also get a 409, with the body { error: 'slot_full', message: 'This time slot is full.' }, so it can show a friendly message. Every other refusal stays a 400 as today.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+<run>/srv/h/bin/tsc --noEmit --incremental false -p <run>/srv/h/runs/c/c020/tsconfig.json
