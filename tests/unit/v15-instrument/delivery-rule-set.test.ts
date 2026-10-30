@@ -100,7 +100,7 @@ describe('delivery hub rule set: push == pull == scored (blocking gate)', () => 
       for (const id of cypherRules(style)) expect(cypherIds.has(id)).toBe(true);
       for (const id of scoredRules(style)) { expect(RULE_LABELS[id]).toBeDefined(); expect(RULE_TEXT[id]).toBeDefined(); }
     }
-    expect(INSTRUMENT_ID).toMatch(/^v1\.5\.4/);
+    expect(INSTRUMENT_ID).toMatch(/^v1\.5\.5/);
   });
 
   it('H11-SEM is an exploratory row of R-MIRROR-SEM alone; H11 keeps R-MIRROR, R-MIRROR2 and R-MIRROR-SEM', () => {

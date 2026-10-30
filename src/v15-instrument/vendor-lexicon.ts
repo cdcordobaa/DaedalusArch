@@ -30,6 +30,20 @@
  * The field-set shape (a core type all of whose >= 3 non-id field names are fields of one vendor declaration, R-MIRROR's
  * names shape) ignores `generic`: there the evidence is the whole set, not one word. The single-field shape needs the
  * exact vendor spelling (`treatment_code` in the vendor, `treatmentCode` in the core is a translation, not a copy).
+ *
+ * v1.5.5 (2026-10-29, HX-RULES-V3, three readings the rule could not see; still extraction only):
+ *   - core declaration names (`kind: 'decl'`): every class, interface, type alias and enum a core file declares, with a
+ *     declaration token `decl:<words>` (case and separators aside, a trailing Error or Exception word dropped), met by
+ *     the same token of every vendor declaration (`declToken`), so `class AdjudicationFault extends DomainError` meets
+ *     the vendor's `AdjudicationFault`. Its stoplist is `declOwnedBy`: `generic` for a one-word stem (`Claim`, `Rate`),
+ *     `spec` when the spec names it (the stem as one word or a two-word phrase), `baseline` when the baseline's core
+ *     already declares it;
+ *   - object-literal keys (`context: 'key'`): an identifier key of an object literal (`{ R70: '…' }`) is a core literal
+ *     like a quoted key (`{ 'R70': '…' }`, already read, `context: 'value'`);
+ *   - listed names (`kind: 'listed'`): every string element of an array literal or of a tuple type
+ *     (`['claim_ref', 'claim_status'] as const`), with a name token, the list as its `set` (`<symbol>@<line>:<col>`) and
+ *     the number of the list's non-id string elements as `ownerFields`, so the rule can test a list that names a vendor
+ *     declaration's fields as it tests a type's declared fields.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -45,10 +59,14 @@ export interface VendorTermFact {
   readonly isError: boolean;
   /** '' when the term counts as the vendor's own; else why not: 'generic', 'spec' or 'baseline'. */
   readonly ownedBy: '' | 'generic' | 'spec' | 'baseline';
+  /** v1.5.5: for a declaration, its declaration token (`declToken`); '' for the other kinds. */
+  readonly declToken: string;
+  /** v1.5.5: for a declaration, why its NAME is not the vendor's own when a core declaration copies it (as `ownedBy`). */
+  readonly declOwnedBy: '' | 'generic' | 'spec' | 'baseline';
 }
-export type CoreContext = 'compare' | 'switch' | 'includes' | 'union' | 'enum' | 'const-set' | 'error' | 'value' | 'other' | 'field' | 'method';
+export type CoreContext = 'compare' | 'switch' | 'includes' | 'union' | 'enum' | 'const-set' | 'error' | 'value' | 'other' | 'field' | 'method' | 'key' | 'decl' | 'listed';
 export interface CoreTermFact {
-  readonly file: string; readonly line: number; readonly role: Role; readonly kind: 'literal' | 'field' | 'method';
+  readonly file: string; readonly line: number; readonly role: Role; readonly kind: 'literal' | 'field' | 'method' | 'decl' | 'listed';
   readonly text: string; readonly token: string;
   /** The enclosing named declaration (`Class.method`, `Interface.field`, `TypeAlias`, a const, a function). */
   readonly symbol: string;
@@ -65,6 +83,12 @@ export function words(s: string): string[] {
 }
 export const nameToken = (s: string): string => `name:${words(s).join('')}`;
 export const literalToken = (s: string): string => `lit:${s}`;
+/** v1.5.5: the words of a declaration name, a trailing Error or Exception word dropped (`AdjudicationFaultError` -> `adjudication fault`). */
+export function declStem(s: string): string[] {
+  const w = words(s);
+  return w.length > 1 && (w[w.length - 1] === 'error' || w[w.length - 1] === 'exception') ? w.slice(0, -1) : w;
+}
+export const declToken = (s: string): string => `decl:${declStem(s).join('')}`;
 
 /** Compound names that are ordinary data-model vocabulary, not a vendor's coinage. */
 export const GENERIC_NAMES: ReadonlySet<string> = new Set([
@@ -72,6 +96,9 @@ export const GENERIC_NAMES: ReadonlySet<string> = new Set([
   'startdate', 'enddate', 'starttime', 'endtime', 'startsat', 'endsat', 'expiresat', 'occurredat', 'userid', 'customerid',
   'orderid', 'errorcode', 'errormessage', 'statuscode', 'pagesize', 'nextpage', 'totalcount', 'requestid',
 ]);
+
+/** v1.5.5: a declaration name of one word (its stem) is ordinary vocabulary a core may declare for itself. */
+export const genericDeclName = (text: string): boolean => declStem(text).length <= 1;
 
 export function genericVendorTerm(kind: VendorTermKind, text: string): boolean {
   if (kind === 'literal') return text.length <= 2 || /^[a-z]+$/.test(text);
@@ -150,10 +177,10 @@ export function literalContext(lit: Node): CoreContext {
 }
 
 /** The vendor lexicon of one vendor module's exported declarations. */
-export function vendorTermsOf(mod: string, exportsOf: readonly { name: string; decls: readonly Node[] }[]): Omit<VendorTermFact, 'ownedBy'>[] {
-  const out: Omit<VendorTermFact, 'ownedBy'>[] = [];
+export function vendorTermsOf(mod: string, exportsOf: readonly { name: string; decls: readonly Node[] }[]): Omit<VendorTermFact, 'ownedBy' | 'declOwnedBy'>[] {
+  const out: Omit<VendorTermFact, 'ownedBy' | 'declOwnedBy'>[] = [];
   const add = (decl: string, kind: VendorTermKind, text: string, isError: boolean, set = '', setSize = 0): void => {
-    out.push({ module: mod, decl, kind, text, token: kind === 'literal' || kind === 'decl' ? literalToken(text) : nameToken(text), set, setSize, isError });
+    out.push({ module: mod, decl, kind, text, token: kind === 'literal' || kind === 'decl' ? literalToken(text) : nameToken(text), set, setSize, isError, declToken: kind === 'decl' ? declToken(text) : '' });
   };
   const literalsOf = (t: Type): string[] | undefined => {
     const parts = (t.isUnion() ? t.getUnionTypes() : [t]).filter((p) => !p.isUndefined() && !p.isNull());
@@ -253,6 +280,37 @@ export function coreTermsOf(sf: SourceFile, file: string, role: Role): CoreTermF
     if (text === '') continue;
     const s = sets.get(lit);
     out.push({ file, line: lit.getStartLineNumber(), role, kind: 'literal', text, token: literalToken(text), symbol: symbolOf(lit), context: literalContext(lit), set: s?.set ?? '', setSize: s?.size ?? 0, owner: '', ownerFields: 0 });
+  }
+  // v1.5.5: an identifier key of an object literal is read like a quoted key (a vendor code used as a lookup key).
+  for (const pa of sf.getDescendantsOfKind(SyntaxKind.PropertyAssignment)) {
+    const k = pa.getNameNode();
+    if (!Node.isIdentifier(k)) continue;
+    const text = k.getText();
+    out.push({ file, line: k.getStartLineNumber(), role, kind: 'literal', text, token: literalToken(text), symbol: symbolOf(pa), context: 'key', set: '', setSize: 0, owner: '', ownerFields: 0 });
+  }
+  // v1.5.5: core declaration names (class, interface, type alias, enum), for the vendor-declaration-name shape.
+  for (const d of [...sf.getDescendantsOfKind(SyntaxKind.ClassDeclaration), ...sf.getDescendantsOfKind(SyntaxKind.InterfaceDeclaration), ...sf.getDescendantsOfKind(SyntaxKind.TypeAliasDeclaration), ...sf.getDescendantsOfKind(SyntaxKind.EnumDeclaration)]) {
+    const name = d.getName();
+    if (name === undefined || name === '') continue;
+    out.push({ file, line: d.getStartLineNumber(), role, kind: 'decl', text: name, token: declToken(name), symbol: name, context: 'decl', set: '', setSize: 0, owner: name, ownerFields: 0 });
+  }
+  // v1.5.5: the string elements of an array literal or a tuple type, as listed names of that list.
+  const lists: { host: Node; items: Node[] }[] = [];
+  for (const a of sf.getDescendantsOfKind(SyntaxKind.ArrayLiteralExpression)) lists.push({ host: a, items: a.getElements().map(unwrap).filter((x) => strOf(x) !== undefined) });
+  for (const t of sf.getDescendantsOfKind(SyntaxKind.TupleType)) {
+    lists.push({ host: t, items: t.getElements().map((e) => (Node.isNamedTupleMember(e) ? e.getTypeNode() : e)).filter((e) => Node.isLiteralTypeNode(e) && strOf(e.getLiteral()) !== undefined).map((e) => (e as import('ts-morph').LiteralTypeNode).getLiteral()) });
+  }
+  for (const { host, items } of lists) {
+    if (items.length === 0) continue;
+    const texts = items.map((x) => strOf(x)!).filter((t) => t !== '');
+    const n = new Set(texts.filter((t) => t !== 'id')).size;
+    const { line, column } = sf.getLineAndColumnAtPos(host.getStart());
+    const sym = symbolOf(host);
+    for (const x of items) {
+      const text = strOf(x)!;
+      if (text === '') continue;
+      out.push({ file, line: x.getStartLineNumber(), role, kind: 'listed', text, token: nameToken(text), symbol: sym, context: 'listed', set: `${sym}@${String(line)}:${String(column)}`, setSize: texts.length, owner: sym, ownerFields: n });
+    }
   }
   const fieldOwner = (n: Node): { owner: string; fields: number } => {
     const o = n.getParent();

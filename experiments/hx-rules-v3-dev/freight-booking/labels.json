@@ -1,0 +1,114 @@
+{
+  "H11-decl-pos1": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/domain/errors.ts",
+    "note": "The domain declares CarrierRefusal, the vendor error class name, as its own refusal error; the gateway throws it.",
+    "subshape": "decl",
+    "kind": "positive"
+  },
+  "H11-decl-pos2": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/application/ports/out/carrier-booking.port.ts",
+    "note": "The out-port returns a type named BookingReply, the vendor reply type name, with translated fields.",
+    "subshape": "decl",
+    "kind": "positive"
+  },
+  "H11-decl-twin1": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "The domain declares ShipmentWindow; the glossary owns the term (the vendor uses it too).",
+    "subshape": "decl",
+    "kind": "hard-twin"
+  },
+  "H11-decl-twin2": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "The domain declares Lane, a one-word name the vendor also exports.",
+    "subshape": "decl",
+    "kind": "hard-twin"
+  },
+  "H11-decl-twin3": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "The domain names its refusal error in its own words (CarrierDeclinedBookingError), close to the vendor CarrierRefusal but not a copy.",
+    "subshape": "decl",
+    "kind": "hard-twin"
+  },
+  "H11-key-pos1": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/domain/errors.ts",
+    "note": "A domain error keeps a message table keyed by four vendor HoldCode values (H10, H22, H31, H47) as bare object keys.",
+    "subshape": "key",
+    "kind": "positive"
+  },
+  "H11-key-pos2": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/application/booking-priority.ts",
+    "note": "Application code ranks bookings with a table keyed by vendor BookingState codes.",
+    "subshape": "key",
+    "kind": "positive"
+  },
+  "H11-key-twin1": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "The same message table, keyed by the domain hold reasons; the vendor codes are mapped in the gateway.",
+    "subshape": "key",
+    "kind": "hard-twin"
+  },
+  "H11-key-twin2": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "A domain table keyed by short shipper tiers (A1, B2) and plain words; none is a vendor code.",
+    "subshape": "key",
+    "kind": "hard-twin"
+  },
+  "H11-list-pos1": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/application/booking-statement.ts",
+    "note": "Application code declares the statement columns as five vendor BookingReply field names, as strings in a const array.",
+    "subshape": "list",
+    "kind": "positive"
+  },
+  "H11-list-pos2": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/domain/charge-row.ts",
+    "note": "A domain tuple type lists three vendor field names as its column labels.",
+    "subshape": "list",
+    "kind": "positive"
+  },
+  "H11-list-twin1": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "The statement columns in the domain's own names (a casing change and renames): a translation, not a copy.",
+    "subshape": "list",
+    "kind": "hard-twin"
+  },
+  "H11-list-twin2": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "A summary list of three plain words that are also vendor field names (currency, weight, pallets): ordinary vocabulary.",
+    "subshape": "list",
+    "kind": "hard-twin"
+  },
+  "H11-list-twin3": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "The vendor field list lives in the outbound adapter, which reads the reply; the core is unchanged.",
+    "subshape": "list",
+    "kind": "twin"
+  }
+}
