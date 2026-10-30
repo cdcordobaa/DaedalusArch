@@ -16,7 +16,7 @@ import { checkLayers } from '../../../src/v15-instrument/edit-gate/layers.js';
 import { loadRules } from '../../../src/v15-instrument/graph.js';
 import { RULE_LABELS, RULE_TEXT } from '../../../src/v15-instrument/rule-messages.js';
 import { mirrorKeyOf, type MirrorAnswer, type MirrorJudge } from '../../../src/v15-instrument/mirror-sem.js';
-import { cypherRules, frozenRules, INSTRUMENT_ID, scoredRules, type Style } from '../../../src/v15-instrument/rule-set.js';
+import { ADMITTED_HEX_ROWS, cypherRules, frozenRules, HEX_ROW_RULES, INSTRUMENT_ID, scoredRules, type Style } from '../../../src/v15-instrument/rule-set.js';
 import { HEXAGONAL_RULE_TIERS, RULE_TIERS } from '../../../src/scoring-engine/rule-tiers.js';
 import { admittedRules as scorerAdmitted, exploratoryRules as scorerExploratory } from '../../../experiments/v15-study/score-study.js';
 
@@ -101,6 +101,13 @@ describe('delivery hub rule set: push == pull == scored (blocking gate)', () => 
       for (const id of scoredRules(style)) { expect(RULE_LABELS[id]).toBeDefined(); expect(RULE_TEXT[id]).toBeDefined(); }
     }
     expect(INSTRUMENT_ID).toMatch(/^v1\.5\.4/);
+  });
+
+  it('H11-SEM is an exploratory row of R-MIRROR-SEM alone; H11 keeps R-MIRROR, R-MIRROR2 and R-MIRROR-SEM', () => {
+    expect(HEX_ROW_RULES['H11-SEM']).toEqual(['R-MIRROR-SEM']);
+    expect(HEX_ROW_RULES['H11']).toEqual(['R-MIRROR', 'R-MIRROR2', 'R-MIRROR-SEM']);
+    expect(ADMITTED_HEX_ROWS).not.toContain('H11-SEM');
+    expect(scoredRules('hexagonal')).toContain('R-MIRROR-SEM');
   });
 
   const cases: [Style, string, string, string, string][] = [
