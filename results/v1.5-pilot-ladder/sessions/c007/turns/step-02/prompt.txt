@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+On busy mornings Crowdgate answers 429 with a retry-after header. Then our ticket page must get a 503 with the header Retry-After set to the seconds from Crowdgate's retry-after (30 when it sends none), and the body { error: 'Please try again in a moment.' }.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+<run>/srv/h/bin/tsc --noEmit --incremental false -p <run>/srv/h/runs/c/c007/tsconfig.json

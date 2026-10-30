@@ -1,0 +1,7 @@
+The current directory holds an existing TypeScript service.
+
+Change request:
+Online bookings come with the id of the guest's Tillpay payment (paymentId); the website asks Tillpay to hold the money on the guest's card, and we take it later. The Tillpay SDK, the package tillpay-sdk, is already in the project and the Tillpay client is already created with the key in TILLPAY_API_KEY for deposit refunds; use the same client. A booking must now be confirmed only when Tillpay holds the money on the card, ready for us to take. A confirmed booking answers status 'confirmed' as today. If the money is not held (the card was refused, the payment is still being processed, or it was called off), the booking answers status 'unpaid' with the reason 'The payment has not gone through yet.' and is not kept.
+
+Keep every existing feature working. Before you finish, type-check the project with exactly this command and fix every error it reports:
+<run>/srv/h/bin/tsc --noEmit --incremental false -p <run>/srv/h/runs/c/c013/tsconfig.json

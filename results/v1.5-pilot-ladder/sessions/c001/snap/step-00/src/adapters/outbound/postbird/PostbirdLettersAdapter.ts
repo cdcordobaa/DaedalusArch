@@ -1,0 +1,13 @@
+import type { PostbirdClient } from 'postbird-sdk';
+import type { Applicant } from '../../../domain/model/Applicant';
+import type { LetterKind, Letters } from '../../../application/ports/out/Letters';
+
+const TEMPLATES: Record<LetterKind, string> = { welcome: 'waitlist-welcome' };
+
+export class PostbirdLettersAdapter implements Letters {
+  constructor(private readonly client: PostbirdClient) {}
+
+  async send(to: Applicant, letter: LetterKind, details: Record<string, string>): Promise<void> {
+    await this.client.sendTemplate({ to: to.email, templateId: TEMPLATES[letter], variables: details });
+  }
+}
