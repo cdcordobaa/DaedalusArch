@@ -47,3 +47,24 @@ it.
   its positives would read as misses and its clean cases as passes. Scoring it needs a row key, or a scorer for the
   semantic layer, fixed before the seal is opened.
 - Scorer, as for HCAL-03 to HCAL-05: `npx tsx experiments/cal-01/score.ts --dir experiments/hcal-06 --rows hex`.
+
+## Re-freeze of the rule sources (2026-10-29, before any scoring)
+
+`RULES-FROZEN.sha256` was taken at `main` `4d6b74ef7`. The set was sealed in `407c4f283` and merged to `main` (PR 439).
+PR 440 (R-MIRROR-SEM, instrument `v1.5.4-mirror-sem`, merge `7a1856d9d`) then changed the instrument: 7 frozen files
+differ (`consistency.ts`, `delivery/hub.ts`, `facts.ts`, `graph.ts`, `rule-messages.ts`, `rule-set.ts`,
+`vendor-lexicon.ts`) and 2 new files fall under the selection rule (`mirror-sem.ts`,
+`rules/r-mirror-sem-vendor-value-set.cypher`). No commit between the freeze and PR 440's merge touched the set's cases or
+labels; the case seal (`SEAL.sha256`, root `70f9d0cad6038650`) still verifies. No one had scored the set or opened it
+for rule work.
+
+Disclosure: the set has been on `main` since its merge, where any session could read it. Rule builders were instructed
+not to open it, and the instructions of the session that built R-MIRROR-SEM forbade it. PR 440 touches no file under
+`experiments/hcal-06/`.
+
+Before scoring, three preparation changes land in one PR: the row key `H11-SEM: ['R-MIRROR-SEM']` in the Hexagonal row
+map; the live R-MIRROR-SEM judge in `experiments/cal-01/score.ts` for this scoring (the hub's CLI judge route and disk
+cache, `claude-opus-5-5`, every call in a committed ledger); and the hub's `check_consistency` description. The rule
+sources are then re-frozen with the same selection rule as the original (every tracked non-test `.ts` and `.cypher`
+under `src/v15-instrument`, plus the scorer) at the head of that PR, into `RULES-FROZEN-2.sha256`. Scoring uses the
+re-frozen hash, not the original, and verifies it first at the merged commit.
