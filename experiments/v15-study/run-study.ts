@@ -52,6 +52,8 @@ import type { StepAgent, TurnInput, TurnResult } from '../../scripts/lib/loop/ty
 import { realSleep, systemClock } from '../../scripts/lib/generators/retry.js';
 import { DeliveryHub } from '../../src/v15-instrument/delivery/hub.js';
 import { checkConsistency } from '../../src/v15-instrument/consistency.js';
+import { checkLayers } from '../../src/v15-instrument/edit-gate/layers.js';
+import { DeliveryAudit } from './lib/delivery-audit.js';
 import { SMOKE_PROMPT, treeSha } from '../puzzle-01-baseline/run-baseline.js';
 import { smokePrompt as gateSmokePrompt } from '../edit-gate/run-edit-gate.js';
 import { messageText, startFakeApi, type Block } from '../edit-gate/test/fake-api.js';
@@ -337,8 +339,13 @@ export const overlayBlindCheck: typeof checkConsistency = async (o) => {
   return checkConsistency({ ...o, root: view });
 };
 
-function newHub(ctx: Ctx, logDir: string): DeliveryHub {
-  return new DeliveryHub(ctx.sockets.gate.socket, ctx.sockets.mcp.socket, logDir, { layers: ctx.input.delivery.layers, check: overlayBlindCheck });
+/**
+ * One hub per session. With an audit (study sessions), both test seams are wrapped so every check the hub runs leaves
+ * its rule-ID list, tree digest and findings in `session.json` (`deliveryAudit`; `lib/delivery-audit.ts`). The wrap is
+ * outside the instrument, so the rules-frozen root is unchanged.
+ */
+function newHub(ctx: Ctx, logDir: string, audit?: DeliveryAudit): DeliveryHub {
+  return new DeliveryHub(ctx.sockets.gate.socket, ctx.sockets.mcp.socket, logDir, { layers: ctx.input.delivery.layers, check: audit === undefined ? overlayBlindCheck : audit.wrapCheck(overlayBlindCheck), ...(audit !== undefined ? { checkLayers: audit.wrapLayers(checkLayers) } : {}) });
 }
 
 // ── one session ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -366,8 +373,9 @@ async function runSession(ctx: Ctx, install: SkeletonInstall, deps: SessionDeps,
   const cwd = openCell(ctx, install, s.id, task.seedDir);
   if ('current' in deps.agent) deps.agent.current = s.arm;
   let hub: DeliveryHub | null = null;
+  const audit = s.arm === 'combined' ? new DeliveryAudit() : null;
   if (s.arm === 'combined') {
-    hub = newHub(ctx, hubLogDir);
+    hub = newHub(ctx, hubLogDir, audit ?? undefined);
     await hub.start();
     await hub.setCell({ id: s.id, session: null, step: 'step-01', turn: 'step-01', spec: task.specPath, project: cwd, baseline: task.seedDir });
   }
@@ -392,6 +400,7 @@ async function runSession(ctx: Ctx, install: SkeletonInstall, deps: SessionDeps,
       break;
     }
     hub?.setTurn(turnId, turnId);
+    if (audit !== null) audit.turn = turnId;
     const recordDir = path.join(out, 'turns', turnId);
     fs.mkdirSync(recordDir, { recursive: true });
     const prompt = promptFor(s.arm, task.steps[k - 1] as string, typecheckCommand(input.harnessRoot, runId), ctx.sentence);
@@ -464,7 +473,7 @@ async function runSession(ctx: Ctx, install: SkeletonInstall, deps: SessionDeps,
   const integrity = s.arm === 'combined' ? integrityOf(observations) : null;
   if (integrity?.infrastructure === true) verdict = 'infrastructure';
   closeCell(ctx, s.id);
-  fs.writeFileSync(path.join(out, 'session.json'), `${JSON.stringify({ ...s, verdict, stop: stop?.message ?? null, integrity, steps }, null, 2)}\n`);
+  fs.writeFileSync(path.join(out, 'session.json'), `${JSON.stringify({ ...s, verdict, stop: stop?.message ?? null, integrity, steps, ...(audit !== null ? { deliveryAudit: audit.records } : {}) }, null, 2)}\n`);
   if (stop !== null) throw stop;
   if (integrity?.mechanismStop === true) throw new MechanismStop(`session ${s.id}: ${integrity.reasons.join('; ')}`);
   return { verdict, integrity };
