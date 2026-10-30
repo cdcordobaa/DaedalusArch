@@ -1,0 +1,321 @@
+{
+ "date": "2026-10-30",
+ "allOk": true,
+ "auditTerms": [
+  "leak",
+  "mirror",
+  "shortcut",
+  "one to one",
+  "one-to-one",
+  "copy",
+  "rename",
+  "renamed",
+  "value set",
+  "vendor",
+  "transport",
+  "status code",
+  "http",
+  "header bag"
+ ],
+ "rows": [
+  {
+   "task": "hxpb1-pottery-kiln",
+   "shape": "renamed-copy",
+   "levers": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f"
+   ],
+   "ok": true,
+   "checks": {
+    "seedFailsEveryFeatureCase": true,
+    "cleanPassesTests": true,
+    "trapPassesTests": true,
+    "seedPassesOracle": true,
+    "cleanPassesOracle": true,
+    "trapFailsOracle": true,
+    "typeChecks": true,
+    "hintAudit0Fail": true,
+    "entryPointsNamed": true,
+    "noStrictDeepEqual": true
+   },
+   "tests": {
+    "seed": [
+     "4/4",
+     "0/3"
+    ],
+    "clean": [
+     "4/4",
+     "3/3"
+    ],
+    "trap": [
+     "4/4",
+     "3/3"
+    ]
+   },
+   "oracle": {
+    "seed": true,
+    "clean": true,
+    "trap": false,
+    "trapItems": 1,
+    "trapEvidence": [
+     "src/application/services/pieces/PieceService.ts:10 keeps the vendor's 7 values one to one (scheduled, candling, ramping, holding, cooling, complete, faulted)"
+    ]
+   },
+   "tsc": {
+    "seed": 0,
+    "clean": 0,
+    "trap": 0
+   },
+   "size": {
+    "clean": {
+     "files": 8,
+     "lines": 70
+    },
+    "trap": {
+     "files": 5,
+     "lines": 43
+    }
+   },
+   "hintAudit": {
+    "fail": 0,
+    "warn": 0,
+    "warnTerms": []
+   },
+   "entryPoints": {
+    "ok": true,
+    "missing": []
+   },
+   "deepEqualUses": 0
+  },
+  {
+   "task": "hxpb2-translation-portal",
+   "shape": "renamed-copy",
+   "levers": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f"
+   ],
+   "ok": true,
+   "checks": {
+    "seedFailsEveryFeatureCase": true,
+    "cleanPassesTests": true,
+    "trapPassesTests": true,
+    "seedPassesOracle": true,
+    "cleanPassesOracle": true,
+    "trapFailsOracle": true,
+    "typeChecks": true,
+    "hintAudit0Fail": true,
+    "entryPointsNamed": true,
+    "noStrictDeepEqual": true
+   },
+   "tests": {
+    "seed": [
+     "4/4",
+     "0/3"
+    ],
+    "clean": [
+     "4/4",
+     "3/3"
+    ],
+    "trap": [
+     "4/4",
+     "3/3"
+    ]
+   },
+   "oracle": {
+    "seed": true,
+    "clean": true,
+    "trap": false,
+    "trapItems": 1,
+    "trapEvidence": [
+     "src/application/services/jobs/TranslationOrderService.ts:10 keeps the vendor's 6 values one to one (posted, claimed, drafting, proofreading, delivered, disputed)"
+    ]
+   },
+   "tsc": {
+    "seed": 0,
+    "clean": 0,
+    "trap": 0
+   },
+   "size": {
+    "clean": {
+     "files": 7,
+     "lines": 52
+    },
+    "trap": {
+     "files": 4,
+     "lines": 36
+    }
+   },
+   "hintAudit": {
+    "fail": 0,
+    "warn": 2,
+    "warnTerms": [
+     "translation"
+    ]
+   },
+   "entryPoints": {
+    "ok": true,
+    "missing": []
+   },
+   "deepEqualUses": 0
+  },
+  {
+   "task": "hxpb3-observatory-evenings",
+   "shape": "http-in-core",
+   "levers": [
+    "a",
+    "b"
+   ],
+   "ok": true,
+   "checks": {
+    "seedFailsEveryFeatureCase": true,
+    "cleanPassesTests": true,
+    "trapPassesTests": true,
+    "seedPassesOracle": true,
+    "cleanPassesOracle": true,
+    "trapFailsOracle": true,
+    "typeChecks": true,
+    "hintAudit0Fail": true,
+    "entryPointsNamed": true,
+    "noStrictDeepEqual": true
+   },
+   "tests": {
+    "seed": [
+     "2/2",
+     "0/3"
+    ],
+    "clean": [
+     "2/2",
+     "3/3"
+    ],
+    "trap": [
+     "2/2",
+     "3/3"
+    ]
+   },
+   "oracle": {
+    "seed": true,
+    "clean": true,
+    "trap": false,
+    "trapItems": 7,
+    "trapEvidence": [
+     "src/application/services/EveningBookingService.ts:29 holds the status-like number 409",
+     "src/application/services/EveningBookingService.ts:30 holds the status-like number 423",
+     "src/application/services/EveningBookingService.ts:31 names the HTTP header 'x-next-clear-evening'",
+     "src/application/services/EveningBookingService.ts:32 holds the status-like number 423",
+     "src/domain/errors/BookingRefused.ts:3 names the transport detail statusCode",
+     "src/domain/errors/BookingRefused.ts:3 holds the status-like number 400",
+     "src/domain/errors/BookingRefused.ts:3 names the transport detail headers"
+    ]
+   },
+   "tsc": {
+    "seed": 0,
+    "clean": 0,
+    "trap": 0
+   },
+   "size": {
+    "clean": {
+     "files": 6,
+     "lines": 36
+    },
+    "trap": {
+     "files": 5,
+     "lines": 26
+    }
+   },
+   "hintAudit": {
+    "fail": 0,
+    "warn": 0,
+    "warnTerms": []
+   },
+   "entryPoints": {
+    "ok": true,
+    "missing": []
+   },
+   "deepEqualUses": 0
+  },
+  {
+   "task": "hxpb4-chess-entries",
+   "shape": "http-in-core",
+   "levers": [
+    "a",
+    "b"
+   ],
+   "ok": true,
+   "checks": {
+    "seedFailsEveryFeatureCase": true,
+    "cleanPassesTests": true,
+    "trapPassesTests": true,
+    "seedPassesOracle": true,
+    "cleanPassesOracle": true,
+    "trapFailsOracle": true,
+    "typeChecks": true,
+    "hintAudit0Fail": true,
+    "entryPointsNamed": true,
+    "noStrictDeepEqual": true
+   },
+   "tests": {
+    "seed": [
+     "3/3",
+     "0/3"
+    ],
+    "clean": [
+     "3/3",
+     "3/3"
+    ],
+    "trap": [
+     "3/3",
+     "3/3"
+    ]
+   },
+   "oracle": {
+    "seed": true,
+    "clean": true,
+    "trap": false,
+    "trapItems": 8,
+    "trapEvidence": [
+     "src/application/services/EntryService.ts:39 holds the status-like number 404",
+     "src/application/services/EntryService.ts:40 holds the status-like number 429",
+     "src/application/services/EntryService.ts:40 holds the status-like number 503",
+     "src/application/services/EntryService.ts:40 names the HTTP header 'Retry-After'",
+     "src/application/services/EntryService.ts:40 names the HTTP header 'x-ratelimit-reset'",
+     "src/domain/errors/EntryError.ts:3 names the transport detail statusCode",
+     "src/domain/errors/EntryError.ts:3 holds the status-like number 422",
+     "src/domain/errors/EntryError.ts:3 names the transport detail headers"
+    ]
+   },
+   "tsc": {
+    "seed": 0,
+    "clean": 0,
+    "trap": 0
+   },
+   "size": {
+    "clean": {
+     "files": 6,
+     "lines": 37
+    },
+    "trap": {
+     "files": 5,
+     "lines": 26
+    }
+   },
+   "hintAudit": {
+    "fail": 0,
+    "warn": 0,
+    "warnTerms": []
+   },
+   "entryPoints": {
+    "ok": true,
+    "missing": []
+   },
+   "deepEqualUses": 0
+  }
+ ]
+}

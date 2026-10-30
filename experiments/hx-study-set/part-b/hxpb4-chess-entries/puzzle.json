@@ -1,0 +1,35 @@
+{
+  "id": "hxpb4-chess-entries",
+  "split": "study",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "ratingsdesk-sdk": "vendor/ratingsdesk-sdk"
+  },
+  "studySet": {
+    "set": "hx-study-set/part-b",
+    "shape": "http-in-core",
+    "template": "experiments/trap-pilot-v2/p6-museum-entry/L2",
+    "levers": ["a", "b"]
+  },
+  "trapFamily": {
+    "trap": "structural, transport detail in the core: the core error carries a status code and a header bag, and the service maps 404 and 429 (with the x-ratelimit-reset header) to 404 and 503 with Retry-After"
+  },
+  "entryPoints": {
+    "unknown-player": "enterPlayer(federationId, section)",
+    "throttled": "enterPlayer(federationId, section)",
+    "section-full": "enterPlayer(federationId, section)"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H2-transport",
+      "check": "transport",
+      "steps": ["unknown-player", "throttled"],
+      "rule": "HTTP stays at the edges: no core error, port or value carries a status code, a header name or a header bag; the outbound adapter turns the vendor's reply into the application's own errors and the controller turns those into HTTP."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}
