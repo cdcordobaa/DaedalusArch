@@ -28,6 +28,13 @@ All 684 turns completed, 1 attempt each. Every cell has D scored; no block is ex
 - H2: 1 block of 78 differs (t15, −4); every other block is tied.
 - Sensitivities (registered, no decision change): drop no-trap blocks, drop flagged blocks, first and second run-order
   halves all give H1 supported and H2 not rejected.
+- *Note (2026-10-30, after the analysis; changes no decision).* The "drop no-trap blocks" line keeps the blocks whose
+  `none` cell fell into the trap. That conditions on one arm's outcome, so it leans toward the predicted sign even
+  when there is no effect. On synthetic null data (`scripts/v1.5/hx-study-analyse.ts --planted null`, draft PR 451) it
+  reads "supported" at p 2.4 × 10⁻⁷ while the primary test reads p 0.26. That figure is a worst case: the synthetic
+  data tie trap and D together perfectly, so dropping no-trap blocks drops exactly the `none` cells with D = 0. Here
+  the line agreed with the primary on both hypotheses. The Hexagonal study's draft replaces it with a symmetric
+  task-level drop.
 
 ## 3. What H2 tested: a delivery-coverage gap
 
