@@ -18,5 +18,3 @@ Sensitivity dropFlagged: not rejected: no difference detected at the stated MDE 
 Sensitivity firstHalf: not rejected: no difference detected at the stated MDE (p 3.32e-1, 44 blocks)
 
 Sensitivity secondHalf: not rejected: no difference detected at the stated MDE (p 6.64e-1, 44 blocks)
-
-Secondary R-MIRROR-SEM: ΣDsem none 0, combined 0, exact p 1.00e+0 (no decision)

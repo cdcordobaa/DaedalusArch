@@ -19,17 +19,15 @@ describe('study set manifest', () => {
     expect(s.dirOf('f2-hex-vendor-port')).toBe('experiments/trap-families/f2-hex-vendor-port');
   });
 
-  it('the Hexagonal study manifest: 13 tasks over three roots, part A and the four trap-family tasks on disk', () => {
+  it('the Hexagonal study manifest: 11 tasks over three roots, part A and the four trap-family tasks on disk', () => {
     const s = loadStudySet(REPO, 'experiments/hx-study-set/study-set.json');
-    expect(s.ids).toHaveLength(13);
+    expect(s.ids).toHaveLength(11);
     expect(s.confirmatory.ddd).toEqual([]);
     expect(s.ids.filter((t) => t.startsWith('hxa') || t.startsWith('hxb'))).toHaveLength(5);
-    expect(s.ids.filter((t) => t.startsWith('hxpb'))).toEqual(['hxpb1-pottery-kiln', 'hxpb2-translation-portal', 'hxpb3-observatory-evenings', 'hxpb4-chess-entries']);
+    // B11: hxpb1 and hxpb2 are not in the study (their reference traps are not seen by any scored rule).
+    expect(s.ids.filter((t) => t.startsWith('hxpb'))).toEqual(['hxpb3-observatory-evenings', 'hxpb4-chess-entries']);
     expect(s.ids.filter((t) => t.startsWith('f'))).toEqual(['f2-hex-vendor-port', 'f14-hex-geocoding', 'f16-hex-fx-rates', 'f24-hex-laundry-lockers']);
     expect(s.roots).toEqual(['experiments/hx-study-set/part-a', 'experiments/hx-study-set/part-b', 'experiments/trap-families']);
-    // D8: the two renamed-copy tasks are measured only in secondary 8; D4: f2 is the fourth f-task.
-    expect(s.semOnly).toEqual(['hxpb1-pottery-kiln', 'hxpb2-translation-portal']);
-    expect(loadStudySet(REPO).semOnly).toEqual([]);
     for (const t of s.ids) {
       expect(path.posix.basename(s.dirOf(t))).toBe(t);
       if (!t.startsWith('hxpb')) {

@@ -3253,3 +3253,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.5 Hexagonal study preparation (draft PR 451, not registered); 2 model calls (R-MIRROR-SEM judge, visibility check only).
 
 ---
+
+## Construction: Hexagonal study preparation, B11 decided, task set sealed, ready for registration review
+**Timestamp**: 2026-10-30T19:20:38Z
+**User Input**: "Drop the two renamed-copy tasks (their traps are seen by no scored rule; no trap rebuild, no rule change), withdraw the R-MIRROR-SEM secondary and record renamed copies as a known blind spot; keep r = 10 and state its power plainly; keep the draft's order of events; seal the 11 task folders, retake the hashes, re-run tests and the hint audit, push, and mark PR 451 ready for review without merging."
+**AI Response**: "Study set reduced to 11 tasks (neutral ids t01-t11); semOnly/Dsem/primaryCells code removed (scorer and study-set loader back to main); visibility re-run: 11 of 11 pass; power, D9 and planted tests unchanged (r = 10, 0.765 under scenario A, below 0.80, no further step); caps recomputed (pilot 132 turns, cap 140, calls 143; study 660, cap 700, calls 703); pilot gate (c) set to 8 of 11; hint audit 0 FAIL in 33 units; sealed the 11 task folders plus study-set.json, root db7347acf8106989 (752 files, verify-seal.sh); script hashes taken at the seal; 190 unit tests pass; first-study inputs byte-identical. Draft updated (limitations, decisions table, B11 closed by decision); order of events unchanged."
+**Context**: CONSTRUCTION, v1.5 Hexagonal study preparation (PR 451, not registered); zero model calls.
+
+---

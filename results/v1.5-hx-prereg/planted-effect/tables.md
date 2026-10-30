@@ -18,5 +18,3 @@ Sensitivity dropFlagged: supported (p 1.35e-8, 88 blocks)
 Sensitivity firstHalf: supported (p 6.10e-5, 44 blocks)
 
 Sensitivity secondHalf: supported (p 1.23e-4, 44 blocks)
-
-Secondary R-MIRROR-SEM: ΣDsem none 0, combined 0, exact p 1.00e+0 (no decision)

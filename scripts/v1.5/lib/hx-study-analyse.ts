@@ -17,24 +17,16 @@ export const HX_ALPHA = 0.05;
 /** The task-level sign test cannot reach HX_ALPHA with fewer nonzero task sums: 2/2^5 = 0.0625. */
 export const MIN_NONZERO_TASKS = 6;
 
-/**
- * A Hexagonal study cell. `D` is the primary outcome (§1); `Dsem` the registered secondary (R-MIRROR-SEM, §1).
- * `primary: false` marks a task measured only in secondary 8 (D8: hxpb1, hxpb2; `semOnly` in the study set); the
- * scorer writes it with `--counted`. A cell without it is primary.
- */
-export interface HxCell extends Cell { readonly Dsem?: number | null; readonly primary?: boolean; readonly taskName?: string }
+/** A Hexagonal study cell. `D` is the primary outcome (§1). `Dsem` (R-MIRROR-SEM) is not an outcome of this study (B11). */
+export interface HxCell extends Cell { readonly Dsem?: number | null }
 
 export const hxBlocks = (cells: readonly HxCell[]): Block[] => blocksOf(cells, 'hexagonal');
 
-/** D8: the tasks run in both arms but measured only in secondary 8 (they never enter D_hx or secondaries 1–7). */
-export const HX_SEM_ONLY_TASKS: readonly string[] = ['hxpb1-pottery-kiln', 'hxpb2-translation-portal'];
-/** D8: the 11 tasks of the primary D_hx (and of secondaries 1–7). */
+/** The 11 study tasks (B11: hxpb1 and hxpb2 dropped); `experiments/hx-study-set/study-set.json` lists the same. */
 export const HX_PRIMARY_TASKS: readonly string[] = ['hxa1-chimney-sweeps', 'hxa2-canal-boats', 'hxa3-balloon-flights', 'hxb1-bakery-flour', 'hxb2-costume-hire', 'hxpb3-observatory-evenings', 'hxpb4-chess-entries', 'f2-hex-vendor-port', 'f14-hex-geocoding', 'f16-hex-fx-rates', 'f24-hex-laundry-lockers'];
-/** D8: the cells of the primary analysis (every cell not marked `primary: false`). */
-export const primaryCells = <C extends HxCell>(cells: readonly C[]): C[] => cells.filter((c) => c.primary !== false);
 
 /**
- * D9 (registered r rule, fixed before any study call): r = 8 unless `powerHx` over the 11 primary tasks at RR 0.25,
+ * D9 (registered r rule, fixed before any study call): r = 8 unless `powerHx` over the 11 study tasks at RR 0.25,
  * with detection = the measured coverage under option (i) (HX-COVERAGE: 14 of 19 agent trap failures, 0.74), is
  * below 0.80; then r = 10. Per-task trap rate: TRAPRATE-01's Hexagonal rate (8 of 26, 0.31), one identity per flagged
  * cell, 400 draws. Scenarios B and C (§3) are printed beside it and decide nothing.
