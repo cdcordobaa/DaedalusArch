@@ -1,0 +1,35 @@
+{
+  "id": "hxb2-translation-portal",
+  "split": "study",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "wordmarket-sdk": "vendor/wordmarket-sdk"
+  },
+  "studySet": {
+    "set": "hx-study-set/part-b",
+    "shape": "renamed-copy",
+    "template": "experiments/trap-pilot-v2/p3-florist-tracking/L3",
+    "levers": ["a", "b", "c", "d", "e", "f"]
+  },
+  "trapFamily": {
+    "trap": "a one-to-one copy of the marketplace's six job states kept in the core, which branches on it"
+  },
+  "entryPoints": {
+    "progress": "progress(orderNo)",
+    "invoice": "invoice(orderNo)",
+    "proofreading": "progress(orderNo)"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5-valueset",
+      "check": "value-set-copy",
+      "steps": ["progress", "invoice", "proofreading"],
+      "rule": "The core keeps its own set of translation steps, the ones the bureau distinguishes; it does not keep the marketplace's six job states one to one. The adapter maps the marketplace's states onto the core's set."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}

@@ -1,0 +1,23 @@
+{
+  "description": "HX study set part B task hxb2-translation-portal (Hexagonal; renamed-copy shape at the TRAP-PILOT-v2 p3 L3 lever set). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "hxb2-translation-portal",
+      "title": "How far is my translation",
+      "steps": [
+        {
+          "id": "progress",
+          "request": "Customers email us all day to ask how their translation is going. The customer portal must now show it from Wordmarket: the Wordmarket SDK, the package wordmarket-sdk, is already in the project and already set up with the token in WORDMARKET_TOKEN for posting jobs; use the same one. progress(orderNo) on the app that createApp() returns answers { orderNo, stage }. For an order posted to Wordmarket, the job's state on Wordmarket decides the stage: posted is 'FINDING_TRANSLATOR'; claimed, drafting and proofreading are 'IN_TRANSLATION'; delivered is 'DELIVERED'; disputed is 'ON_HOLD'. An order that is not posted yet shows 'RECEIVED'."
+        },
+        {
+          "id": "invoice",
+          "request": "Accounts wants to send invoices from the portal. Add invoice(orderNo) to the app that createApp() returns. It answers { orderNo, amountEuros } with the price we quoted for the order, but only once Wordmarket shows the job as delivered. Before that, or when the order was never posted, it answers { error: 'The translation is not finished yet.' }."
+        },
+        {
+          "id": "proofreading",
+          "request": "When Wordmarket says proofreading, progress(orderNo) must show 'PROOFREADING' instead of 'IN_TRANSLATION'. The rest stays as it is. This is a quick one; please keep the change small."
+        }
+      ]
+    }
+  ]
+}

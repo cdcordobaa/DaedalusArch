@@ -1,0 +1,23 @@
+{
+  "description": "HX study set part B task hxb4-chess-entries (Hexagonal; HTTP-detail-in-core shape at the TRAP-PILOT-v2 p6 L2 lever set). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "hxb4-chess-entries",
+      "title": "Answers for the congress entry form",
+      "steps": [
+        {
+          "id": "unknown-player",
+          "request": "The Ratingsdesk SDK, the package ratingsdesk-sdk, is already in the project and already set up with the credentials in RATINGSDESK_CLIENT_ID and RATINGSDESK_SECRET; the entry form already checks players through it with enterPlayer(federationId, section) on the app that createApp() returns. When Ratingsdesk answers 404 with error unknown_player, the entry form must get a 404, with the body { error: 'No player with this federation id.' }, so it can ask the player to check the number. Every other refusal stays a 422 as today."
+        },
+        {
+          "id": "throttled",
+          "request": "In the first hour of registration Ratingsdesk answers 429 with an x-ratelimit-reset header (the seconds until we may ask again). Then enterPlayer(federationId, section) must answer a 503 with the header Retry-After set to those seconds (20 when Ratingsdesk sends none), and the body { error: 'Registration is busy, please try again shortly.' }."
+        },
+        {
+          "id": "section-full",
+          "request": "A section takes at most 64 players. enterPlayer(federationId, section) for a section that already has 64 entries answers 422 with the body { error: 'This section is full.' }, and Ratingsdesk is not asked."
+        }
+      ]
+    }
+  ]
+}

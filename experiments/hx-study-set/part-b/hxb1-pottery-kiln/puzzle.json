@@ -1,0 +1,35 @@
+{
+  "id": "hxb1-pottery-kiln",
+  "split": "study",
+  "style": "hexagonal",
+  "entry": "src/config/container.ts",
+  "spec": "spec.yaml",
+  "vendorModules": {
+    "kilnwise-sdk": "vendor/kilnwise-sdk"
+  },
+  "studySet": {
+    "set": "hx-study-set/part-b",
+    "shape": "renamed-copy",
+    "template": "experiments/trap-pilot-v2/p3-florist-tracking/L3",
+    "levers": ["a", "b", "c", "d", "e", "f"]
+  },
+  "trapFamily": {
+    "trap": "a renamed one-to-one copy of the vendor's seven kiln phases kept in the core, which branches on it"
+  },
+  "entryPoints": {
+    "pickup-status": "pieceStatus(pieceId)",
+    "withdraw": "withdrawPiece(pieceId)",
+    "cooling-down": "pieceStatus(pieceId)"
+  },
+  "subGoals": [
+    {
+      "id": "SG1",
+      "family": "H5-valueset",
+      "check": "value-set-copy",
+      "steps": ["pickup-status", "withdraw", "cooling-down"],
+      "rule": "The core keeps its own set of firing steps, the ones the studio distinguishes; it does not keep the vendor's seven phases one to one under new names. The adapter maps the vendor's phases onto the core's set."
+    }
+  ],
+  "plantedDebt": [],
+  "gaming": []
+}

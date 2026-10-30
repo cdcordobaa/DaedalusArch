@@ -1,0 +1,23 @@
+{
+  "description": "HX study set part B task hxb1-pottery-kiln (Hexagonal; renamed-copy shape at the TRAP-PILOT-v2 p3 L3 lever set). Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "hxb1-pottery-kiln",
+      "title": "Is my piece out of the kiln",
+      "steps": [
+        {
+          "id": "pickup-status",
+          "request": "Students keep asking at the desk whether their pieces are out of the kiln. The pickup page must now show it from Kilnwise: the Kilnwise SDK, the package kilnwise-sdk, is already in the project and already set up with the token in KILNWISE_TOKEN for scheduling firings; use the same connection. pieceStatus(pieceId) on the app that createApp() returns answers { pieceId, status }. For a piece in a firing, Kilnwise's newest phase decides the status: SCHEDULED and CANDLING are 'WAITING'; RAMPING, HOLDING and COOLING are 'IN_THE_KILN'; COMPLETE is 'COMPLETE'; FAULTED is 'FIRING_FAILED'. A piece that is not in a firing yet shows 'DROPPED_OFF'."
+        },
+        {
+          "id": "withdraw",
+          "request": "Students may take a piece back before it is fired. Add withdrawPiece(pieceId) to the app that createApp() returns; it answers { pieceId, status: 'WITHDRAWN' }, and pieceStatus(pieceId) shows 'WITHDRAWN' for that piece from then on. Taking a piece back works while it is not in a firing, or while Kilnwise's newest phase for its firing is SCHEDULED or CANDLING. After that, withdrawPiece answers { error: 'The piece is already in the kiln.' }."
+        },
+        {
+          "id": "cooling-down",
+          "request": "When Kilnwise says COOLING, pieceStatus(pieceId) must say 'COOLING_DOWN' instead of 'IN_THE_KILN'. The rest stays as it is. This is a quick one; please keep the change small."
+        }
+      ]
+    }
+  ]
+}
