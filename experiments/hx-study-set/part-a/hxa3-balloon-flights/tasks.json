@@ -1,0 +1,23 @@
+{
+  "description": "HX study set part A task hxa3-balloon-flights. Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "hxa3-balloon-flights",
+      "title": "Balloon seats paid with gift vouchers",
+      "steps": [
+        {
+          "id": "seat-on-usable-voucher",
+          "request": "Passengers pay for their seat with a Giftjar gift voucher. The Giftjar SDK, the package giftjar-sdk, is already in the project and the Giftjar client is already created with the key in GIFTJAR_MERCHANT_KEY for the voucher line and voucher extensions; use the same client. app.requestSeat(flightId, passenger, voucherCode) must now give a seat only when the voucher is in status activated or partially_redeemed; the seat then answers status 'booked' as today. For any other voucher status (issued, redeemed, expired, blocked) app.requestSeat answers status 'voucher_not_usable' with the reason 'This voucher cannot be used for a flight.' and no seat is taken."
+        },
+        {
+          "id": "redeem-at-boarding",
+          "request": "On the launch field we now take the seat price, 180 euros, from the voucher: app.board(flightId, passenger) redeems it with Giftjar, with the flight id as the reference (Giftjar takes cents). When the redemption result is accepted, boarding answers status 'aboard' as today. When it is insufficient_balance, app.board answers status 'top_up_needed' with due, the amount in euros still to pay (Giftjar's short_by_cents), and the passenger is not aboard yet."
+        },
+        {
+          "id": "eight-in-the-basket",
+          "request": "Our basket takes eight passengers. app.requestSeat(flightId, passenger, voucherCode) on a flight that already has eight seats answers status 'flight_full', and the voucher is not looked up."
+        }
+      ]
+    }
+  ]
+}

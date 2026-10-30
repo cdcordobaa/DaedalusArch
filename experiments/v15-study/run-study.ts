@@ -25,6 +25,8 @@
  *   --smoke      --input <f>   2 calls: one per arm (combined on the edit-gate dummy: push, pull, Stop)
  *   --probes     --input <f>   1 call: the READ probe (arm none)
  *   --sessions [--resume] --input <f>   the plan, inside the sessions cap
+ *   --keep-trees --input <f>   zero calls: every session's step trees and session.json to the input's results directory
+ *                              (`lib/records.ts`; tree hashes and canaries checked first; RUNBOOK §2.6)
  *   --local      with --smoke, --probes or --sessions: real calls as the current user (pilot calibration runs only, not
  *                study data): no uid switch, no chown, and the CLI's HOME is the current user's (its configured login;
  *                `--setting-sources ""`, `--strict-mcp-config` and the frozen argv keep user settings, CLAUDE.md, hooks
@@ -52,11 +54,14 @@ import type { StepAgent, TurnInput, TurnResult } from '../../scripts/lib/loop/ty
 import { realSleep, systemClock } from '../../scripts/lib/generators/retry.js';
 import { DeliveryHub } from '../../src/v15-instrument/delivery/hub.js';
 import { checkConsistency } from '../../src/v15-instrument/consistency.js';
+import { checkLayers } from '../../src/v15-instrument/edit-gate/layers.js';
+import { DeliveryAudit } from './lib/delivery-audit.js';
 import { SMOKE_PROMPT, treeSha } from '../puzzle-01-baseline/run-baseline.js';
 import { smokePrompt as gateSmokePrompt } from '../edit-gate/run-edit-gate.js';
 import { messageText, startFakeApi, type Block } from '../edit-gate/test/fake-api.js';
 import { argvDiff, argvFor, loadCombinedSentence, promptFor, MCP_SERVER_NAME, type ArmSockets } from './lib/arms.js';
 import { LedgerRunner, VersionGuard, VersionMismatchStop, integrityOf, type CallLine, type Integrity, type Phase, type PushLine, type TurnObservation } from './lib/guards.js';
+import { keepSessionTrees } from './lib/records.js';
 import { buildPlan, capsFor, plannedTurns, redrawFits, type Arm, type Caps, type PlannedSession } from './lib/plan.js';
 
 const REPO = process.cwd();
@@ -337,8 +342,13 @@ export const overlayBlindCheck: typeof checkConsistency = async (o) => {
   return checkConsistency({ ...o, root: view });
 };
 
-function newHub(ctx: Ctx, logDir: string): DeliveryHub {
-  return new DeliveryHub(ctx.sockets.gate.socket, ctx.sockets.mcp.socket, logDir, { layers: ctx.input.delivery.layers, check: overlayBlindCheck });
+/**
+ * One hub per session. With an audit (study sessions), both test seams are wrapped so every check the hub runs leaves
+ * its rule-ID list, tree digest and findings in `session.json` (`deliveryAudit`; `lib/delivery-audit.ts`). The wrap is
+ * outside the instrument, so the rules-frozen root is unchanged.
+ */
+function newHub(ctx: Ctx, logDir: string, audit?: DeliveryAudit): DeliveryHub {
+  return new DeliveryHub(ctx.sockets.gate.socket, ctx.sockets.mcp.socket, logDir, { layers: ctx.input.delivery.layers, check: audit === undefined ? overlayBlindCheck : audit.wrapCheck(overlayBlindCheck), ...(audit !== undefined ? { checkLayers: audit.wrapLayers(checkLayers) } : {}) });
 }
 
 // ── one session ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -366,8 +376,9 @@ async function runSession(ctx: Ctx, install: SkeletonInstall, deps: SessionDeps,
   const cwd = openCell(ctx, install, s.id, task.seedDir);
   if ('current' in deps.agent) deps.agent.current = s.arm;
   let hub: DeliveryHub | null = null;
+  const audit = s.arm === 'combined' ? new DeliveryAudit() : null;
   if (s.arm === 'combined') {
-    hub = newHub(ctx, hubLogDir);
+    hub = newHub(ctx, hubLogDir, audit ?? undefined);
     await hub.start();
     await hub.setCell({ id: s.id, session: null, step: 'step-01', turn: 'step-01', spec: task.specPath, project: cwd, baseline: task.seedDir });
   }
@@ -392,6 +403,7 @@ async function runSession(ctx: Ctx, install: SkeletonInstall, deps: SessionDeps,
       break;
     }
     hub?.setTurn(turnId, turnId);
+    if (audit !== null) audit.turn = turnId;
     const recordDir = path.join(out, 'turns', turnId);
     fs.mkdirSync(recordDir, { recursive: true });
     const prompt = promptFor(s.arm, task.steps[k - 1] as string, typecheckCommand(input.harnessRoot, runId), ctx.sentence);
@@ -464,7 +476,7 @@ async function runSession(ctx: Ctx, install: SkeletonInstall, deps: SessionDeps,
   const integrity = s.arm === 'combined' ? integrityOf(observations) : null;
   if (integrity?.infrastructure === true) verdict = 'infrastructure';
   closeCell(ctx, s.id);
-  fs.writeFileSync(path.join(out, 'session.json'), `${JSON.stringify({ ...s, verdict, stop: stop?.message ?? null, integrity, steps }, null, 2)}\n`);
+  fs.writeFileSync(path.join(out, 'session.json'), `${JSON.stringify({ ...s, verdict, stop: stop?.message ?? null, integrity, steps, ...(audit !== null ? { deliveryAudit: audit.records } : {}) }, null, 2)}\n`);
   if (stop !== null) throw stop;
   if (integrity?.mechanismStop === true) throw new MechanismStop(`session ${s.id}: ${integrity.reasons.join('; ')}`);
   return { verdict, integrity };
@@ -1007,6 +1019,12 @@ async function main(argv: readonly string[]): Promise<number> {
   if (i < 0 || argv[i + 1] === undefined) throw new Error('--input <input.json> is required');
   INPUT_PATH = path.resolve(argv[i + 1] as string);
   const input = load(INPUT_PATH);
+  if (argv.includes('--keep-trees')) {
+    // Zero calls: every session's step trees and session.json to the results directory (RUNBOOK §2.6), hashes checked.
+    const kept = keepSessionTrees(input.outRoot, input.resultsDir ?? path.join(REPO, 'results', 'v1.5-study', input.phase ?? 'study'), input.isolation.canaries);
+    process.stdout.write(`${JSON.stringify({ keptSessions: kept.length, steps: kept.reduce((a, k) => a + k.steps, 0), files: kept.reduce((a, k) => a + k.files, 0) })}\n`);
+    return 0;
+  }
   const localDry = argv.includes('--local-dry');
   const localCalls = argv.includes('--local') && (argv.includes('--smoke') || argv.includes('--probes') || argv.includes('--sessions'));
   if (argv.includes('--local') && !localCalls) throw new Error('--local goes with --smoke, --probes or --sessions (use --local-dry for the dry run)');
@@ -1030,7 +1048,7 @@ async function main(argv: readonly string[]): Promise<number> {
   if (argv.includes('--smoke')) return smoke(ctx);
   if (argv.includes('--probes')) return probes(ctx);
   if (argv.includes('--sessions')) return sessions(ctx, argv.includes('--resume'));
-  process.stderr.write('usage: run-study.ts --dry | --local-dry | --s4 [--evidence <dir>] | --smoke | --probes | --sessions [--resume] --input <input.json>\n');
+  process.stderr.write('usage: run-study.ts --dry | --local-dry | --s4 [--evidence <dir>] | --smoke | --probes | --sessions [--resume] | --keep-trees --input <input.json>\n');
   return 2;
 }
 

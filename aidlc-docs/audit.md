@@ -3213,3 +3213,35 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.5 pilot (calibration only, not a study task); zero model calls.
 
 ---
+
+## Construction: HX study set part A (five Hexagonal tasks at the pilot L2 lever set)
+**Timestamp**: 2026-10-30T04:27:01Z
+**User Input**: "Build part A of the new Hexagonal study task set: three vendor-literals tasks at the p1 L2 lever set and two error-codes tasks at the p4 L2 lever set, each with a fresh domain and vendor, a seed, three chained steps, tests, clean and trap references and a rule-blind oracle; fix the pilot's test-surface defect; verify mechanically; do not seal."
+**AI Response**: "Built experiments/hx-study-set/part-a/: hxa1-chimney-sweeps, hxa2-canal-boats, hxa3-balloon-flights (vendor literals) and hxb1-bakery-flour, hxb2-costume-hire (error codes and units), with a builder, verify.ts and similarity.ts. Every step text names the app entry point the tests call; answers are checked field by field. All five hold every invariant (seed fails tests; clean passes tests and oracle; trap passes tests and fails oracle; type check clean; hint audit 0 FAIL; similarity below 0.6, the shape reading calibrated on PR 398's excluded pairs)."
+**Context**: CONSTRUCTION, v1.5 HX study set, part A (unsealed; sealed later with part B); zero model calls.
+
+---
+
+## Construction: HX study set part B (four Hexagonal study tasks)
+**Timestamp**: 2026-10-30T04:27:24Z
+**User Input**: "Build part B of the new Hexagonal study task set, rule-blind: two renamed-copy tasks at the p3 L3 lever set and two HTTP-detail-in-core tasks at the p6 L2 lever set, each with a fresh domain and vendor, three chained steps, tests, clean and trap references and a rule-blind oracle; fix the pilot's test-surface defect; verify, hint-audit and similarity-check; do not seal."
+**AI Response**: "Built experiments/hx-study-set/part-b/ (hxpb1 pottery kiln, hxpb2 translation portal, hxpb3 observatory evenings, hxpb4 chess entries) with verify.ts and a similarity check. Every step text names the app method the tests call; tests check fields, not strict deep equality. All four tasks hold every invariant (seed fails every feature case; clean passes tests and oracle; trap passes tests and fails only the oracle; tsc clean; hint audit 0 FAIL; every similarity pair below 0.6)."
+**Context**: CONSTRUCTION, v1.5 study task set (draft, not sealed, not registered); zero model calls.
+
+---
+
+## Construction: HX study runner, blocking items B9 (scorer task root) and B10 (gate (b) check)
+**Timestamp**: 2026-10-30T05:23:00Z
+**User Input**: "Close B9 and B10 of the Hexagonal study pre-registration draft: let the input maker and the scorer read the study's tasks from one manifest spanning hx-study-set part A, part B and four trap-family tasks, with the old behaviour byte-identical; and write the gate (b) check of scorer findings against the hub's recorded checks, with unit tests. Zero model calls."
+**AI Response**: "Added experiments/v15-study/lib/study-set.ts and the --study-set option to make-input.ts and score-study.ts (the input records studySet; the scorer reads it, or the flag); wrote experiments/hx-study-set/study-set.json (13 tasks: hxa1-3, hxb1-2, hxpb1-4, f2, f14, f16, f24). With --counted the scorer also records per step the tree digest and the symbolic findings new against the seed. Added scripts/v1.5/hx-gate-b.ts (lib in scripts/v1.5/lib/hx-gate-b.ts): per combined step snapshot, counted findings against the hub checks on the same tree digest, with the documented differences (evasion steps not comparable, R-MIRROR-SEM left out, frozen line keying, cache hits by digest); exit 1 on any missing counted finding. study-input-diff.sh: identical to origin/main. Unit tests on synthetic sessions pass."
+**Context**: CONSTRUCTION, v1.5 Hexagonal study runner (pre-registration items B9, B10); zero model calls.
+
+---
+
+## Construction: v1.5 HX-COVERAGE, trap coverage of the Hexagonal counted rules, and study records (B8)
+**Timestamp**: 2026-10-30T04:46:17Z
+**User Input**: "Measure, with zero calls, what share of real agent trap failures the candidate counted rules of the Hexagonal study see at instrument v1.5.5, and fix the study runner's record keeping (B8)."
+**AI Response**: "Verified the rules root 098d67bd4fdc97c5, then scored the 11 pilot-ladder and 8 TRAPRATE-01 Hexagonal trap failures and 43 clean trees with the unchanged study scorer (judge off). Counted set sees 16/19 (0.84 [0.62, 0.95]); misses are positional HTTP status in a core error (p6 L2 ×2) and a lower-cased vendor value-set copy (p3 L3). 5/43 clean trees have a counted finding, 3 after hand read, all R-MIRROR2. Under the scorer's default option (i) (R-MIRROR2 literal and error only): 14/19 and 1/43. The HX study set's reference traps (merged during the work): 6/9 seen after hand read; both renamed-copy tasks and one generic-literal task unseen. The final study kept no trees. Added run-study.ts --keep-trees (hash and canary checks, unit test), a .gitignore exception for results/v1.5-hx-study jsonl, and RUNBOOK §2.6."
+**Context**: CONSTRUCTION, v1.5 exploratory input to the draft Hexagonal pre-registration; zero model calls.
+
+---
