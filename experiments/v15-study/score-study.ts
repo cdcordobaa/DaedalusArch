@@ -32,6 +32,7 @@ import { buildContext, parseArgs } from '../../src/mcp-server/context.js';
 import { checkDiffTool } from '../../src/mcp-server/tools.js';
 import { loadRules, runTree } from '../../src/v15-instrument/index.js';
 import { checkConsistency } from '../../src/v15-instrument/consistency.js';
+import { scorerJudgeFromEnv } from '../../src/v15-instrument/mirror-sem.js';
 import { keyOf } from '../../src/v15-instrument/edit-gate/gate.js';
 import { checkLayers } from '../../src/v15-instrument/edit-gate/layers.js';
 import { attribute, type Attribution, type LedgerRow } from '../../src/v15-instrument/delivery/ledger.js';
@@ -66,10 +67,12 @@ export function identitiesOf(hits: readonly Hit[], rules: readonly string[]): Se
 /**
  * The v1.5 rules on one scored tree, with the session's seed (step-00) as the baseline (instrument v1.5.3): the same
  * baseline the delivery hub's checks take (the cell's seed copy), so a rule that reads a baseline (R-MIRROR2) scores
- * what the hub delivers. `tests/unit/v15-instrument/baseline-delivery.test.ts` holds hub == scorer on it.
+ * what the hub delivers. `tests/unit/v15-instrument/baseline-delivery.test.ts` holds hub == scorer on it. R-MIRROR-SEM
+ * (v1.5.4) reads the model fact the hub's judge cached, by content hash, in replay (zero calls; `scorerJudgeFromEnv`).
  */
 export function scoreTreeV15(tree: string, rules: Parameters<typeof runTree>[1], spec: string, scratch: string, seed: string): ReturnType<typeof runTree> {
-  return runTree(tree, rules, { spec, scratch, baseline: path.resolve(seed) });
+  const j = scorerJudgeFromEnv();
+  return runTree(tree, rules, { spec, scratch, baseline: path.resolve(seed), ...(j !== null ? { mirrorJudge: j } : {}) });
 }
 
 /** New identities against the seed. */
@@ -401,7 +404,7 @@ async function main(): Promise<number> {
         if (snaps.length > 1) {
           const last = snaps.at(-1) as string;
           // The keys the hub gives on the final tree: the style's delivered set (the one rule list), both rule kinds.
-          const cc = await checkConsistency({ root: path.resolve(last), spec, scratch: path.join(scratch, '_cc'), rules: cypherRules(m.style), baseline: path.resolve(snaps[0] as string) }).catch(() => null);
+          const cc = await checkConsistency({ root: path.resolve(last), spec, scratch: path.join(scratch, '_cc'), rules: cypherRules(m.style), baseline: path.resolve(snaps[0] as string), ...(scorerJudgeFromEnv() !== null ? { mirrorJudge: scorerJudgeFromEnv()! } : {}) }).catch(() => null);
           for (const f of cc?.findings ?? []) finalKeys.add(keyOf(f, cc!.aggregateRoots).key);
           const changed = (() => { const a = new Set<string>(); const walk = (d: string, rel: string): void => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const r = rel === '' ? e.name : `${rel}/${e.name}`; if (e.isDirectory()) walk(path.join(d, e.name), r); else a.add(r); } }; walk(last, ''); return [...a]; })();
           const lay = await checkLayers({ root: path.resolve(last), spec, seedDir: path.resolve(snaps[0] as string), changed, rules: frozenRules(m.style) }).catch(() => null);

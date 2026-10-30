@@ -125,7 +125,7 @@ export function symbolOf(n: Node): string {
 const COMPARE_OPS = new Set([SyntaxKind.EqualsEqualsEqualsToken, SyntaxKind.ExclamationEqualsEqualsToken, SyntaxKind.EqualsEqualsToken, SyntaxKind.ExclamationEqualsToken]);
 const INCLUDES = /^(includes|has|indexOf|startsWith|endsWith|lastIndexOf)$/;
 
-function literalContext(lit: Node): CoreContext {
+export function literalContext(lit: Node): CoreContext {
   for (let a: Node | undefined = lit.getParent(); a !== undefined && !Node.isSourceFile(a); a = a.getParent()) {
     if (Node.isThrowStatement(a)) return 'error';
     if (Node.isClassDeclaration(a)) { if (isErrorClass(a)) return 'error'; break; }

@@ -1,0 +1,15 @@
+{
+  "synthetic/parcel-mirror": { "label": "violation", "note": "ParcelStage renames shiptrack TrackingStatus one for one (Created/Moving/OutForDelivery/Done/Problem/Back); the glossary names none of the six; the use case branches on four." },
+  "synthetic/parcel-coarse": { "label": "clean", "note": "Twin of parcel-mirror: DeliveryOutcome pending/delivered/failed, named by the glossary; the adapter maps six vendor codes onto three." },
+  "synthetic/parcel-no-branch": { "label": "clean", "note": "The mirrored ParcelStage of parcel-mirror, but the core never branches on it (the structure fails; the model is not asked)." },
+  "synthetic/parcel-seed-owned": { "label": "clean", "note": "The seed already holds the mirrored ParcelStage; the step only adds a query on it (baseline-owned; the model is not asked)." },
+  "synthetic/stay-mirror-enum": { "label": "violation", "note": "StayStatus enum renames the RoomsHub enum one for one (Held/Conf/NoShow/Cxl/CxlLate) through a Record table; the glossary names none; the core switches on it." },
+  "synthetic/stay-phases-owned": { "label": "clean", "note": "Hard clean twin: StayPhase is one-to-one with the RoomsHub enum, but the glossary defines all five phases with house rules and the core's rules use them." },
+  "synthetic/claim-mirror": { "label": "violation", "note": "ClaimProgress renames ClaimDesk's CLM_* workflow states one for one; the glossary names none; the core branches on three. Hard positive: the words are ordinary." },
+  "synthetic/payout-mirror-const": { "label": "violation", "note": "PayoutState const object renames PaySend's PO_* lifecycle one for one (including the vendor's compliance hold); the glossary names none; the core branches on two." },
+  "f2-hex-vendor-port/solutions/clean": { "label": "clean", "note": "Trap-family clean solution: DeclineReason (not-enough-funds/card-expired/other) is coarser than the vendor's four codes." },
+  "f14-hex-geocoding/solutions/clean": { "label": "clean", "note": "Trap-family clean solution: MatchLevel building/street/area, four vendor precisions onto three." },
+  "f15-hex-sms/solutions/clean": { "label": "clean", "note": "Trap-family clean solution: TextDelivery delivered/failed/pending and ReminderShown, coarser than the vendor states." },
+  "hcal-05/dental-lab/base": { "label": "clean", "note": "HCAL-05 label (clean base): ScanVerdict usable/rescan-needed/unreadable maps the three vendor grades one for one; the R-MIRROR2 value-set shape fired here and was dropped." },
+  "hcal-05/scooter-rental/base": { "label": "clean", "note": "HCAL-05 label (clean base): ChargeOutcome adds 'unavailable' to five vendor statuses mapped one for one. Close to the construct; the HCAL label is kept as the oracle." }
+}

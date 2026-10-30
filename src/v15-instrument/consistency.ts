@@ -18,6 +18,7 @@ import * as path from 'node:path';
 import { loadRules, runTree } from './graph.js';
 import type { Rule } from './graph.js';
 import type { CommandFact, FootprintWrite } from './facts.js';
+import type { MirrorJudge } from './mirror-sem.js';
 import { cypherMessage, labelOf, RULE_TEXT } from './rule-messages.js';
 
 export const CONSISTENCY_RULES = ['R-D4', 'R-XCTX'] as const;
@@ -99,6 +100,8 @@ export interface CheckOptions {
    * stoplist) count what the seed already has as the project's own. Instrument v1.5.3: the hub and the scorers pass the seed.
    */
   readonly baseline?: string | undefined;
+  /** R-MIRROR-SEM's model fact (`mirror-sem.ts`); without it the rule never fires. The hub passes its session judge. */
+  readonly mirrorJudge?: MirrorJudge | undefined;
 }
 
 export async function checkConsistency(opts: CheckOptions): Promise<ConsistencyResult> {
@@ -106,7 +109,7 @@ export async function checkConsistency(opts: CheckOptions): Promise<ConsistencyR
   const ids = opts.rules ?? CONSISTENCY_RULES;
   const selected = rulesOf(ids);
   const onlyConsistency = ids.every(isConsistencyRule);
-  const r = await runTree(opts.root, selected, { spec: opts.spec, scratch, withApg: false, ...(opts.baseline !== undefined ? { baseline: opts.baseline } : {}) });
+  const r = await runTree(opts.root, selected, { spec: opts.spec, scratch, withApg: false, ...(opts.baseline !== undefined ? { baseline: opts.baseline } : {}), ...(opts.mirrorJudge !== undefined ? { mirrorJudge: opts.mirrorJudge } : {}) });
   const rootsFrom = r.facts.rootSource === 'spec' ? 'spec' : r.facts.rootSource === 'fallback' ? 'inferred' : 'none';
   const ownerOf = (root: string): string | null => r.facts.roots.find((x) => x.name === root)?.context ?? null;
   const merged = new Map<string, ConsistencyFinding>();

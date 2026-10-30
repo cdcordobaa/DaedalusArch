@@ -15,6 +15,7 @@ import { DeliveryHub } from '../../../src/v15-instrument/delivery/hub.js';
 import { checkLayers } from '../../../src/v15-instrument/edit-gate/layers.js';
 import { loadRules } from '../../../src/v15-instrument/graph.js';
 import { RULE_LABELS, RULE_TEXT } from '../../../src/v15-instrument/rule-messages.js';
+import { mirrorKeyOf, type MirrorAnswer, type MirrorJudge } from '../../../src/v15-instrument/mirror-sem.js';
 import { cypherRules, frozenRules, INSTRUMENT_ID, scoredRules, type Style } from '../../../src/v15-instrument/rule-set.js';
 import { HEXAGONAL_RULE_TIERS, RULE_TIERS } from '../../../src/scoring-engine/rule-tiers.js';
 import { admittedRules as scorerAdmitted, exploratoryRules as scorerExploratory } from '../../../experiments/v15-study/score-study.js';
@@ -25,6 +26,7 @@ const MUSEUM = path.join(REPO, 'experiments', 'hcal-03', 'museum-loans');
 const SOLAR = path.join(REPO, 'experiments', 'hcal-03', 'solar-coop');
 const DENTAL = path.join(REPO, 'experiments', 'hcal-05', 'dental-lab');
 const FX = path.join(REPO, 'tests', 'fixtures', 'v15-hub-rules');
+const SEM = path.join(REPO, 'experiments', 'sem-mirror-dev', 'cases');
 
 /** A minimal MCP client: newline-delimited JSON-RPC over the hub's socket. */
 class Client {
@@ -77,6 +79,12 @@ function recordingHub(tmp: string, name: string) {
   return { hub, ran, baselines, setChannel: (c: 'push' | 'pull'): void => { channel = c; } };
 }
 
+/** A stub model fact (zero calls): every candidate gets the same answer. */
+function stubJudge(mirror: MirrorAnswer): MirrorJudge {
+  const stats = { asked: 0, session: 0, disk: 0, calls: 0, misses: 0, errors: 0, callMs: 0 };
+  return { stats, judge: async (c) => { stats.asked++; return { verdict: { mirror, reason: 'stub' }, key: mirrorKeyOf(c), from: 'call', ms: 0 }; } };
+}
+
 const scorerSet = (style: Style): string[] => [...new Set([...scorerAdmitted(style), ...scorerExploratory(style)])].sort();
 
 describe('delivery hub rule set: push == pull == scored (blocking gate)', () => {
@@ -92,7 +100,7 @@ describe('delivery hub rule set: push == pull == scored (blocking gate)', () => 
       for (const id of cypherRules(style)) expect(cypherIds.has(id)).toBe(true);
       for (const id of scoredRules(style)) { expect(RULE_LABELS[id]).toBeDefined(); expect(RULE_TEXT[id]).toBeDefined(); }
     }
-    expect(INSTRUMENT_ID).toMatch(/^v1\.5\.3/);
+    expect(INSTRUMENT_ID).toMatch(/^v1\.5\.4/);
   });
 
   const cases: [Style, string, string, string, string][] = [
@@ -155,6 +163,8 @@ describe('delivery hub: a fixture violating each Hexagonal rule produces a hub f
     'R-ENTITY-OUT': [MUSEUM, path.join(MUSEUM, 'cases', 'H10-pos1'), 'src/adapters/in/http/loan.controller.ts'],
     'R-MIRROR': [DENTAL, path.join(DENTAL, 'cases', 'H11-pos1'), 'src/domain/rescan-policy.ts'],
     'R-MIRROR2': [DENTAL, path.join(DENTAL, 'cases', 'H11-pos2'), 'src/application/scan-job-tracking.ts'],
+    // v1.5.4, neuro-symbolic: the seed is the coarse twin, the edit brings the mirrored set; the model fact is a stub (yes)
+    'R-MIRROR-SEM': [path.join(SEM, 'parcel-coarse', 'tree'), path.join(SEM, 'parcel-mirror', 'tree'), 'src/domain/parcel.ts'],
   };
   const tierOf = (id: string): string | undefined => [...HEXAGONAL_RULE_TIERS.values()].find((t) => t.ruleId === id)?.tier ?? (RULE_TIERS.get(id)?.tier as string | undefined);
   const advisory = scoredRules('hexagonal').filter((id) => id.startsWith('FF-') && tierOf(id) === 'advisory').sort();
@@ -163,7 +173,7 @@ describe('delivery hub: a fixture violating each Hexagonal rule produces a hub f
   let hub: DeliveryHub;
   beforeAll(async () => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v15-hexrules-'));
-    hub = new DeliveryHub(path.join(tmp, 'sock', 'h.sock'), path.join(tmp, 'sock', 'm.sock'), path.join(tmp, 'logs'));
+    hub = new DeliveryHub(path.join(tmp, 'sock', 'h.sock'), path.join(tmp, 'sock', 'm.sock'), path.join(tmp, 'logs'), { mirrorJudge: () => stubJudge('yes') });
     await hub.start();
   });
   afterAll(async () => { await hub.stop(); fs.rmSync(tmp, { recursive: true, force: true }); });
@@ -175,11 +185,11 @@ describe('delivery hub: a fixture violating each Hexagonal rule produces a hub f
 
   it.each(Object.keys(FIXTURES).sort())('%s', async (rule) => {
     const [base, overlay, file] = FIXTURES[rule]!;
-    const seed = path.join(base, 'base');
+    const seed = fs.existsSync(path.join(base, 'base')) ? path.join(base, 'base') : base;
     const work = path.join(tmp, rule);
     fs.cpSync(seed, work, { recursive: true });
     fs.cpSync(overlay, work, { recursive: true });
-    const spec = fs.existsSync(path.join(work, 'spec.yaml')) ? path.join(work, 'spec.yaml') : path.join(seed, 'spec.yaml');
+    const spec = [path.join(work, 'spec.yaml'), path.join(seed, 'spec.yaml'), path.join(path.dirname(seed), 'spec.yaml')].find((f) => fs.existsSync(f))!;
     await hub.setCell({ id: rule, session: null, step: 's1', turn: 't1', spec, project: work, baseline: seed });
     const pushed = pushedText(await hub.handleHook(post(work, file)));
     expect(pushed).toMatch(/^Architecture check: /m);

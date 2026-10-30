@@ -1,0 +1,2600 @@
+{
+  "summary": {
+    "k": 3,
+    "model": "claude-opus-5-5",
+    "version": "r-mirror-sem-v1",
+    "trees": 76,
+    "pass": 74,
+    "askedCandidates": 12,
+    "unanimous": 12,
+    "unanimousShare": 1,
+    "fleissKappa": 1,
+    "unsureAnswers": 0,
+    "calls": 33,
+    "callMsMean": 4748
+  },
+  "rows": [
+    {
+      "tree": "f2-hex-vendor-port/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f2-hex-vendor-port/solutions/clean",
+      "oracle": "clean",
+      "note": "Trap-family clean solution: DeclineReason (not-enough-funds/card-expired/other) is coarser than the vendor's four codes.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "DeclineReason",
+          "file": "src/domain/model/CardCharge.ts",
+          "vendorSet": "PaystreamCharge.declineCode of paystream-sdk",
+          "coreMembers": [
+            "not-enough-funds",
+            "card-expired",
+            "other"
+          ],
+          "vendorMembers": [
+            "insufficient_funds",
+            "expired_card",
+            "do_not_honor",
+            "lost_card"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 1,
+          "ownedBy": "",
+          "asked": true,
+          "key": "e1969164be8d8dee5938adb8",
+          "answers": [
+            "no",
+            "no",
+            "no"
+          ],
+          "reasons": [
+            "DeclineReason is coarser than the vendor's set. It keeps two vendor values (insufficient_funds -> not-enough-funds, expired_card -> card-expired) and folds do_not_honor and lost_card into a domain-defined 'other' member that no vendor value maps to directly. The doc comment (\"in our own words\") and the CheckoutService message table, which branches only on these three reasons, both show that the do",
+            "DeclineReason is coarser than the vendor's set. The adapter maps only insufficient_funds and expired_card one for one, while do_not_honor and lost_card have no mapping of their own and appear to fall into the domain's catch-all 'other'. The core branches on the three members only to choose a customer message (DECLINE_MESSAGES in CheckoutService), and the type's doc comment says \"in our own words\".",
+            "DeclineReason is coarser than the vendor's set. The adapter maps only insufficient_funds and expired_card to named members, and 'other' has no vendor value of its own, so it apparently takes in do_not_honor and lost_card. The core uses the set only for customer-facing messages in CheckoutService's DECLINE_MESSAGES table, which fits the doc comment saying it describes declines \"in our own words\"."
+          ],
+          "callMs": [
+            4253,
+            4660,
+            4532
+          ]
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f2-hex-vendor-port/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f14-hex-geocoding/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f14-hex-geocoding/solutions/clean",
+      "oracle": "clean",
+      "note": "Trap-family clean solution: MatchLevel building/street/area, four vendor precisions onto three.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "MatchLevel",
+          "file": "src/domain/model/AddressMatch.ts",
+          "vendorSet": "GeopinGeocodeResult.matches.precision of geopin-sdk",
+          "coreMembers": [
+            "building",
+            "street",
+            "area"
+          ],
+          "vendorMembers": [
+            "ROOFTOP",
+            "STREET",
+            "LOCALITY",
+            "POSTCODE"
+          ],
+          "mappedFrom": 4,
+          "mappedTo": 3,
+          "oneToOne": false,
+          "branches": 1,
+          "ownedBy": "",
+          "asked": true,
+          "key": "3a78d7d33c3f3b5486a9edfb",
+          "answers": [
+            "no",
+            "no",
+            "no"
+          ],
+          "reasons": [
+            "The core set is coarser than the vendor's: the adapter collapses LOCALITY and POSTCODE into 'area'. The domain branches on 'area' to reject an address as not precise enough, so the distinctions are cut to fit the domain's acceptance rule rather than copied one for one.",
+            "MatchLevel is coarser than the vendor's set. The adapter maps both LOCALITY and POSTCODE to 'area', and the domain doc comment states its own three-way distinction (building, street, or town/postcode area). AddressCheck relies on that cut when it rejects an 'area' match and asks the user for a street and house number.",
+            "The core set is coarser than the vendor's: the adapter maps both LOCALITY and POSTCODE to 'area'. The domain then branches on 'area' to reject addresses that are missing a street and house number, so the domain's own rule draws these lines, not the vendor."
+          ],
+          "callMs": [
+            3376,
+            4384,
+            6160
+          ]
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f14-hex-geocoding/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f15-hex-sms/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f15-hex-sms/solutions/clean",
+      "oracle": "clean",
+      "note": "Trap-family clean solution: TextDelivery delivered/failed/pending and ReminderShown, coarser than the vendor states.",
+      "candidates": 2,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "TextDelivery",
+          "file": "src/domain/model/TextDelivery.ts",
+          "vendorSet": "TextwaveDeliveryState of textwave-sdk",
+          "coreMembers": [
+            "delivered",
+            "failed",
+            "pending"
+          ],
+          "vendorMembers": [
+            "ACCEPTED",
+            "DELIVERED",
+            "UNDELIVERED",
+            "EXPIRED"
+          ],
+          "mappedFrom": 4,
+          "mappedTo": 3,
+          "oneToOne": false,
+          "branches": 4,
+          "ownedBy": "",
+          "asked": true,
+          "key": "77aa0799708a77337be672c7",
+          "answers": [
+            "no",
+            "no",
+            "no"
+          ],
+          "reasons": [
+            "The core set is coarser than the vendor's: the adapter maps both UNDELIVERED and EXPIRED to 'failed', so three core values stand in for four vendor states. The doc comment describes outcomes the domain cares about (reached the phone, never will, still on its way). FrontDesk branches on these three outcomes, not on the vendor's states.",
+            "TextDelivery has three members where the vendor has four. The adapter folds both UNDELIVERED and EXPIRED into 'failed', so the core set is cut more coarsely than the vendor's. The doc comment describes the members in domain terms (it reached the phone, it never will, it is still on its way), and FrontDesk branches on exactly those three outcomes.",
+            "The core set is coarser than the vendor's: the adapter maps both UNDELIVERED and EXPIRED to 'failed'. The doc comment defines the three members in the domain's own terms (\"reached the phone, it never will, or it is still on its way\"), and FrontDesk branches on those terms."
+          ],
+          "callMs": [
+            3629,
+            4519,
+            4389
+          ]
+        },
+        {
+          "coreSet": "ReminderShown",
+          "file": "src/domain/services/FrontDesk.ts",
+          "vendorSet": "TextwaveDeliveryState of textwave-sdk",
+          "coreMembers": [
+            "delivered",
+            "failed",
+            "sent",
+            "not sent",
+            "opted out"
+          ],
+          "vendorMembers": [
+            "ACCEPTED",
+            "DELIVERED",
+            "UNDELIVERED",
+            "EXPIRED"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 4,
+          "ownedBy": "",
+          "asked": true,
+          "key": "b021b960243c58c74b3b0e9d",
+          "answers": [
+            "no",
+            "no",
+            "no"
+          ],
+          "reasons": [
+            "ReminderShown is cut differently from the vendor's set. The adapter maps both UNDELIVERED and EXPIRED to 'failed', and the core adds members no vendor value maps to ('sent', 'not sent', 'opted out'). FrontDesk also branches on domain groupings such as \"not delivered and not sent\", so the adapter translates into a vocabulary the domain owns.",
+            "The core set is cut differently from the vendor's: the adapter folds UNDELIVERED and EXPIRED into a single 'failed', and the core adds members no vendor value maps to ('sent', 'not sent', 'opted out'). FrontDesk also branches on domain-level groupings (shown !== 'delivered' && shown !== 'sent'), so the adapter translates into a vocabulary the core owns.",
+            "The adapter maps both UNDELIVERED and EXPIRED to 'failed' and leaves ACCEPTED unmapped. The core also adds 'not sent' and 'opted out', which no vendor value maps to, and FrontDesk branches on its own grouping (delivered/sent versus the rest), so the set is cut differently from the vendor's states."
+          ],
+          "callMs": [
+            4231,
+            4534,
+            4450
+          ]
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f15-hex-sms/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f16-hex-fx-rates/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f16-hex-fx-rates/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f16-hex-fx-rates/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f16-hex-fx-rates/gaming/renamed-vendor-shape",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f17-hex-ride-pooling/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f17-hex-ride-pooling/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f17-hex-ride-pooling/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f17-hex-ride-pooling/gaming/renamed-vendor-shape",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f18-hex-pet-adoption/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f18-hex-pet-adoption/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f18-hex-pet-adoption/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f18-hex-pet-adoption/gaming/look-alike-rows",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f19-hex-school-canteen/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f19-hex-school-canteen/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f19-hex-school-canteen/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f20-hex-music-lessons/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f20-hex-music-lessons/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f20-hex-music-lessons/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f21-hex-blood-bank/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "DeliveryState",
+          "file": "src/domain/DeliveryUpdate.ts",
+          "vendorSet": "HlConsignment.stage of haemalink-sdk",
+          "coreMembers": [
+            "being packed",
+            "on the way",
+            "delivered"
+          ],
+          "vendorMembers": [
+            "PICKING",
+            "DISPATCHED",
+            "DELIVERED"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f21-hex-blood-bank/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "DeliveryState",
+          "file": "src/domain/DeliveryUpdate.ts",
+          "vendorSet": "HlConsignment.stage of haemalink-sdk",
+          "coreMembers": [
+            "being packed",
+            "on the way",
+            "delivered"
+          ],
+          "vendorMembers": [
+            "PICKING",
+            "DISPATCHED",
+            "DELIVERED"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f21-hex-blood-bank/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "DeliveryState",
+          "file": "src/domain/DeliveryUpdate.ts",
+          "vendorSet": "HlConsignment.stage of haemalink-sdk",
+          "coreMembers": [
+            "being packed",
+            "on the way",
+            "delivered"
+          ],
+          "vendorMembers": [
+            "PICKING",
+            "DISPATCHED",
+            "DELIVERED"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f21-hex-blood-bank/gaming/renamed-vendor-shape",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "DeliveryState",
+          "file": "src/domain/DeliveryUpdate.ts",
+          "vendorSet": "HlConsignment.stage of haemalink-sdk",
+          "coreMembers": [
+            "being packed",
+            "on the way",
+            "delivered"
+          ],
+          "vendorMembers": [
+            "PICKING",
+            "DISPATCHED",
+            "DELIVERED"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f22-hex-airport-lounge/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f22-hex-airport-lounge/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f22-hex-airport-lounge/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f23-hex-e-signature/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f23-hex-e-signature/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f23-hex-e-signature/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f23-hex-e-signature/gaming/renamed-vendor-shape",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f24-hex-laundry-lockers/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f24-hex-laundry-lockers/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f24-hex-laundry-lockers/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f29-hex-courier-dispatch/seed",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f29-hex-courier-dispatch/solutions/clean",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "f29-hex-courier-dispatch/solutions/trap",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/radio-station/base",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ReportVerdict",
+          "file": "src/domain/play-report.ts",
+          "vendorSet": "PlayLogStatus of playlog-sdk",
+          "coreMembers": [
+            "filed",
+            "duplicate",
+            "unlicensed",
+            "held"
+          ],
+          "vendorMembers": [
+            "ACCEPTED",
+            "REJECTED_DUPLICATE",
+            "REJECTED_UNLICENSED",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 4,
+          "mappedTo": 4,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/radio-station/H11-legit",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ReportVerdict",
+          "file": "src/domain/play-report.ts",
+          "vendorSet": "PlayLogStatus of playlog-sdk",
+          "coreMembers": [
+            "filed",
+            "duplicate",
+            "unlicensed",
+            "held"
+          ],
+          "vendorMembers": [
+            "ACCEPTED",
+            "REJECTED_DUPLICATE",
+            "REJECTED_UNLICENSED",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 4,
+          "mappedTo": 4,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/radio-station/H11-pos1",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ReportVerdict",
+          "file": "src/domain/play-report.ts",
+          "vendorSet": "PlayLogStatus of playlog-sdk",
+          "coreMembers": [
+            "filed",
+            "duplicate",
+            "unlicensed",
+            "held"
+          ],
+          "vendorMembers": [
+            "ACCEPTED",
+            "REJECTED_DUPLICATE",
+            "REJECTED_UNLICENSED",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 4,
+          "mappedTo": 4,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/radio-station/H11-pos2",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ReportVerdict",
+          "file": "src/domain/play-report.ts",
+          "vendorSet": "PlayLogStatus of playlog-sdk",
+          "coreMembers": [
+            "filed",
+            "duplicate",
+            "unlicensed",
+            "held"
+          ],
+          "vendorMembers": [
+            "ACCEPTED",
+            "REJECTED_DUPLICATE",
+            "REJECTED_UNLICENSED",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 4,
+          "mappedTo": 4,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/radio-station/H11-twin1",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ReportVerdict",
+          "file": "src/domain/play-report.ts",
+          "vendorSet": "PlayLogStatus of playlog-sdk",
+          "coreMembers": [
+            "filed",
+            "duplicate",
+            "unlicensed",
+            "held"
+          ],
+          "vendorMembers": [
+            "ACCEPTED",
+            "REJECTED_DUPLICATE",
+            "REJECTED_UNLICENSED",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 4,
+          "mappedTo": 4,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/radio-station/H11-twin2",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ReportVerdict",
+          "file": "src/domain/play-report.ts",
+          "vendorSet": "PlayLogStatus of playlog-sdk",
+          "coreMembers": [
+            "filed",
+            "duplicate",
+            "unlicensed",
+            "held"
+          ],
+          "vendorMembers": [
+            "ACCEPTED",
+            "REJECTED_DUPLICATE",
+            "REJECTED_UNLICENSED",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 4,
+          "mappedTo": 4,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/vet-clinic/base",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "RejectionReason",
+          "file": "src/domain/claim-outcome.ts",
+          "vendorSet": "ClaimResponse.decline_code of petclaim-sdk",
+          "coreMembers": [
+            "coverage-ended",
+            "limit-reached",
+            "existing-condition"
+          ],
+          "vendorMembers": [
+            "POLICY_LAPSED",
+            "LIMIT_EXCEEDED",
+            "PRE_EXISTING"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/vet-clinic/H11-legit",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "RejectionReason",
+          "file": "src/domain/claim-outcome.ts",
+          "vendorSet": "ClaimResponse.decline_code of petclaim-sdk",
+          "coreMembers": [
+            "coverage-ended",
+            "limit-reached",
+            "existing-condition"
+          ],
+          "vendorMembers": [
+            "POLICY_LAPSED",
+            "LIMIT_EXCEEDED",
+            "PRE_EXISTING"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/vet-clinic/H11-pos1",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 0,
+      "structural": false,
+      "perCandidate": [],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/vet-clinic/H11-pos2",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "RejectionReason",
+          "file": "src/domain/claim-outcome.ts",
+          "vendorSet": "ClaimResponse.decline_code of petclaim-sdk",
+          "coreMembers": [
+            "coverage-ended",
+            "limit-reached",
+            "existing-condition"
+          ],
+          "vendorMembers": [
+            "POLICY_LAPSED",
+            "LIMIT_EXCEEDED",
+            "PRE_EXISTING"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/vet-clinic/H11-twin1",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "RejectionReason",
+          "file": "src/domain/claim-outcome.ts",
+          "vendorSet": "ClaimResponse.decline_code of petclaim-sdk",
+          "coreMembers": [
+            "coverage-ended",
+            "limit-reached",
+            "existing-condition"
+          ],
+          "vendorMembers": [
+            "POLICY_LAPSED",
+            "LIMIT_EXCEEDED",
+            "PRE_EXISTING"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 3,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-04/vet-clinic/H11-twin2",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 2,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ReviewPrecision",
+          "file": "src/application/ports/out/claims-gateway.port.ts",
+          "vendorSet": "TreatmentPrecision of petclaim-sdk",
+          "coreMembers": [
+            "Confirmed",
+            "Estimated",
+            "Undetermined"
+          ],
+          "vendorMembers": [
+            "EXACT",
+            "APPROXIMATE",
+            "UNKNOWN"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        },
+        {
+          "coreSet": "RejectionReason",
+          "file": "src/domain/claim-outcome.ts",
+          "vendorSet": "ClaimResponse.decline_code of petclaim-sdk",
+          "coreMembers": [
+            "coverage-ended",
+            "limit-reached",
+            "existing-condition"
+          ],
+          "vendorMembers": [
+            "POLICY_LAPSED",
+            "LIMIT_EXCEEDED",
+            "PRE_EXISTING"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/dental-lab/base",
+      "oracle": "clean",
+      "note": "HCAL-05 label (clean base): ScanVerdict usable/rescan-needed/unreadable maps the three vendor grades one for one; the R-MIRROR2 value-set shape fired here and was dropped.",
+      "candidates": 2,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "ScanPrecision",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "MeshPrecision of scanfab-sdk",
+          "coreMembers": [
+            "fine",
+            "standard",
+            "coarse"
+          ],
+          "vendorMembers": [
+            "MICRON_25",
+            "MICRON_50",
+            "MICRON_100"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        },
+        {
+          "coreSet": "ScanVerdict",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "ScanQualityGrade of scanfab-sdk",
+          "coreMembers": [
+            "usable",
+            "rescan-needed",
+            "unreadable"
+          ],
+          "vendorMembers": [
+            "SF_OK",
+            "SF_LOW_RES",
+            "SF_MARGIN_UNCLEAR"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 1,
+          "ownedBy": "",
+          "asked": true,
+          "key": "bd3f5dbb6a0d86ea97fbc4ca",
+          "answers": [
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "reasons": [
+            "The adapter maps the three vendor grades one-for-one onto the three ScanVerdict members (SF_OK→usable, SF_LOW_RES→rescan-needed, SF_MARGIN_UNCLEAR→unreadable), and there is no domain spec or glossary that names these distinctions. The only core branch (case-order.ts) checks just usable versus everything else, so the three-way split comes from the vendor rather than from anything the domain needs.",
+            "The adapter's switch maps each vendor value to exactly one core member (SF_OK→usable, SF_LOW_RES→rescan-needed, SF_MARGIN_UNCLEAR→unreadable), and no domain spec or glossary names the three verdicts. The only place the core branches on it (case-order.ts) checks just usable versus everything else, so the three-way split comes from the vendor, not from a domain need.",
+            "The adapter maps each of the vendor's three grades to exactly one ScanVerdict member (SF_OK→usable, SF_LOW_RES→rescan-needed, SF_MARGIN_UNCLEAR→unreadable), and there is no domain spec or glossary text naming these verdicts. The only place the core branches on the set (case-order.ts) checks just 'usable' vs. everything else, so the three-way split comes from the vendor's lines, not from what the d"
+          ],
+          "callMs": [
+            5604,
+            5961,
+            5239
+          ]
+        }
+      ],
+      "firedPerRun": [
+        1,
+        1,
+        1
+      ],
+      "fired": true,
+      "pass": false
+    },
+    {
+      "tree": "hcal-05/dental-lab/H11-legit",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 2,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ScanPrecision",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "MeshPrecision of scanfab-sdk",
+          "coreMembers": [
+            "fine",
+            "standard",
+            "coarse"
+          ],
+          "vendorMembers": [
+            "MICRON_25",
+            "MICRON_50",
+            "MICRON_100"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        },
+        {
+          "coreSet": "ScanVerdict",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "ScanQualityGrade of scanfab-sdk",
+          "coreMembers": [
+            "usable",
+            "rescan-needed",
+            "unreadable"
+          ],
+          "vendorMembers": [
+            "SF_OK",
+            "SF_LOW_RES",
+            "SF_MARGIN_UNCLEAR"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/dental-lab/H11-pos1",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 2,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ScanPrecision",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "MeshPrecision of scanfab-sdk",
+          "coreMembers": [
+            "fine",
+            "standard",
+            "coarse"
+          ],
+          "vendorMembers": [
+            "MICRON_25",
+            "MICRON_50",
+            "MICRON_100"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        },
+        {
+          "coreSet": "ScanVerdict",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "ScanQualityGrade of scanfab-sdk",
+          "coreMembers": [
+            "usable",
+            "rescan-needed",
+            "unreadable"
+          ],
+          "vendorMembers": [
+            "SF_OK",
+            "SF_LOW_RES",
+            "SF_MARGIN_UNCLEAR"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/dental-lab/H11-pos2",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 2,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ScanPrecision",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "MeshPrecision of scanfab-sdk",
+          "coreMembers": [
+            "fine",
+            "standard",
+            "coarse"
+          ],
+          "vendorMembers": [
+            "MICRON_25",
+            "MICRON_50",
+            "MICRON_100"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        },
+        {
+          "coreSet": "ScanVerdict",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "ScanQualityGrade of scanfab-sdk",
+          "coreMembers": [
+            "usable",
+            "rescan-needed",
+            "unreadable"
+          ],
+          "vendorMembers": [
+            "SF_OK",
+            "SF_LOW_RES",
+            "SF_MARGIN_UNCLEAR"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/dental-lab/H11-twin1",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 2,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ScanPrecision",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "MeshPrecision of scanfab-sdk",
+          "coreMembers": [
+            "fine",
+            "standard",
+            "coarse"
+          ],
+          "vendorMembers": [
+            "MICRON_25",
+            "MICRON_50",
+            "MICRON_100"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        },
+        {
+          "coreSet": "ScanVerdict",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "ScanQualityGrade of scanfab-sdk",
+          "coreMembers": [
+            "usable",
+            "rescan-needed",
+            "unreadable"
+          ],
+          "vendorMembers": [
+            "SF_OK",
+            "SF_LOW_RES",
+            "SF_MARGIN_UNCLEAR"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/dental-lab/H11-twin2",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 2,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ScanPrecision",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "MeshPrecision of scanfab-sdk",
+          "coreMembers": [
+            "fine",
+            "standard",
+            "coarse"
+          ],
+          "vendorMembers": [
+            "MICRON_25",
+            "MICRON_50",
+            "MICRON_100"
+          ],
+          "mappedFrom": 2,
+          "mappedTo": 2,
+          "oneToOne": false,
+          "branches": 0,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        },
+        {
+          "coreSet": "ScanVerdict",
+          "file": "src/domain/scan-assessment.ts",
+          "vendorSet": "ScanQualityGrade of scanfab-sdk",
+          "coreMembers": [
+            "usable",
+            "rescan-needed",
+            "unreadable"
+          ],
+          "vendorMembers": [
+            "SF_OK",
+            "SF_LOW_RES",
+            "SF_MARGIN_UNCLEAR"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/scooter-rental/base",
+      "oracle": "clean",
+      "note": "HCAL-05 label (clean base): ChargeOutcome adds 'unavailable' to five vendor statuses mapped one for one. Close to the construct; the HCAL label is kept as the oracle.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "ChargeOutcome",
+          "file": "src/domain/charge-outcome.ts",
+          "vendorSet": "PaynetStatus of paynet-sdk",
+          "coreMembers": [
+            "paid",
+            "insufficient-funds",
+            "card-expired",
+            "fraud-suspected",
+            "under-review",
+            "unavailable"
+          ],
+          "vendorMembers": [
+            "AUTHORIZED",
+            "DECLINED_INSUFFICIENT_FUNDS",
+            "DECLINED_CARD_EXPIRED",
+            "DECLINED_SUSPECTED_FRAUD",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": false,
+          "branches": 1,
+          "ownedBy": "",
+          "asked": true,
+          "key": "4a17ba06f682435c19c4e81b",
+          "answers": [
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "reasons": [
+            "Each of the five PaynetStatus values maps one for one to a renamed ChargeOutcome member. The only branch in the core is outcome !== 'paid', and the other members are just put into a notification string, with no spec or glossary text that names them. 'unavailable' is the only extra member, so the set is still nearly a one-for-one copy of the vendor's lines.",
+            "The adapter maps each of the five PaynetStatus values one-for-one onto renamed ChargeOutcome members, and the only extra member is 'unavailable', which no vendor value maps to. No domain spec or glossary names these distinctions, and the core only checks `outcome !== 'paid'`, passing the vendor-derived detail straight into a notification string.",
+            "The adapter maps all five PaynetStatus values one-for-one onto renamed ChargeOutcome members, and the only extra member is 'unavailable'. No domain spec or glossary names these distinctions, and the core's one branch only checks 'paid' versus everything else, so the finer decline reasons follow the vendor's lines rather than anything the domain needs."
+          ],
+          "callMs": [
+            4719,
+            4557,
+            4648
+          ]
+        }
+      ],
+      "firedPerRun": [
+        1,
+        1,
+        1
+      ],
+      "fired": true,
+      "pass": false
+    },
+    {
+      "tree": "hcal-05/scooter-rental/H11-legit",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ChargeOutcome",
+          "file": "src/domain/charge-outcome.ts",
+          "vendorSet": "PaynetStatus of paynet-sdk",
+          "coreMembers": [
+            "paid",
+            "insufficient-funds",
+            "card-expired",
+            "fraud-suspected",
+            "under-review",
+            "unavailable"
+          ],
+          "vendorMembers": [
+            "AUTHORIZED",
+            "DECLINED_INSUFFICIENT_FUNDS",
+            "DECLINED_CARD_EXPIRED",
+            "DECLINED_SUSPECTED_FRAUD",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": false,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/scooter-rental/H11-pos1",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ChargeOutcome",
+          "file": "src/domain/charge-outcome.ts",
+          "vendorSet": "PaynetStatus of paynet-sdk",
+          "coreMembers": [
+            "paid",
+            "insufficient-funds",
+            "card-expired",
+            "fraud-suspected",
+            "under-review",
+            "unavailable"
+          ],
+          "vendorMembers": [
+            "AUTHORIZED",
+            "DECLINED_INSUFFICIENT_FUNDS",
+            "DECLINED_CARD_EXPIRED",
+            "DECLINED_SUSPECTED_FRAUD",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": false,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/scooter-rental/H11-pos2",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ChargeOutcome",
+          "file": "src/domain/charge-outcome.ts",
+          "vendorSet": "PaynetStatus of paynet-sdk",
+          "coreMembers": [
+            "paid",
+            "insufficient-funds",
+            "card-expired",
+            "fraud-suspected",
+            "under-review",
+            "unavailable"
+          ],
+          "vendorMembers": [
+            "AUTHORIZED",
+            "DECLINED_INSUFFICIENT_FUNDS",
+            "DECLINED_CARD_EXPIRED",
+            "DECLINED_SUSPECTED_FRAUD",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": false,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/scooter-rental/H11-twin1",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 2,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ChargeOutcome",
+          "file": "src/domain/charge-outcome.ts",
+          "vendorSet": "PaynetStatus of paynet-sdk",
+          "coreMembers": [
+            "paid",
+            "insufficient-funds",
+            "card-expired",
+            "fraud-suspected",
+            "under-review",
+            "unavailable"
+          ],
+          "vendorMembers": [
+            "AUTHORIZED",
+            "DECLINED_INSUFFICIENT_FUNDS",
+            "DECLINED_CARD_EXPIRED",
+            "DECLINED_SUSPECTED_FRAUD",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": false,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        },
+        {
+          "coreSet": "PaymentFailure",
+          "file": "src/domain/payment-failure.ts",
+          "vendorSet": "PaynetStatus of paynet-sdk",
+          "coreMembers": [
+            "insufficient-funds",
+            "card-expired",
+            "fraud-suspected"
+          ],
+          "vendorMembers": [
+            "AUTHORIZED",
+            "DECLINED_INSUFFICIENT_FUNDS",
+            "DECLINED_CARD_EXPIRED",
+            "DECLINED_SUSPECTED_FRAUD",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "hcal-05/scooter-rental/H11-twin2",
+      "oracle": "clean",
+      "note": "",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ChargeOutcome",
+          "file": "src/domain/charge-outcome.ts",
+          "vendorSet": "PaynetStatus of paynet-sdk",
+          "coreMembers": [
+            "paid",
+            "insufficient-funds",
+            "card-expired",
+            "fraud-suspected",
+            "under-review",
+            "unavailable"
+          ],
+          "vendorMembers": [
+            "AUTHORIZED",
+            "DECLINED_INSUFFICIENT_FUNDS",
+            "DECLINED_CARD_EXPIRED",
+            "DECLINED_SUSPECTED_FRAUD",
+            "PENDING_REVIEW"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": false,
+          "branches": 1,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "synthetic/claim-mirror",
+      "oracle": "violation",
+      "note": "ClaimProgress renames ClaimDesk's CLM_* workflow states one for one; the glossary names none; the core branches on three. Hard positive: the words are ordinary.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "ClaimProgress",
+          "file": "src/domain/claim.ts",
+          "vendorSet": "ClaimState of claimdesk-sdk",
+          "coreMembers": [
+            "opened",
+            "assessing",
+            "approved",
+            "denied",
+            "paid"
+          ],
+          "vendorMembers": [
+            "CLM_OPEN",
+            "CLM_ASSESS",
+            "CLM_APPROVED",
+            "CLM_DENIED",
+            "CLM_PAID"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": true,
+          "branches": 4,
+          "ownedBy": "",
+          "asked": true,
+          "key": "f23e6f6ac8298e1e213f335f",
+          "answers": [
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "reasons": [
+            "The adapter maps each of the five ClaimState values to exactly one ClaimProgress member (CLM_OPEN→opened … CLM_PAID→paid), and the glossary never names these states; it only says the owner is told \"how their claim is going\". The core uses fewer distinctions than it defines: report-claim treats 'approved' and 'paid' the same and never checks 'opened'. That suggests the set copies the vendor's workf",
+            "The adapter maps all five ClaimState values one for one onto ClaimProgress (CLM_OPEN->opened … CLM_PAID->paid), and the glossary never names any of these states. It only says owners are told \"how their claim is going\". The use case lumps approved and paid together, which suggests the domain itself needs a coarser set than the vendor's five.",
+            "The adapter maps all five ClaimState values one-to-one onto ClaimProgress (CLM_OPEN→opened … CLM_PAID→paid), and the glossary never names these states; it only says owners are told \"how their claim is going\". The core's only branch site, report-claim, treats approved and paid the same, so the domain doesn't need the vendor's full set of distinctions. ClaimProgress therefore looks like a renamed co"
+          ],
+          "callMs": [
+            5167,
+            4408,
+            4755
+          ]
+        }
+      ],
+      "firedPerRun": [
+        1,
+        1,
+        1
+      ],
+      "fired": true,
+      "pass": true
+    },
+    {
+      "tree": "synthetic/parcel-coarse",
+      "oracle": "clean",
+      "note": "Twin of parcel-mirror: DeliveryOutcome pending/delivered/failed, named by the glossary; the adapter maps six vendor codes onto three.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "DeliveryOutcome",
+          "file": "src/domain/parcel.ts",
+          "vendorSet": "TrackingStatus of shiptrack-sdk",
+          "coreMembers": [
+            "pending",
+            "delivered",
+            "failed"
+          ],
+          "vendorMembers": [
+            "LABEL_CREATED",
+            "IN_TRANSIT",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "EXCEPTION",
+            "RETURNED"
+          ],
+          "mappedFrom": 6,
+          "mappedTo": 3,
+          "oneToOne": false,
+          "branches": 2,
+          "ownedBy": "",
+          "asked": true,
+          "key": "ed84c43e30317864313f0202",
+          "answers": [
+            "no",
+            "no",
+            "no"
+          ],
+          "reasons": [
+            "The glossary itself names pending, delivered and failed, and says a failed delivery is refunded. The core set is also coarser than the vendor's: the adapter maps 6 values onto 3 (LABEL_CREATED, IN_TRANSIT and OUT_FOR_DELIVERY become pending; EXCEPTION and RETURNED become failed).",
+            "The glossary itself defines pending, delivered and failed, and says a failed delivery is refunded. The core set also has fewer, differently cut values than the vendor's six: the adapter maps LABEL_CREATED, IN_TRANSIT and OUT_FOR_DELIVERY to pending, and EXCEPTION and RETURNED to failed.",
+            "The glossary defines pending, delivered and failed itself, and says a failed delivery is refunded. The core set is also coarser than the vendor's: the adapter folds three vendor values into pending and both EXCEPTION and RETURNED into failed."
+          ],
+          "callMs": [
+            5756,
+            4781,
+            6046
+          ]
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "synthetic/parcel-mirror",
+      "oracle": "violation",
+      "note": "ParcelStage renames shiptrack TrackingStatus one for one (Created/Moving/OutForDelivery/Done/Problem/Back); the glossary names none of the six; the use case branches on four.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "ParcelStage",
+          "file": "src/domain/parcel.ts",
+          "vendorSet": "TrackingStatus of shiptrack-sdk",
+          "coreMembers": [
+            "Created",
+            "Moving",
+            "OutForDelivery",
+            "Done",
+            "Problem",
+            "Back"
+          ],
+          "vendorMembers": [
+            "LABEL_CREATED",
+            "IN_TRANSIT",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "EXCEPTION",
+            "RETURNED"
+          ],
+          "mappedFrom": 6,
+          "mappedTo": 6,
+          "oneToOne": true,
+          "branches": 5,
+          "ownedBy": "",
+          "asked": true,
+          "key": "9127a9cacce4375256a26bd0",
+          "answers": [
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "reasons": [
+            "The adapter maps all six vendor values one for one, and ParcelStage keeps every vendor distinction under a new name. The glossary only needs four of them: on its way, arrived, couldn't be handed over (apology) and came back (refund). The use case also handles Moving and OutForDelivery as one case and never branches on Created, so the six-way split comes from the vendor, not the domain.",
+            "The adapter maps all six vendor values one-for-one onto renamed members. The glossary only needs four cases: on its way, arrived, couldn't be handed over (apology) and came back (refund). The use case treats Moving and OutForDelivery as one case and never branches on Created, so the two extra members repeat lines the vendor draws, not lines the domain needs.",
+            "The adapter maps all six vendor values one-for-one onto six renamed members, and that includes vendor-only lines such as LABEL_CREATED→Created and the IN_TRANSIT/OUT_FOR_DELIVERY split. The glossary only names \"on its way\", \"arrived\", \"cannot hand over\" (apology) and \"comes back\" (refund), and the use case merges Moving and OutForDelivery into one branch, so the domain needs a coarser set than the"
+          ],
+          "callMs": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "firedPerRun": [
+        1,
+        1,
+        1
+      ],
+      "fired": true,
+      "pass": true
+    },
+    {
+      "tree": "synthetic/parcel-no-branch",
+      "oracle": "clean",
+      "note": "The mirrored ParcelStage of parcel-mirror, but the core never branches on it (the structure fails; the model is not asked).",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ParcelStage",
+          "file": "src/domain/parcel.ts",
+          "vendorSet": "TrackingStatus of shiptrack-sdk",
+          "coreMembers": [
+            "Created",
+            "Moving",
+            "OutForDelivery",
+            "Done",
+            "Problem",
+            "Back"
+          ],
+          "vendorMembers": [
+            "LABEL_CREATED",
+            "IN_TRANSIT",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "EXCEPTION",
+            "RETURNED"
+          ],
+          "mappedFrom": 6,
+          "mappedTo": 6,
+          "oneToOne": true,
+          "branches": 0,
+          "ownedBy": "",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "synthetic/parcel-seed-owned",
+      "oracle": "clean",
+      "note": "The seed already holds the mirrored ParcelStage; the step only adds a query on it (baseline-owned; the model is not asked).",
+      "candidates": 1,
+      "structural": false,
+      "perCandidate": [
+        {
+          "coreSet": "ParcelStage",
+          "file": "src/domain/parcel.ts",
+          "vendorSet": "TrackingStatus of shiptrack-sdk",
+          "coreMembers": [
+            "Created",
+            "Moving",
+            "OutForDelivery",
+            "Done",
+            "Problem",
+            "Back"
+          ],
+          "vendorMembers": [
+            "LABEL_CREATED",
+            "IN_TRANSIT",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "EXCEPTION",
+            "RETURNED"
+          ],
+          "mappedFrom": 6,
+          "mappedTo": 6,
+          "oneToOne": true,
+          "branches": 7,
+          "ownedBy": "baseline",
+          "asked": false,
+          "key": null,
+          "answers": [],
+          "reasons": [],
+          "callMs": []
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    },
+    {
+      "tree": "synthetic/payout-mirror-const",
+      "oracle": "violation",
+      "note": "PayoutState const object renames PaySend's PO_* lifecycle one for one (including the vendor's compliance hold); the glossary names none; the core branches on two.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "PayoutState",
+          "file": "src/domain/payout.ts",
+          "vendorSet": "PayoutStatus of paysend-sdk",
+          "coreMembers": [
+            "Queued",
+            "Sent",
+            "Bounced",
+            "HeldCompliance"
+          ],
+          "vendorMembers": [
+            "PO_QUEUED",
+            "PO_SENT",
+            "PO_BOUNCED",
+            "PO_HELD_COMPLIANCE"
+          ],
+          "mappedFrom": 3,
+          "mappedTo": 3,
+          "oneToOne": false,
+          "branches": 2,
+          "ownedBy": "",
+          "asked": true,
+          "key": "79c652ea758efeec3545c049",
+          "answers": [
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "reasons": [
+            "PayoutState's four members match PaySend's four PayoutStatus values one for one, with the same names minus the PO_ prefix. HeldCompliance copies a PaySend-specific idea: the SDK doc describes it as a hold during PaySend's own compliance (KYC) review. The domain glossary only says stallholders are paid every Monday and names none of these states. The adapter shows no mapping for PO_HELD_COMPLIANCE,",
+            "PayoutState's four members line up one for one with PaySend's four PayoutStatus values. HeldCompliance even copies PO_HELD_COMPLIANCE, which the SDK's doc comment describes as PaySend's own KYC review. The glossary names no payout states at all. The use case only groups Bounced and HeldCompliance for follow-up, so these lines come from the vendor's lifecycle, not from the domain.",
+            "PayoutState's four members match PayoutStatus one for one: Queued, Sent and Bounced map directly in the adapter, and HeldCompliance copies PO_HELD_COMPLIANCE, which the SDK documents as PaySend's own compliance (KYC) hold. The glossary says only that stallholders are paid every Monday and names none of these states, so the distinctions come from the vendor, not the domain."
+          ],
+          "callMs": [
+            5191,
+            4770,
+            4913
+          ]
+        }
+      ],
+      "firedPerRun": [
+        1,
+        1,
+        1
+      ],
+      "fired": true,
+      "pass": true
+    },
+    {
+      "tree": "synthetic/stay-mirror-enum",
+      "oracle": "violation",
+      "note": "StayStatus enum renames the RoomsHub enum one for one (Held/Conf/NoShow/Cxl/CxlLate) through a Record table; the glossary names none; the core switches on it.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "StayStatus",
+          "file": "src/domain/stay.ts",
+          "vendorSet": "RhReservationStatus of rooms-hub-sdk",
+          "coreMembers": [
+            "Held",
+            "Conf",
+            "NoShow",
+            "Cxl",
+            "CxlLate"
+          ],
+          "vendorMembers": [
+            "HELD",
+            "CONF",
+            "NOSHOW",
+            "CXL",
+            "CXL_LATE"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": true,
+          "branches": 5,
+          "ownedBy": "",
+          "asked": true,
+          "key": "9e22b4e7d8ed1bedd88cd876",
+          "answers": [
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "reasons": [
+            "The adapter maps each of the five vendor codes one-to-one onto a core member, and the members keep the vendor's own abbreviations (Conf, Cxl, CxlLate). The glossary never names these statuses or the cancellation-window rule, so nothing shows the domain owns these distinctions; the settle-stay switch just branches on the vendor's lines.",
+            "StayStatus maps one to one onto RhReservationStatus (HELD->Held, CONF->Conf, NOSHOW->NoShow, CXL->Cxl, CXL_LATE->CxlLate) and keeps the vendor's own abbreviations. The glossary never names these statuses, so it gives no sign the domain owns them, even though settle-stay branches on every member.",
+            "StayStatus maps one-for-one onto RhReservationStatus (HELD→Held, CONF→Conf, NOSHOW→NoShow, CXL→Cxl, CXL_LATE→CxlLate) and even keeps the vendor's abbreviations (Conf, Cxl, CxlLate). The glossary never names these statuses or a domain reason for them, so the five-way split in the settle-stay switch comes from the vendor's lines, not the domain's."
+          ],
+          "callMs": [
+            5047,
+            5043,
+            5483
+          ]
+        }
+      ],
+      "firedPerRun": [
+        1,
+        1,
+        1
+      ],
+      "fired": true,
+      "pass": true
+    },
+    {
+      "tree": "synthetic/stay-phases-owned",
+      "oracle": "clean",
+      "note": "Hard clean twin: StayPhase is one-to-one with the RoomsHub enum, but the glossary defines all five phases with house rules and the core's rules use them.",
+      "candidates": 1,
+      "structural": true,
+      "perCandidate": [
+        {
+          "coreSet": "StayPhase",
+          "file": "src/domain/stay.ts",
+          "vendorSet": "RhReservationStatus of rooms-hub-sdk",
+          "coreMembers": [
+            "reserved",
+            "guaranteed",
+            "in-house",
+            "departed",
+            "cancelled"
+          ],
+          "vendorMembers": [
+            "PENDING_PAYMENT",
+            "CONFIRMED",
+            "CHECKED_IN",
+            "CHECKED_OUT",
+            "CANCELLED"
+          ],
+          "mappedFrom": 5,
+          "mappedTo": 5,
+          "oneToOne": true,
+          "branches": 3,
+          "ownedBy": "",
+          "asked": true,
+          "key": "147bc1fede40c76fb38b25b6",
+          "answers": [
+            "no",
+            "no",
+            "no"
+          ],
+          "reasons": [
+            "GLOSSARY.md names all five phases (reserved, guaranteed, in-house, departed, cancelled) and attaches the inn's own house rules to each: the 48-hour release, the no-show charge, folio posting and the cancellation fee. The core branches on these phases in release-unpaid-rooms. The one-to-one mapping in the adapter is a coincidence the glossary points out (\"happens to track the same five steps\"), not",
+            "GLOSSARY.md names all five phases (reserved, guaranteed, in-house, departed, cancelled) and ties house rules to each one: the 48-hour release, the no-show charge, folio posting and the cancellation fee. The core branches on those rules (release-unpaid-rooms, the in-house check), so the domain owns these distinctions even though they line up one for one with RoomsHub's codes.",
+            "GLOSSARY.md names all five phases (reserved, guaranteed, in-house, departed, cancelled) and attaches the inn's own house rules to them, such as the 48-hour release, the no-show night charge and folio posting. The core branches on these rules in release-unpaid-rooms and stay.ts, so the domain owns these distinctions even though they line up one to one with RoomsHub's codes."
+          ],
+          "callMs": [
+            4280,
+            3720,
+            3485
+          ]
+        }
+      ],
+      "firedPerRun": [
+        0,
+        0,
+        0
+      ],
+      "fired": false,
+      "pass": true
+    }
+  ]
+}
