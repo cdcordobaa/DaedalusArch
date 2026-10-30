@@ -37,7 +37,7 @@ export const cases: TestCase[] = [
     name: 'a plan is priced by its flues',
     kind: 'regression',
     run: async (createApp) => {
-      const { app } = setup(createApp, mandate('MD-1', 'active'));
+      const { app } = setup(createApp, mandate('MD-1', 'mandate_active'));
       has(await app.start('PL-1', '1 Mill Lane', 2, 2, 'MD-1'), { planId: 'PL-1', status: 'running', fee: 95, sweepsPerYear: 2 });
       assert.match(errorOf(await app.start('PL-2', '1 Mill Lane', 0, 1, 'MD-1')), /1 to 4 flues/);
       assert.match(errorOf(await app.start('PL-3', '1 Mill Lane', 1, 5, 'MD-1')), /1 to 3 sweeps/);
@@ -47,8 +47,8 @@ export const cases: TestCase[] = [
     name: 'the plan letter shows the direct debit as the provider reports it',
     kind: 'regression',
     run: async (createApp) => {
-      const { app } = setup(createApp, mandate('MD-1', 'active'), mandate('MD-2', 'pending_submission', 'SWEEP-0002'));
-      has(await app.letter('MD-1'), { line: 'Direct debit MD-1 (SWEEP-0001): active' });
+      const { app } = setup(createApp, mandate('MD-1', 'mandate_active'), mandate('MD-2', 'pending_submission', 'SWEEP-0002'));
+      has(await app.letter('MD-1'), { line: 'Direct debit MD-1 (SWEEP-0001): mandate_active' });
       has(await app.letter('MD-2'), { line: 'Direct debit MD-2 (SWEEP-0002): pending_submission' });
     },
   },
@@ -69,7 +69,7 @@ export const cases: TestCase[] = [
     name: 'a running plan records sweeps; a stopped or unknown plan does not',
     kind: 'regression',
     run: async (createApp) => {
-      const { app } = setup(createApp, mandate('MD-1', 'active'));
+      const { app } = setup(createApp, mandate('MD-1', 'mandate_active'));
       await app.start('PL-1', '1 Mill Lane', 1, 3, 'MD-1');
       has(await app.recordSweep('PL-1', '2026-03-02'), { planId: 'PL-1', status: 'swept', date: '2026-03-02' });
       assert.match(errorOf(await app.recordSweep('PL-1', '2 March')), /YYYY-MM-DD/);
@@ -83,7 +83,7 @@ export const cases: TestCase[] = [
     kind: 'feature',
     step: 'start-on-active-mandate',
     run: async (createApp) => {
-      const { app, fake } = setup(createApp, mandate('MD-1', 'active'));
+      const { app, fake } = setup(createApp, mandate('MD-1', 'mandate_active'));
       has(await app.start('PL-1', '1 Mill Lane', 1, 1, 'MD-1'), { status: 'running', fee: 70 });
       assert.ok(fake.calls.some((c) => c.op === 'getMandate' && c.id === 'MD-1'), 'the direct debit is looked up');
     },
@@ -105,7 +105,7 @@ export const cases: TestCase[] = [
     kind: 'feature',
     step: 'charge-per-sweep',
     run: async (createApp) => {
-      const { app, fake } = setup(createApp, mandate('MD-1', 'active'));
+      const { app, fake } = setup(createApp, mandate('MD-1', 'mandate_active'));
       await app.start('PL-1', '1 Mill Lane', 2, 2, 'MD-1');
       const v = await app.recordSweep('PL-1', '2026-03-02');
       const made = payments(fake);
@@ -119,13 +119,13 @@ export const cases: TestCase[] = [
     kind: 'feature',
     step: 'charge-per-sweep',
     run: async (createApp) => {
-      const { app, fake } = setup(createApp, mandate('MD-1', 'active'));
+      const { app, fake } = setup(createApp, mandate('MD-1', 'mandate_active'));
       await app.start('PL-1', '1 Mill Lane', 1, 1, 'MD-1');
       fake.mandates['MD-1']!.status = 'cancelled';
       const v = await app.recordSweep('PL-1', '2026-03-02');
       has(v, { status: 'charge_failed' });
       assert.equal((v as { charged?: unknown }).charged, undefined, 'nothing was charged');
-      fake.mandates['MD-1']!.status = 'active';
+      fake.mandates['MD-1']!.status = 'mandate_active';
       has(await app.recordSweep('PL-1', '2026-04-02'), { status: 'swept', charged: 70 }, 'the failed sweep did not use the year');
     },
   },
@@ -134,7 +134,7 @@ export const cases: TestCase[] = [
     kind: 'feature',
     step: 'sweeps-per-year',
     run: async (createApp) => {
-      const { app, fake } = setup(createApp, mandate('MD-1', 'active'));
+      const { app, fake } = setup(createApp, mandate('MD-1', 'mandate_active'));
       await app.start('PL-1', '1 Mill Lane', 1, 2, 'MD-1');
       has(await app.recordSweep('PL-1', '2026-01-10'), { status: 'swept' });
       has(await app.recordSweep('PL-1', '2026-06-10'), { status: 'swept' });

@@ -95,7 +95,7 @@ export const cases: TestCase[] = [
       assert.equal(await status(app, 'P-9'), 'DROPPED_OFF');
       const firingId = await fire(app, ['P-1']);
       assert.equal(await status(app, 'P-1'), 'WAITING');
-      for (const [p, shown] of [['CANDLING', 'WAITING'], ['RAMPING', 'IN_THE_KILN'], ['HOLDING', 'IN_THE_KILN'], ['COMPLETE', 'COMPLETE']]) {
+      for (const [p, shown] of [['CANDLING', 'WAITING'], ['RAMPING', 'IN_THE_KILN'], ['HOLDING', 'IN_THE_KILN'], ['COMPLETE', 'READY_FOR_PICKUP']]) {
         phase(fake, firingId, p!);
         assert.equal(await status(app, 'P-1'), shown, p);
       }
@@ -137,7 +137,7 @@ export const cases: TestCase[] = [
       phase(fake, firingId, 'COOLING');
       assert.equal(await status(app, 'P-1'), 'COOLING_DOWN');
       phase(fake, firingId, 'COMPLETE');
-      assert.equal(await status(app, 'P-1'), 'COMPLETE');
+      assert.equal(await status(app, 'P-1'), 'READY_FOR_PICKUP');
     },
   },
 ];

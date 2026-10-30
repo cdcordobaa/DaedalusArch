@@ -2,7 +2,7 @@
 
 **Study task (draft, not sealed, not registered).** Domain: a translation bureau that posts its customers' documents
 as jobs on a freelance translator marketplace (vendor `wordmarket-sdk`, a vendored stand-in). Hexagonal style.
-Shape: a renamed copy of the vendor's value set in the core, built at the TRAP-PILOT-v2 p3 **L3** lever set (a–f).
+Shape: a renamed copy of the vendor's value set in the core, built at the TRAP-PILOT-v2 p3 **L3** lever set without lever (e) (a–d, f; lever (e) excluded before the seal, pre-registration D2).
 Built backwards from the clean end state by a rule-blind builder; see `../README.md` for the verification table.
 
 ## The seed

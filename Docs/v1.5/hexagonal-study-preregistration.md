@@ -1,18 +1,19 @@
 # v1.5 Hexagonal study pre-registration: combined delivery of the admitted Hexagonal families (Claude Sonnet)
 
-**Status: DRAFT, NOT REGISTERED (written 2026-10-30 UTC; revised the same day after an adversarial review).**
+**Status: DRAFT, NOT REGISTERED (written 2026-10-30 UTC; revised the same day after an adversarial review; decisions
+D1–D9 recorded the same day, §10). Stopped at the rule-visibility check (§9.1, B11): not sealed, no pilot.**
 Nothing in this file is in force, and no call of this study (pilot or study) runs before registration.
 
 **Order of events (registered as part of this file):**
 
 1. **Registration.** A commit merges this file to `main` once every item of §10 marked *before registration* is
-   closed and every slot of §9.1 is filled. It registers the hypothesis, the outcome, the tests, the gates, the r rule
-   of §3 and the provisional r = 8.
+   closed and every slot of §9.1 is filled. It registers the hypothesis, the outcome, the tests, the gates and r = 10
+   (the D9 rule of §3, applied before registration).
 2. **Agent pilot** (§5.1), run after registration under the registered gates. Its report is published, under
    `Docs/DiagnosticRuns/`, whatever the gates say.
-3. **Pre-data addendum.** A dated section (§9.2), written before the first study call: the final r from the §3 rule,
-   its achieved power, the gate exits, the dress rehearsal exit (§5.2) and the judge-call cap. It may only fill §9.2's
-   slots by the registered rules; any other change is a deviation (§6).
+3. **Pre-data addendum.** A dated section (§9.2), written before the first study call: the gate exits, the dress
+   rehearsal exit (§5.2) and the judge-call cap. It may only fill §9.2's slots by the registered rules; any other change
+   is a deviation (§6). r is not set here: D9 fixed it before registration (§3).
 4. **Study**, then scoring once, then analysis once.
 
 This is a separate study, under its own registration. It is not a change to the first v1.5 study
@@ -44,14 +45,15 @@ pre-run checks never compared the delivered rules with the scored rules. Since t
 
 D is a count of new violations, so lower is better.
 
-**Population.** The 13 tasks of §2, from each task's fixed seed, with Claude Sonnet through Claude Code. The tasks were
+**Population.** The 13 tasks of §2, from each task's fixed seed, with Claude Sonnet through Claude Code; H-HX is
+measured on the **11 primary tasks** (D8: hxpb1 and hxpb2 run in both arms and are measured only in secondary 8). The tasks were
 built and chosen so that the model, alone (arm `none`), falls into their traps (pilot ladder; TRAPRATE-01). The result
 speaks to **tasks the `none`-arm model traps on**, not to Hexagonal work at large, and not to tasks where the model
 already keeps the vendor out of the core.
 
 | Id | Style | Contrast | Predicted direction | Test |
 |---|---|---|---|---|
-| **H-HX** | Hexagonal (13 tasks) | `combined` vs `none` | D(combined) **<** D(none) | two-sided (§4) |
+| **H-HX** | Hexagonal (11 primary tasks of the 13 run; D8) | `combined` vs `none` | D(combined) **<** D(none) | two-sided (§4) |
 
 - **Supported** only if all hold: (a) the block-level exact two-sided sign-flip gives p ≤ 0.05; (b) the estimate has
   the predicted sign (T < 0); (c) the task-level sign check holds: the exact two-sided sign test over the tasks whose
@@ -75,8 +77,8 @@ already keeps the vendor out of the core.
 > **D_hx** per cell: distinct violation identities of the **counted rules** (below) present at step j (1 ≤ j ≤ 3) and
 > absent from the task seed and from every earlier step of that cell, summed over the steps. Identity: rule + file +
 > subject, under Study 2b's rename rule (ρ from `git diff -M50%`). The seed is the baseline (instrument v1.5.3). Every
-> snapshot is scored (ITT). Scored by `score-study.ts --counted hx-i` (or `hx-ii`, §10 decision box D1)
-> `--require-delivery-audit`.
+> snapshot is scored (ITT). Scored by `score-study.ts --counted hx-i` (D1, option (i)) `--require-delivery-audit`.
+> Computed on the cells of the 11 primary tasks (D8; `primaryCells`, `scripts/v1.5/lib/hx-study-analyse.ts`).
 
 Instrument: `v1.5.5-hx-rules-v3`, with the rules-frozen root of HCAL-07: `experiments/hcal-07/RULES-FROZEN.sha256`,
 root `098d67bd4fdc97c5` (45 files: every tracked non-test `.ts` and `.cypher` under `src/v15-instrument` plus
@@ -99,27 +101,31 @@ the root (its audit wraps the hub's test seams from the driver), so no re-freeze
 | H10 | entity as an inbound adapter's transport shape | R-ENTITY-OUT | HCAL-03 4/4, 0/6 | never failed; identical at v1.5.5 |
 | H11-a | vendor literal codes (regression) | R-MIRROR2 `[literal]` | HCAL-07 **2/2, 0/2** | HCAL-05 R-MIRROR 3/4 (plain-string comparisons missed); R-MIRROR2 added v1.5.2 |
 | H11-b | vendor error vocabulary | R-MIRROR2 `[error]` | HCAL-07 6/6, 0/4 | HCAL-06 2/4 (class-name copy and key tables missed); v1.5.5 added the `decl` and `key` readings |
-| H11-c | field renamed to a vendor field (regression) | R-MIRROR2 `[field]`, **only under option (ii)** (D1) | HCAL-07 **2/2, 0/2** | — |
+| H11-c | field renamed to a vendor field (regression) | **not counted** (D1 = option (i): `[field]` also fires on d) | HCAL-07 **2/2, 0/2** | — |
 
 "Identical at v1.5.5": `experiments/hx-rules-v3-dev/README.md` §Regression scored CAL-03, HCAL-03, HCAL-04 and HCAL-05
 at the v1.5.5 branch with zero calls; perRow identical, no clean case changed. **H11-a and H11-c each rest on 2
 positives and 2 clean cases** (HCAL-07, regression rows); H11-b on 6 and 4. The sub-shape letters are HCAL-07's
 (HCAL-06 worded c and d differently; this registration uses HCAL-07's only).
 
+**Admission decisions (D5, recorded in the decision register).** H11-a and H11-b are admitted on HCAL-07. H03 and H07
+are re-admitted at v1.5.5, on HCAL-07, at their rewritten rules (R-AXA, R-TRANSPORT). H11-c is not counted (D1).
+`ADMITTED_HEX_ROWS` in the frozen root is unchanged; this study counts through `HX_COUNTED_RULES`.
+
 **Counted rule IDs** (`HX_COUNTED_RULES`, a literal constant in `experiments/v15-study/score-study.ts`, outside the
 frozen root; PR 452, pinned by `tests/unit/v15-study/delivery-audit.test.ts`): **FF-P01, FF-P03, FF-S01, FF-S04, R-AXA,
 R-COREIO, R-ENTITY-OUT, R-H5, R-INJ, R-LOCATOR, R-TRANSPORT**, plus **R-MIRROR2 by its shape word**
-(`HX_MIRROR2_SHAPES`): under option (i) `[literal]` and `[error]` only; under option (ii) every shape. The choice is
-the author's (§10, D1).
+(`HX_MIRROR2_SHAPES`): `[literal]` and `[error]` only (option (i), D1). Option (ii) (every shape) stays in the code
+and is not used.
 
 **Not counted, never in D_hx.**
 
 | Row or sub-shape | Rule IDs | Why | Where it is reported |
 |---|---|---|---|
-| H11-d, vendor field names in the core | R-MIRROR2 `[field-set]`, `[field-list]` (and `[field]`, `[decl]` under option (i)) | HCAL-07 4/6, bar not met | exploratory, per arm (option (ii) counts them as a registered exception) |
+| H11-c and H11-d, vendor field names in the core | R-MIRROR2 `[field]`, `[field-set]`, `[field-list]`, `[decl]` | H11-d: HCAL-07 4/6, bar not met; `[field]` fires on c and d (D1) | exploratory, per arm (secondary 7) |
 | H11, R-MIRROR | R-MIRROR | no shape word; at HCAL-07 its 3 hits on positives are all d cases (D3) | exploratory, per arm |
 | H06, business rule in an adapter | R-ADAPTER-RULE | HCAL-03 0/4, HCAL-04 0/4 | exploratory, per arm |
-| H11-SEM, renamed one-to-one vendor value set | R-MIRROR-SEM | registered secondary 8, not counted (option A, **pending author confirmation**) | secondary 8 |
+| H11-SEM, renamed one-to-one vendor value set | R-MIRROR-SEM | registered secondary 8, not counted (D6) | secondary 8 |
 
 **Advisory, never counted:** FF-S03 (`layer-skip-graph`) and FF-P02 (`port-dependency-inversion`), advisory in the frozen
 Hexagonal preset (`Docs/v1.3-hexagonal-notes.md`, rule table). They run, the hub delivers them, and their findings are
@@ -136,6 +142,8 @@ sub-shape. So under option (i) no d-shaped finding is counted, and c is not coun
 
 ### Secondary outcomes (no confirmatory claim)
 
+Secondaries 1–7 are computed on the 11 primary tasks; secondary 8 on all 13 (D8).
+
 1. **Trap rate:** share of cells whose final step fails a trap sub-goal of the task oracle, per arm, Wilson intervals;
    paired exact sign test over blocks (it governs the joint reading of §1).
 2. **Functional acceptance:** the task tests pass at the final step, per arm.
@@ -145,24 +153,26 @@ sub-shape. So under option (i) no d-shaped finding is counted, and c is not coun
 5. **Not-counted and advisory rows:** per-row counts per arm of H11-d, R-MIRROR, H06, FF-S03 and FF-P02.
 6. **Cost:** turns, calls (generator and judge), wall time, tool calls and hook events per cell.
 7. **Per-shape view of H11:** new identities per arm by R-MIRROR2 shape word.
-8. **R-MIRROR-SEM (H11-SEM), registered secondary (option A, pending author confirmation).** D_sem: new R-MIRROR-SEM
+8. **R-MIRROR-SEM (H11-SEM), registered secondary (D6).** D_sem: new R-MIRROR-SEM
    identities against the seed, per cell, defined as D_hx. Same block-level exact sign-flip, reported with its p and no
    decision weight, never added to D_hx. **Both arms are judged the same way at scoring time:** the scorer runs with
    `DAEDALUS_MIRROR_SEM=live` and `DAEDALUS_MIRROR_SEM_CACHE` set to a **fresh, empty** cache directory, so every
    candidate of both arms is asked once by the same judge (`claude-opus-5-5`, Claude CLI route), and the hub's in-session
-   answers (which only the `combined` arm has) are not reused. Ledger kept; call cap in §9.2. Under option (i) the two
-   renamed-copy tasks (hxpb1, hxpb2: a copy of the vendor's value set, the H11-SEM shape) are measured only here.
+   answers (which only the `combined` arm has) are not reused. Ledger kept; call cap in §9.2. The scorer writes `Dsem`
+   per cell (`score-study.ts --counted`). The two renamed-copy tasks (hxpb1, hxpb2: a copy of the vendor's value set,
+   the H11-SEM shape) run in both arms and are measured only here (D8). **Open (B11):** R-MIRROR-SEM does not see
+   either task's reference trap (§9.1, visibility check).
 
 ## 2. Design
 
 | Item | Value |
 |---|---|
 | Arms | `none`: the HEXDDD-01 frame and the frozen argv, byte-identical to TRAPRATE-01 and the first study. `combined`: `experiments/v15-delivery/hint-audit/frame-combined.txt` (the first study's frame), the frozen argv plus the edit-gate `--settings` and the MCP config, push and pull through **one DeliveryHub** per session, wrapped by the delivery audit (PR 452). The hub runs every scored Hexagonal rule (`scoredRules('hexagonal')`); its R-MIRROR-SEM judge is live during the session |
-| Tasks | 13: `experiments/hx-study-set/` part A (PR 449: hxa1-chimney-sweeps, hxa2-canal-boats, hxa3-balloon-flights: vendor literals, p1 L2 template; hxb1-bakery-flour, hxb2-costume-hire: error codes, p4 L2) and part B (PR 450: hxpb1-pottery-kiln, hxpb2-translation-portal: renamed copy, p3 L3; hxpb3-observatory-evenings, hxpb4-chess-entries: HTTP detail, p6 L2), plus f14-hex-geocoding, f16-hex-fx-rates, f24-hex-laundry-lockers and a fourth f-task (D4: f2-hex-vendor-port recommended; the brief named f13, which is DDD) |
+| Tasks | 13: `experiments/hx-study-set/` part A (PR 449: hxa1-chimney-sweeps, hxa2-canal-boats, hxa3-balloon-flights: vendor literals, p1 L2 template; hxb1-bakery-flour, hxb2-costume-hire: error codes, p4 L2) and part B (PR 450: hxpb1-pottery-kiln, hxpb2-translation-portal: renamed copy, p3 L3 without lever (e) (D2); hxpb3-observatory-evenings, hxpb4-chess-entries: HTTP detail, p6 L2), plus f2-hex-vendor-port (D4), f14-hex-geocoding, f16-hex-fx-rates and f24-hex-laundry-lockers. hxa1's vendor statuses were rewritten to vendor-specific codes (`mandate_active`, `collection_failed`) before the seal (D7). **Primary (D_hx): 11 tasks**, hxa1–3, hxb1–2, hxpb3–4, f2, f14, f16, f24; hxpb1 and hxpb2 run in both arms and are measured only in secondary 8 (D8; `semOnly` in `study-set.json`) |
 | Seal | the 13 task folders sealed before registration (§9.1) |
 | Start state | each task's seed, pinned by tree sha256 |
 | Steps | 3 per task (all 9 new tasks' `levels.json`; the f-tasks' `tasks.json`), verbatim, one step per turn, 0 repair turns |
-| Replicates | r per task and arm, from §3 |
+| Replicates | r = 10 per task and arm (§3, D9) |
 | Block | task × replicate: one `none` cell and one `combined` cell from the same seed |
 | Order | mulberry32 shuffle, seed `20261030`, interleaved by replicate round |
 | Generator | `claude-sonnet-5-5`; CLI version read before every turn; a change is a stop |
@@ -193,59 +203,81 @@ step; it was **trapped** when, in addition, all task tests pass. In the model be
 data sets per row, the §1 decision rule in full. Code: `plantedHx`, `powerHx` (`scripts/v1.5/lib/hx-study-analyse.ts`);
 run `npx tsx scripts/v1.5/hx-study-analyse.ts --power --draws 400 --out results/v1.5-hx-prereg/power` (zero calls).
 
-**The table is illustrative.** It shows the range the design faces before any data on these tasks exist. It does not
-fix r: the r rule below does, on the agent pilot's `none` cells, which absorb p, q and identities per cell into one
-observed rate of D_hx > 0.
+| HX-COVERAGE: agent trap failures seen by the counted rules, option (i) | 14 of 19 (0.74 [0.51, 0.88]) | `Docs/DiagnosticRuns/v15-hx-trap-coverage-2026-10-30.md` §4 |
 
-Scenarios: **A** all 13 tasks at p = 0.31 (TRAPRATE-01); **B** 8 tasks at 0.33 (ladder L2), 5 at 0, the floor that
-pilot gate (c) admits; **C** 8 tasks at 0.58 (ladder L3), 5 at 0. Turns = 13 × r × 2 × 3.
+**The table is illustrative.** It shows the range the design faces before any data on these tasks exist. It does not
+fix r: the D9 rule below does. Revised 2026-10-30 for D8: the primary is over 11 tasks, and q = 0.74 (HX-COVERAGE,
+option (i)) is added as a row.
+
+Scenarios (over the 11 primary tasks): **A** all 11 at p = 0.31 (TRAPRATE-01); **B** 8 tasks at 0.33 (ladder L2), 3 at
+0; **C** 8 tasks at 0.58 (ladder L3), 3 at 0. Turns = 13 × r × 2 × 3 (all 13 tasks run).
 
 | Scenario | q | r | Turns | Power RR 0.5 | Power RR 0.25 | Null: false "supported" | Median tasks with nonzero sum (RR 0.25) |
 |---|---|---|---|---|---|---|---|
-| A | 0.4 | 4 | 312 | 0.05 | 0.17 | 0.000 | 6 |
-| A | 0.4 | 6 | 468 | 0.07 | 0.26 | 0.000 | 7 |
-| A | 0.4 | 8 | 624 | 0.15 | 0.42 | 0.013 | 8 |
-| A | 0.4 | 10 | 780 | 0.16 | 0.56 | 0.000 | 9 |
-| A | 1 | 4 | 312 | 0.22 | 0.59 | 0.003 | 10 |
-| A | 1 | 6 | 468 | 0.30 | 0.85 | 0.010 | 11 |
-| A | 1 | 8 | 624 | 0.42 | 0.92 | 0.007 | 11 |
-| A | 1 | 10 | 780 | 0.54 | 0.95 | 0.005 | 12 |
-| B | 0.4 | 4 | 312 | 0.01 | 0.03 | 0.005 | 4 |
-| B | 0.4 | 6 | 468 | 0.04 | 0.10 | 0.005 | 5 |
-| B | 0.4 | 8 | 624 | 0.07 | 0.18 | 0.000 | 5 |
-| B | 0.4 | 10 | 780 | 0.06 | 0.23 | 0.003 | 6 |
-| B | 1 | 4 | 312 | 0.11 | 0.29 | 0.003 | 6 |
-| B | 1 | 6 | 468 | 0.14 | 0.48 | 0.003 | 7 |
-| B | 1 | 8 | 624 | 0.15 | 0.56 | 0.000 | 7 |
-| B | 1 | 10 | 780 | 0.23 | 0.69 | 0.003 | 7 |
-| C | 0.4 | 4 | 312 | 0.04 | 0.14 | 0.010 | 5 |
-| C | 0.4 | 6 | 468 | 0.08 | 0.28 | 0.013 | 6 |
-| C | 0.4 | 8 | 624 | 0.12 | 0.43 | 0.000 | 7 |
-| C | 0.4 | 10 | 780 | 0.14 | 0.54 | 0.003 | 7 |
-| C | 1 | 4 | 312 | 0.31 | 0.72 | 0.003 | 7 |
-| C | 1 | 6 | 468 | 0.41 | 0.83 | 0.003 | 8 |
-| C | 1 | 8 | 624 | 0.53 | 0.92 | 0.005 | 8 |
-| C | 1 | 10 | 780 | 0.65 | 0.94 | 0.005 | 8 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 0.40 | 4 | 312 | 0.03 | 0.11 | 0.005 | 5 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 0.40 | 6 | 468 | 0.05 | 0.20 | 0.003 | 6 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 0.40 | 8 | 624 | 0.10 | 0.31 | 0.000 | 7 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 0.40 | 10 | 780 | 0.14 | 0.45 | 0.010 | 8 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 0.74 | 4 | 312 | 0.10 | 0.30 | 0.007 | 7 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 0.74 | 6 | 468 | 0.13 | 0.49 | 0.005 | 8 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 0.74 | 8 | 624 | 0.21 | 0.65 | 0.005 | 9 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 0.74 | 10 | 780 | 0.34 | 0.77 | 0.005 | 9 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 1.00 | 4 | 312 | 0.16 | 0.47 | 0.005 | 8 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 1.00 | 6 | 468 | 0.23 | 0.69 | 0.007 | 9 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 1.00 | 8 | 624 | 0.31 | 0.83 | 0.007 | 10 |
+| A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26) | 1.00 | 10 | 780 | 0.41 | 0.89 | 0.007 | 10 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 0.40 | 4 | 312 | 0.01 | 0.03 | 0.005 | 4 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 0.40 | 6 | 468 | 0.04 | 0.10 | 0.005 | 5 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 0.40 | 8 | 624 | 0.07 | 0.18 | 0.000 | 5 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 0.40 | 10 | 780 | 0.06 | 0.23 | 0.003 | 6 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 0.74 | 4 | 312 | 0.07 | 0.19 | 0.010 | 5 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 0.74 | 6 | 468 | 0.10 | 0.34 | 0.007 | 6 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 0.74 | 8 | 624 | 0.13 | 0.43 | 0.003 | 7 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 0.74 | 10 | 780 | 0.18 | 0.56 | 0.003 | 7 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 1.00 | 4 | 312 | 0.11 | 0.29 | 0.003 | 6 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 1.00 | 6 | 468 | 0.14 | 0.48 | 0.003 | 7 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 1.00 | 8 | 624 | 0.15 | 0.56 | 0.000 | 7 |
+| B: 8 at 0.33 (ladder L2, 4/12), 3 at 0 | 1.00 | 10 | 780 | 0.23 | 0.69 | 0.003 | 7 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 0.40 | 4 | 312 | 0.04 | 0.14 | 0.010 | 5 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 0.40 | 6 | 468 | 0.08 | 0.28 | 0.013 | 6 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 0.40 | 8 | 624 | 0.12 | 0.43 | 0.000 | 7 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 0.40 | 10 | 780 | 0.14 | 0.54 | 0.003 | 7 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 0.74 | 4 | 312 | 0.14 | 0.50 | 0.005 | 7 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 0.74 | 6 | 468 | 0.24 | 0.67 | 0.007 | 7 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 0.74 | 8 | 624 | 0.36 | 0.80 | 0.000 | 8 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 0.74 | 10 | 780 | 0.38 | 0.84 | 0.005 | 8 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 1.00 | 4 | 312 | 0.31 | 0.72 | 0.003 | 7 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 1.00 | 6 | 468 | 0.41 | 0.83 | 0.003 | 8 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 1.00 | 8 | 624 | 0.53 | 0.92 | 0.005 | 8 |
+| C: 8 at 0.58 (ladder L3, 7/12), 3 at 0 | 1.00 | 10 | 780 | 0.65 | 0.94 | 0.005 | 8 |
 
 Reading: a strong effect (RR ≈ 0.25) is detectable only if most trap failures are flagged by the counted rules and
-more than the 8-task floor fails a trap; a halving (RR 0.5) is out of reach at every r here. With 8 trapping tasks,
-condition (c) needs nearly all of them to point the same way.
+most primary tasks fail a trap; a halving (RR 0.5) is out of reach at every r here. With 8 trapping tasks, condition
+(c) needs nearly all of them to point the same way.
 
-**Registered r rule** (`sizeFromPilot`, same lib), applied once to the agent pilot's `none` cells: each task's chance of
-a `none` cell with D_hx > 0 is the Jeffreys posterior mean (k + 0.5)/(n + 1) of its 2 pilot runs; identities per
-flagged cell = the mean D_hx of the pilot's `none` cells with D_hx > 0, rounded, at least 1; q = 1 (detection is
-inside D_hx). r is the smallest of {6, 8, 10} with power ≥ 0.80 at RR 0.25 (400 draws); if none reaches it, r = 10
-and the achieved power is stated. **Provisional r = 8** (624 study turns) holds until the addendum. The result goes in
-the pre-data addendum (§9.2) before the first study call. The pilot is not study data and is never pooled with it.
+**Registered r rule (D9), applied before registration.** r = 8, unless `powerHx` over the 11 primary tasks at RR 0.25,
+with q = the measured coverage under option (i) (14/19 = 0.74, HX-COVERAGE), is below 0.80; then r = 10. Inputs: every
+primary task at p = 0.31 (TRAPRATE-01, scenario A), one identity per flagged cell, 400 planted data sets, the §1
+decision rule in full (`D9`, `d9Rule`, `scripts/v1.5/lib/hx-study-analyse.ts`; `npx tsx scripts/v1.5/hx-study-analyse.ts
+--power-d9 --out results/v1.5-hx-prereg/power`, zero calls; record `results/v1.5-hx-prereg/power/d9.json`; pinned by
+`tests/unit/scripts/v1.5/hx-study-analyse.test.ts`).
+
+**Result (2026-10-30): power at r = 8 is 0.645, below 0.80, so r = 10. Achieved power at r = 10: 0.765** (still below
+0.80; stated, not acted on: the rule has no third rung). Beside it, deciding nothing: scenario B 0.435 (r = 8) and 0.558
+(r = 10); scenario C 0.795 and 0.84. At r = 10 the study is 13 × 10 × 2 × 3 = 780 turns.
+
+The pilot's `sizeFromPilot` re-size rule of the earlier draft is withdrawn: r is fixed here, before any call. The
+pilot is not study data and is never pooled with it.
 
 **No task is dropped** after the pilot on `none`-arm data (as in the first study, §3), except by the one re-levering
 round of §5.1.
 
 ## 4. Analysis plan
 
-Scoring once, at the frozen root, by `experiments/v15-study/score-study.ts --counted hx-i|hx-ii
---require-delivery-audit` (option per D1; sha256 §9.1). Analysis once, by `scripts/v1.5/hx-study-analyse.ts` with its
-lib, tested on planted data before registration (§9.1).
+Scoring once, at the frozen root, by `experiments/v15-study/score-study.ts --counted hx-i --require-delivery-audit`
+(D1; sha256 §9.1). Analysis once, by `scripts/v1.5/hx-study-analyse.ts` with its lib, tested on planted data before
+registration (§9.1). The primary, its sensitivities and secondaries 1–7 use the 11 primary tasks' cells
+(`primaryCells`); secondary 8 uses every cell (D8).
 
 - **No interim look.** No per-arm aggregate (sum, mean, rate, contrast or p) of any outcome is computed before all
   cells are scored. Integrity and record checks that do not compare arms (driver logs, delivery audit, tree hashes) may
@@ -259,7 +291,7 @@ lib, tested on planted data before registration (§9.1).
 - **Robustness lines (no decision changes):** exact Wilcoxon signed-rank; exact sign test over blocks; run-order halves;
   drop flagged blocks (integrity or delivery audit); **drop tasks with no oracle trap failure in any cell of either
   arm**. The last replaces the first study's "drop blocks whose `none` cell had no trap", which conditions on one arm's
-  outcome. On a planted null (scenario C, r = 8, trap and D perfectly coupled, a worst case) that line reads "supported"
+  outcome. On a planted null (13-task scenario C of the earlier draft, r = 8, trap and D perfectly coupled, a worst case) that line reads "supported"
   at p 2.4 × 10⁻⁷ while the primary and the symmetric line read p 0.26; the unit test holds it over 100 null draws. It
   is still printed, labelled biased (note added to the first study's report, PR 453).
 - **Effect sizes.** RR = ΣD(combined)/ΣD(none) and d̄, with 95 % within-task and task-cluster bootstrap intervals
@@ -278,7 +310,7 @@ the gates say. Every criterion must pass; a failure is a stop and a report.
 |---|---|
 | (a) delivered = scored | **Rule lists:** in every `combined` pilot session, every hub check's record in `session.json` (`deliveryAudit`) ran exactly `cypherRules('hexagonal')` (Cypher check) or `frozenRules('hexagonal')` (frozen check), and every counted rule ID appears in some check of its kind: `auditVerdict` flags 0 sessions. **Findings, symbolic rules only, on the tree the hub last saw:** for every `combined` step snapshot whose tree digest equals a hub check's digest, the hub's Cypher findings and the scorer's, within that check's file scope, are the same `rule|file|line` set (`findingsAgreement`): 0 differences, and at least one comparable snapshot per session that made an edit |
 | (b) ledger completeness | Every identity the scorer finds on a `combined` step snapshot is in the hub ledger by the next push (or that turn's stop listing): 0 missing |
-| (c) the `none` arm traps | At least 8 of the 13 tasks fail an oracle trap sub-goal in at least 1 of their 2 `none` runs |
+| (c) the `none` arm traps | At least 8 of the 13 tasks fail an oracle trap sub-goal in at least 1 of their 2 `none` runs (unchanged by D8: the gate is about the task set, which runs whole) |
 | (d) the agent repairs | Of the counted-rule keys first exposed in the `combined` pilot sessions (push or pull), at least half are resolved by the session's end, pooled; fewer than 6 exposed keys fails the gate |
 | (e) acceptance holds | Tasks whose final tree passes the task tests in at least 1 of 2 runs: count under `combined` ≥ count under `none` − 1 |
 
@@ -333,15 +365,16 @@ records alone with `--require-delivery-audit` and flags nothing.
 - The rule author curated the task set. Nine tasks are new; f14, f16, f24 and the fourth f-task were run in TRAPRATE-01
   and in the first study's lane B, so their `none` behaviour at the earlier instrument is known. f16 was functional in
   0 of 2 TRAPRATE-01 runs.
-- Lever (e) in two tasks (hxpb1, hxpb2) makes the tests assert vendor words (D2).
+- Lever (e) was excluded before the seal (D2): no test asserts a vendor word. The two renamed-copy tasks are measured
+  only in secondary 8 (D8), and R-MIRROR-SEM does not see their reference traps (B11).
 - R-MIRROR-SEM is a model fact (`claude-opus-5-5`) and shares a vendor with the generator.
 
 ## 8. What each result feeds (no dual submission)
 
 | Result | Owner |
 |---|---|
-| H-HX and secondaries 1–7 | **AgentArch @ ICSA 2027 (proposed, pending author confirmation)**; thesis Kap9, SO5 |
-| Secondary 8 (R-MIRROR-SEM) | **AgentArch (proposed, pending author confirmation)**; NEMI is the alternative owner; one paper only |
+| H-HX and secondaries 1–7 | **AgentArch @ ICSA 2027** (D6); thesis Kap9, SO5 |
+| Secondary 8 (R-MIRROR-SEM) | **NEMI** (D6); one paper only |
 | TRAPRATE-01, pilot ladder, agent pilot (not this study) | as already owned (TRAPRATE-01: AGENT @ ICSE 2027) |
 | First study H1, H2 | unchanged (first study, §8) |
 
@@ -351,18 +384,37 @@ records alone with `--require-delivery-audit` and flags nothing.
 
 | Item | Value |
 |---|---|
-| Task seal (13 task folders) | **slot** (after PRs 449 and 450 merge and D2, D4 are settled) |
-| Hint audit, step texts (registered run) | **slot**: `node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/hexagonal.yaml <13 tasks.json>` on `main` once the tasks are merged. *Preview on the PR 449/450 branch copies and the four f-tasks (f2 as the fourth), 2026-10-30, zero calls: 0 FAIL in 39 units (13 × 3 steps); WARN in 11 units, all "ordinary word that can hint" ("client" 16 hits, "service" 2, "translation" 2)* |
+| Rule visibility (reference trees, study scorer `--counted hx-i`) | **2026-10-30, red (B11).** Judge off, zero calls (`DAEDALUS_MIRROR_SEM=off npx tsx experiments/hx-study-set/visibility.ts`; record `results/v1.5-hx-prereg/visibility/visibility.json`): **all 11 primary tasks pass** (trap tree: D_hx > 0 with a counted identity in the oracle's trap file; clean tree: D_hx = 0). R-MIRROR-SEM, live judge, fresh empty cache (`--sem`; record `results/v1.5-hx-prereg/visibility-sem/visibility.json`; 2 judge calls): **hxpb1 and hxpb2 fail**: D_sem = 0 on both trap trees, because no candidate's structure holds. The table follows this one |
+| Task seal (13 task folders) | **slot, not filled**: the seal waits for B11 (sealing first would have to be undone by any change to hxpb1 or hxpb2) |
+| Hint audit, step texts (registered run) | `node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/hexagonal.yaml <13 tasks.json>`, 2026-10-30, after D2 and D7, on this branch (main `78b493bdb` merged), zero calls: **0 FAIL in 39 units** (13 × 3 steps); WARN in 11 units, all "ordinary word that can hint" ("client" 16 hits, "service" 2, "translation" 2), as the preview. Re-run with the seal |
 | Hint audit, combined frame at L3 | `hint-audit.mjs --preset presets/hexagonal.yaml --frame experiments/v15-delivery/hint-audit/frame-combined.txt --frame-rung L3`: 0 FAIL in 1 unit (WARN "file" ×2), 2026-10-30; re-run with the registration |
 | Steps per task | 3 (all 13) |
-| r rule and provisional r | §3; provisional r = 8 |
+| r | **r = 10** (§3, D9: power 0.645 at r = 8, below 0.80; 0.765 at r = 10) |
 | Caps, agent pilot | 156 turns, cap 166; calls cap 169 (2 smoke + 1 READ probe, RUNBOOK §2.3) |
 | Caps, dress rehearsal | 12 turns, cap 13; calls cap 16 |
-| Caps, study (rule) | turns × 1.06, rounded up (infrastructure redraws only); calls = turns cap + 3. At provisional r = 8: 624 turns, cap 662; calls 665 |
+| Caps, study (rule) | turns × 1.06, rounded up (infrastructure redraws only); calls = turns cap + 3. At r = 10: **780 turns, cap 827; calls 830** |
 | Judge-call cap rule (R-MIRROR-SEM: hub in `combined`; scorer fresh cache, both arms) | 1.5 × the pilot's judge calls per session (hub and scorer counted apart) × study sessions, rounded up |
 | CLI version pin | **slot** |
-| Script sha256 (first 16 hex) | `scripts/v1.5/hx-study-analyse.ts` b67eb963f7bcc3e7; lib `scripts/v1.5/lib/hx-study-analyse.ts` a8250129c21ad230 (this draft); `score-study.ts`, `run-study.ts`, `lib/delivery-audit.ts`, `make-input.ts`: **slot** (after PR 452 merges and B9) |
-| Planted-effect test (zero calls) | effect, scenario C, q = 1, 2 identities per flagged cell, r = 8, RR 0.25: 104 blocks, ΣD 84 → 17, RR 0.20 [0.11, 0.32], exact p 1.35 × 10⁻⁸, task sign 8 − / 0 +: **supported**; joint reading **"supported, qualified: rule findings reduced, trap rate not"** (the planted model thins identities and leaves the trap rate as it is; trap sign 23 − / 15 +, p 0.26), as it should. Null (RR 1): exact p 0.26, task sign 5 − / 2 +: **not rejected**. Records `results/v1.5-hx-prereg/planted-effect/`, `planted-null/`; unit tests `tests/unit/scripts/v1.5/hx-study-analyse.test.ts` (7) |
+| Script sha256 (first 16 hex) | At the 2026-10-30 decisions commit (re-taken at the seal, since B11 may change them): `scripts/v1.5/hx-study-analyse.ts` 4e207a2ece6af18b; lib `scripts/v1.5/lib/hx-study-analyse.ts` 751965670c983ed3; `experiments/v15-study/score-study.ts` 2d762920715adc11; `run-study.ts` 0784ecbeade5d9e0; `lib/delivery-audit.ts` 0ef4d6c8c3e5f5f4; `lib/study-set.ts` 09bd5cc1ae82ab9d; `make-input.ts` dcf2353c0816a8ca; `scripts/v1.5/hx-gate-b.ts` 928b15e7cfb155ea; `experiments/hx-study-set/visibility.ts` 6c0ac31ad0a069b6 |
+| Planted-effect test (zero calls) | Re-run 2026-10-30 over the 11 primary tasks (D8): effect, scenario C, q = 1, 2 identities per flagged cell, r = 8, RR 0.25: 88 blocks, ΣD 84 → 17, RR 0.20 [0.11, 0.32], exact p 1.35 × 10⁻⁸, task sign 8 − / 0 +: **supported**; joint reading **"supported, qualified: rule findings reduced, trap rate not"** (the planted model thins identities and leaves the trap rate as it is; trap sign 23 − / 15 +, p 0.26), as it should. Null (RR 1): exact p 0.26, task sign 5 − / 2 +: **not rejected**. Records `results/v1.5-hx-prereg/planted-effect/`, `planted-null/`; unit tests `tests/unit/scripts/v1.5/hx-study-analyse.test.ts` (10, with D8 and D9) |
+
+**Rule visibility, per task (2026-10-30).** Each reference tree scored as a one-step session from the task's seed by `scoreSessionSteps` with `counted: 'i'`; tests pass on every reference tree. "Counted on the trap file": new counted hits in a file the oracle names in its failing evidence (rule ×hits; D_hx counts distinct identities, and on the f-tasks R-H5 and FF-S01 come from both the Cypher and the frozen file rules). hxpb1 and hxpb2 have D_hx = 0 on both trees, as D8 expects (they are not in D_hx).
+
+| Task | Role | Trap: oracle | Trap: D_hx | Trap: counted on the trap file | Clean: oracle | Clean: D_hx | R-MIRROR-SEM (live judge): trap D_sem / clean D_sem | Result |
+|---|---|---|---|---|---|---|---|---|
+| hxa1-chimney-sweeps | primary | fails | 2 | R-MIRROR2[literal] ×2 | passes | 0 | not run | pass |
+| hxa2-canal-boats | primary | fails | 3 | R-MIRROR2[literal] ×3 | passes | 0 | not run | pass |
+| hxa3-balloon-flights | primary | fails | 2 | R-MIRROR2[literal] ×2 | passes | 0 | not run | pass |
+| hxb1-bakery-flour | primary | fails | 2 | R-MIRROR2[error] ×2 | passes | 0 | not run | pass |
+| hxb2-costume-hire | primary | fails | 2 | R-MIRROR2[error] ×2 | passes | 0 | not run | pass |
+| hxpb1-pottery-kiln | secondary 8 only | fails | 0 | – | passes | 0 | 0 / 0 | **FAIL (B11)** |
+| hxpb2-translation-portal | secondary 8 only | fails | 0 | – | passes | 0 | 0 / 0 | **FAIL (B11)** |
+| hxpb3-observatory-evenings | primary | fails | 2 | R-TRANSPORT ×3 | passes | 0 | not run | pass |
+| hxpb4-chess-entries | primary | fails | 2 | R-TRANSPORT ×3 | passes | 0 | not run | pass |
+| f2-hex-vendor-port | primary | fails | 4 | R-H5 ×4, R-MIRROR2[literal] ×3 | passes | 0 | not run | pass |
+| f14-hex-geocoding | primary | fails | 3 | R-H5 ×4, R-MIRROR2[literal] ×2 | passes | 0 | not run | pass |
+| f16-hex-fx-rates | primary | fails | 2 | R-H5 ×4, R-MIRROR2[literal] | passes | 0 | not run | pass |
+| f24-hex-laundry-lockers | primary | fails | 6 | FF-S01 ×2, R-AXA ×2, R-INJ ×2 | passes | 0 | not run | pass |
 
 ### 9.2 Pre-data addendum (after the agent pilot, before the first study call; dated)
 
@@ -370,44 +422,49 @@ records alone with `--require-delivery-audit` and flags nothing.
 |---|---|
 | Agent pilot report | **slot** (published whatever the gates say) |
 | Gate exits (a)–(e), re-levering round used or not | **slot** |
-| Final r and its achieved power at RR 0.25 (`sizeFromPilot` output) | **slot** |
-| Study caps at the final r | **slot** (by the §9.1 rule) |
+| Final r and its achieved power at RR 0.25 | fixed before registration (§3, D9): r = 10, power 0.765 |
+| Study caps | fixed in §9.1 at r = 10 (780 turns, cap 827; calls 830) |
 | Judge-call cap | **slot** (by the §9.1 rule) |
 | Dress rehearsal exit (§5.2) | **slot** |
 
 ## 10. Open items
 
-### Decision box (for the author; both options with their consequences)
+### Decisions (recorded 2026-10-30)
 
-| Id | Decision | Option 1 | Option 2 |
+| Id | Decision | Recorded choice | Where it acts |
 |---|---|---|---|
-| **D1** | H11 counting | **(i), recommended by the review:** count R-MIRROR2 only for evidence starting `[literal]` or `[error]` (sub-shapes a and b). No d-shaped finding counts. H11-c is not counted either (its `[field]` word also fires on d). The renamed-copy tasks (hxpb1, hxpb2) are measured only through R-MIRROR-SEM (secondary 8). Implemented as the default (`--counted hx-i`) | **(ii):** count every R-MIRROR2 shape, as a registered exception: 0 FP on the clean cases of HCAL-06 and HCAL-07, but d recall below the bar (HCAL-07 4/6). D_hx then includes H11-c and H11-d findings; the report must state the exception beside every H-HX figure. `--counted hx-ii` |
-| **D2** | Lever (e) (tests assert vendor literals) | **Exclude it before the seal**: rewrite the asserted status words of hxpb1-pottery-kiln (`COMPLETE`) and hxpb2-translation-portal (`DELIVERED`, `PROOFREADING`) so none equals a vendor word. Consequence: the two tasks change after their builder's checks; re-verify, re-seal, re-audit | **Keep it and strip the oracle items the tests require**: the oracle no longer fails a tree for writing the asked-for vendor word in the core. Consequence: those trees count as trap-free on that word; the oracle is narrower there, and the change is listed with the seal |
-| **D3** | R-MIRROR | **Not counted (recommended)**: no shape word; at HCAL-07 its 3 hits on positives are all d cases | Counted: d-shaped findings enter D_hx through it |
-| **D4** | Fourth f-task | **f2-hex-vendor-port (recommended)**: the brief's f13 is `f13-ddd-bike-repairs` (DDD); f2 is the fourth Hexagonal task that failed a trap in TRAPRATE-01 | another Hexagonal f-task, named by the author |
-| **D5** | Admissions | Record in the decision register: H11-a, H11-b (and H11-c if D1 = (ii)) admitted on HCAL-07; H03 and H07 re-admitted at v1.5.5 (`ADMITTED_HEX_ROWS` is unchanged; this study counts through `HX_COUNTED_RULES`, so the code list does not need to change) | — |
-| **D6** | R-MIRROR-SEM role and paper | Option A: registered secondary, not counted; owner AgentArch | NEMI as owner of secondary 8 |
-
-Lever (e) was checked on all 9 new tasks (`levels.json`, branches of PRs 449 and 450): only **hxpb1-pottery-kiln** and
-**hxpb2-translation-portal** use it (p3 L3 lever set: a–f). The other seven use levers a and b only (p1 L2, p4 L2,
-p6 L2).
+| **D1** | H11 counting | Option (i): R-MIRROR2 counts only evidence starting `[literal]` or `[error]` (sub-shapes a, b). `--counted hx-i` | §1; `HX_MIRROR2_SHAPES.i` |
+| **D2** | Lever (e) | Excluded before the seal: the asserted status words of hxpb1 (`COMPLETE` → `READY_FOR_PICKUP`) and hxpb2 (`DELIVERED` → `READY_TO_DOWNLOAD`, `PROOFREADING` → `BEING_CHECKED`) no longer equal a vendor word. Builder checks re-run: part B `verify.ts` (all 4 ok, levers now a–d, f), similarity (214 pairs, max 0.352, < 0.6), tsc 0, hint audit 0 FAIL | `experiments/hx-study-set/part-b/` |
+| **D3** | R-MIRROR | Not counted | §1 |
+| **D4** | Fourth f-task | f2-hex-vendor-port (already in `study-set.json`) | §2 |
+| **D5** | Admissions | H11-a, H11-b admitted on HCAL-07; H03, H07 re-admitted at v1.5.5 | §1 |
+| **D6** | R-MIRROR-SEM and papers | Registered secondary 8, not counted; owner NEMI. H-HX and secondaries 1–7: AgentArch | §1, §8 |
+| **D7** | hxa1-chimney-sweeps | Vendor statuses rewritten to vendor-specific codes: mandate `active` → `mandate_active`, payment `failed` → `collection_failed` (vendor typings, stand-in, adapters, trap service, tests, step texts). Part A `verify.ts`: ok (tests, oracle, tsc, 0 FAIL, entry points, similarity < 0.6). The counted rules now see the reference trap (R-MIRROR2 `[literal]` ×2) | `experiments/hx-study-set/part-a/hxa1-chimney-sweeps/` |
+| **D8** | hxpb1, hxpb2 | Run in both arms; measured only in secondary 8. Primary D_hx over 11 tasks: hxa1–3, hxb1–2, hxpb3–4, f2, f14, f16, f24. `semOnly` in `study-set.json`; the scorer writes `primary`, `taskName` and `Dsem` per cell; the analysis uses `primaryCells` | §1, §2, §4 |
+| **D9** | r | r = 8 unless the power rule gives < 0.80, then r = 10. Applied: 0.645, so **r = 10** | §3 |
 
 ### Blocking items
 
 | Id | Item | Closes it | When |
 |---|---|---|---|
-| **B1** | H11 sub-shapes in scoring | **Mechanism in PR 452** (`mirror2Shape`, `hxCounted`, both options); D1 picks one | before registration (D1) |
-| **B2** | Counted list | **PR 452** (`HX_COUNTED_RULES` in `score-study.ts`, outside the root, pinned by a test) | merged on green |
-| **B5** | `experiments/hx-study-set/` not on `main` | PRs 449, 450; then seal and the registered hint audit | before registration |
+| **B1** | H11 sub-shapes in scoring | **Closed:** PR 452 (merged `62dd67f73`); D1 = option (i) | — |
+| **B2** | Counted list | **Closed:** PR 452 (`HX_COUNTED_RULES`, pinned by a test) | — |
+| **B5** | `experiments/hx-study-set/` on `main` | **Closed for the tasks:** PRs 449 (`14373398f`), 450 (`2bd8790ee`); registered hint audit run (§9.1). Seal open (B11) | before registration |
 | **B6** | D_sem scoring | fresh cache, both arms (§1, secondary 8); cap rule in §9.1, value in §9.2 | rule: done in this draft |
-| **B7** | Delivered = scored at study time | **PR 452** (audit records in `session.json`, scorer flag, findings check) | merged on green |
+| **B7** | Delivered = scored at study time | **Closed:** PR 452 (audit records in `session.json`, scorer flag, findings check) | — |
 | **B8** | Records | a `.gitignore` exception for this study's results (`*.jsonl` is ignored, line 60) and a RUNBOOK change that keeps trees (§2.6 copies "no trees") | before the pilot |
 | **B9** | Scorer task root | `score-study.ts` reads tasks from `experiments/trap-families` only (`FAM`); the nine new tasks live under `experiments/hx-study-set/part-*` | before the pilot |
-| **B10** | Gate (b) check | no script yet compares scorer identities with the hub ledger per push; write it (zero calls) with a unit test | before the pilot |
+| **B10** | Gate (b) check | **Closed:** `scripts/v1.5/hx-gate-b.ts` with `tests/unit/scripts/v1.5/hx-gate-b.test.ts` (PR 455, `78b493bdb`) | — |
+| **B11** | R-MIRROR-SEM visibility on hxpb1, hxpb2 | **Open, red (2026-10-30).** R-MIRROR-SEM asks its judge only when the structure holds (`structureHolds`, `src/v15-instrument/mirror-sem.ts`): an adapter maps at least 2 vendor values onto at least 2 members of a core set of at least 3 members, and the core branches on it. In both reference traps the vendor code reaches the core as an opaque string (`KilnReading.phaseCode`, the job's `stateCode`), and the service casts it to a lower-cased copy (`KilnPhase`, `MarketState`); no adapter maps, so there is no candidate and D_sem = 0. The judge was asked only on the two clean trees (`FiringProgress`, `JobProgress`) and answered `no` both times, which is correct. Ways out, each needing a decision: rebuild the two traps so the copy is made in the adapter (the H11-SEM shape the rule reads); widen R-MIRROR-SEM's structure (a rule change inside the frozen root: a new instrument version and a calibration); or measure the two tasks another way, or not at all | before the seal |
 
-Pending author confirmation besides D1–D6: provisional r = 8 (§3).
 
 ## Changelog
+
+- 2026-10-30: decisions D1–D9 recorded (§10); D2 and D7 applied to the tasks and their builder checks re-run; D8 in the
+  scorer (`primary`, `Dsem` per cell), the study set (`semOnly`) and the analysis (`primaryCells`); D9 applied (r = 10);
+  power table and planted tests re-run over 11 primary tasks; registered hint audit run; rule-visibility check run:
+  11 of 11 primary tasks pass, hxpb1 and hxpb2 not seen by R-MIRROR-SEM (B11, red). Not sealed; no pilot. Not
+  registered.
 
 - 2026-10-30: revised after an adversarial review: order of events (register, pilot, pre-data addendum); delivered =
   scored per hub check (PR 452); joint reading and (D fell, trap persisted) table; population limit; admission table

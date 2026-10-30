@@ -8,7 +8,7 @@ export class DebitoraChargesAdapter implements Charges {
   async outcome(paymentId: string): Promise<ChargeOutcome> {
     const p = await this.client.getPayment(paymentId);
     if (p.status === 'confirmed' || p.status === 'paid_out') return 'collected';
-    if (p.status === 'failed' || p.status === 'charged_back') return 'bounced';
+    if (p.status === 'collection_failed' || p.status === 'charged_back') return 'bounced';
     return 'on_its_way';
   }
 }

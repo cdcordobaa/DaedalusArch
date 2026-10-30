@@ -13,8 +13,8 @@ const SHOWN: Record<MarketState, string> = {
   posted: 'FINDING_TRANSLATOR',
   claimed: 'IN_TRANSLATION',
   drafting: 'IN_TRANSLATION',
-  proofreading: 'PROOFREADING',
-  delivered: 'DELIVERED',
+  proofreading: 'BEING_CHECKED',
+  delivered: 'READY_TO_DOWNLOAD',
   disputed: 'ON_HOLD',
 };
 

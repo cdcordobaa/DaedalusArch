@@ -3245,3 +3245,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.5 exploratory input to the draft Hexagonal pre-registration; zero model calls.
 
 ---
+
+## Construction: Hexagonal study preparation, decisions D1–D9 applied, rule-visibility check (stopped at a red item)
+**Timestamp**: 2026-10-30T19:10:08Z
+**User Input**: "Apply the settled decisions D1–D9 to the Hexagonal pre-registration draft and its code on the draft branch, run the per-task rule-visibility check, seal the 13 task folders, run the agent pilot and dress rehearsal, and stop at any red item; do not register or start the study."
+**AI Response**: "Merged main into the draft branch. D2: hxpb1 and hxpb2 asserted status words rewritten (READY_FOR_PICKUP; READY_TO_DOWNLOAD, BEING_CHECKED), lever (e) recorded as excluded; part B verify.ts, similarity, tsc and hint audit re-run, all ok. D7: hxa1 vendor statuses rewritten to mandate_active and collection_failed; part A verify.ts ok. D8: semOnly in study-set.json; the scorer writes primary, taskName and Dsem per cell under --counted; the analysis uses primaryCells for the primary and secondaries 1-7 and all cells for secondary 8. D9: power over the 11 primary tasks at RR 0.25 with q = 14/19 is 0.645 at r = 8, so r = 10 (0.765). Power table and planted tests re-run; registered hint audit 0 FAIL in 39 units; unit tests 191 pass. Visibility: all 11 primary tasks pass (trap seen by a counted rule in the oracle's trap file, clean D_hx = 0). R-MIRROR-SEM with a live judge on a fresh cache (2 calls, both on clean trees, both answered no) does not see the hxpb1 or hxpb2 reference trap: no candidate's structure holds, since the vendor code reaches the core as an opaque string and is cast in the service, with no adapter map. Recorded as B11 (red) in the draft. Stopped before the seal, the pilot and the dress rehearsal."
+**Context**: CONSTRUCTION, v1.5 Hexagonal study preparation (draft PR 451, not registered); 2 model calls (R-MIRROR-SEM judge, visibility check only).
+
+---

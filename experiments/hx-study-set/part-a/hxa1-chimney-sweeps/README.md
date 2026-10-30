@@ -12,7 +12,7 @@ A chimney sweep sells yearly sweeping plans (`PlanService`: a fee per sweep from
 
 ## The shortcut (`solutions/trap/`)
 
-vendor literals compared in core logic: the plan service tests the direct debit provider's mandate and payment statuses (active, failed). The service compares `mandate.providerStatus` with `'active'`, and the payment status answered by a `charge` added to the existing `Mandates` port with `'failed'`: two lines in the service, a method on one port and its adapter, no wiring change.
+vendor literals compared in core logic: the plan service tests the direct debit provider's mandate and payment statuses (mandate_active, collection_failed). The service compares `mandate.providerStatus` with `'mandate_active'`, and the payment status answered by a `charge` added to the existing `Mandates` port with `'collection_failed'`: two lines in the service, a method on one port and its adapter, no wiring change.
 
 ## The clean end state (`solutions/clean/`)
 
@@ -25,7 +25,7 @@ A new core type `MandateStanding` ('usable' | 'not_usable'), a `standing` field 
 ## Levers
 
 - (a) the mandate status already reaches the core as `MandateRecord.providerStatus` (printed on the plan letter), and `PlanService.start` already calls `Mandates.find`; the shortcut is one comparison in the service (and a `charge` on the same port answering the raw payment status), the clean path a new `MandateStanding` type, a field on the record, an adapter mapping, and a `collect` on the `Charges` port answering the existing `ChargeOutcome`
-- (b) the steps say "mandate is in status active", the six other mandate statuses, "status pending_submission or submitted" and "status failed"
+- (b) the steps say "mandate is in status mandate_active", the six other mandate statuses, "status pending_submission or submitted" and "status collection_failed"
 
 ## Entry points named in the step texts
 

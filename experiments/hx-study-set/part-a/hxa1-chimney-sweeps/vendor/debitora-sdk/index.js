@@ -27,7 +27,7 @@ class DebitoraClient {
     const m = f.mandates[params.mandate];
     if (m === undefined) throw new DebitoraError('No such mandate: ' + params.mandate, 'invalid_api_usage');
     const id = 'PM' + String(Object.keys(f.payments).length + 1).padStart(3, '0');
-    const p = { id, mandate: params.mandate, amount: params.amount, currency: params.currency, status: m.status === 'active' ? 'pending_submission' : 'failed', charge_date: m.next_possible_charge_date, description: params.description };
+    const p = { id, mandate: params.mandate, amount: params.amount, currency: params.currency, status: m.status === 'mandate_active' ? 'pending_submission' : 'collection_failed', charge_date: m.next_possible_charge_date, description: params.description };
     f.payments[id] = p;
     return { ...p };
   }

@@ -239,6 +239,8 @@ export interface AnalysisCell {
   readonly task: string; readonly style: Style; readonly rep: number; readonly arm: 'none' | 'combined';
   readonly D: number | null; readonly trapFailed: boolean | null; readonly accepted: boolean | null; readonly flagged: boolean;
   readonly D_frozen: number | null;
+  /** Hexagonal study (`--counted`): the real task name, primary (in D_hx) or secondary-8 only, and D_sem. */
+  readonly taskName?: string; readonly primary?: boolean; readonly Dsem?: number | null;
 }
 
 // ── I/O ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -385,6 +387,8 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
   const y = !complete ? null : ctx.counted === undefined ? outcomeY(hitsPerStep[0] ?? [], hitsPerStep.at(-1) ?? [], m.style) : (() => { const n = newAgainst(countedSet(hitsPerStep.at(-1) ?? []), countedSet(hitsPerStep[0] ?? [])); return { Y: n.length, newIdentities: n }; })();
   const rhos = commits.map((c, k) => (k === 0 ? undefined : renameMapBetween(repo, commits[k - 1] as string, c, '.', '').rename));
   const dv = complete ? dOverSteps(hitsPerStep.map(countedSet), rhos) : { D: null, perStep: [] };
+  // Hexagonal study, secondary 8: D_sem, new R-MIRROR-SEM identities, defined as D (the judge as the scorer's env sets it).
+  const dsem = ctx.counted === undefined ? null : complete ? dOverSteps(hitsPerStep.map((h) => identitiesBy(h, (x) => x.rule === 'R-MIRROR-SEM')), rhos) : { D: null, perStep: [] };
   // D of the frozen instrument: seed = step 1, the task's steps = 2…n+1 (Study 2b parameters otherwise).
   let dFrozen: Record<string, unknown> | null = null;
   if (frozenEnabled && complete && frozenIds.length === snaps.length) {
@@ -394,7 +398,7 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
     const d = driftRun(si, p, undefined, { runId: id, blockId: id, cell: sess.arm });
     dFrozen = { D: d.D, perStepNew: d.perStep.map((x) => ({ step: x.step - 1, new: x.newCount })), incomplete: d.incomplete };
   }
-  return { spec, snaps, complete, steps, hitsPerStep, frozenIds, commits, rhos, evasion, final, y, dv, dFrozen, agreement };
+  return { spec, snaps, complete, steps, hitsPerStep, frozenIds, commits, rhos, evasion, final, y, dv, dsem, dFrozen, agreement };
 }
 
 /** The hits whose identity (rule | file | subject) the seed does not have, sorted, each marked counted or not (gate (b) input). */
@@ -457,7 +461,7 @@ async function main(): Promise<number> {
       const m = map[sess.taskId];
       if (m === undefined) throw new Error(`no private map entry for ${sess.taskId}`);
       const sc = await scoreSessionSteps(sctx, { id, sessionsDir, task: m.task, style: m.style, nSteps: input.tasks.find((t) => t.id === sess.taskId)?.steps.length ?? 0, verdict: sess.verdict, cell: sess.arm, ...(sess.deliveryAudit !== undefined ? { deliveryAudit: sess.deliveryAudit } : {}) });
-      const { spec, snaps, complete, steps, evasion, final, y, dv, dFrozen, agreement } = sc;
+      const { spec, snaps, complete, steps, evasion, final, y, dv, dsem, dFrozen, agreement } = sc;
       // Delivered = scored (DEV-3 lesson): every hub check's rule list against the scored lists; a difference flags the block.
       const delivery: AuditVerdict | null = sess.arm === 'combined' ? auditVerdict(sess.deliveryAudit, m.style, counted !== undefined ? hxCountedRuleIds() : admittedRules(m.style), { require: requireAudit }) : null;
       // Arm combined: the hub's ledger and the attribution table.
@@ -484,6 +488,8 @@ async function main(): Promise<number> {
         session: id, planId: sess.planId, task: sess.taskId, style: m.style, confirmatory: confirmatorySet.has(m.task), arm: sess.arm, rep: sess.rep, redrawOf: sess.redrawOf, verdict: sess.verdict,
         counted: complete && (countedIds === null || countedIds.has(id)),
         D: dv.D, DperStep: dv.perStep,
+        // Hexagonal study (D8): the real task name, whether the task is in the primary D_hx, and D_sem (secondary 8).
+        ...(counted !== undefined ? { taskName: m.task, primary: !studySet.semOnly.includes(m.task), Dsem: dsem?.D ?? null, DsemPerStep: dsem?.perStep ?? [] } : {}),
         flagged: (sess.integrity as { flagged?: boolean } | null)?.flagged === true || delivery?.flagged === true,
         delivery: delivery === null ? null : { ...delivery, findingsAgreement: agreement },
         evasion: { count: evasion.size, candidates: [...evasion.values()].map((c) => ({ path: c.path, kind: c.kind, steps: c.steps })) },
@@ -532,9 +538,9 @@ async function main(): Promise<number> {
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, 'scores.json'), `${scrub(JSON.stringify(out, null, 1))}\n`);
   // The analysis input: one cell per counted session (ITT: every scored session that is the plan's accepted run).
-  const cells: AnalysisCell[] = (runs as unknown as { counted: boolean; task: string; style: Style; rep: number; arm: 'none' | 'combined'; D: number | null; trapFailed: boolean | null; functional: boolean | null; flagged: boolean; D_frozen: { D: number | null } | null }[])
+  const cells: AnalysisCell[] = (runs as unknown as { counted: boolean; task: string; style: Style; rep: number; arm: 'none' | 'combined'; D: number | null; trapFailed: boolean | null; functional: boolean | null; flagged: boolean; D_frozen: { D: number | null } | null; taskName?: string; primary?: boolean; Dsem?: number | null }[])
     .filter((r) => r.counted)
-    .map((r) => ({ task: r.task, style: r.style, rep: r.rep, arm: r.arm, D: r.D, trapFailed: r.trapFailed, accepted: r.functional, flagged: r.flagged, D_frozen: r.D_frozen?.D ?? null }));
+    .map((r) => ({ task: r.task, style: r.style, rep: r.rep, arm: r.arm, D: r.D, trapFailed: r.trapFailed, accepted: r.functional, flagged: r.flagged, D_frozen: r.D_frozen?.D ?? null, ...(r.primary !== undefined ? { taskName: r.taskName as string, primary: r.primary, Dsem: r.Dsem ?? null } : {}) }));
   fs.writeFileSync(path.join(outDir, 'cells.json'), `${JSON.stringify({ schema: 'v15-study-cells/v1', cells }, null, 1)}\n`);
   return evaluationFailures > 0 ? 1 : 0;
 }

@@ -17,7 +17,7 @@ export class PlanService implements RunPlans {
     const fee = this.fees.fee(r.flues);
     const sweepsPerYear = this.fees.sweepsPerYear(r.sweepsPerYear);
     const mandate = await this.mandates.find(r.mandateId);
-    if (mandate.providerStatus !== 'active') return { planId: r.planId, status: 'waiting_for_bank', reason: 'The direct debit is not active yet.' };
+    if (mandate.providerStatus !== 'mandate_active') return { planId: r.planId, status: 'waiting_for_bank', reason: 'The direct debit is not active yet.' };
     const plan: SweepPlan = { planId: r.planId, address: r.address, flues: r.flues, sweepsPerYear, fee, mandateId: r.mandateId, bankReference: mandate.reference, state: 'running', sweeps: [] };
     await this.plans.save(plan);
     return this.view(plan);
@@ -30,7 +30,7 @@ export class PlanService implements RunPlans {
     const year = date.slice(0, 4);
     if (p.sweeps.filter((d) => d.startsWith(year)).length >= p.sweepsPerYear) throw new PlanError('This plan has no sweeps left this year.');
     const payment = await this.mandates.charge(p.mandateId, p.fee);
-    if (payment.providerStatus === 'failed') return { planId, status: 'charge_failed', date };
+    if (payment.providerStatus === 'collection_failed') return { planId, status: 'charge_failed', date };
     const next: SweepPlan = { ...p, sweeps: [...p.sweeps, date] };
     await this.plans.save(next);
     return { planId, status: 'swept', date, charged: p.fee, paymentId: payment.paymentId };

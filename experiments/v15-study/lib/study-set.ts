@@ -18,6 +18,8 @@ export interface StudySetManifest {
   readonly confirmatory: { readonly ddd: readonly string[]; readonly hexagonal: readonly string[] };
   readonly exploratory?: { readonly ddd?: readonly string[]; readonly hexagonal?: readonly string[] };
   readonly taskDirs?: Readonly<Record<string, string>>;
+  /** Hexagonal study (D8): tasks run in both arms but measured only in secondary 8 (R-MIRROR-SEM), not in D_hx. */
+  readonly semOnly?: readonly string[];
 }
 
 export interface StudySet {
@@ -31,6 +33,8 @@ export interface StudySet {
   readonly dirOf: (task: string) => string;
   /** The distinct task roots (parents of the task directories), sorted. */
   readonly roots: readonly string[];
+  /** Tasks measured only in secondary 8 (`semOnly`; empty when the manifest has none). */
+  readonly semOnly: readonly string[];
 }
 
 const rel = (p: string): string => path.posix.normalize(p.split(path.sep).join('/')).replace(/\/+$/, '');
@@ -57,5 +61,7 @@ export function loadStudySet(repo: string, manifest: string = DEFAULT_STUDY_SET)
     return r;
   };
   const roots = [...new Set(ids.map((t) => path.posix.dirname(dirOf(t))))].sort();
-  return { manifest: m, confirmatory: { ddd: [...doc.confirmatory.ddd], hexagonal: [...doc.confirmatory.hexagonal] }, exploratory, ids, dirOf, roots };
+  const semOnly = [...(doc.semOnly ?? [])];
+  for (const t of semOnly) if (!doc.confirmatory.hexagonal.includes(t)) throw new Error(`${m}: semOnly names ${t}, which is not a confirmatory Hexagonal task`);
+  return { manifest: m, confirmatory: { ddd: [...doc.confirmatory.ddd], hexagonal: [...doc.confirmatory.hexagonal] }, exploratory, ids, dirOf, roots, semOnly };
 }

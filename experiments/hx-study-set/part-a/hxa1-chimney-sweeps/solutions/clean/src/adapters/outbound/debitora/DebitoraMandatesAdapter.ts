@@ -7,6 +7,6 @@ export class DebitoraMandatesAdapter implements Mandates {
 
   async find(mandateId: string): Promise<MandateRecord> {
     const m = await this.client.getMandate(mandateId);
-    return { mandateId: m.id, reference: m.reference, providerStatus: m.status, standing: m.status === 'active' ? 'usable' : 'not_usable' };
+    return { mandateId: m.id, reference: m.reference, providerStatus: m.status, standing: m.status === 'mandate_active' ? 'usable' : 'not_usable' };
   }
 }

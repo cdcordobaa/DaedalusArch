@@ -3,27 +3,40 @@
  *   npx tsx scripts/v1.5/hx-study-analyse.ts --cells <cells.json> --out <dir>
  *   npx tsx scripts/v1.5/hx-study-analyse.ts --planted <effect|null> --out <dir> [--reps 8]
  *   npx tsx scripts/v1.5/hx-study-analyse.ts --power --out <dir> [--draws 400]
- * `cells.json` is `{ "cells": HxCell[] }`. `--planted` writes synthetic cells first (registration test, scenario B of
- * §3, RR 0.25 for `effect`, RR 1 for `null`). `--power` writes the §3 table.
+ *   npx tsx scripts/v1.5/hx-study-analyse.ts --power-d9 --out <dir>
+ * `cells.json` is `{ "cells": HxCell[] }`. `--planted` writes synthetic cells first (registration test, scenario C of
+ * §3 over the 11 primary tasks, RR 0.25 for `effect`, RR 1 for `null`). `--power` writes the §3 table; `--power-d9`
+ * applies the registered r rule (D9) and writes `d9.json`.
+ * D8: the primary D_hx, its sensitivities and secondaries 1–7 use the primary cells only (`primaryCells`: hxpb1 and
+ * hxpb2 are left out); secondary 8 (R-MIRROR-SEM) uses every cell, all 13 tasks.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { dropFlagged, dropNoTrap, halves, pairedBooleanSign, rate } from './lib/final-study-analyse';
-import { analyseHx, decideHx, dropTasksWithoutTrap, hxBlocks, jointReading, jointTable, plantedHx, powerHx, semSecondary, type HxCell } from './lib/hx-study-analyse';
+import { D9, analyseHx, d9Rule, decideHx, dropTasksWithoutTrap, hxBlocks, jointReading, jointTable, plantedHx, powerHx, primaryCells, semSecondary, type HxCell } from './lib/hx-study-analyse';
 
 const argOf = (k: string): string | undefined => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : undefined; };
 const out = argOf('--out') ?? 'results/v1.5-hx-study/analysis';
 fs.mkdirSync(out, { recursive: true });
 
-/** §3 scenarios: per-task trap probability over the 13 tasks (sources in §3). */
+/** §3 scenarios: per-task trap probability over the 11 primary tasks (D8; sources in §3). */
 export const SCENARIOS: Readonly<Record<string, readonly number[]>> = {
-  'A: all 13 at 0.31 (TRAPRATE-01 Hex, 8/26)': Array.from({ length: 13 }, () => 0.31),
-  'B: 8 at 0.33 (ladder L2, 4/12), 5 at 0': [...Array.from({ length: 8 }, () => 0.33), ...Array.from({ length: 5 }, () => 0)],
-  'C: 8 at 0.58 (ladder L3, 7/12), 5 at 0': [...Array.from({ length: 8 }, () => 0.58), ...Array.from({ length: 5 }, () => 0)],
+  'A: all 11 at 0.31 (TRAPRATE-01 Hex, 8/26)': Array.from({ length: 11 }, () => 0.31),
+  'B: 8 at 0.33 (ladder L2, 4/12), 3 at 0': [...Array.from({ length: 8 }, () => 0.33), ...Array.from({ length: 3 }, () => 0)],
+  'C: 8 at 0.58 (ladder L3, 7/12), 3 at 0': [...Array.from({ length: 8 }, () => 0.58), ...Array.from({ length: 3 }, () => 0)],
 };
-export const DETECT = [0.4, 1] as const; // TRAPRATE-01: Hexagonal trapped runs flagged by admitted rules 2/5; upper bound 1
+// TRAPRATE-01: Hexagonal trapped runs flagged by admitted rules 2/5; HX-COVERAGE option (i) 14/19; upper bound 1
+export const DETECT = [0.4, D9.detect, 1] as const;
 export const REPS = [4, 6, 8, 10] as const;
 export const KEEPS = [0.5, 0.25] as const;
+
+if (process.argv.includes('--power-d9')) {
+  const scen = Object.fromEntries(Object.entries(SCENARIOS).map(([name, pTrap]) => [name, Object.fromEntries([D9.base, D9.fallback].map((reps) => [String(reps), powerHx({ pTrap, reps, keep: D9.keep, detect: D9.detect, ids: D9.ids, draws: D9.draws }).power]))]));
+  const res = { rule: D9, ...d9Rule(), scenariosBesideIt: scen };
+  fs.writeFileSync(path.join(out, 'd9.json'), `${JSON.stringify(res, null, 1)}\n`);
+  process.stdout.write(`${JSON.stringify(res, null, 1)}\n`);
+  process.exit(0);
+}
 
 if (process.argv.includes('--power')) {
   const draws = Number(argOf('--draws') ?? 400);
@@ -32,7 +45,7 @@ if (process.argv.includes('--power')) {
   for (const [name, pTrap] of Object.entries(SCENARIOS)) for (const detect of DETECT) for (const reps of REPS) {
     const [half, quarter] = KEEPS.map((keep) => powerHx({ pTrap, reps, keep, detect, draws }));
     const nul = powerHx({ pTrap, reps, keep: 1, detect, draws });
-    rows.push(`| ${name} | ${String(detect)} | ${String(reps)} | ${String(13 * reps * 2 * 3)} | ${half!.power.toFixed(2)} | ${quarter!.power.toFixed(2)} | ${nul.power.toFixed(3)} | ${String(quarter!.medianNonzeroTasks)} |`);
+    rows.push(`| ${name} | ${detect.toFixed(2)} | ${String(reps)} | ${String(13 * reps * 2 * 3)} | ${half!.power.toFixed(2)} | ${quarter!.power.toFixed(2)} | ${nul.power.toFixed(3)} | ${String(quarter!.medianNonzeroTasks)} |`);
     json.push({ scenario: name, detect, reps, half, quarter, nul });
   }
   fs.writeFileSync(path.join(out, 'power.json'), `${JSON.stringify({ draws, rows: json }, null, 1)}\n`);
@@ -45,21 +58,23 @@ const plantedKind = argOf('--planted');
 let cells: HxCell[];
 if (plantedKind !== undefined) {
   const reps = Number(argOf('--reps') ?? 8);
-  cells = plantedHx({ pTrap: SCENARIOS['C: 8 at 0.58 (ladder L3, 7/12), 5 at 0']!, reps, keep: plantedKind === 'null' ? 1 : 0.25, detect: 1, ids: 2 });
+  cells = plantedHx({ pTrap: SCENARIOS['C: 8 at 0.58 (ladder L3, 7/12), 3 at 0']!, reps, keep: plantedKind === 'null' ? 1 : 0.25, detect: 1, ids: 2 });
 } else {
   const f = argOf('--cells');
   if (f === undefined) throw new Error('--cells <file>, --planted <effect|null> or --power');
   cells = (JSON.parse(fs.readFileSync(f, 'utf8')) as { cells: HxCell[] }).cells;
 }
 
-const bs = hxBlocks(cells);
+// D8: the primary and secondaries 1–7 on the primary cells; secondary 8 on every cell.
+const prim = primaryCells(cells);
+const bs = hxBlocks(prim);
 const one = (b: typeof bs): { result: ReturnType<typeof analyseHx>; decision: ReturnType<typeof decideHx> } => { const result = analyseHx(b); return { result, decision: decideHx(result) }; };
 const primary = one(bs);
 const sensitivity = { dropTasksWithoutTrap: one(dropTasksWithoutTrap(bs)), firstStudyDropNoTrapBiased: one(dropNoTrap(bs)), dropFlagged: one(dropFlagged(bs)), firstHalf: one(halves(bs).first), secondHalf: one(halves(bs).second) };
 const secondary = {
-  sem: semSecondary(cells),
-  trapRate: rate(cells, 'hexagonal', (c) => c.trapFailed), trapPairedSign: pairedBooleanSign(bs, (c) => c.trapFailed),
-  acceptance: rate(cells, 'hexagonal', (c) => c.accepted), pZero: rate(cells, 'hexagonal', (c) => (c.D === null ? null : c.D === 0)),
+  sem: semSecondary(cells), semOnlyTasks: [...new Set(cells.filter((c) => c.primary === false).map((c) => c.taskName ?? c.task))].sort(),
+  trapRate: rate(prim, 'hexagonal', (c) => c.trapFailed), trapPairedSign: pairedBooleanSign(bs, (c) => c.trapFailed),
+  acceptance: rate(prim, 'hexagonal', (c) => c.accepted), pZero: rate(prim, 'hexagonal', (c) => (c.D === null ? null : c.D === 0)),
   jointTable: jointTable(bs),
 };
 const joint = jointReading(primary.decision, secondary.trapPairedSign);

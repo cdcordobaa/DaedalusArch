@@ -17,10 +17,36 @@ export const HX_ALPHA = 0.05;
 /** The task-level sign test cannot reach HX_ALPHA with fewer nonzero task sums: 2/2^5 = 0.0625. */
 export const MIN_NONZERO_TASKS = 6;
 
-/** A Hexagonal study cell. `D` is the primary outcome (§1); `Dsem` the registered secondary (R-MIRROR-SEM, §1). */
-export interface HxCell extends Cell { readonly Dsem?: number | null }
+/**
+ * A Hexagonal study cell. `D` is the primary outcome (§1); `Dsem` the registered secondary (R-MIRROR-SEM, §1).
+ * `primary: false` marks a task measured only in secondary 8 (D8: hxpb1, hxpb2; `semOnly` in the study set); the
+ * scorer writes it with `--counted`. A cell without it is primary.
+ */
+export interface HxCell extends Cell { readonly Dsem?: number | null; readonly primary?: boolean; readonly taskName?: string }
 
 export const hxBlocks = (cells: readonly HxCell[]): Block[] => blocksOf(cells, 'hexagonal');
+
+/** D8: the tasks run in both arms but measured only in secondary 8 (they never enter D_hx or secondaries 1–7). */
+export const HX_SEM_ONLY_TASKS: readonly string[] = ['hxpb1-pottery-kiln', 'hxpb2-translation-portal'];
+/** D8: the 11 tasks of the primary D_hx (and of secondaries 1–7). */
+export const HX_PRIMARY_TASKS: readonly string[] = ['hxa1-chimney-sweeps', 'hxa2-canal-boats', 'hxa3-balloon-flights', 'hxb1-bakery-flour', 'hxb2-costume-hire', 'hxpb3-observatory-evenings', 'hxpb4-chess-entries', 'f2-hex-vendor-port', 'f14-hex-geocoding', 'f16-hex-fx-rates', 'f24-hex-laundry-lockers'];
+/** D8: the cells of the primary analysis (every cell not marked `primary: false`). */
+export const primaryCells = <C extends HxCell>(cells: readonly C[]): C[] => cells.filter((c) => c.primary !== false);
+
+/**
+ * D9 (registered r rule, fixed before any study call): r = 8 unless `powerHx` over the 11 primary tasks at RR 0.25,
+ * with detection = the measured coverage under option (i) (HX-COVERAGE: 14 of 19 agent trap failures, 0.74), is
+ * below 0.80; then r = 10. Per-task trap rate: TRAPRATE-01's Hexagonal rate (8 of 26, 0.31), one identity per flagged
+ * cell, 400 draws. Scenarios B and C (§3) are printed beside it and decide nothing.
+ */
+export const D9 = { tasks: 11, pTrap: 0.31, detect: 14 / 19, keep: 0.25, ids: 1, draws: 400, base: 8, fallback: 10, target: 0.8 } as const;
+export function d9Rule(o: { readonly draws?: number } = {}): { readonly powerAtBase: number; readonly powerAtFallback: number; readonly r: number } {
+  const pTrap = Array.from({ length: D9.tasks }, () => D9.pTrap);
+  const at = (reps: number): number => powerHx({ pTrap, reps, keep: D9.keep, detect: D9.detect, ids: D9.ids, draws: o.draws ?? D9.draws }).power;
+  const powerAtBase = at(D9.base);
+  const powerAtFallback = at(D9.fallback);
+  return { powerAtBase, powerAtFallback, r: powerAtBase < D9.target ? D9.fallback : D9.base };
+}
 
 const sum = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0);
 const mean = (xs: readonly number[]): number => (xs.length === 0 ? Number.NaN : sum(xs) / xs.length);

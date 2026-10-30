@@ -77,7 +77,7 @@ export class PieceService implements StudioPieces {
       case 'waiting': return 'WAITING';
       case 'firing': return 'IN_THE_KILN';
       case 'cooling': return 'COOLING_DOWN';
-      case 'finished': return 'COMPLETE';
+      case 'finished': return 'READY_FOR_PICKUP';
       case 'failed': return 'FIRING_FAILED';
     }
   }

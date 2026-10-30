@@ -27,6 +27,9 @@ describe('study set manifest', () => {
     expect(s.ids.filter((t) => t.startsWith('hxpb'))).toEqual(['hxpb1-pottery-kiln', 'hxpb2-translation-portal', 'hxpb3-observatory-evenings', 'hxpb4-chess-entries']);
     expect(s.ids.filter((t) => t.startsWith('f'))).toEqual(['f2-hex-vendor-port', 'f14-hex-geocoding', 'f16-hex-fx-rates', 'f24-hex-laundry-lockers']);
     expect(s.roots).toEqual(['experiments/hx-study-set/part-a', 'experiments/hx-study-set/part-b', 'experiments/trap-families']);
+    // D8: the two renamed-copy tasks are measured only in secondary 8; D4: f2 is the fourth f-task.
+    expect(s.semOnly).toEqual(['hxpb1-pottery-kiln', 'hxpb2-translation-portal']);
+    expect(loadStudySet(REPO).semOnly).toEqual([]);
     for (const t of s.ids) {
       expect(path.posix.basename(s.dirOf(t))).toBe(t);
       if (!t.startsWith('hxpb')) {

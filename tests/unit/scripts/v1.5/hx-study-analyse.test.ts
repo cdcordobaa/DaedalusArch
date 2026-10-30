@@ -1,5 +1,7 @@
 import { dropNoTrap } from '../../../../scripts/v1.5/lib/final-study-analyse';
-import { analyseHx, decideHx, dropTasksWithoutTrap, hxBlocks, jointReading, jointTable, plantedHx, semSecondary, sizeFromPilot, type HxCell } from '../../../../scripts/v1.5/lib/hx-study-analyse';
+import { loadStudySet } from '../../../../experiments/v15-study/lib/study-set';
+import { D9, HX_PRIMARY_TASKS, HX_SEM_ONLY_TASKS, analyseHx, d9Rule, decideHx, dropTasksWithoutTrap, hxBlocks, jointReading, jointTable, plantedHx, primaryCells, semSecondary, sizeFromPilot, type HxCell } from '../../../../scripts/v1.5/lib/hx-study-analyse';
+import * as path from 'node:path';
 
 const cell = (task: string, rep: number, arm: 'none' | 'combined', D: number | null, Dsem = 0): HxCell => ({ task, style: 'hexagonal', rep, arm, D, trapFailed: D !== null && D > 0, accepted: true, Dsem });
 const C = [...Array.from({ length: 8 }, () => 0.58), ...Array.from({ length: 5 }, () => 0)];
@@ -74,5 +76,36 @@ describe('§3 re-size rule from the pilot', () => {
     expect(s.ids).toBe(1);
     expect([6, 8, 10]).toContain(s.r);
     if (!s.reached) expect(s.r).toBe(10);
+  });
+});
+
+describe('D8: primary over 11 tasks, secondary 8 over all 13', () => {
+  it('the task lists agree with the study set and split it 11 + 2', () => {
+    const set = loadStudySet(path.resolve(__dirname, '../../../..'), 'experiments/hx-study-set/study-set.json');
+    expect([...HX_SEM_ONLY_TASKS]).toEqual([...set.semOnly]);
+    expect([...HX_PRIMARY_TASKS].sort()).toEqual(set.confirmatory.hexagonal.filter((t) => !set.semOnly.includes(t)).sort());
+    expect(HX_PRIMARY_TASKS).toHaveLength(11);
+  });
+
+  it('primaryCells drops the semOnly cells; semSecondary still sees them', () => {
+    const cells: HxCell[] = [
+      { ...cell('t06', 1, 'none', 2, 2), primary: false }, { ...cell('t06', 1, 'combined', 0, 0), primary: false },
+      { ...cell('t01', 1, 'none', 1, 0), primary: true }, { ...cell('t01', 1, 'combined', 1, 0), primary: true },
+      cell('t02', 1, 'none', 0), cell('t02', 1, 'combined', 0),
+    ];
+    const prim = primaryCells(cells);
+    expect(prim.map((c) => c.task)).toEqual(['t01', 't01', 't02', 't02']);
+    expect(analyseHx(hxBlocks(prim), { draws: 9, intervals: false }).T).toBe(0);
+    expect(semSecondary(cells).T).toBe(-2);
+  });
+});
+
+describe('D9: the registered r rule', () => {
+  it('pins the rule and gives r = 10 (power at r = 8 below 0.80)', () => {
+    expect(D9).toEqual({ tasks: 11, pTrap: 0.31, detect: 14 / 19, keep: 0.25, ids: 1, draws: 400, base: 8, fallback: 10, target: 0.8 });
+    const d = d9Rule();
+    expect(d.powerAtBase).toBeCloseTo(0.645, 3);
+    expect(d.powerAtFallback).toBeCloseTo(0.765, 3);
+    expect(d.r).toBe(10);
   });
 });
