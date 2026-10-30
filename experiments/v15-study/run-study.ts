@@ -25,6 +25,8 @@
  *   --smoke      --input <f>   2 calls: one per arm (combined on the edit-gate dummy: push, pull, Stop)
  *   --probes     --input <f>   1 call: the READ probe (arm none)
  *   --sessions [--resume] --input <f>   the plan, inside the sessions cap
+ *   --keep-trees --input <f>   zero calls: every session's step trees and session.json to the input's results directory
+ *                              (`lib/records.ts`; tree hashes and canaries checked first; RUNBOOK §2.6)
  *   --local      with --smoke, --probes or --sessions: real calls as the current user (pilot calibration runs only, not
  *                study data): no uid switch, no chown, and the CLI's HOME is the current user's (its configured login;
  *                `--setting-sources ""`, `--strict-mcp-config` and the frozen argv keep user settings, CLAUDE.md, hooks
@@ -57,6 +59,7 @@ import { smokePrompt as gateSmokePrompt } from '../edit-gate/run-edit-gate.js';
 import { messageText, startFakeApi, type Block } from '../edit-gate/test/fake-api.js';
 import { argvDiff, argvFor, loadCombinedSentence, promptFor, MCP_SERVER_NAME, type ArmSockets } from './lib/arms.js';
 import { LedgerRunner, VersionGuard, VersionMismatchStop, integrityOf, type CallLine, type Integrity, type Phase, type PushLine, type TurnObservation } from './lib/guards.js';
+import { keepSessionTrees } from './lib/records.js';
 import { buildPlan, capsFor, plannedTurns, redrawFits, type Arm, type Caps, type PlannedSession } from './lib/plan.js';
 
 const REPO = process.cwd();
@@ -1007,6 +1010,12 @@ async function main(argv: readonly string[]): Promise<number> {
   if (i < 0 || argv[i + 1] === undefined) throw new Error('--input <input.json> is required');
   INPUT_PATH = path.resolve(argv[i + 1] as string);
   const input = load(INPUT_PATH);
+  if (argv.includes('--keep-trees')) {
+    // Zero calls: every session's step trees and session.json to the results directory (RUNBOOK §2.6), hashes checked.
+    const kept = keepSessionTrees(input.outRoot, input.resultsDir ?? path.join(REPO, 'results', 'v1.5-study', input.phase ?? 'study'), input.isolation.canaries);
+    process.stdout.write(`${JSON.stringify({ keptSessions: kept.length, steps: kept.reduce((a, k) => a + k.steps, 0), files: kept.reduce((a, k) => a + k.files, 0) })}\n`);
+    return 0;
+  }
   const localDry = argv.includes('--local-dry');
   const localCalls = argv.includes('--local') && (argv.includes('--smoke') || argv.includes('--probes') || argv.includes('--sessions'));
   if (argv.includes('--local') && !localCalls) throw new Error('--local goes with --smoke, --probes or --sessions (use --local-dry for the dry run)');
@@ -1030,7 +1039,7 @@ async function main(argv: readonly string[]): Promise<number> {
   if (argv.includes('--smoke')) return smoke(ctx);
   if (argv.includes('--probes')) return probes(ctx);
   if (argv.includes('--sessions')) return sessions(ctx, argv.includes('--resume'));
-  process.stderr.write('usage: run-study.ts --dry | --local-dry | --s4 [--evidence <dir>] | --smoke | --probes | --sessions [--resume] --input <input.json>\n');
+  process.stderr.write('usage: run-study.ts --dry | --local-dry | --s4 [--evidence <dir>] | --smoke | --probes | --sessions [--resume] | --keep-trees --input <input.json>\n');
   return 2;
 }
 
