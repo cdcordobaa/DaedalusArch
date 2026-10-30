@@ -15,7 +15,7 @@ pilot report. Zero model calls.
 
 ## Layout
 
-Each task `hxb<n>-<name>/` has the trap-families / pilot layout, so the existing tooling runs it unchanged:
+Each task `hxpb<n>-<name>/` has the trap-families / pilot layout, so the existing tooling runs it unchanged:
 `puzzle.json` (with `studySet` and `entryPoints`), `tasks.json` (three chained steps), `spec.yaml` (the f14 / P3r
 Hexagonal spec, this task's vendor in FF-P01), `oracle.ts`, `tests/behaviour.ts`, `vendor/<sdk>/` (the runtime
 stand-in, driven by a `globalThis` fake), `seed/` (with `ARCHITECTURE.md`, the trap-families text verbatim, and
@@ -29,7 +29,8 @@ a task `README.md`.
 - `study-set.json`: the part-B manifest.
 
 All four domains and vendors are new: none is used by a trap-pilot, trap-family, CAL or HCAL set (checked by name
-over `experiments/` and `Docs/`).
+over `experiments/` and `Docs/`), nor by part A. The ids carry the prefix `hxpb` (part B) because part A already uses
+`hxa*` and `hxb*` ids.
 
 ## The pilot's test-surface defect, fixed
 
@@ -39,7 +40,7 @@ extra field. Here:
 
 - **Every step text names the app method the tests call** (`pieceStatus(pieceId)`, `withdrawPiece(pieceId)`,
   `progress(orderNo)`, `invoice(orderNo)`, `book(evening, adults, children)`, `enterPlayer(federationId, section)`),
-  and says "on the app that createApp() returns"; where a step adds a method (hxb1 `withdrawPiece`, hxb2 `invoice`),
+  and says "on the app that createApp() returns"; where a step adds a method (hxpb1 `withdrawPiece`, hxpb2 `invoice`),
   the text says "Add … to the app that createApp() returns". `verify.ts` checks this: each step names its
   `puzzle.json` entry point, and every `app.<method>` the tests call is either on the seed's app or named in a step.
 - **No strict deep equality** in any test: answers, vendor requests and headers are checked field by field, so extra
@@ -60,14 +61,16 @@ and `npx tsx experiments/hx-study-set/part-b/_checks/similarity.ts --json experi
   committed, so `_checks/similarity.ts` implements it. The structural reading (identifiers, strings and numbers
   abstracted) reproduces the pairs PR 398 recorded: f7/f5 0.97 (recorded 0.93), f8/f3 0.83 (0.82), f6/f4 0.79 (0.72),
   f3/f1 0.64 (0.63); a lexical reading (identifiers kept) is reported too. Each part-B task is compared with the other
-  part-B tasks, all 29 trap-families tasks and all 18 pilot variants (part A was not on `main` when this ran). Gate:
+  part-B tasks, the five part-A tasks (taken from the part-A branch at 77c28a455, PR 449, before it merged), all 29
+  trap-families tasks and all 18 pilot variants. The highest part-B / part-A pair is 0.239 (hxpb2 vs
+  hxa1-chimney-sweeps). Gate:
   < 0.6 on both readings.
 
 **All invariants hold on all four tasks.** Every regression case passes on the seed and every feature case fails
 there; clean and trap pass every case; seed and clean pass the oracle, trap fails it; 0 tsc errors on 12 trees;
 0 hint-audit FAIL; entry points named; 0 strict deep-equality calls; every similarity pair < 0.6.
 
-### hxb1-pottery-kiln
+### hxpb1-pottery-kiln
 
 | Item | Value |
 |---|---|
@@ -84,7 +87,7 @@ there; clean and trap pass every case; seed and clean pass the oracle, trap fail
 | Hint audit | 0 FAIL, 0 WARN |
 | Max similarity (structural / lexical) | 0.279 (p3-florist-tracking/L3) / 0.015 |
 
-### hxb2-translation-portal
+### hxpb2-translation-portal
 
 | Item | Value |
 |---|---|
@@ -101,7 +104,7 @@ there; clean and trap pass every case; seed and clean pass the oracle, trap fail
 | Hint audit | 0 FAIL, 2 WARN ("translation" twice: the bureau's product; ordinary use, kept) |
 | Max similarity (structural / lexical) | 0.283 (p3-florist-tracking/L3) / 0.013 |
 
-### hxb3-observatory-evenings
+### hxpb3-observatory-evenings
 
 | Item | Value |
 |---|---|
@@ -118,7 +121,7 @@ there; clean and trap pass every case; seed and clean pass the oracle, trap fail
 | Hint audit | 0 FAIL, 0 WARN |
 | Max similarity (structural / lexical) | 0.352 (p6-museum-entry/L1) / 0.047 |
 
-### hxb4-chess-entries
+### hxpb4-chess-entries
 
 | Item | Value |
 |---|---|
@@ -133,23 +136,23 @@ there; clean and trap pass every case; seed and clean pass the oracle, trap fail
 | tsc seed / clean / trap | 0 / 0 / 0 |
 | Change vs seed: clean, trap (files, lines) | 6, 37 · 5, 26 |
 | Hint audit | 0 FAIL, 0 WARN |
-| Max similarity (structural / lexical) | 0.200 (hxb3-observatory-evenings) / 0.026 |
+| Max similarity (structural / lexical) | 0.200 (hxpb3-observatory-evenings) / 0.026 |
 
-Part-B pairs (structural): hxb1/hxb2 0.250, hxb1/hxb3 0.139, hxb1/hxb4 0.147, hxb2/hxb3 0.151, hxb2/hxb4 0.142,
-hxb3/hxb4 0.200.
+Part-B pairs (structural): hxpb1/hxpb2 0.250, hxpb1/hxpb3 0.139, hxpb1/hxpb4 0.147, hxpb2/hxpb3 0.151, hxpb2/hxpb4 0.142,
+hxpb3/hxpb4 0.200.
 
 ## Notes
 
-- **Lever (a) is uneven, as in the pilot.** In hxb1 and hxb2 the step-1 trap is one file (a type and a switch or
-  table in the service). In hxb3 and hxb4 the trap still touches the core error, the adapter, the service and the
+- **Lever (a) is uneven, as in the pilot.** In hxpb1 and hxpb2 the step-1 trap is one file (a type and a switch or
+  table in the service). In hxpb3 and hxpb4 the trap still touches the core error, the adapter, the service and the
   inbound reply, so the shortcut is only a little smaller than the clean path (5 against 6 files), the same as the
   pilot's p6 L2, which trapped 2/2 at that level.
-- **Lever (e).** The status words the tests assert include the vendor's own words in upper case (hxb1 `COMPLETE`,
-  hxb2 `DELIVERED` and `PROOFREADING`); the clean trees write them only as output strings, which the
+- **Lever (e).** The status words the tests assert include the vendor's own words in upper case (hxpb1 `COMPLETE`,
+  hxpb2 `DELIVERED` and `PROOFREADING`); the clean trees write them only as output strings, which the
   `value-set-copy` check does not count. An agent tree that fails the oracle is hand-read before it counts, as the
   pilot report requires.
 - **Oracle limits** are those of `pilot-oracle.ts`: values passed through `any`, codes rebuilt from pieces and a copied
-  value set of a different size are not seen; a business number from 100 to 599 in an hxb3 / hxb4 core is flagged and
+  value set of a different size are not seen; a business number from 100 to 599 in an hxpb3 / hxpb4 core is flagged and
   must be hand-read (the clean cores hold none).
 - **Not done here:** rule visibility (whether the admitted rules fire on each trap and stay silent on each clean
   tree) needs the instrument and is outside a rule-blind build; no seal, no registration, no agent run.

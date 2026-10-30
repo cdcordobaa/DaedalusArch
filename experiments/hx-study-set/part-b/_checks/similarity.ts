@@ -96,7 +96,7 @@ for (const a of partB) {
   const topS = mine.reduce((m, p) => (p.structural > m.structural ? p : m));
   const topL = mine.reduce((m, p) => (p.lexical > m.lexical ? p : m));
   const other = (p: { a: string; b: string }): string => (p.a === a.id ? p.b : p.a);
-  process.stdout.write(`${a.id}: max structural ${r3(topS.structural)} (${other(topS)}), max lexical ${r3(topL.lexical)} (${other(topL)}), part-B pairs ${mine.filter((p) => p.groupB === 'part-b' || p.a !== a.id).map((p) => `${other(p)} ${r3(p.structural)}/${r3(p.lexical)}`).filter((s) => s.startsWith('hxb')).join(', ')}\n`);
+  process.stdout.write(`${a.id}: max structural ${r3(topS.structural)} (${other(topS)}), max lexical ${r3(topL.lexical)} (${other(topL)}), part-B pairs ${mine.filter((p) => p.groupB === 'part-b' || p.a !== a.id).map((p) => `${other(p)} ${r3(p.structural)}/${r3(p.lexical)}`).filter((s) => s.startsWith('hxpb')).join(', ')}\n`);
 }
 process.stdout.write(`${String(pairs.length)} pairs against ${String(trees.length - partB.length)} other clean trees (${[...new Set(trees.map((t) => t.group))].join(', ')}); gate < ${String(GATE)} on both: ${ok ? 'pass' : 'FAIL'}\n`);
 const i = process.argv.indexOf('--json');

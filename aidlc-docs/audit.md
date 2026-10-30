@@ -3225,7 +3225,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 ## Construction: HX study set part B (four Hexagonal study tasks)
 **Timestamp**: 2026-10-30T04:27:24Z
 **User Input**: "Build part B of the new Hexagonal study task set, rule-blind: two renamed-copy tasks at the p3 L3 lever set and two HTTP-detail-in-core tasks at the p6 L2 lever set, each with a fresh domain and vendor, three chained steps, tests, clean and trap references and a rule-blind oracle; fix the pilot's test-surface defect; verify, hint-audit and similarity-check; do not seal."
-**AI Response**: "Built experiments/hx-study-set/part-b/ (hxb1 pottery kiln, hxb2 translation portal, hxb3 observatory evenings, hxb4 chess entries) with verify.ts and a similarity check. Every step text names the app method the tests call; tests check fields, not strict deep equality. All four tasks hold every invariant (seed fails every feature case; clean passes tests and oracle; trap passes tests and fails only the oracle; tsc clean; hint audit 0 FAIL; every similarity pair below 0.6)."
+**AI Response**: "Built experiments/hx-study-set/part-b/ (hxpb1 pottery kiln, hxpb2 translation portal, hxpb3 observatory evenings, hxpb4 chess entries) with verify.ts and a similarity check. Every step text names the app method the tests call; tests check fields, not strict deep equality. All four tasks hold every invariant (seed fails every feature case; clean passes tests and oracle; trap passes tests and fails only the oracle; tsc clean; hint audit 0 FAIL; every similarity pair below 0.6)."
 **Context**: CONSTRUCTION, v1.5 study task set (draft, not sealed, not registered); zero model calls.
 
 ---

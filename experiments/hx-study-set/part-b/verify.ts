@@ -1,6 +1,6 @@
 /**
  * HX study set part B verification (zero calls). The TRAP-PILOT-v2 verify.ts checks, applied to the four part-B
- * tasks (`hxb*`), plus two test-surface checks that answer the pilot's facade defect. For every task, on the three
+ * tasks (`hxpb*`), plus two test-surface checks that answer the pilot's facade defect. For every task, on the three
  * trees (seed, solutions/clean, solutions/trap):
  *   - type check (strict, ES2022, CommonJS, node resolution, types [node]; the pilot / PUZZLE-03 options);
  *   - behaviour tests (experiments/puzzle-01/tools/run-tests.ts): the seed fails (every regression case passes, every
@@ -87,7 +87,7 @@ const deepEqualUses = (task: string): number => (fs.readFileSync(path.join(REPO,
 
 const rows: Record<string, unknown>[] = [];
 let allOk = true;
-const ids = fs.readdirSync(HERE, { withFileTypes: true }).filter((e) => e.isDirectory() && /^hxb\d-/.test(e.name)).map((e) => e.name).sort();
+const ids = fs.readdirSync(HERE, { withFileTypes: true }).filter((e) => e.isDirectory() && /^hxpb\d-/.test(e.name)).map((e) => e.name).sort();
 for (const id of ids) {
   if (only.length > 0 && !only.some((o) => id.startsWith(o))) continue;
   const tr = path.relative(REPO, path.join(HERE, id));
