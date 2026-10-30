@@ -1,0 +1,61 @@
+import { dropNoTrap } from '../../../../scripts/v1.5/lib/final-study-analyse';
+import { analyseHx, decideHx, dropTasksWithoutTrap, hxBlocks, plantedHx, semSecondary, sizeFromPilot, type HxCell } from '../../../../scripts/v1.5/lib/hx-study-analyse';
+
+const cell = (task: string, rep: number, arm: 'none' | 'combined', D: number | null, Dsem = 0): HxCell => ({ task, style: 'hexagonal', rep, arm, D, trapFailed: D !== null && D > 0, accepted: true, Dsem });
+const C = [...Array.from({ length: 8 }, () => 0.58), ...Array.from({ length: 5 }, () => 0)];
+
+describe('v1.5 Hexagonal study analysis (draft registration)', () => {
+  it('supports a planted RR 0.25 and does not support the null (13 tasks, r = 8)', () => {
+    const eff = decideHx(analyseHx(hxBlocks(plantedHx({ pTrap: C, reps: 8, keep: 0.25, ids: 2 })), { draws: 999, resamples: 200 }));
+    expect(eff.supported).toBe(true);
+    const nul = decideHx(analyseHx(hxBlocks(plantedHx({ pTrap: C, reps: 8, keep: 1, ids: 2, seed: 20261031 })), { draws: 999, resamples: 200 }));
+    expect(nul.supported).toBe(false);
+  });
+
+  it('needs at least 6 tasks with a nonzero sum for the task-level check', () => {
+    const cells: HxCell[] = [];
+    for (let t = 0; t < 5; t++) for (let r = 1; r <= 6; r++) { cells.push(cell(`t${String(t)}`, r, 'none', 1)); cells.push(cell(`t${String(t)}`, r, 'combined', 0)); }
+    const d = decideHx(analyseHx(hxBlocks(cells), { draws: 99, resamples: 50 }));
+    expect(d.reject).toBe(true);
+    expect(d.taskCheck).toBe(false);
+    expect(d.reading).toContain('carried by a subset of tasks');
+  });
+
+  it('reads a rejection against the predicted sign as such', () => {
+    const cells: HxCell[] = [];
+    for (let t = 0; t < 10; t++) { cells.push(cell(`t${String(t)}`, 1, 'none', 0)); cells.push(cell(`t${String(t)}`, 1, 'combined', 2)); }
+    expect(decideHx(analyseHx(hxBlocks(cells), { draws: 99, resamples: 50 })).reading).toBe('rejected against the predicted direction');
+  });
+
+  it('keeps R-MIRROR-SEM out of the primary and scores it apart', () => {
+    const cells = [cell('a', 1, 'none', 0, 3), cell('a', 1, 'combined', 0, 0)];
+    expect(analyseHx(hxBlocks(cells), { draws: 9, intervals: false }).T).toBe(0);
+    expect(semSecondary(cells).T).toBe(-3);
+  });
+});
+
+describe('trap sensitivity under the null', () => {
+  it('the symmetric task-level drop keeps the false-support rate low; the one-arm block drop does not', () => {
+    let sym = 0; let oneArm = 0;
+    for (let i = 0; i < 100; i++) {
+      const bs = hxBlocks(plantedHx({ pTrap: C, reps: 8, keep: 1, ids: 2, seed: 7000 + i }));
+      if (decideHx(analyseHx(dropTasksWithoutTrap(bs), { draws: 0, intervals: false })).supported) sym += 1;
+      if (decideHx(analyseHx(dropNoTrap(bs), { draws: 0, intervals: false })).supported) oneArm += 1;
+    }
+    expect(sym).toBeLessThanOrEqual(5);
+    expect(oneArm).toBeGreaterThan(50);
+  });
+});
+
+describe('§3 re-size rule from the pilot', () => {
+  it('gives Jeffreys rates per task and picks the largest r when the target is not reached', () => {
+    const none: HxCell[] = [];
+    for (let t = 0; t < 13; t++) for (let r = 1; r <= 2; r++) none.push(cell(`t${String(t).padStart(2, '0')}`, r, 'none', t < 2 && r === 1 ? 1 : 0));
+    const s = sizeFromPilot(none, { draws: 50 });
+    expect(s.pTrap[0]).toBeCloseTo(0.5);
+    expect(s.pTrap[12]).toBeCloseTo(0.5 / 3);
+    expect(s.ids).toBe(1);
+    expect([6, 8, 10]).toContain(s.r);
+    if (!s.reached) expect(s.r).toBe(10);
+  });
+});
