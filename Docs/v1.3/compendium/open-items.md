@@ -213,3 +213,17 @@ The readiness dashboard did not change in this window. Changes to the items in s
 | The lane `run/*.jsonl` records were not committed; consider adding them (or their summaries) to the replication package | agent | `Docs/DiagnosticRuns/v15-final-study-2026-10-29.md:101` |
 | DETECT-02 held-out is spent (10 of 14, descriptive); no numeric bar was registered. Any later use is development material | agent | `Docs/DiagnosticRuns/detect-02-heldout-2026-10-29.md:114` |
 | The sealed v1.3 hold-out of the original Study 2 design is still unscored; the SO5 taxonomy codebook is a first-coder draft (no second coder yet) | author | `experiments/so5-taxonomy/README.md:26` |
+
+## 15. State on 2026-10-30 (refresh after PRs #430–#454)
+
+The readiness dashboard did not change in this window. New or changed items:
+
+| Item | Owner | Source |
+|---|---|---|
+| H11 failed to be admitted a second time (HCAL-06 13/16, HCAL-07 14/16); H11-SEM met the bar on 6 positives in total; H03 had 1/6 false positives on HCAL-06 and 0/6 on HCAL-07; H07 3/3. `ADMITTED_HEX_ROWS` is unchanged. Decide whether H11-SEM, H03 and H07 stay or enter the Hexagonal family and what to write for H11 | author | `Docs/DiagnosticRuns/v15-hcal07-admission-2026-10-30.md:168` |
+| The thesis must not describe the Hexagonal family as 9 rows confirmed again on HCAL-06 or HCAL-07: those rounds did not change the family | agent | `Docs/DiagnosticRuns/v15-hcal06-admission-2026-10-30.md:121` |
+| DEV-3: the thesis must state that the final study's arm delivered only R-D4, R-XCTX and layer rules, and that the drop-no-trap sensitivity is one-arm-conditioned | agent | `Docs/v1.5/final-study-preregistration.md:194` |
+| A Hexagonal delivery study is being drafted (draft PR 451, not merged): the counted set sees 16 of 19 trap failures (0.84) with R-MIRROR2, 4 of 19 without; planning q about 0.7. The renamed-copy tasks are unseen by the counted set | author | `Docs/DiagnosticRuns/v15-hx-trap-coverage-2026-10-30.md:3` |
+| Pilot ladder: p2, p5 and p6 have no level in the band, and p3 and p5 variants fail functionally because of a missing facade entry point; repair before reuse | agent | `Docs/DiagnosticRuns/v15-pilot-ladder-2026-10-30.md:86` |
+| The SO5 taxonomy codebook is frozen as v1 (kappa 0.709, model panel); six clarifications are proposed and not applied; a human second coder is not done | author | `Docs/DiagnosticRuns/so5-taxonomy-panel-2026-10-30.md:21` |
+
