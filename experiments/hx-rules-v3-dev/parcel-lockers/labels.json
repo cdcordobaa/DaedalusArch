@@ -1,0 +1,162 @@
+{
+  "H03-pos1": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/out/notification/sms-recipient-notifier.ts",
+    "note": "The SMS notifier imports the in-memory repository (one outbound package imports another).",
+    "subshape": "out-out",
+    "kind": "positive"
+  },
+  "H03-pos2": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/out/notification/sms-recipient-notifier.ts",
+    "note": "Two outbound packages import adapters/out/shared/phone-mask.ts, but that shared file imports the lockbox gateway (another adapter): no helper.",
+    "subshape": "out-shared-not-helper",
+    "kind": "positive"
+  },
+  "H03-pos3": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/out/persistence/in-memory-parcel.repository.ts",
+    "note": "The in-memory repository (driven side) imports the driving side shared reply helper: an import across sides.",
+    "subshape": "out-to-in-shared",
+    "kind": "positive"
+  },
+  "H03-pos4": {
+    "rule": "H03",
+    "label": "violation",
+    "file": "src/adapters/in/http/parcel.controller.ts",
+    "note": "The controller (driving side) imports the driven side shared phone-mask helper: an import across sides.",
+    "subshape": "in-to-out-shared",
+    "kind": "positive"
+  },
+  "H03-twin1": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "Two outbound packages both import adapters/out/shared/phone-mask.ts, a helper that imports nothing.",
+    "subshape": "out-shared-helper",
+    "kind": "hard-twin"
+  },
+  "H03-twin2": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "The SMS notifier imports adapters/out/common/parcel-label.ts, a helper that imports only domain code.",
+    "subshape": "out-common-helper",
+    "kind": "hard-twin"
+  },
+  "H03-twin3": {
+    "rule": "H03",
+    "label": "clean",
+    "file": null,
+    "note": "The base layout: the controller imports adapters/in/shared/reply.ts (the driving-side exemption, unchanged).",
+    "subshape": "in-shared-helper",
+    "kind": "hard-twin"
+  },
+  "H07-pos1": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/domain/errors.ts",
+    "note": "A domain error carries an HTTP status number in its statusCode field initializer (404).",
+    "subshape": "status-number",
+    "kind": "positive"
+  },
+  "H07-pos2": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/domain/errors.ts",
+    "note": "A domain error declares statusCode: number and assigns the HTTP status 409 in its constructor.",
+    "subshape": "status-assigned",
+    "kind": "positive"
+  },
+  "H07-pos3": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/application/ports/in/collect-parcel.port.ts",
+    "note": "The driving port types its result status with an HTTP status type (httpStatus: HttpStatusCode).",
+    "subshape": "status-type",
+    "kind": "positive"
+  },
+  "H07-pos4": {
+    "rule": "H07",
+    "label": "violation",
+    "file": "src/application/collect-parcel.use-case.ts",
+    "note": "The use case compares a result statusCode with HTTP 404.",
+    "subshape": "status-compared",
+    "kind": "positive"
+  },
+  "H07-twin1": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "A domain locker reading keeps the locker's own status code as a string (statusCode: LockerStatusCode, 'OK' | 'LOW' | 'SVC'): not an HTTP status.",
+    "subshape": "status-name-business",
+    "kind": "hard-twin"
+  },
+  "H07-twin2": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "A domain locker health value keeps a numeric firmware statusCode (0 to 9) set from the battery level: not an HTTP status.",
+    "subshape": "status-name-numeric",
+    "kind": "hard-twin"
+  },
+  "H07-twin3": {
+    "rule": "H07",
+    "label": "clean",
+    "file": null,
+    "note": "The driving port result carries the parcel state as statusCode (a ParcelState); the controller picks the HTTP status.",
+    "subshape": "status-name-state",
+    "kind": "hard-twin"
+  },
+  "H11-decl-pos3": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/domain/errors.ts",
+    "note": "The domain error is named LockboxTimeoutError after the vendor error LockboxTimeout (an Error suffix added).",
+    "subshape": "decl",
+    "kind": "positive"
+  },
+  "H11-decl-twin4": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "The domain error is named LockerTimeoutError in its own words (the vendor class is LockboxTimeout).",
+    "subshape": "decl",
+    "kind": "hard-twin"
+  },
+  "H11-key-pos3": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/domain/locker-faults.ts",
+    "note": "A domain table keyed by the vendor LockerFault codes (LB_OFFLINE, LB_POWER, LB_TAMPER).",
+    "subshape": "key",
+    "kind": "positive"
+  },
+  "H11-key-twin3": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "The same advice table keyed by the domain fault words; the gateway maps the vendor codes.",
+    "subshape": "key",
+    "kind": "hard-twin"
+  },
+  "H11-list-pos3": {
+    "rule": "H11",
+    "label": "violation",
+    "file": "src/application/door-audit.ts",
+    "note": "Application code lists the vendor DoorReport fields (locker_id, door_state, opened_at) as audit columns.",
+    "subshape": "list",
+    "kind": "positive"
+  },
+  "H11-list-twin4": {
+    "rule": "H11",
+    "label": "clean",
+    "file": null,
+    "note": "Audit columns that share two vendor field names and add the domain's own: not the vendor field set.",
+    "subshape": "list",
+    "kind": "hard-twin"
+  }
+}

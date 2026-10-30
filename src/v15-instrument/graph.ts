@@ -219,11 +219,11 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
   for (const x of facts.adapterImports) {
     const a = node(['AdapterFile'], { file: x.file, pkg: x.fromPkg });
     const b = node(['AdapterFile'], { file: x.target, pkg: x.toPkg });
-    rel('ADAPTER_IMPORTS', a, b, { line: x.line, specifier: x.specifier, drivingShared: x.drivingShared, targetHelperOnly: x.targetHelperOnly });
+    rel('ADAPTER_IMPORTS', a, b, { line: x.line, specifier: x.specifier, drivingShared: x.drivingShared, sideShared: x.sideShared, targetHelperOnly: x.targetHelperOnly });
   }
   for (const x of facts.transports) {
     const u = node(['CoreFile'], { file: x.file, role: x.role });
-    const t = node(['TransportConcept'], { form: x.form, detail: x.detail });
+    const t = node(['TransportConcept'], { form: x.form, detail: x.detail, typeText: x.typeText });
     rel('USES_TRANSPORT', u, t, { line: x.line });
   }
   for (const x of facts.locators) {
@@ -256,12 +256,15 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
   const tok = (t: string): GraphNode => { let g = tokens.get(t); if (!g) { g = node(['Token'], { token: t }); tokens.set(t, g); } return g; };
   if (facts.vendorTerms.length > 0) {
     for (const v of facts.vendorTerms) {
-      const g = node(['VendorTerm'], { module: v.module, decl: v.decl, kind: v.kind, text: v.text, set: v.set, setSize: v.setSize, isError: v.isError, ownedBy: v.ownedBy });
+      const g = node(['VendorTerm'], { module: v.module, decl: v.decl, kind: v.kind, text: v.text, set: v.set, setSize: v.setSize, isError: v.isError, ownedBy: v.ownedBy, declOwnedBy: v.declOwnedBy });
       rel('TERM_TOKEN', g, tok(v.token));
+      // v1.5.5: a vendor declaration also points to its declaration token, which only core declarations share
+      if (v.declToken !== '') rel('DECL_TOKEN', g, tok(v.declToken));
     }
     for (const c of facts.coreTerms) {
       const g = node(['CoreTerm'], { file: c.file, line: c.line, role: c.role, kind: c.kind, text: c.text, symbol: c.symbol, context: c.context, set: c.set, setSize: c.setSize, owner: c.owner, ownerFields: c.ownerFields });
-      rel('TERM_TOKEN', g, tok(c.token));
+      // v1.5.5: a core declaration's token is a declaration token (DECL_TOKEN), so the earlier shapes never meet it
+      rel(c.kind === 'decl' ? 'DECL_TOKEN' : 'TERM_TOKEN', g, tok(c.token));
     }
   }
   // R-MIRROR-SEM (H11, exploratory): candidates (symbolic) and, when a judge is given, the model's fact on each.

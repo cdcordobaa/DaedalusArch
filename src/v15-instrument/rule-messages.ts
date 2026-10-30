@@ -183,17 +183,23 @@ const BUILDERS: Readonly<Record<string, Builder>> = {
     const [, shape, detail] = m as unknown as [string, string, string];
     const src = /\(([^()]+?) of (\S+?)\)/.exec(detail) ?? / ([A-Za-z0-9_$]+)(?:\.[A-Za-z0-9_$]+)? of (\S+?)(?::|$)/.exec(detail);
     const mod = src?.[2] ?? 'the vendor SDK';
-    const term = shape === 'field-set' ? (/: (.+)$/.exec(detail)?.[1] ?? f.subject)
+    const listed = shape === 'field-set' || shape === 'field-list';
+    const term = listed ? (/: (.+)$/.exec(detail)?.[1] ?? f.subject)
       : shape === 'field' ? (/ \S+?\.(\S+) of \S+$/.exec(detail)?.[1] ?? f.subject)
         : (/'([^']+)'/.exec(detail)?.[1] ?? f.subject);
+    // v1.5.5: field-list (a core list of the vendor's field names) and decl (a core declaration named like the vendor's)
     const fix = shape === 'field-set'
       ? `Give ${f.subject} the fields the core needs, named in the domain's terms (not the vendor's ${term}), and map ${mod}'s fields to them in the outbound adapter that uses ${mod}.`
+      : shape === 'field-list'
+        ? `List the values ${f.subject} needs under names the domain owns (not the vendor's ${term}), and read ${mod}'s fields into them in the outbound adapter that uses ${mod}.`
+      : shape === 'decl' || (shape === 'error' && / copies the vendor declaration name /.test(detail))
+        ? `Rename ${f.subject} to a term the domain owns (for an error, the refusal or outage the domain means), and let the outbound adapter that uses ${mod} translate ${mod}'s '${term}' into it.`
       : shape === 'field'
         ? `Rename ${f.subject} to a term the domain owns (not ${term}), and translate between the two in the outbound adapter that uses ${mod}.`
         : shape === 'error'
           ? `Translate at the adapter: catch ${mod}'s error there and raise or return a core error the domain owns (for example a named refusal or a provider outage), so the core never compares '${term}'.`
           : `Translate at the adapter into a core term the domain owns: map ${mod}'s '${term}' to a value of a core type in the outbound adapter, and let the core compare only its own terms.`;
-    return { why: `${at(f)}: ${detail} (the vendor term ${shape === 'field-set' ? `set ${term}` : `'${term}'`}, from ${mod}).`, fix };
+    return { why: `${at(f)}: ${detail} (the vendor term ${listed ? `set ${term}` : `'${term}'`}, from ${mod}).`, fix };
   },
   'R-MIRROR-SEM': (f) => {
     const m = /^\[value-set\] \S+:\d+ (\S+) mirrors (\S+) of (\S+) \((.+?); mapped at (\S+?)(, one to one)?\) and the core branches on it at (\S+) \| model fact: (.*)$/.exec(f.evidence);

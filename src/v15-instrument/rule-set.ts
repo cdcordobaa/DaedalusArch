@@ -17,8 +17,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { rulesDir } from './graph.js';
 
-/** The instrument version the scorer and the hub record (bumped 2026-10-29: hub delivers every scored rule; R-AXA v2; then v1.5.2: R-MIRROR2 added to H11, exploratory, so the hub delivers it too; then v1.5.3: the hub and the scorers pass the seed as `baseline`; then v1.5.4: R-MIRROR-SEM added to H11, exploratory, neuro-symbolic: a model fact, cached by content hash, only in Hexagonal sessions). */
-export const INSTRUMENT_ID = 'v1.5.4-mirror-sem';
+/** The instrument version the scorer and the hub record (bumped 2026-10-29: hub delivers every scored rule; R-AXA v2; then v1.5.2: R-MIRROR2 added to H11, exploratory, so the hub delivers it too; then v1.5.3: the hub and the scorers pass the seed as `baseline`; then v1.5.4: R-MIRROR-SEM added to H11, exploratory, neuro-symbolic: a model fact, cached by content hash, only in Hexagonal sessions; then v1.5.5, 2026-10-29, HX-RULES-V3, on the gaps HCAL-06 showed, developed on `experiments/hx-rules-v3-dev` only: R-MIRROR2 reads core declaration names, object-literal keys and string lists of vendor field names; R-AXA exempts the shared helper folder of either side; R-TRANSPORT needs HTTP evidence, a status-named field alone no longer fires; the rule list is unchanged). */
+export const INSTRUMENT_ID = 'v1.5.5-hx-rules-v3';
 
 export type Style = 'ddd' | 'hexagonal';
 

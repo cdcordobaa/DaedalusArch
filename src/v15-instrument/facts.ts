@@ -22,7 +22,7 @@ import { categoryOfModule } from '../apg-enrich/cheap/behaviour.js';
 import { guardShape, isTrivialParamNullCheck, normaliseCondition } from '../apg-enrich/cheap/guards.js';
 import type { DetectSpec, Role } from './spec.js';
 import { globMatch } from './spec.js';
-import { baselineTokens, coreTermsOf, genericVendorTerm, specTokens, vendorTermsOf } from './vendor-lexicon.js';
+import { baselineTokens, coreTermsOf, declStem, genericDeclName, genericVendorTerm, specTokens, vendorTermsOf } from './vendor-lexicon.js';
 import type { CoreTermFact, VendorTermFact } from './vendor-lexicon.js';
 import { baselineSetSignatures, domainTextOf, mirrorCandidatesOf } from './mirror-sem.js';
 import type { MirrorCandidateFact, VendorValueSet } from './mirror-sem.js';
@@ -59,6 +59,8 @@ export interface AdapterImportFact {
   readonly file: string; readonly line: number; readonly specifier: string; readonly target: string; readonly fromPkg: string; readonly toPkg: string;
   /** 2026-10-29 (R-AXA shared helpers): the target package is the `shared` or `common` folder of the importer's own driving (inbound) side. */
   readonly drivingShared: boolean;
+  /** v1.5.5 (2026-10-29, symmetric): the target package is the `shared` or `common` folder of the importer's own side, driving or driven (`adapters/in|inbound|out|outbound`). */
+  readonly sideShared: boolean;
   /** 2026-10-29: every in-tree import of the target file is a domain or shared-kernel file, or a file of the target's own package. */
   readonly targetHelperOnly: boolean;
 }
@@ -72,7 +74,8 @@ export interface EntityOutFact { readonly file: string; readonly line: number; r
 export interface AdapterRuleFact { readonly file: string; readonly line: number; readonly unit: string; readonly cond: string; readonly reads: string; readonly effect: string }
 /** CN-04: a core type whose string-literal values or field names are copied from one vendor SDK type (H11). */
 export interface MirrorFact { readonly file: string; readonly line: number; readonly role: Role; readonly core: string; readonly vendor: string; readonly module: string; readonly form: 'values' | 'names'; readonly detail: string }
-export interface TransportFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'status-code' | 'transport-type' | 'transport-import'; readonly detail: string }
+/** v1.5.5: `status-name` is a field or parameter NAMED for a status (`statusCode`, `httpStatus`) with no HTTP status number; `typeText` is its declared type ('' if none). */
+export interface TransportFact { readonly file: string; readonly line: number; readonly role: Role; readonly form: 'status-code' | 'status-name' | 'transport-type' | 'transport-import'; readonly detail: string; readonly typeText: string }
 export interface ContractFact { readonly contract: string; readonly file: string; readonly line: number; readonly entity: string; readonly entityFile: string; readonly via: string; readonly form: 'type' | 'mirror' }
 export interface PortMechFact { readonly port: string; readonly method: string; readonly file: string; readonly line: number; readonly form: 'vendor-type' | 'adapter-type' | 'scope-callback'; readonly detail: string }
 export interface InjectionFact { readonly cls: string; readonly file: string; readonly line: number; readonly adapter: string; readonly adapterFile: string; readonly form: 'constructor' | 'property' | 'new' }
@@ -1238,11 +1241,16 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   // `inbound` likewise) is that side's helper code (reply shapes, error translation), not another adapter. The rule
   // reads both facts and decides; the facts only state where the target sits and what it imports.
   const DRIVING_SIDE = /(?:^|\/)adapters\/(?:in|inbound)$/;
+  // v1.5.5: the same for the driven side (`…/adapters/out/shared`): a helper the outbound packages share is that side's
+  // helper code, not another outbound adapter. The rule reads `sideShared`; `drivingShared` stays as a recorded fact.
+  const ANY_SIDE = /(?:^|\/)adapters\/(?:in|inbound|out|outbound)$/;
   const SHARED_FOLDER = /^(?:shared|common)$/;
-  const drivingShared = (from: string, to: string): boolean => {
-    const side = path.posix.dirname(from);
-    return DRIVING_SIDE.test(side) && path.posix.dirname(to) === side && SHARED_FOLDER.test(path.posix.basename(to));
+  const sharedOfSide = (side: RegExp) => (from: string, to: string): boolean => {
+    const s = path.posix.dirname(from);
+    return side.test(s) && path.posix.dirname(to) === s && SHARED_FOLDER.test(path.posix.basename(to));
   };
+  const drivingShared = sharedOfSide(DRIVING_SIDE);
+  const sideShared = sharedOfSide(ANY_SIDE);
   const helperOnly = (tsf: SourceFile, pkg: string): boolean => tsf.getImportDeclarations().every((d) => {
     const x = d.getModuleSpecifierSourceFile();
     if (x === undefined || !inTree(x)) return true; // a library import: not another adapter of this tree
@@ -1263,7 +1271,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
       if (spec.roleOf(t) !== 'adapter') continue;
       const to = ADAPTER_PKG.exec(t)?.[1];
       if (to === undefined || to === from) continue;
-      adapterImports.push({ file: f, line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), target: t, fromPkg: from, toPkg: to, drivingShared: drivingShared(from, to), targetHelperOnly: helperOnly(tsf, to) });
+      adapterImports.push({ file: f, line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), target: t, fromPkg: from, toPkg: to, drivingShared: drivingShared(from, to), sideShared: sideShared(from, to), targetHelperOnly: helperOnly(tsf, to) });
     }
   }
   bump('adapterImports', adapterImports.length);
@@ -1340,14 +1348,24 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
     const role = spec.roleOf(f);
     if (role !== 'domain' && role !== 'application' && role !== 'port') continue;
     const seen = new Set<string>();
-    const add = (line: number, form: TransportFact['form'], detail: string): void => { const k = `${String(line)}|${detail}`; if (!seen.has(k)) { seen.add(k); transports.push({ file: f, line, role, form, detail }); } };
+    const add = (line: number, form: TransportFact['form'], detail: string, typeText = ''): void => { const k = `${String(line)}|${detail}`; if (!seen.has(k)) { seen.add(k); transports.push({ file: f, line, role, form, detail, typeText }); } };
     sf.forEachDescendant((n) => {
       if (Node.isPropertyAssignment(n) && STATUS_KEY.test(n.getName()) && n.getInitializer() !== undefined && isHttpCode(n.getInitializer()!)) add(n.getStartLineNumber(), 'status-code', `${n.getName()}: ${n.getInitializer()!.getText()}`);
       if (Node.isNewExpression(n) && TRANSPORT_TYPE.test(n.getExpression().getText())) add(n.getStartLineNumber(), 'transport-type', `new ${n.getExpression().getText()}(…)`);
       if (Node.isClassDeclaration(n) && TRANSPORT_TYPE.test(n.getName() ?? '')) add(n.getStartLineNumber(), 'transport-type', `class ${n.getName() ?? ''}`);
+      // v1.5.5: a status-named field with an HTTP status number is `status-code`; with none it is only `status-name`
+      // (with its declared type), and the rule decides (a vendor or business `statusCode: string` is no HTTP status).
       if ((Node.isParameterDeclaration(n) || Node.isPropertyDeclaration(n) || Node.isPropertySignature(n)) && Node.isIdentifier(n.getNameNode())) {
         const init = n.getInitializer();
-        if (HTTP_STATUS_NAME.test(n.getName()) || (STATUS_KEY.test(n.getName()) && init !== undefined && isHttpCode(init))) add(n.getStartLineNumber(), 'status-code', `field ${n.getName()}`);
+        const httpInit = init !== undefined && isHttpCode(init);
+        if ((HTTP_STATUS_NAME.test(n.getName()) || STATUS_KEY.test(n.getName())) && httpInit) add(n.getStartLineNumber(), 'status-code', `field ${n.getName()}`);
+        else if (HTTP_STATUS_NAME.test(n.getName())) add(n.getStartLineNumber(), 'status-name', `field ${n.getName()}`, n.getTypeNode()?.getText() ?? '');
+      }
+      // v1.5.5: an HTTP status number assigned to or compared with a status-named member (`this.statusCode = 404`).
+      if (Node.isBinaryExpression(n) && [SyntaxKind.EqualsToken, SyntaxKind.EqualsEqualsEqualsToken, SyntaxKind.EqualsEqualsToken, SyntaxKind.ExclamationEqualsEqualsToken, SyntaxKind.ExclamationEqualsToken].includes(n.getOperatorToken().getKind())) {
+        const l = n.getLeft();
+        const name = Node.isPropertyAccessExpression(l) ? l.getName() : Node.isIdentifier(l) ? l.getText() : undefined;
+        if (name !== undefined && (HTTP_STATUS_NAME.test(name) || STATUS_KEY.test(name)) && isHttpCode(n.getRight())) add(n.getStartLineNumber(), 'status-code', `${name} ${n.getOperatorToken().getText()} ${n.getRight().getText()}`);
       }
     });
     for (const imp of sf.getImportDeclarations()) {
@@ -1847,7 +1865,9 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
     for (const v of vendorExports) {
       for (const t of vendorTermsOf(v.mod, v.exportsOf)) {
         const ownedBy = genericVendorTerm(t.kind, t.text) ? 'generic' : fromSpec.has(t.token) ? 'spec' : fromBaseline.has(t.token) ? 'baseline' : '';
-        vendorTerms.push({ ...t, ownedBy });
+        // v1.5.5: whether a core declaration of the same name copies the vendor's (the decl shape's own stoplist)
+        const declOwnedBy = t.kind !== 'decl' ? '' : genericDeclName(t.text) ? 'generic' : fromSpec.has(`name:${declStem(t.text).join('')}`) ? 'spec' : fromBaseline.has(t.declToken) ? 'baseline' : '';
+        vendorTerms.push({ ...t, ownedBy, declOwnedBy });
       }
     }
     for (const sf of files) {
