@@ -1,0 +1,23 @@
+{
+  "description": "HX study set part A task hxa2-canal-boats. Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "hxa2-canal-boats",
+      "title": "Narrowboat hires need cover",
+      "steps": [
+        {
+          "id": "reserve-when-bound",
+          "request": "Every hire now needs the hirer's Covernest cover. The Covernest SDK, the package covernest-sdk, is already in the project and the Covernest client is already created with COVERNEST_PARTNER_ID and COVERNEST_SECRET for the quote line and the hirer check; use the same client. app.reserve(hireId, boatId, from, nights, hirerRef, quoteRef) must now reserve the boat only when the Covernest quote is BOUND; it then answers status 'reserved' as today. A REFERRED quote (an underwriter is still looking at it) answers status 'cover_in_review'. Any other quote state (QUOTED, DECLINED, LAPSED) answers status 'no_cover' with the reason 'This hire has no cover yet.' In both cases the hire is not kept."
+        },
+        {
+          "id": "policy-at-handover",
+          "request": "At the wharf, app.handOver(hireId) must now look up the policy Covernest issued for the hire's quote. When the policy is IN_FORCE, the handover answers status 'on_water' as today, with policyNo. When it is PENDING_DOCS, app.handOver answers status 'documents_missing' with missing, the list of documents Covernest still wants (its missingDocs), and the hire stays reserved so it can be handed over later."
+        },
+        {
+          "id": "one-boat-one-hire",
+          "request": "A boat can be out on only one hire at a time. app.reserve(hireId, boatId, from, nights, hirerRef, quoteRef) for a boat that already has a hire on any of the same nights answers the error 'That boat is already booked for those nights.' and nothing is kept. A hire may start on the morning the previous one ends (a 3-night hire from 2026-06-01 ends on the morning of 2026-06-04)."
+        }
+      ]
+    }
+  ]
+}

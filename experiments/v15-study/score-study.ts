@@ -48,6 +48,7 @@ import { findingsOfReport } from '../../scripts/v1.3/lib/labelling/findings.js';
 import { SourceFacts } from '../../scripts/v1.3/lib/labelling/source-facts.js';
 import { loadSpecView } from '../../scripts/v1.3/lib/labelling/spec-facts.js';
 import { frozenSpec } from '../cal-01/score.js';
+import { auditVerdict, findingsAgreement, treeDigest, type AuditVerdict, type CheckRecord } from './lib/delivery-audit.js';
 import { ADMITTED_DDD_ROWS, ADMITTED_HEX_ROWS, INSTRUMENT_ID, ROW_OVERRIDES, admittedRules, cypherRules, exploratoryRules, frozenRules, instrumentRuleHash, ruleMatches, type Style } from '../../src/v15-instrument/rule-set.js';
 
 // ── The admitted rules (CAL-03 for DDD, HCAL-03 for Hexagonal). Fixed before any study call; the one rule list
@@ -56,7 +57,32 @@ export { ADMITTED_DDD_ROWS, ADMITTED_HEX_ROWS, ROW_OVERRIDES, admittedRules, exp
 export type { Style };
 const matches = ruleMatches;
 
-export interface Hit { readonly rule: string; readonly file: string; readonly subject: string; readonly line: number | null; readonly source: 'v15' | 'frozen' }
+export interface Hit {
+  readonly rule: string; readonly file: string; readonly subject: string; readonly line: number | null; readonly source: 'v15' | 'frozen';
+  /** R-MIRROR2 only: the shape word its evidence starts with (`[literal] …` → `literal`); not part of the identity. */
+  readonly shape?: string;
+}
+
+/** The shape word of an R-MIRROR2 finding's evidence (`r-mirror2-vendor-lexicon.cypher`, last line), else undefined. */
+export const mirror2Shape = (rule: string, evidence: string | undefined): string | undefined => (rule === 'R-MIRROR2' ? /^\[([a-z-]+)\]/.exec(evidence ?? '')?.[1] : undefined);
+
+// ── The Hexagonal study's counted list (DRAFT pre-registration `Docs/v1.5/hexagonal-study-preregistration.md` §1) ──
+// Literal constants, outside the rules-frozen root. FF-S03 and FF-P02 are advisory (never counted); H06, H11-d,
+// R-MIRROR and R-MIRROR-SEM are not counted. R-MIRROR2 is counted by shape word: option (i), the default, counts
+// `literal` and `error` (sub-shapes a and b); option (ii) counts every shape (a registered exception). The choice is
+// the author's (§10 decision box); `tests/unit/v15-study/delivery-audit.test.ts` pins both lists.
+export const HX_COUNTED_RULES: readonly string[] = ['FF-P01', 'FF-P03', 'FF-S01', 'FF-S04', 'R-AXA', 'R-COREIO', 'R-ENTITY-OUT', 'R-H5', 'R-INJ', 'R-LOCATOR', 'R-TRANSPORT'];
+export const HX_MIRROR2_SHAPES: Readonly<Record<'i' | 'ii', readonly string[] | 'all'>> = { i: ['literal', 'error'], ii: 'all' };
+export type HxOption = 'i' | 'ii';
+/** Is a hit counted in the Hexagonal study's D under option (i) or (ii)? */
+export function hxCounted(h: Pick<Hit, 'rule' | 'shape'>, option: HxOption = 'i'): boolean {
+  if (HX_COUNTED_RULES.includes(h.rule)) return true;
+  if (h.rule !== 'R-MIRROR2') return false;
+  const shapes = HX_MIRROR2_SHAPES[option];
+  return shapes === 'all' || (h.shape !== undefined && shapes.includes(h.shape));
+}
+/** The rule IDs a counted mode can count (for the delivery check: each must be delivered). */
+export const hxCountedRuleIds = (): string[] => [...HX_COUNTED_RULES, 'R-MIRROR2'].sort();
 /** Identity of a finding (Study 2b's D unit at this grain): rule + file + subject; line shifts do not split it. */
 export const identity = (h: Pick<Hit, 'rule' | 'file' | 'subject'>): string => `${h.rule}|${h.file}|${h.subject}`;
 
@@ -64,6 +90,8 @@ export const identity = (h: Pick<Hit, 'rule' | 'file' | 'subject'>): string => `
 export function identitiesOf(hits: readonly Hit[], rules: readonly string[]): Set<string> {
   return new Set(hits.filter((h) => matches(h.rule, rules)).map(identity));
 }
+/** Identities of a step that a counted predicate keeps (the Hexagonal study's `hxCounted`). */
+export const identitiesBy = (hits: readonly Hit[], keep: (h: Hit) => boolean): Set<string> => new Set(hits.filter(keep).map(identity));
 /**
  * The v1.5 rules on one scored tree, with the session's seed (step-00) as the baseline (instrument v1.5.3): the same
  * baseline the delivery hub's checks take (the cell's seed copy), so a rule that reads a baseline (R-MIRROR2) scores
@@ -255,8 +283,10 @@ export interface SessionScoringContext {
   readonly deps: ReturnType<typeof engineDeps> | null;
   readonly head: string | null;
   readonly onEvaluationFailure: () => void;
+  /** Hexagonal study: count by `hxCounted` under this option instead of `admittedRules` (first study: undefined). */
+  readonly counted?: HxOption;
 }
-export interface SessionToScore { readonly id: string; readonly sessionsDir: string; readonly task: string; readonly style: Style; readonly nSteps: number; readonly verdict: string; readonly cell: string }
+export interface SessionToScore { readonly id: string; readonly sessionsDir: string; readonly task: string; readonly style: Style; readonly nSteps: number; readonly verdict: string; readonly cell: string; readonly deliveryAudit?: readonly CheckRecord[] }
 
 /**
  * Scores the snapshots of one session (`<sessionsDir>/<id>/snap/step-00..n`): per step tests, oracle sub-goals, v1.5 and
@@ -266,6 +296,8 @@ export interface SessionToScore { readonly id: string; readonly sessionsDir: str
 export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionToScore) {
   const { scratch, scrub, rules, frozenEnabled, nm, env, deps, head } = ctx;
   const { id, sessionsDir, nSteps } = s;
+  const countedSet = (h: readonly Hit[]): Set<string> => (ctx.counted === undefined ? identitiesOf(h, admittedRules(s.style)) : identitiesBy(h, (x) => hxCounted(x, ctx.counted)));
+  const agreement: Record<string, unknown>[] = [];
   const m = { task: s.task, style: s.style };
   const sess = { verdict: s.verdict, arm: s.cell };
   const taskDir = path.join(REPO, FAM, m.task);
@@ -295,7 +327,10 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
     let frozenHitsK: Hit[] = [];
     let frozenError: string | null = null;
     try { frozenHitsK = await frozenFileHits(tree, spec, scratch); } catch (e) { frozenError = scrub(String(e)).slice(0, 300); }
-    const hits: Hit[] = [...r.findings.filter((f) => f.status === 'violation').map((f) => ({ rule: f.rule, file: f.file, subject: f.subject, line: f.line, source: 'v15' as const })), ...frozenHitsK];
+    const v15Hits: Hit[] = r.findings.filter((f) => f.status === 'violation').map((f) => { const shape = mirror2Shape(f.rule, f.evidence); return { rule: f.rule, file: f.file, subject: f.subject, line: f.line, source: 'v15' as const, ...(shape !== undefined ? { shape } : {}) }; });
+    const hits: Hit[] = [...v15Hits, ...frozenHitsK];
+    // Gate (a), findings part: the hub's checks on this exact tree (by digest) against the scorer's v15 hits.
+    if (s.deliveryAudit !== undefined && k > 0) agreement.push({ step: `step-0${String(k)}`, ...findingsAgreement(s.deliveryAudit, treeDigest(snap), v15Hits, { neutralised: cands.length > 0 }) });
     hitsPerStep.push(hits);
     // The frozen v1.4 instrument (Study 2b's D input): blocking findings, check-correct `correct` only.
     if (ev !== null && specView !== null) {
@@ -328,16 +363,16 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
       testsPass: testsPass(tests),
       oracle: sg === null ? null : sg.map((g) => ({ id: g.id, pass: g.pass })),
       trapFailed: trapFailed(sg),
-      admittedNewVsSeed: newAgainst(identitiesOf(hits, admittedRules(m.style)), identitiesOf(seedHits, admittedRules(m.style))),
+      admittedNewVsSeed: newAgainst(countedSet(hits), countedSet(seedHits)),
       exploratoryNewVsSeed: newAgainst(identitiesOf(hits, exploratoryRules(m.style)), identitiesOf(seedHits, exploratoryRules(m.style))),
       evasionCandidates: cands.map((c) => `${c.kind} ${c.path}`),
       frozenFileRulesError: frozenError,
     });
   }
   const final = steps.at(-1) as { testsPass: boolean; trapFailed: boolean | null; exploratoryNewVsSeed: string[] } | undefined;
-  const y = complete ? outcomeY(hitsPerStep[0] ?? [], hitsPerStep.at(-1) ?? [], m.style) : null;
+  const y = !complete ? null : ctx.counted === undefined ? outcomeY(hitsPerStep[0] ?? [], hitsPerStep.at(-1) ?? [], m.style) : (() => { const n = newAgainst(countedSet(hitsPerStep.at(-1) ?? []), countedSet(hitsPerStep[0] ?? [])); return { Y: n.length, newIdentities: n }; })();
   const rhos = commits.map((c, k) => (k === 0 ? undefined : renameMapBetween(repo, commits[k - 1] as string, c, '.', '').rename));
-  const dv = complete ? dOverSteps(hitsPerStep.map((h) => identitiesOf(h, admittedRules(m.style))), rhos) : { D: null, perStep: [] };
+  const dv = complete ? dOverSteps(hitsPerStep.map(countedSet), rhos) : { D: null, perStep: [] };
   // D of the frozen instrument: seed = step 1, the task's steps = 2…n+1 (Study 2b parameters otherwise).
   let dFrozen: Record<string, unknown> | null = null;
   if (frozenEnabled && complete && frozenIds.length === snaps.length) {
@@ -347,7 +382,7 @@ export async function scoreSessionSteps(ctx: SessionScoringContext, s: SessionTo
     const d = driftRun(si, p, undefined, { runId: id, blockId: id, cell: sess.arm });
     dFrozen = { D: d.D, perStepNew: d.perStep.map((x) => ({ step: x.step - 1, new: x.newCount })), incomplete: d.incomplete };
   }
-  return { spec, snaps, complete, steps, hitsPerStep, frozenIds, commits, rhos, evasion, final, y, dv, dFrozen };
+  return { spec, snaps, complete, steps, hitsPerStep, frozenIds, commits, rhos, evasion, final, y, dv, dFrozen, agreement };
 }
 
 interface MapEntry { readonly task: string; readonly style: Style; readonly confirmatory: boolean }
@@ -369,6 +404,12 @@ async function main(): Promise<number> {
   const hubDir = path.resolve(arg('hub') ?? path.join(results, 'hub'));
   const outDir = path.resolve(arg('out') ?? path.join(results, 'scores'));
   const nm = arg('node-modules');
+  // Hexagonal study: `--counted hx-i|hx-ii` (D by `hxCounted`) and `--require-delivery-audit` (a combined session
+  // without a delivery audit is flagged). Both off: the first study's scoring, unchanged.
+  const countedArg = arg('counted');
+  if (countedArg !== undefined && countedArg !== 'hx-i' && countedArg !== 'hx-ii') { process.stderr.write('--counted must be hx-i or hx-ii\n'); return 2; }
+  const counted: HxOption | undefined = countedArg === undefined ? undefined : countedArg === 'hx-i' ? 'i' : 'ii';
+  const requireAudit = argv.includes('--require-delivery-audit');
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'v15-study-score-'));
   const scrub = (s: string): string => s.split(scratch).join('<scratch>').split(path.resolve(results)).join('<results>').split(REPO).join('.').split(os.tmpdir()).join('<tmp>');
   const rules = loadRules();
@@ -384,15 +425,17 @@ async function main(): Promise<number> {
   const head = (() => { try { return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).trim(); } catch { return null; } })();
   const runs: Record<string, unknown>[] = [];
   let evaluationFailures = 0;
-  const sctx: SessionScoringContext = { scratch, scrub, rules, frozenEnabled, nm, env, deps, head, onEvaluationFailure: () => { evaluationFailures++; } };
+  const sctx: SessionScoringContext = { scratch, scrub, rules, frozenEnabled, nm, env, deps, head, onEvaluationFailure: () => { evaluationFailures++; }, ...(counted !== undefined ? { counted } : {}) };
   try {
     for (const id of ids) {
       if (schedule !== null && !schedule.has(id) && !redrawn.has(id)) continue;
-      const sess = JSON.parse(fs.readFileSync(path.join(sessionsDir, id, 'session.json'), 'utf8')) as { taskId: string; arm: string; rep: number; planId: string; redrawOf: string | null; verdict: string; steps: unknown[]; integrity: unknown };
+      const sess = JSON.parse(fs.readFileSync(path.join(sessionsDir, id, 'session.json'), 'utf8')) as { taskId: string; arm: string; rep: number; planId: string; redrawOf: string | null; verdict: string; steps: unknown[]; integrity: unknown; deliveryAudit?: CheckRecord[] };
       const m = map[sess.taskId];
       if (m === undefined) throw new Error(`no private map entry for ${sess.taskId}`);
-      const sc = await scoreSessionSteps(sctx, { id, sessionsDir, task: m.task, style: m.style, nSteps: input.tasks.find((t) => t.id === sess.taskId)?.steps.length ?? 0, verdict: sess.verdict, cell: sess.arm });
-      const { spec, snaps, complete, steps, evasion, final, y, dv, dFrozen } = sc;
+      const sc = await scoreSessionSteps(sctx, { id, sessionsDir, task: m.task, style: m.style, nSteps: input.tasks.find((t) => t.id === sess.taskId)?.steps.length ?? 0, verdict: sess.verdict, cell: sess.arm, ...(sess.deliveryAudit !== undefined ? { deliveryAudit: sess.deliveryAudit } : {}) });
+      const { spec, snaps, complete, steps, evasion, final, y, dv, dFrozen, agreement } = sc;
+      // Delivered = scored (DEV-3 lesson): every hub check's rule list against the scored lists; a difference flags the block.
+      const delivery: AuditVerdict | null = sess.arm === 'combined' ? auditVerdict(sess.deliveryAudit, m.style, counted !== undefined ? hxCountedRuleIds() : admittedRules(m.style), { require: requireAudit }) : null;
       // Arm combined: the hub's ledger and the attribution table.
       let attribution: Record<string, unknown> | null = null;
       if (sess.arm === 'combined') {
@@ -417,7 +460,8 @@ async function main(): Promise<number> {
         session: id, planId: sess.planId, task: sess.taskId, style: m.style, confirmatory: confirmatorySet.has(m.task), arm: sess.arm, rep: sess.rep, redrawOf: sess.redrawOf, verdict: sess.verdict,
         counted: complete && (countedIds === null || countedIds.has(id)),
         D: dv.D, DperStep: dv.perStep,
-        flagged: (sess.integrity as { flagged?: boolean } | null)?.flagged === true,
+        flagged: (sess.integrity as { flagged?: boolean } | null)?.flagged === true || delivery?.flagged === true,
+        delivery: delivery === null ? null : { ...delivery, findingsAgreement: agreement },
         evasion: { count: evasion.size, candidates: [...evasion.values()].map((c) => ({ path: c.path, kind: c.kind, steps: c.steps })) },
         Y: y?.Y ?? null, newAdmittedIdentities: y?.newIdentities ?? null,
         trapFailed: complete ? (final?.trapFailed ?? null) : null,
@@ -452,6 +496,7 @@ async function main(): Promise<number> {
     params: {
       admitted: { ddd: { rows: ADMITTED_DDD_ROWS, rules: admittedRules('ddd') }, hexagonal: { rows: ADMITTED_HEX_ROWS, rules: admittedRules('hexagonal') }, overrides: ROW_OVERRIDES },
       exploratory: { ddd: exploratoryRules('ddd'), hexagonal: exploratoryRules('hexagonal') },
+      counted: counted === undefined ? 'admitted rows (first study)' : { mode: `hx-${counted}`, rules: HX_COUNTED_RULES, mirror2Shapes: HX_MIRROR2_SHAPES[counted] }, requireDeliveryAudit: requireAudit,
       identity: 'rule|file|subject', D: 'admitted identities new against the seed and every earlier step, summed over the steps (renames carried)', Y: 'admitted identities on the final step not on the seed (step-00)',
       evasionPatterns: EVASION_PATTERNS.map(String),
       frozenD: frozenEnabled ? { ...STUDY2_S2D01, kFrom: 2, kTo: 'steps + 1', seedAsStep: 1 } : 'skipped (no --node-modules)',

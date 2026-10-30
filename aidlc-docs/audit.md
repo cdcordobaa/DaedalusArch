@@ -3214,6 +3214,22 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Construction: HX study set part A (five Hexagonal tasks at the pilot L2 lever set)
+**Timestamp**: 2026-10-30T04:27:01Z
+**User Input**: "Build part A of the new Hexagonal study task set: three vendor-literals tasks at the p1 L2 lever set and two error-codes tasks at the p4 L2 lever set, each with a fresh domain and vendor, a seed, three chained steps, tests, clean and trap references and a rule-blind oracle; fix the pilot's test-surface defect; verify mechanically; do not seal."
+**AI Response**: "Built experiments/hx-study-set/part-a/: hxa1-chimney-sweeps, hxa2-canal-boats, hxa3-balloon-flights (vendor literals) and hxb1-bakery-flour, hxb2-costume-hire (error codes and units), with a builder, verify.ts and similarity.ts. Every step text names the app entry point the tests call; answers are checked field by field. All five hold every invariant (seed fails tests; clean passes tests and oracle; trap passes tests and fails oracle; type check clean; hint audit 0 FAIL; similarity below 0.6, the shape reading calibrated on PR 398's excluded pairs)."
+**Context**: CONSTRUCTION, v1.5 HX study set, part A (unsealed; sealed later with part B); zero model calls.
+
+---
+
+## Construction: HX study set part B (four Hexagonal study tasks)
+**Timestamp**: 2026-10-30T04:27:24Z
+**User Input**: "Build part B of the new Hexagonal study task set, rule-blind: two renamed-copy tasks at the p3 L3 lever set and two HTTP-detail-in-core tasks at the p6 L2 lever set, each with a fresh domain and vendor, three chained steps, tests, clean and trap references and a rule-blind oracle; fix the pilot's test-surface defect; verify, hint-audit and similarity-check; do not seal."
+**AI Response**: "Built experiments/hx-study-set/part-b/ (hxpb1 pottery kiln, hxpb2 translation portal, hxpb3 observatory evenings, hxpb4 chess entries) with verify.ts and a similarity check. Every step text names the app method the tests call; tests check fields, not strict deep equality. All four tasks hold every invariant (seed fails every feature case; clean passes tests and oracle; trap passes tests and fails only the oracle; tsc clean; hint audit 0 FAIL; every similarity pair below 0.6)."
+**Context**: CONSTRUCTION, v1.5 study task set (draft, not sealed, not registered); zero model calls.
+
+---
+
 ## Construction: v1.5 HX-COVERAGE, trap coverage of the Hexagonal counted rules, and study records (B8)
 **Timestamp**: 2026-10-30T04:46:17Z
 **User Input**: "Measure, with zero calls, what share of real agent trap failures the candidate counted rules of the Hexagonal study see at instrument v1.5.5, and fix the study runner's record keeping (B8)."

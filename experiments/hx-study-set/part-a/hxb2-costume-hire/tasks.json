@@ -1,0 +1,23 @@
+{
+  "description": "HX study set part A task hxb2-costume-hire. Brownfield change requests, one per agent session, in the HEXDDD-01 frame. Behaviour and constraints only; the scored sub-goal and the levers are recorded in README.md, puzzle.json and levels.json, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "hxb2-costume-hire",
+      "title": "Costume returns when the cleaners say no",
+      "steps": [
+        {
+          "id": "hand-cleaning",
+          "request": "Returned costumes go to Pressline for cleaning. The Pressline SDK, the package pressline-sdk, is already in the project and the Pressline client is already created with the key in PRESSLINE_API_KEY; use the same client. When Pressline answers FABRIC_NOT_ACCEPTED (pieces it will not take), app.returnCostume(hireId, returnedOn) must not give an error: it answers status 'back' as today, with cleaning 'by_hand', and the costume goes on our hand-cleaning list. Add app.handCleaning(), which answers that list: the costume ids, in the order the costumes came back."
+        },
+        {
+          "id": "queue-full",
+          "request": "On busy weeks Pressline answers QUEUE_FULL with waitMin. Then app.returnCostume(hireId, returnedOn) answers status 'back' with cleaning 'later' and retryInHours, the wait rounded up to whole hours (4 when Pressline does not say). Other Pressline refusals stay errors."
+        },
+        {
+          "id": "late-fee",
+          "request": "A costume brought back after its hire ended pays a late fee of 6 euros for each day late: app.returnCostume(hireId, returnedOn) now also answers lateFee (0 when the costume is back on time). A 3-day hire from 2026-12-01 is on time when returnedOn is 2026-12-04 or earlier."
+        }
+      ]
+    }
+  ]
+}
