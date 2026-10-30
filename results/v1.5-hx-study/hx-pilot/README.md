@@ -76,5 +76,5 @@ was run and no per-arm aggregate was computed.
 `isolation/`, `dry/`, `smoke/`, `probes/`; `run/` (`turns.jsonl`, `calls.jsonl`, `schedule.json`, `state.json`,
 `sessions/*.json`, `hub/*.push.jsonl`, `*.calls.jsonl`, `*.ledger.json`); `sessions/` (step trees for c001–c020, from
 `--keep-trees`: 20 sessions, 80 steps, tree hashes and canaries checked). The private id map was not committed: the
-RUNBOOK commits it only after the run has finished generating, and this run did not finish. The files hold no canary,
-no `costUsd`, no chat or agent message text, and no personal path (checked).
+RUNBOOK commits it only after the run has finished generating, and this run did not finish. The files hold no canary marker,
+no cost field, no chat or agent message text, and no personal path (checked).
