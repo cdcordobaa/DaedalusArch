@@ -1,8 +1,8 @@
 # v1.5 Hexagonal study pre-registration: combined delivery of the admitted Hexagonal families (Claude Sonnet)
 
-**Status: NOT REGISTERED; complete for registration review (written 2026-10-30 UTC; revised the same day after an
-adversarial review; decisions D1–D9 and B11 recorded the same day, §10; task set sealed, §9.1).**
-Nothing in this file is in force, and no call of this study (pilot or study) runs before registration.
+**Status: REGISTERED 2026-10-30**, before any call of this study (pilot or study), by the commit that merges this file to
+`main` (written and revised 2026-10-30 UTC after an adversarial review; decisions D1–D9 and B11, §10; task set sealed, §9.1).
+Only the post-pilot slots of §9.2 remain open; they are filled by the dated pre-data addendum before the first study call.
 
 **Order of events (registered as part of this file):**
 
