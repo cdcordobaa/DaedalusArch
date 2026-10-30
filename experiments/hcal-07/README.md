@@ -1,8 +1,9 @@
 # HCAL-07: blind admission set for H11 (a–d), H11-SEM, H03 and H07
 
-Sealed before any scoring. Not scored yet. Brief: `BRIEF.md`. Seal: `SEAL.sha256` (cases), `SEAL.root` (root hash and
-the verify command). `RULES-FROZEN.sha256` is a stub: the rules were being changed while this set was built, so the
-rule hash is taken at scoring time, after the rules PR merges and before any case is scored (see below).
+Sealed before any scoring. Brief: `BRIEF.md`. Seal: `SEAL.sha256` (cases), `RULES-FROZEN.sha256` (rule sources and
+scorer, taken before scoring, see "Rule freeze" below), `SEAL.root` (root hashes and the verify commands). The rules
+were being changed while this set was built, so the rule hash was taken after the rules PR merged and before any case
+was scored. Scored from a scoring copy without the glossary key (see "Label-leak check" below).
 
 ## Layout
 
@@ -109,3 +110,39 @@ each case's `spec.yaml` in the scoring copy, and records that it did.
 ```
 (cd experiments/hcal-07 && shasum -a 256 -c SEAL.sha256)
 ```
+
+## Label-leak check (2026-10-29, before any scoring)
+
+Every route from a case's `spec.yaml` into the instrument, at `main` `d452ca0aa` (instrument `v1.5.5-hx-rules-v3`):
+
+- **R-MIRROR-SEM judge (the only model call).** `domainTextOf` in `src/v15-instrument/mirror-sem.ts` parses the spec
+  with `YAML.parse`, drops the instrument's own sections and re-serialises the rest with `YAML.stringify`. Parsing drops
+  comments, so the glossary key does not reach the prompt. (If parsing failed, the fallback drops every `#` line.) The
+  `glossary` entries do reach it, as intended.
+- **The admission scorer** (`experiments/cal-01/score.ts`). It reads `labels.json` only to score. The frozen check gets a
+  spec rebuilt with `YAML.parse` and `YAML.stringify`, so no comments. No model is called outside the judge.
+- **R-MIRROR2's stoplist: the key leaks here.** `specTokens` in `src/v15-instrument/vendor-lexicon.ts` reads the raw
+  spec text, comments included, and splits it into tokens. A vendor term whose token appears in the spec is marked
+  `ownedBy: 'spec'` (for declaration names, `declOwnedBy: 'spec'`), and the rule then does not fire on it. The key lists
+  each case's vendor terms, so it would silence R-MIRROR2 on exactly the terms it should catch.
+- No other rule reads the spec's glossary or comments (`glossary` appears only in `mirror-sem.ts`). Code comments in the
+  case and base sources carry no label words.
+
+So the set is scored from a scoring copy, `experiments/hcal-07/scoring-copy.ts`. Bases, labels and every case file
+other than `spec.yaml` are copied unchanged. In each case's `spec.yaml` the trailing glossary key is removed: the header
+line `# Glossary key (HCAL-07 answer key for case <ID>).` (its id must match the folder), every line after it (all of
+them must be comments or empty), and the empty lines just before it. The file then ends with one newline.
+`SCORING-COPY.sha256` holds the sha256 of the 50 stripped specs. The script checks the copy it writes against that
+file. After the strip, 44 case specs are byte-identical to their base spec. The other 6 add glossary terms, as the
+README says above.
+
+## Rule freeze (2026-10-29, before any scoring)
+
+`RULES-FROZEN.sha256` replaces the stub. It was taken at the head of the HCAL-07 preparation PR, on `main` `d452ca0aa`
+(instrument `v1.5.5-hx-rules-v3`), with HCAL-06's selection rule: every tracked non-test `.ts` and `.cypher` under
+`src/v15-instrument` (44 files, the same list as HCAL-06's `RULES-FROZEN-2.sha256`), plus the scorer. That makes 45 files,
+root `098d67bd4fdc97c5`. Against HCAL-06's re-freeze, 8 instrument files differ (`facts.ts`, `graph.ts`,
+`rule-messages.ts`, `rule-set.ts`, `vendor-lexicon.ts` and the R-AXA, R-MIRROR2 and R-TRANSPORT rules, all from PR 446,
+HX-RULES-V3), and so does the scorer (the reporting row, this PR). The rules PR (446, merge `e10b8916f`) touches no file
+of the set, and it merged before the set did (PR 445, merge `d452ca0aa`). The scoring-copy script is not under the
+selection rule. Its hash is on its own line in `SEAL.root`.

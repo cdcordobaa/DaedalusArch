@@ -14,6 +14,9 @@
  * <file.jsonl>` (HCAL-06 only, 2026-10-29) passes the hub's judge: the Claude CLI route, `claude-opus-5-5`, the same disk
  * cache by content hash; every real call is one line of the ledger and every judged candidate one line of
  * `<file>.judged.jsonl` (case, candidate, where the answer came from, the answer). `modelCalls` is then the real calls.
+ * HCAL-07 (2026-10-29): labels may carry `row`, a reporting row (`H11-a` to `H11-d`, clean cases too); the record then
+ * adds `reportRow` per case and `perReportRow` (recall and FP). Scoring itself is unchanged: a case scores against its
+ * `rule`'s rules. HCAL-07 is scored from its scoring copy (`experiments/hcal-07/scoring-copy.ts`) with `--dir <copy>`.
  */
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -41,7 +44,7 @@ const JUDGE = argOf('--judge');
 const LEDGER = argOf('--ledger');
 const matches = (rule: string, ids: readonly string[]): boolean => ids.some((i) => (i.endsWith('*') ? rule.startsWith(i.slice(0, -1)) : rule === i));
 
-interface Label { rule: string; label: 'violation' | 'clean'; file: string | null; note: string; line?: number | null; subshape?: string | null; kind?: string }
+interface Label { rule: string; label: 'violation' | 'clean'; file: string | null; note: string; line?: number | null; subshape?: string | null; kind?: string; row?: string }
 interface Hit { rule: string; file: string; line: number | null }
 
 const TEMPLATE = 'experiments/puzzle-01/puzzles/p1-transfers/spec.yaml';
@@ -120,8 +123,8 @@ async function main(): Promise<void> {
       const ids = ROWS[lab.rule] ?? [];
       const mapped = hits.filter((h) => matches(h.rule, ids));
       const pass = lab.label === 'violation' ? mapped.some((h) => lab.file === null || h.file === lab.file || h.file.endsWith(lab.file)) : mapped.length === 0;
-      // HCAL-06 labels add subshape and kind (absent in earlier sets, so their records are unchanged)
-      const extra = { ...(lab.subshape !== undefined ? { subshape: lab.subshape } : {}), ...(lab.kind !== undefined ? { kind: lab.kind } : {}) };
+      // HCAL-06 labels add subshape and kind, HCAL-07 labels a reporting row (absent in earlier sets, so their records are unchanged)
+      const extra = { ...(lab.subshape !== undefined ? { subshape: lab.subshape } : {}), ...(lab.kind !== undefined ? { kind: lab.kind } : {}), ...(lab.row !== undefined ? { reportRow: lab.row } : {}) };
       rows.push({ domain, case: c, row: lab.rule, label: lab.label, labelledFile: lab.file, ...extra, pass, mapped, other: hits.filter((h) => !matches(h.rule, ids)) });
     }
   }
@@ -139,11 +142,21 @@ async function main(): Promise<void> {
     const [ok, n] = (perSubshape[k]?.recall ?? '0/0').split('/').map(Number) as [number, number];
     perSubshape[k] = { recall: `${String(ok + (x.pass === true ? 1 : 0))}/${String(n + 1)}` };
   }
+  // Recall and FP per reporting row (only when the labels carry `row`: HCAL-07). A row's cases score against their
+  // `rule`'s rules as above (H11-a to H11-d all against H11); `row` only groups them, clean cases included.
+  const perReportRow: Record<string, { recall: string; fp: string }> = {};
+  for (const k of [...new Set(rows.map((x) => x['reportRow']).filter((r): r is string => typeof r === 'string'))].sort()) {
+    const pos = rows.filter((x) => x['reportRow'] === k && x.label === 'violation');
+    const neg = rows.filter((x) => x['reportRow'] === k && x.label === 'clean');
+    perReportRow[k] = { recall: `${String(pos.filter((x) => x.pass).length)}/${String(pos.length)}`, fp: `${String(neg.filter((x) => !x.pass).length)}/${String(neg.length)}` };
+  }
   const sem = judge === null ? {} : { mirrorSem: { mode: 'live', version: MIRROR_SEM_VERSION, model: MIRROR_SEM_MODEL, ...judge.stats } };
   const subs = Object.keys(perSubshape).length > 0 ? { perSubshape: Object.fromEntries(Object.entries(perSubshape).sort()) } : {};
-  fs.writeFileSync(OUT ?? path.join(DIR, 'result.json'), `${JSON.stringify({ modelCalls: judge?.stats.calls ?? 0, ...sem, perRow, ...subs, rows }, null, 2)}\n`);
+  const reps = Object.keys(perReportRow).length > 0 ? { perReportRow } : {};
+  fs.writeFileSync(OUT ?? path.join(DIR, 'result.json'), `${JSON.stringify({ modelCalls: judge?.stats.calls ?? 0, ...sem, perRow, ...subs, ...reps, rows }, null, 2)}\n`);
   for (const [k, v] of Object.entries(perRow)) process.stdout.write(`${k} recall ${v.recall} fp ${v.fp}\n`);
   for (const [k, v] of Object.entries(perSubshape)) process.stdout.write(`${k} recall ${v.recall}\n`);
+  for (const [k, v] of Object.entries(perReportRow)) process.stdout.write(`report row ${k} recall ${v.recall} fp ${v.fp}\n`);
   if (judge !== null) process.stdout.write(`R-MIRROR-SEM judge: ${JSON.stringify(judge.stats)}\n`);
   for (const x of rows.filter((y) => y.row === null)) process.stdout.write(`${String(x.domain)} base: ${(x.hits as Hit[]).map((h) => `${h.rule} ${h.file}:${String(h.line)}`).join(' | ') || 'clean'}\n`);
 }

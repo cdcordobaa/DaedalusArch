@@ -3,3 +3,10 @@ rules not taken: the rules were changing while the set was built; RULES-FROZEN.s
 base check: not run before the seal (blind builder, no checker run); the scoring session runs it first and records any base finding on a line here, not repaired
 glossary key: each case spec.yaml ends with a YAML-comment answer key; the scoring session confirms no route hands raw spec text to a model before scoring, or strips the block in the scoring copy and records that here
 verify: (cd experiments/hcal-07 && shasum -a 256 -c SEAL.sha256)
+seal check (2026-10-29, main d452ca0aa, before any scoring): shasum -a 256 -c SEAL.sha256 passes on all 266 files; root 5e664c7ffe0fa26d (first 16 hex of the sha256 of SEAL.sha256) matches the cases line above
+glossary key (2026-10-29, before any scoring): leaks into a rule, not a model: R-MIRROR2's stoplist (specTokens, vendor-lexicon.ts) tokenises the raw spec text with its comments; the R-MIRROR-SEM judge and the frozen check parse the spec as YAML (comments dropped). Scored from a scoring copy with each case spec's trailing key block removed (README, "Label-leak check")
+scoring copy 70a17650d51d5b45 (SCORING-COPY.sha256: the 50 stripped case specs; 44 identical to their base spec); transformation experiments/hcal-07/scoring-copy.ts sha256 104364a29f490690
+verify-copy: npx tsx experiments/hcal-07/scoring-copy.ts <empty-dir>   (writes the copy and checks it against SCORING-COPY.sha256)
+rules 098d67bd4fdc97c5 (RULES-FROZEN.sha256, 45 files: every tracked non-test .ts and .cypher under src/v15-instrument plus experiments/cal-01/score.ts, HCAL-06's selection rule)
+rules source: head of the HCAL-07 preparation PR, 2026-10-29, on main d452ca0aa (instrument v1.5.5-hx-rules-v3, after PR 446 HX-RULES-V3; scorer with the reporting row); written before any scoring
+verify-rules: (cd src/v15-instrument && shasum -a 256 -c ../../experiments/hcal-07/RULES-FROZEN.sha256)
