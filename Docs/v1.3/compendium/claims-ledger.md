@@ -63,7 +63,8 @@
 | [2026-10-28 sync: v1.5 CN-02 development revision and the CAL-03 admission design](claims-ledger/v15-b-cn02-cal03-design.md) | C10300–C10310 | 11 | 4 | 0 | 7 | 0 |
 | [2026-10-29 sync: v1.5 final study (H1 supported, H2 not rejected), N2 pilot, DETECT-02 held-out, TRAPRATE-01, CAL-03 and HCAL-03 to HCAL-05 admissions](claims-ledger/v15-c-final-study-and-admissions.md) | C10311–C10387 | 77 | 30 | 17 | 29 | 1 |
 | [2026-10-30 sync: HCAL-06 and HCAL-07 admissions, pilot ladder, HX-COVERAGE, SO5 panel, DEV-3](claims-ledger/v15-d-hcal06-07-ladder-hxcoverage.md) | C10388–C10417 | 30 | 9 | 6 | 15 | 0 |
-| **total** | C0001–C10417 | **10,143** | 5,392 | 1,104 | 3,263 | 384 |
+| [2026-10-31 sync: Hexagonal delivery study pre-registration (design, power, seal, visibility) and its gate (b) tooling](claims-ledger/v15-e-hexagonal-prereg.md) | C10418–C10431 | 14 | 11 | 0 | 3 | 0 |
+| **total** | C0001–C10431 | **10,157** | 5,403 | 1,104 | 3,266 | 384 |
 
 By evidence type (recounted 2026-10-23 over all parts; +3 descriptive on 2026-10-25; +17 descriptive, +69 criterion and +4 correctness on 2026-10-27; +7 descriptive and +4 criterion on 2026-10-28): descriptive 2,806, criterion 1,794, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,015, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
 

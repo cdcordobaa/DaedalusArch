@@ -227,3 +227,15 @@ The readiness dashboard did not change in this window. New or changed items:
 | Pilot ladder: p2, p5 and p6 have no level in the band, and p3 and p5 variants fail functionally because of a missing facade entry point; repair before reuse | agent | `Docs/DiagnosticRuns/v15-pilot-ladder-2026-10-30.md:86` |
 | The SO5 taxonomy codebook is frozen as v1 (kappa 0.709, model panel); six clarifications are proposed and not applied; a human second coder is not done | author | `Docs/DiagnosticRuns/so5-taxonomy-panel-2026-10-30.md:21` |
 
+## 16. State on 2026-10-31 (refresh after PRs #455 and #451)
+
+The readiness dashboard did not change in this window. New or changed items:
+
+| Item | Owner | Source |
+|---|---|---|
+| The Hexagonal delivery study is registered (PR #451 merged); no pilot or study call exists yet. The thesis may describe it as a registered design only, with no result | agent | `Docs/v1.5/hexagonal-study-preregistration.md:3` |
+| Agent pilot, then the dated pre-data addendum (gate exits, dress-rehearsal exit, judge-call cap) must be done before the first study call; the pilot report must be published whatever the gates say | agent | `Docs/v1.5/hexagonal-study-preregistration.md:381` |
+| Blocking items B8 (a `.gitignore` exception and a RUNBOOK change to keep trees) and B9 (scorer task root; the tooling is merged in PR #455, whether B9 is closed in the registration is not stated, so verify) are listed as open before the pilot | agent | `Docs/v1.5/hexagonal-study-preregistration.md:453` |
+| The study is under-powered (0.765 at RR 0.25, scenario A); the thesis must not read a non-supported result as no effect (M298) | author | `Docs/v1.5/hexagonal-study-preregistration.md:257` |
+| Renamed copies are a blind spot of the instrument; widening R-MIRROR-SEM is future work and needs a new instrument version and a blind calibration (M299) | author | `Docs/v1.5/hexagonal-study-preregistration.md:360` |
+| The admission decisions for H11, H11-SEM, H03 and H07 (HCAL-06, HCAL-07) are still the author's; the registration treats H11-a, H11-b, H03 and H07 as admitted (D5) | author | `Docs/v1.5/hexagonal-study-preregistration.md:436` |
