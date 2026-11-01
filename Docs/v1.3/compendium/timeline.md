@@ -193,6 +193,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-10-30 | **Hexagonal study runner tooling merged**: one study manifest for the input maker and the scorer (B9) and the gate (b) check `scripts/v1.5/hx-gate-b.ts` (B10); tooling only, zero model calls (PR #455) | `Docs/v1.5/hexagonal-study-preregistration.md:455` |
 | 2026-10-30 | **Hexagonal delivery study registered** before any call of the study or its pilot: 11 tasks sealed, r = 10, power 0.765 at RR 0.25 (below the 0.80 target), hxpb1 and hxpb2 dropped (B11); next: agent pilot, then the dated pre-data addendum (PR #451) | `Docs/v1.5/hexagonal-study-preregistration.md:3` |
 | 2026-10-28 | Daily thesis sync: claims C10300–C10310 (part `v15-b`), nulls M272–M273, chronology row 76, open items §13. Public PR #406 (merged); private thesis PR cdcordobaa/tesis-msc-unal#39, open for the author (not compiled: no LaTeX here) | |
+| 2026-11-01 | Daily thesis sync: no new evidence since 2026-10-31 (window b830a2dd..6d17e910 holds only the previous sync PRs #458 and #459). No ledger, nulls or thesis changes. | |
 
 ## What the timeline shows for the thesis
 
