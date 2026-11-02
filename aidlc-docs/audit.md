@@ -3310,6 +3310,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.5 Hexagonal study: secondary 7 and a correction to secondary 5
+**Timestamp**: 2026-11-02T16:47:44Z
+**User Input**: "Work through the instrument queue."
+**AI Response**: "Computed secondary 7 (per-shape view of H11) with zero calls from the shape word the scorer keeps on each final-step hit: none arm [literal] 141, [error] 24, [field] 33, [field-set] 7; combined arm 0 for every shape. Corrected secondary 5 in the study report: the R-MIRROR2 not-counted figure is 40 ([field] 33, [field-set] 7), not 205 (205 counted every shape). No confirmatory number changes."
+**Context**: Post-analysis descriptive secondaries (registration §1); experiments/v15-study/hx-secondaries.py; Docs/DiagnosticRuns/v15-hx-study-2026-11-02.md.
 ## v1.5 rule set: independent adversarial review recorded
 **Timestamp**: 2026-11-02T17:11:23Z
 **User Input**: "Work through the instrument queue (item 10: an independent adversarial review of the v1.5 rule set)."
