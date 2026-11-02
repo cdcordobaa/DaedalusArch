@@ -278,7 +278,7 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
   facts.mirrorCandidates.forEach((c, i) => {
     const g = node(['MirrorCandidate'], {
       id: c.id, file: c.file, line: c.line, role: c.role, coreSet: c.coreSet, coreKind: c.coreKind, coreSize: c.coreMembers.length, module: c.module, vendorSet: c.vendorSet,
-      vendorSize: c.vendorMembers.length, mappedFrom: c.mappedFrom, mappedTo: c.mappedTo, oneToOne: c.oneToOne, branchCount: c.branches.length, ownedBy: c.ownedBy,
+      vendorSize: c.vendorMembers.length, mappedFrom: c.mappedFrom, mappedTo: c.mappedTo, oneToOne: c.oneToOne, branchCount: c.branches.length, ownedBy: c.ownedBy, mapSide: c.mapSide ?? 'adapter',
       pairs: c.pairs.map((p) => `${p.from} -> ${p.to}`), mapSite: c.pairs[0] !== undefined ? `${c.pairs[0].file}:${String(c.pairs[0].line)}` : '',
       branchSites: c.branches.map((b) => `${b.file}:${String(b.line)}`),
     });
