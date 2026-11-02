@@ -3363,6 +3363,13 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 instrument, exploratory; development data only, admission needs a fresh blind set; no registered number changes.
 
 ---
+## Deviation record: X-1 extension
+**Timestamp**: 2026-11-02T22:05:37Z
+**User Input**: "Record the extension of deviation X-1 to the later registered studies rather than treat it as already covering them."
+**AI Response**: "Added a dated 'X-1 extension' section and changelog line to Docs/v1.4/deviation-x1-and-so3a.md covering the v1.5 final study and the Hexagonal study; the registrations fix their tests."
+**Context**: Proposal-level deviation record; docs only, zero model calls.
+
+---
 ## v1.5.9 and SEM-GATE-2: R-MIRROR-SEM core-side candidates, semantic gate re-run
 **Timestamp**: 2026-11-02T22:55:43Z
 **User Input**: "Widen R-MIRROR-SEM to core-side renamed copies and re-run the semantic gate on fresh cases; write an agent-run plan only if it passes."

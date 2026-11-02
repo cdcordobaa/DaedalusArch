@@ -97,5 +97,17 @@ REV-04 lists it as a stale contradiction (`rev-04:245`), and REV-05 notes it is 
 
 > AUTHOR: sign (optional) — V5 scope draft adopted / not adopted. Signed: __________ Date: ____-__-__
 
+## X-1 extension (2026-11-02)
+
+X-1 as signed names Study 1 and the confirmatory Study 2. It is extended, with the same terms, to the two later
+registered studies: the v1.5 final study (`Docs/v1.5/final-study-preregistration.md`) and the v1.5 Hexagonal study
+(`Docs/v1.5/hexagonal-study-preregistration.md`, REGISTERED 2026-10-30). Each was registered before its data, and
+their inferential tests are additions in the sense of X-1. No inferential claim is made outside these four
+registrations. The extension was recorded after both studies had run; the registrations, not this note, fix their
+tests.
+
+> AUTHOR: extension adopted. Recorded by the coordinator. Date: 2026-11-02
+
 ## Changelog
 - 2026-10-19: first version (X-1 from REV-04 §5; SO3-a from `g13` §3, updated for ADR-V14-01 and -02; V5 scope drafted).
+- 2026-11-02: X-1 extended to the v1.5 final study and the Hexagonal study (section "X-1 extension").
