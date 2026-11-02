@@ -357,6 +357,13 @@ treatment: the `combined` arm no longer gets R-MIRROR-SEM findings; the semantic
 whole pilot is run again from the start (run 2) under the same §5.1 gates; run 1 is reported and is not pilot data for
 the gates.
 
+**DEV-HX-2 (dated 2026-11-02 ~04:20Z, after pilot run 2, before any study call).** §2 states the session order seed as
+`20261030`; the hash-pinned driver uses `ORDER_SEED = 20261029` (`experiments/v15-study/lib/plan.ts`, under the §9.1 hash
+of `make-input.ts`'s inputs), and pilot run 2 recorded it (README, "Unexpected"). The study runs with `20261029`, as
+the pinned code fixes it; the scripts are not changed. The seed only orders sessions within the mulberry32 shuffle,
+interleaved by replicate round; it assigns no arm (both arms of a block share a seed) and no outcome has been seen. The
+analysis seeds of §4 (`20261030`) are those of `hx-study-analyse.ts` and are unchanged.
+
 ## 7. Limitations, stated before the run
 
 - One vendor (Claude Code); no placebo arm; seeded start (as the first study, §7).
