@@ -119,39 +119,46 @@ Maturity: **validated** (passed a registered or external test), **prototype** (b
 
 ---
 
-## 4. Status by objective, SO1–SO5
+## 4. Status by objective, SO1–SO5 (assessment of 2026-11-02)
 
-Confirmatory means registered before the data, or an external test chosen before the results. Everything else is exploratory.
+Confirmatory means registered before the data, or an external test chosen before the results. Everything else is exploratory. Verdicts: **met** (the promise holds with confirmatory or external evidence), **met with limits** (holds, with a stated gap), **partly met** (a part of the promise has no adequate evidence), **open** (evidence still being produced).
+
+| Objective | Verdict | Strongest evidence | Main gap |
+|---|---|---|---|
+| SO1 spec format | met with limits | 5 sealed style libraries used unchanged in Study 2b and the v1.5 studies; DDD and Hexagonal rows admitted on sealed sets | no expert review; spec-author κ 0.21 (two Claude sessions); 30+ rules over 7 dimensions is a declared deviation |
+| SO2 APG pipeline | met | imports = tsc 1.000 on 15 external repos; engine parity on 72,388 statements; 283/283 correct on external code; DETECT-02 sealed held-out scored once | no data-flow edges (FLOWS_TO 0 on real code); edge rows not human-checked |
+| SO3 gate and bounded model role | met for the gate, partly met for the model role | combined delivery (pull + edit gate) is the treatment of the registered final study; DDD H1 supported through it; R-MIRROR-SEM 2/2 on HCAL-07's sealed semantic positives | D_sem pilot 16/21 = 0.762 against a 0.80 bar; no registered semantic result; one model vendor |
+| SO4 validation | partly met | 283/283 external; κ 0.913–1.000 with three tools; v1.5 rows admitted on sealed sets (CAL-02/03 DDD 9 of 16 rows, recall 36/36, 0 FP; HCAL-07 Hexagonal, 0 FP on 25 clean cases); DETECT-02 held-out | v1.3 hold-out not scored (attempt 4 under addendum 4); meaning labels 0 of 60 (C3m) |
+| SO5 spec effect on agent-built architecture | met for Layered and DDD; Hexagonal open | Study 2b (Layered): H1 p = 0.0132, H2 p = 0.0001; v1.5 final study (DDD): ΣD 85 → 0, p = 6.0 × 10⁻⁸, trap failures 23/36 → 1/36, acceptance kept (31 vs 30 of 36) | Hexagonal: the final study's H2 was not rejected because its delivery did not carry the Hexagonal families; the Hexagonal study (registered 2026-10-30, DEV-HX-1) is running; one generator family; rule circularity (M186) |
 
 ### SO1 spec format
 
-- **Established.** Five sealed style libraries and the spec format, used unchanged in Study 2b. Construct answers accepted (gate V1, ADR-V13-03). Study 1 found a spec-level effect in the reverse direction: `none` 0.951 best, Holm p = 0.0003 (N141); no model effect, p = 0.438 (N142).
-- **Exploratory only.** Brownfield norm derivation (BF-01, C6137–C6219). No SO1 change in the v1.5 cycle.
-- **Missing.** Expert review of the style libraries. A human spec author (spec-author agreement is κ 0.21 between two Claude sessions, N02). The 30+ rules over 7 dimensions promise, now a declared deviation (`ops/notes/g13-so1-rule-count-deviation.md`). The hold-out spec format (§5 step 2). A comparison with the Ford/Richards ADL.
+- **Established.** Five sealed style libraries and the spec format, unchanged through Study 2b and the v1.5 studies. Construct answers accepted (gate V1, ADR-V13-03). The v1.5 DDD and Hexagonal rows were revised only under logged catalog changes (CN-01 to CN-05), each written before its calibration set was built.
+- **Missing.** Expert review of the libraries; a human spec author (N02); the 30+ rules over 7 dimensions promise (declared deviation, `ops/notes/g13-so1-rule-count-deviation.md`); a comparison with the Ford/Richards ADL.
 
 ### SO2 APG pipeline
 
-- **Established.** Import graph = tsc at 1.000 on 15 external repos. Engine parity on 72,388 statements over 81 projects (`Docs/v1.3/cypher-interpreter.md:20`). Blocking findings 283/283 correct on 15 external repos, repo-level Wilson [0.741, 1] (C1522–C2491). The frozen instrument scored Study 2b.
-- **Exploratory only.** GRAPH-SCALE facts on Medusa, Novu and Backstage (C10131–C10180). DETECT-02 facts (C9068–C9091). COMPREHEND-01: files plus graph tools were not more accurate (0.900 vs 0.933) but were cheaper, token ratio 0.835 (C8941–C8983). Repo scout: 82 repos, 3 qualifying trees (C9733–C9808).
-- **Missing.** The v1.5 facts in `src/`. Calls through ports linked in the extractor. Data-flow edges (FLOWS_TO has 0 edges on real code, N40). Human adjudication of edge rows (L29). A written deviation for the dropped Neo4j GDS metrics.
+- **Established.** As on 2026-10-26, plus: DETECT-02's sealed held-out set scored once at the study rule hash (10/14 positives; 1/14 twins and 2/6 negative controls with a finding); the v1.5 graph rules carried the DDD result (85 new identities against 5 for the frozen import rules on the same snapshots).
+- **Missing.** v1.5 facts moved from `experiments/` into `src/` (§5 step 1d); calls through ports and DA1 (§5 step 1b); data-flow edges (N40); edge-row adjudication (L29).
 
 ### SO3 gate and bounded model role
 
-- **Established.** The MCP tool as the 2b treatment: used in 160/160 mcp@L2 steps (C8022–C8131). The model role is bounded by design: C4 cannot overturn a verdict. The registered semantic secondary D_sem was not run because its precondition failed, 5/6 (C8445–C8466). The judge null is reported (N63, N85).
-- **Exploratory only.** U3 severity rubric 24/24 on a designed set (C9024–C9061). S3 roots 22/23, S2 fail (C10041–C10109). Edit gate built and used in PUZZLE-04 and DRIFT-01 (C8993–C9021, C9456–C9528). DETECT-01 semantic twin discrimination 9/11 (C9285–C9289). C1d 2-case pilot (C6888–C6895).
-- **Missing.** Semantic accuracy against an independent key. A test that rules plus facts beat rules alone and the model alone (not started). A second vendor for any model role. A delivery-mode choice (pull vs push).
+- **Established.** The edit gate and the MCP pull channel, served by one delivery hub, are the treatment of the registered final study, and the DDD effect runs through them (35 of 35 exposed findings gone from the final tree, push first in every case). The model role stays bounded: it supplies facts; rules decide.
+- **Exploratory or failed.** D_sem pilot (N2): 16/21 = 0.762, bar 0.80 not met. R-MIRROR-SEM: 2/2 on HCAL-07's sealed semantic positives, but not counted in any study (B11), and turned off in the Hexagonal hub after it caused the pilot's latency stop (DEV-HX-1). A deferred judge mode that keeps the model call off the push path is built (PR 462) for a later exploratory run.
+- **Missing.** A registered semantic result; a second vendor; a test that rules plus model facts beat either alone.
 
 ### SO4 validation
 
-- **Established.** External correctness, 283/283, with the repo-level interval (C1522–C2491). Convergent agreement with three tools, κ 0.913–1.000 (N130). The developer-behaviour criteria are null and reported as null (N118, N120, N125, N128).
-- **Exploratory only.** Blind recall 0.78 on the development set (N105). DETECT-02 precision fixtures (C9082–C9091). Puzzle hand reads: 17/17 oracle FAILs were traps in PUZZLE-03 (C9399–C9454). HEXDDD-01: 0/9 hand-read violations caught (C8641–C8665).
-- **Missing.** The hold-out score (C7592–C7619; the set is not independent, L178). Meaning labels, 0 of 60 (N114). Human FP/FN root-cause review, which waits for the hold-out.
+- **Established.** External correctness and convergent agreement as before. Admission on sealed sets for the v1.5 rows: CAL-02 (7 of 16 DDD rows, pooled recall 28/28, 0 FP), CAL-03 (9 of 16, recall 36/36, 0 FP on their clean cases), HCAL-03 to HCAL-07 (Hexagonal rows; HCAL-07: H11 14/16 with d 4/6, H03 4/4, H07 3/3, 0 FP on 25 clean cases).
+- **Failed gates, reported.** R-D5S (DDD declared invariants): recall 4/6, FP 2/10 on sealed unseen cases; DDD invariants exploratory. H11-d (vendor field names): 4/6, not admitted. H06 (business rule in an adapter): 0/4, not admitted.
+- **Missing.** The v1.3 hold-out score (attempt 4 under addendum 4, PR 463; if it fails, "not scored" for good). Meaning labels, 0 of 60 (N114; rater booking is the author's). Human FP/FN root-cause review.
 
 ### SO5 spec effect on agent-built architecture
 
-- **Established.** Study 1 as registered (N141, N142; 0/65 cells with a blocking finding, N144). Study 2b: mean D 2.75 / 1.70 / 1.32 for none@L2, none@L3, mcp@L2. H1 p = 0.0132, RR 0.62 [0.38, 0.86]; H2 p = 0.0001, RR 0.48 [0.32, 0.65]; H3 p = 0.4257; equivalence fails (C8039–C8053). Scope: 100% of counted identities are FF-S03 (C8051, C8053, M175); one generator, Layered, 4 tasks (C8042–C8044); the effect shrinks over run order (M180); the same rules gave feedback and the score (M186).
-- **Exploratory only.** Puzzle pull and gate arms: P1 0/5 to 4/5 (pull), P6 0/5 to 5/5 (both arms) (C9341–C9389, C9456–C9528). DRIFT-01: sum of D_v15 on DDD 6 for `none`, 0 for pull and gate; D_frozen 0 everywhere; the gate removed inherited cross-context writes in 3/3 blocks, pull in 0/3 (C9941–C10017).
-- **Missing.** A second style and a second generator in a registered study. The final study is a draft, not registered (`ops/notes/v15-final-study-draft.md`). Evidence that fewer rule hits means better architecture (C3m). An open-coding failure taxonomy.
+- **Established (confirmatory).** Study 1 as registered (N141, N142). Study 2b on Layered (C8039–C8053). The v1.5 final study on DDD: H1 supported, ΣD 85 → 0 over 36 blocks, exact p = 6.0 × 10⁻⁸, task-level p = 0.004, every sensitivity the same decision; trap failures 23/36 → 1/36; acceptance 31 vs 30 of 36 (`results/v1.5-study/analysis/`).
+- **Not rejected.** Final study H2, Hexagonal (78 blocks, ΣD 16 vs 12, p = 1.00): the delivery did not carry the Hexagonal families, so this null does not bear on them.
+- **Open.** The Hexagonal study (registered 2026-10-30; DEV-HX-1 dated 2026-11-02 after pilot run 1 stopped on hub latency): pilot run 2, dress rehearsal and the 660-turn run in progress.
+- **Missing.** A second generator family; evidence that fewer rule hits means better architecture (C3m); the failure-pattern taxonomy's second coder.
 
 ---
 
@@ -255,6 +262,7 @@ The weakest link is still C3m, then C2r. Study 2b adds one more: the same rules 
 
 ## 9. Changelog
 
+- 2026-11-02: §4 rewritten as an assessment by objective (verdict table), after the v1.5 final study, the admission sets, DETECT-02 held-out, the N2 pilot and the Hexagonal study registration. §3 and §5 not yet revised.
 - 2026-10-26: full revision. Study 2b closed and the hold-out attempts recorded. v1.5 prototype parts added. Objectives renumbered to Kap3. New component table (§3), status by objective (§4), ordered steps (§5) and decision list (§6). Removed the four-week path, the old SO table and the question list.
 - 2026-10-19 (evening): C3 and hold-out rows no longer lead with F23 (done); they point to U6 and the V4 ADR.
 - 2026-10-19: corrected the neural-layer rule. The graph complements reading (NS-03).

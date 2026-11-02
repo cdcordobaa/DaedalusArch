@@ -37,6 +37,9 @@ inputs:
   ahs-threshold:
     description: 'Optional AHS threshold — fail check if score is below this value (0.0-1.0)'
     required: false
+  baseline-ref:
+    description: 'Optional git commit to compare against (e.g. the PR base sha). When set, the check fails only on blocking (critical or major) violations that are new against that commit, evaluated by the same tool; the AHS threshold is then ignored'
+    required: false
 
 outputs:
   ahs-score:
@@ -106,6 +109,36 @@ runs:
         echo "ahs-score=$AHS_SCORE" >> "$GITHUB_OUTPUT"
         echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
         echo "report-path=$REPORT_PATH" >> "$GITHUB_OUTPUT"
+
+    - name: Ratchet against the baseline commit
+      id: ratchet
+      if: inputs.baseline-ref != ''
+      shell: bash
+      env:
+        NEO4J_URI: ${{ inputs.neo4j-uri }}
+        NEO4J_USER: ${{ inputs.neo4j-user }}
+        NEO4J_PASSWORD: ${{ inputs.neo4j-password }}
+      run: |
+        # The same tool (this checkout) evaluates the baseline tree; only violations new on the head can fail the check.
+        BASE_DIR="${{ runner.temp }}/firewall-base"
+        BASE_REPORT="${{ runner.temp }}/firewall-report-base.json"
+        NEW_PATH="${{ runner.temp }}/firewall-new.json"
+        git fetch --no-tags --depth=1 origin "${{ inputs.baseline-ref }}" 2>/dev/null || true
+        git worktree add --detach "$BASE_DIR" "${{ inputs.baseline-ref }}"
+        ln -s "$GITHUB_WORKSPACE/node_modules" "$BASE_DIR/node_modules"
+        SPEC="${{ inputs.spec-path }}"; case "$SPEC" in /*) ;; *) SPEC="$GITHUB_WORKSPACE/$SPEC" ;; esac
+        npx tsx src/cli/bin.ts evaluate \
+          --project "$BASE_DIR/${{ inputs.project-path }}" \
+          --spec "$SPEC" \
+          --neo4j-uri "${{ inputs.neo4j-uri }}" \
+          --format json --symbolic-only \
+          > "$BASE_REPORT" 2>"${{ runner.temp }}/firewall-evaluate-base.log" || true
+        if ! jq -e '.violations' "$BASE_REPORT" >/dev/null 2>&1; then
+          echo "::error::baseline evaluation produced no report"; tail -n 50 "${{ runner.temp }}/firewall-evaluate-base.log" || true; exit 1
+        fi
+        node "${{ github.action_path }}/new-violations.mjs" "${{ steps.evaluate.outputs.report-path }}" "$BASE_REPORT" "$NEW_PATH"
+        echo "new-path=$NEW_PATH" >> "$GITHUB_OUTPUT"
+        git worktree remove --force "$BASE_DIR" || true
 
     - name: Post PR comment
       if: github.event_name == 'pull_request'
@@ -203,6 +236,14 @@ runs:
             conclusion = parseFloat(ahsScore) >= parseFloat(threshold) ? 'success' : 'failure';
           }
 
+          // Ratchet: with a baseline, only blocking violations new against it fail the check
+          const newPath = '${{ steps.ratchet.outputs.new-path }}';
+          let ratchet = null;
+          if (newPath) {
+            ratchet = JSON.parse(fs.readFileSync(newPath, 'utf-8'));
+            conclusion = ratchet.newBlocking > 0 ? 'failure' : 'success';
+          }
+
           let report;
           try {
             report = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
@@ -211,12 +252,13 @@ runs:
           }
 
           const violationCount = report?.violations?.length || 0;
-          const summary = `AHS: ${parseFloat(ahsScore).toFixed(4)} | Verdict: ${verdict} | Violations: ${violationCount}`;
+          const summary = `AHS: ${parseFloat(ahsScore).toFixed(4)} | Verdict: ${verdict} | Violations: ${violationCount}`
+            + (ratchet ? ` | New against base: ${ratchet.newCount} (blocking ${ratchet.newBlocking}; base ${ratchet.baseCount})` : '');
 
           // Build file-level annotations from violations
           const annotations = [];
           if (report?.violations) {
-            for (const v of report.violations.slice(0, 50)) {
+            for (const v of (ratchet ? ratchet.newViolations : report.violations).slice(0, 50)) {
               if (v.filePath) {
                 annotations.push({
                   path: v.filePath,
