@@ -64,7 +64,8 @@
 | [2026-10-29 sync: v1.5 final study (H1 supported, H2 not rejected), N2 pilot, DETECT-02 held-out, TRAPRATE-01, CAL-03 and HCAL-03 to HCAL-05 admissions](claims-ledger/v15-c-final-study-and-admissions.md) | C10311–C10387 | 77 | 30 | 17 | 29 | 1 |
 | [2026-10-30 sync: HCAL-06 and HCAL-07 admissions, pilot ladder, HX-COVERAGE, SO5 panel, DEV-3](claims-ledger/v15-d-hcal06-07-ladder-hxcoverage.md) | C10388–C10417 | 30 | 9 | 6 | 15 | 0 |
 | [2026-10-31 sync: Hexagonal delivery study pre-registration (design, power, seal, visibility) and its gate (b) tooling](claims-ledger/v15-e-hexagonal-prereg.md) | C10418–C10431 | 14 | 11 | 0 | 3 | 0 |
-| **total** | C0001–C10431 | **10,157** | 5,403 | 1,104 | 3,266 | 384 |
+| [2026-11-02 sync: Hexagonal study pilot, rehearsal and deviations DEV-HX-1/2; hold-out attempt 4 stopped (DELEG-H5)](claims-ledger/v15-f-hx-pilot-holdout-attempt4.md) | C10432–C10441 | 10 | 7 | 3 | 0 | 0 |
+| **total** | C0001–C10441 | **10,167** | 5,410 | 1,107 | 3,266 | 384 |
 
 By evidence type (recounted 2026-10-23 over all parts; +3 descriptive on 2026-10-25; +17 descriptive, +69 criterion and +4 correctness on 2026-10-27; +7 descriptive and +4 criterion on 2026-10-28): descriptive 2,806, criterion 1,794, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,015, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
 
@@ -387,7 +388,7 @@ These rows come from the documents merged into `main` between `d3461863` and `2a
 | K265 | D_sem provenance classifier status | not built | `They do not exist yet` | `Docs/v1.4/study2b-gate-verdict.md:92` | implemented and tested before the first 2b call (DA8, 17:21:31Z) | `Docs/v1.4/study2b-preregistration-addendum-1.md:20` |
 | K266 | 2b turn budget and lanes | about 104 turns, one lane | `about 104 turns, one lane` | `ops/05-plan-to-friday-2026-10-23.md:17` | 520 step turns (N = 40), two lanes (DELEG7, DELEG9); collected 520 | `Docs/DiagnosticRuns/v1.4-study2b-results-2026-10-21.md:3` |
 | K267 | hold-out: is the aborted attempt-3 live run spent | open for the author | `Whether the one live run is spent is the author's call` | `Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md:173` | not spent (DELEG-H4, under GO-2B); a later attempt counts as the first scoring run | `ops/decisions.md:44`; `Docs/v1.4/study2b-gate-verdict.md:27` |
-| K268 | hold-out: spent status (changelog) | open for the author | `Whether the live run is spent is open for the author` | `ops/decisions.md:150` | not spent (DELEG-H4) | `ops/decisions.md:44` |
+| K268 | hold-out: spent status (changelog) | open for the author | `Whether the live run is spent is open for the author` | `ops/decisions.md:151` | not spent (DELEG-H4) | `ops/decisions.md:44` |
 | K269 | hold-out: attempts made (§9 text) | unspent; no third attempt | `still unspent` | `Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md:143` | true after attempt 2 only; attempt 3 was made and aborted (§10); not spent per DELEG-H4 | `Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md:3`; `ops/decisions.md:44` |
 | K270 | HEXDDD-01 pilot timing | only after the 2b scoring | `Only after the Study 2b scoring is complete` | `ops/notes/hexddd-01-violation-elicitation-design.md:149` | the pilot ran on 2026-10-20, about 20:35–20:54 UTC, before the 2b scoring pass (2026-10-21, 02:41Z); no dated deviation found; nothing from it fed 2b | `ops/notes/explore-01-research-log.md:24` |
 | K271 | HEXDDD-01 call cap | hard cap 12 | `hard cap 12` | `ops/notes/hexddd-01-violation-elicitation-design.md:18` | 16 calls against a cap of 18 (10 pilot calls as designed, plus a smoke check and 5 confinement probes); no record of the cap change found | `ops/notes/explore-01-research-log.md:27` |

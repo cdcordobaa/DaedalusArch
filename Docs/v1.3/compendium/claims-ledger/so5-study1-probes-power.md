@@ -435,7 +435,7 @@ Part of [the claims ledger](../claims-ledger.md); the legend and the conflicts a
 
 | id | statement | numbers | source | type | set | status | replication | quantity | verified against | notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| C2855 | `Docs/v1.3/validation-protocol.md:51`: "At least 20 planted violations per style, using variants plus the existing mutation operators." | `At least 20 planted violations per style` | `Docs/v1.3/seed-floor-plan.md:3` | power | none | exploratory | — | seed floor: floor per style | report | protocol floor (validation-protocol.md:51) |
+| C2855 | `Docs/v1.3/validation-protocol.md:53`: "At least 20 planted violations per style, using variants plus the existing mutation operators." | `At least 20 planted violations per style` | `Docs/v1.3/seed-floor-plan.md:3` | power | none | exploratory | — | seed floor: floor per style | report | protocol floor (validation-protocol.md:51) |
 | C2856 | / clean-architecture / 10 / 7 / 12 / 20 / **10** / | `10` ; `7` ; `12` ; `20` | `Docs/v1.3/seed-floor-plan.md:24` | criterion | development | established | — | seed floor: clean-architecture counts | results:tests/fixtures/v1.3-reference | variant manifests counted |
 | C2857 | / layered / 9 / 9 / 11 / 20 / **11** / | `9` ; `11` ; `20` | `Docs/v1.3/seed-floor-plan.md:25` | criterion | development | established | — | seed floor: layered counts | results:tests/fixtures/v1.3-reference |  |
 | C2858 | / nestjs / 10 / 7 / 10 / 20 / **10** / | `10` ; `7` ; `20` | `Docs/v1.3/seed-floor-plan.md:26` | criterion | development | established | — | seed floor: nestjs counts | results:tests/fixtures/v1.3-reference |  |

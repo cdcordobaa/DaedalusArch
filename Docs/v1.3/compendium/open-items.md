@@ -239,3 +239,14 @@ The readiness dashboard did not change in this window. New or changed items:
 | The study is under-powered (0.765 at RR 0.25, scenario A); the thesis must not read a non-supported result as no effect (M298) | author | `Docs/v1.5/hexagonal-study-preregistration.md:257` |
 | Renamed copies are a blind spot of the instrument; widening R-MIRROR-SEM is future work and needs a new instrument version and a blind calibration (M299) | author | `Docs/v1.5/hexagonal-study-preregistration.md:360` |
 | The admission decisions for H11, H11-SEM, H03 and H07 (HCAL-06, HCAL-07) are still the author's; the registration treats H11-a, H11-b, H03 and H07 as admitted (D5) | author | `Docs/v1.5/hexagonal-study-preregistration.md:436` |
+
+## 17. State on 2026-11-02 (refresh after PRs #461–#470)
+
+Line numbers in §16 and earlier cite the registration as it stood on 2026-10-31; the registration has since gained §6 deviations and filled §9.2 slots, so those lines have moved. Use the ledger for current anchors.
+
+| Item | Owner | Source |
+|---|---|---|
+| Hold-out attempt 4 stopped at the path-only check (adapter could not write); the hold-out is not scored and Gate V4 is red. Whether to allow a corrected re-run is the author's call under a new delegation | author | `Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md:235` |
+| Hexagonal study: pilot run 2 and the dress rehearsal passed; pre-data addendum filled. The next step is the first study call; the thesis may still describe it only as a registered design with a passed pilot, with no result. The 2026-10-31 item "agent pilot not done" is closed | agent | `Docs/v1.5/hexagonal-study-preregistration.md:435` |
+| DEV-HX-1 and DEV-HX-2 are agent-recorded deviations; the author has not signed them in this record. The thesis must list both | author | `Docs/v1.5/hexagonal-study-preregistration.md:349` |
+| Pilot results branches (`results/v15-hx-pilot-r2`, `results/v15-hx-rehearsal`) are not on main; the ledger quotes the registration's slots. Merge or deposit before the defence so the figures can be checked | agent | `Docs/v1.5/hexagonal-study-preregistration.md:435` |

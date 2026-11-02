@@ -194,6 +194,9 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-10-30 | **Hexagonal delivery study registered** before any call of the study or its pilot: 11 tasks sealed, r = 10, power 0.765 at RR 0.25 (below the 0.80 target), hxpb1 and hxpb2 dropped (B11); next: agent pilot, then the dated pre-data addendum (PR #451) | `Docs/v1.5/hexagonal-study-preregistration.md:3` |
 | 2026-10-28 | Daily thesis sync: claims C10300–C10310 (part `v15-b`), nulls M272–M273, chronology row 76, open items §13. Public PR #406 (merged); private thesis PR cdcordobaa/tesis-msc-unal#39, open for the author (not compiled: no LaTeX here) | |
 | 2026-11-01 | Daily thesis sync: no new evidence since 2026-10-31 (window b830a2dd..6d17e910 holds only the previous sync PRs #458 and #459). No ledger, nulls or thesis changes. | |
+| 2026-11-01 | **Hold-out attempt 4 (DELEG-H5)**: addendum 4 and the new adapter prompt merged (PR #463), then the attempt stopped at the step-2 path-only check, no live run, hold-out still not scored (PR #468) | |
+| 2026-11-02 | **Hexagonal study pilot and rehearsal**: DEV-HX-1 (hub judge off after pilot run 1 stopped, PR #461), DEV-HX-2 (order seed 20261029, PR #469); pilot run 2 passes gates (a)–(e) and the dress rehearsal passes; the pre-data addendum fills the §9.2 slots (PR #470). No study call yet | |
+| 2026-11-02 | Daily thesis sync: claims C10432–C10441 (part `v15-f`), nulls M301–M305, chronology rows 87–89, open items §17; ledger citations re-anchored (64 moved lines). Window 6d17e910..97e85be6 also holds engineering PRs with no evidence figures (#462 deferred judge mode, #464 ops assessment, #465 CI ratchet, #466 and #467 v1.5.6 extractor). Public PR and private thesis PR: see the sync PRs of branch `thesis-sync-20261102` | |
 
 ## What the timeline shows for the thesis
 
