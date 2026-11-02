@@ -198,12 +198,12 @@ const BUILDERS: Readonly<Record<string, Builder>> = {
     const [, shape, detail] = m as unknown as [string, string, string];
     const src = /\(([^()]+?) of (\S+?)\)/.exec(detail) ?? / ([A-Za-z0-9_$]+)(?:\.[A-Za-z0-9_$]+)? of (\S+?)(?::|$)/.exec(detail);
     const mod = src?.[2] ?? 'the vendor SDK';
-    const listed = shape === 'field-set' || shape === 'field-list';
+    const listed = shape === 'field-set' || shape === 'field-list' || shape === 'field-group';
     const term = listed ? (/: (.+)$/.exec(detail)?.[1] ?? f.subject)
       : shape === 'field' ? (/ \S+?\.(\S+) of \S+$/.exec(detail)?.[1] ?? f.subject)
         : (/'([^']+)'/.exec(detail)?.[1] ?? f.subject);
     // v1.5.5: field-list (a core list of the vendor's field names) and decl (a core declaration named like the vendor's)
-    const fix = shape === 'field-set'
+    const fix = shape === 'field-set' || shape === 'field-group' // v1.5.7: field-group (a core type with several vendor field names)
       ? `Give ${f.subject} the fields the core needs, named in the domain's terms (not the vendor's ${term}), and map ${mod}'s fields to them in the outbound adapter that uses ${mod}.`
       : shape === 'field-list'
         ? `List the values ${f.subject} needs under names the domain owns (not the vendor's ${term}), and read ${mod}'s fields into them in the outbound adapter that uses ${mod}.`
