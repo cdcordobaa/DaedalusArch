@@ -3261,3 +3261,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.5 Hexagonal study preparation (PR 451, not registered); zero model calls.
 
 ---
+
+## v1.5 Hexagonal study: deviation DEV-HX-1 after pilot run 1
+**Timestamp**: 2026-11-02T01:40:00Z
+**User Input**: "Asked whether the plan had completed; the pilot fix was still open."
+**AI Response**: "Recorded DEV-HX-1 in the registration (§6): the hub runs with the R-MIRROR-SEM judge off, as the scorer does; no code change. Pilot run 1 (mechanism stop in c020) is reported; the whole pilot runs again."
+**Context**: v1.5 Hexagonal study, pre-data deviation before any study call
+
+---

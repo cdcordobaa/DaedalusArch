@@ -49,8 +49,8 @@ npx tsx $D/run-study.ts --smoke  --input $I
 npx tsx $D/run-study.ts --probes --input $I
 
 # 2.4 Sessions (the plan, inside the cap). After a container restart: the same command with --resume.
-npx tsx $D/run-study.ts --sessions --input $I
-#   npx tsx $D/run-study.ts --sessions --resume --input $I
+DAEDALUS_MIRROR_SEM=off npx tsx $D/run-study.ts --sessions --input $I          # HX study: DEV-HX-1, no live judge
+#   DAEDALUS_MIRROR_SEM=off npx tsx $D/run-study.ts --sessions --resume --input $I
 #   exit 3 = stop (CLI version change or hub p95 over 5 s): do not resume; report.
 
 # 2.5 Score (zero calls): scores.json and cells.json.
