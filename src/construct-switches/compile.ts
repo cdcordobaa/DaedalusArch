@@ -82,12 +82,21 @@ export function applyConstructCompileOverlays(input: CompilerInput, answers: Con
   if (answers.Q24 === 'B' && (style === 'clean-architecture' || style === 'nestjs')) {
     functions = functions.map((f) => (String(f.id) === 'FF-S03' && f.name === 'no-layer-skip' ? { ...f, name: CONSTRUCT_CARRIER_NAME } : f));
   }
-  if (answers.Q25 === 'B') {
-    functions = functions.map((f) => (CONSTRUCT_LAYER_RULE_TEMPLATES.includes(f.name)
-      ? { ...f, excludePaths: [...f.excludePaths, ...CONSTRUCT_COMPOSITION_ROOT_GLOBS.filter((g) => !f.excludePaths.includes(g))] }
-      : f));
-  }
+  functions = withCompositionRootExcludes(functions, answers);
   return { ...input, fitnessFunctions: functions, layerModel };
+}
+
+/**
+ * Q25 B: the composition-root globs added to the exclude paths of the layer rules. The one place the exemption is
+ * applied to a function list: the compile overlay above and the MCP spec loader (`createSpecLoader`, so `check_import`,
+ * `check_file` and `check_diff` exempt the files the scorer exempts; DA1 in `Docs/v1.4/study2b-preregistration-addendum-1.md`).
+ * Any other answer returns the list unchanged.
+ */
+export function withCompositionRootExcludes(functions: readonly FitnessFunction[], answers: ConstructAnswers | undefined): FitnessFunction[] {
+  if (answers?.Q25 !== 'B') return [...functions];
+  return functions.map((f) => (CONSTRUCT_LAYER_RULE_TEMPLATES.includes(f.name)
+    ? { ...f, excludePaths: [...f.excludePaths, ...CONSTRUCT_COMPOSITION_ROOT_GLOBS.filter((g) => !f.excludePaths.includes(g))] }
+    : f));
 }
 
 /**

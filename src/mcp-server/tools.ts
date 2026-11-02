@@ -4,6 +4,8 @@
  * here, so the handlers are unit-testable without a transport.
  */
 import { withPostSealRules } from '../fitness-compiler/post-seal-rules.js';
+import { withCompositionRootExcludes } from '../construct-switches/compile.js';
+import { CONSTRUCT_ANSWERS } from '../shared/construct-switches.js';
 import type { SemanticFactsConfig } from './semantic-facts.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -103,6 +105,9 @@ const fail = <T>(message: string): ToolOutcome<T> => ({ ok: false, message });
  * A spec loader that parses each file once per modification time (the spec is read-only during a session).
  * `postSeal` (v1.4 U2, default true): apply the post-seal rules to the loaded spec; false keeps the sealed v1.3 rule
  * set (a replay of a recorded v1.3 session).
+ * v1.5.6 (DA1): with `postSeal`, the Q25 = B composition-root exemption is also applied (`withCompositionRootExcludes`,
+ * the compile overlay's own function), so the fast path exempts the files the v1.3 scorer exempts. A sealed replay
+ * keeps the rules as the recorded session saw them.
  */
 export function createSpecLoader(opts: { readonly postSeal?: boolean } = {}): ServerContext['loadSpec'] {
   const cache = new Map<string, { readonly mtimeMs: number; readonly loaded: LoadedSpec }>();
@@ -117,13 +122,18 @@ export function createSpecLoader(opts: { readonly postSeal?: boolean } = {}): Se
       return fail(`Spec is invalid: ${parsed.errors.map((e) => e.message).join('; ')}`);
     const loaded: LoadedSpec = {
       // v1.4 U2 (BR-U2-09): the MCP server serves the v1.3 rules, so its tools see the post-seal rules too.
-      spec: opts.postSeal === false ? parsed.data : withPostSealRules(parsed.data),
+      spec: opts.postSeal === false ? parsed.data : withConstructExcludes(withPostSealRules(parsed.data)),
       specPath: absolute,
       warnings: (parsed.warnings ?? []).map((w) => `${w.code}: ${w.message}`),
     };
     cache.set(absolute, { mtimeMs, loaded });
     return ok(loaded);
   };
+}
+
+/** The spec's functions with the v1.3 construct answers' composition-root exemption (Q25 = B), as the scorer compiles them. */
+function withConstructExcludes(spec: ParsedSpec): ParsedSpec {
+  return { ...spec, fitnessFunctions: withCompositionRootExcludes(spec.fitnessFunctions, CONSTRUCT_ANSWERS) };
 }
 
 async function specFor(
