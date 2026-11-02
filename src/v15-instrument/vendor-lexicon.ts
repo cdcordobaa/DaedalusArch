@@ -50,6 +50,13 @@
  * 'object-key'`, identifier, string and shorthand keys), each with its own `set` (`<symbol>@<line>:<col>#value|#key`)
  * and `ownerFields`, so a table of vendor field names is tested like a list. Keys stay read as `literal` terms too
  * (context `key`, v1.5.5); the `listed` terms carry name tokens only, so the literal and error shapes never meet them.
+ *
+ * v1.5.8 (2026-11-02, one-word vendor values, Hexagonal hand read t03; still extraction only): a vendor value set is
+ * `coded` when it has >= 2 members and at least one of them is not generic (`'accepted' | 'insufficient_balance'`); a
+ * vendor literal of such a set carries `codedSet`. The facts (`facts.ts`) add `oneWord` (a one-word literal of a coded
+ * set, not owned by the spec or the baseline) and the core file's `nearVendors`; the rule decides. One-word vendor
+ * field names (t09 `precision`) are not read: on HCAL-04 a kept one-word field name with translated values is a clean
+ * twin (`vet-clinic/H11-twin2`), so a field-name reading added a false positive and was left out.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -69,6 +76,10 @@ export interface VendorTermFact {
   readonly declToken: string;
   /** v1.5.5: for a declaration, why its NAME is not the vendor's own when a core declaration copies it (as `ownedBy`). */
   readonly declOwnedBy: '' | 'generic' | 'spec' | 'baseline';
+  /** v1.5.8: a literal of a coded vendor value set (see the header). */
+  readonly codedSet: boolean;
+  /** v1.5.8 (set in `facts.ts`): a one-word literal of a coded set that neither the spec nor the baseline owns. */
+  readonly oneWord?: boolean;
 }
 export type CoreContext = 'compare' | 'switch' | 'includes' | 'union' | 'enum' | 'const-set' | 'error' | 'value' | 'other' | 'field' | 'method' | 'key' | 'decl' | 'listed' | 'object-value' | 'object-key';
 export interface CoreTermFact {
@@ -81,6 +92,8 @@ export interface CoreTermFact {
   readonly set: string; readonly setSize: number;
   /** For a field: its owner type and the number of the owner's non-id field names. */
   readonly owner: string; readonly ownerFields: number;
+  /** v1.5.8 (set in `facts.ts`): the vendor modules imported by an adapter that imports this core file. */
+  readonly nearVendors?: readonly string[];
 }
 
 /** Words of a name or literal: camelCase, PascalCase, snake, kebab, dotted and digits split; lower case. */
@@ -183,10 +196,13 @@ export function literalContext(lit: Node): CoreContext {
 }
 
 /** The vendor lexicon of one vendor module's exported declarations. */
+/** v1.5.8: a value set is coded when it has >= 2 members and one of them is written as a code, not a plain word. */
+export const codedValueSet = (members: readonly string[]): boolean => members.length >= 2 && members.some((m) => !genericVendorTerm('literal', m));
+
 export function vendorTermsOf(mod: string, exportsOf: readonly { name: string; decls: readonly Node[] }[]): Omit<VendorTermFact, 'ownedBy' | 'declOwnedBy'>[] {
   const out: Omit<VendorTermFact, 'ownedBy' | 'declOwnedBy'>[] = [];
-  const add = (decl: string, kind: VendorTermKind, text: string, isError: boolean, set = '', setSize = 0): void => {
-    out.push({ module: mod, decl, kind, text, token: kind === 'literal' || kind === 'decl' ? literalToken(text) : nameToken(text), set, setSize, isError, declToken: kind === 'decl' ? declToken(text) : '' });
+  const add = (decl: string, kind: VendorTermKind, text: string, isError: boolean, set = '', setSize = 0, codedSet = false): void => {
+    out.push({ module: mod, decl, kind, text, token: kind === 'literal' || kind === 'decl' ? literalToken(text) : nameToken(text), set, setSize, isError, declToken: kind === 'decl' ? declToken(text) : '', codedSet });
   };
   const literalsOf = (t: Type): string[] | undefined => {
     const parts = (t.isUnion() ? t.getUnionTypes() : [t]).filter((p) => !p.isUndefined() && !p.isNull());
@@ -201,7 +217,7 @@ export function vendorTermsOf(mod: string, exportsOf: readonly { name: string; d
     const lits = literalsOf(t);
     if (lits !== undefined) {
       const sid = t.getAliasSymbol()?.getName() ?? setId;
-      for (const l of lits) add(decl, 'literal', l, isError, sid, lits.length);
+      for (const l of lits) add(decl, 'literal', l, isError, sid, lits.length, codedValueSet(lits));
       return;
     }
     if (t.isUnion()) { for (const u of t.getUnionTypes()) walkType(decl, setId, u, isError, depth + 1, seen); return; }
@@ -228,7 +244,7 @@ export function vendorTermsOf(mod: string, exportsOf: readonly { name: string; d
         for (const m of d.getMembers()) {
           add(ex.name, 'member', m.getName(), false);
           const v = m.getValue();
-          if (typeof v === 'string') add(ex.name, 'literal', v, false, ex.name, vals.length);
+          if (typeof v === 'string') add(ex.name, 'literal', v, false, ex.name, vals.length, codedValueSet(vals));
         }
       } else if (Node.isInterfaceDeclaration(d) || Node.isClassDeclaration(d) || Node.isTypeAliasDeclaration(d)) {
         let err = false;

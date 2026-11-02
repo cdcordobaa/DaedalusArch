@@ -4,6 +4,7 @@
 // rule: An inbound adapter translates between the outside world and the core: it reads and writes its own DTOs, so the domain model can change without changing the API (Cockburn, ports and adapters; Evans, published language).
 // fix: Define a request or response DTO in the adapter and map the entity to it (or from it) in the handler.
 // applies: inbound adapter files (adapters/in, api, controllers); private helpers and mappers are not reported
+// v1.5.8 (2026-11-02, exploratory, rule review #3; the query is unchanged): a file of a declared presentation layer is an inbound adapter file too, when the spec declares both a presentation and an infrastructure layer (`src/http/**` as presentation); the folder regex stays
 // facts: InboundHandler, ENTITY_OUT, EntityType
 MATCH (h:InboundHandler)-[x:ENTITY_OUT]->(e:EntityType)
 RETURN h.file AS file, x.line AS line, h.name AS subject,

@@ -1,0 +1,25 @@
+# v1.5.8 fixture: a Hexagonal spec whose adapter layers are folders the R-AXA / R-ENTITY-OUT regexes do not name
+# (src/http as the presentation layer; src/persistence and src/adapters as infrastructure layers).
+spec_version: "1.0.0"
+architecture:
+  style: hexagonal
+  layers:
+    - name: domain
+      kind: domain
+      directories: [src/domain/**]
+    - name: application
+      kind: application
+      directories: [src/application/**]
+    - name: http
+      kind: presentation
+      directories: [src/http/**]
+    - name: persistence
+      kind: infrastructure
+      directories: [src/persistence/**]
+    - name: adapters
+      kind: infrastructure
+      directories: [src/adapters/**]
+    - name: config
+      kind: application
+      directories: [src/main.ts]
+      roles: [composition-root]

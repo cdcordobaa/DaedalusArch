@@ -46,9 +46,19 @@ export interface DetectSpec {
   readonly invariants: readonly InvariantDecl[];
   readonly specErrors: readonly string[];
   roleOf(file: string): Role;
+  /**
+   * v1.5.8: the declared adapter layer of a file, when the spec declares layers and the file's layer is an adapter layer
+   * (role `adapter`, kind `presentation`, `infrastructure` or `adapter(s)`): the layer's name and kind, the concrete folder
+   * the layer's directory glob names for this file (`src/adapters/inbound/**` -> `src/adapters/inbound`), and whether the
+   * spec splits the sides (it declares both a presentation and an infrastructure layer). Undefined otherwise, and for a
+   * glob whose folder part holds `**` (no single folder to name).
+   */
+  adapterLayerOf?(file: string): AdapterLayer | undefined;
   contextOf(file: string): string | null;
   isPublished(file: string): boolean;
 }
+
+export interface AdapterLayer { readonly name: string; readonly kind: string; readonly base: string; readonly splitsSides: boolean }
 
 interface RawLayer { name?: string; kind?: string; directories?: string[]; roles?: string[] }
 
@@ -126,6 +136,29 @@ export function loadSpec(tree: string, specPath?: string, styleHint?: string): D
       default: return r as Role;
     }
   };
+  // v1.5.8: the adapter layer of a file and the folder its directory glob names (see `DetectSpec.adapterLayerOf`).
+  const ADAPTER_KIND = /^(presentation|infrastructure|adapters?)$/;
+  const splitsSides = layers.some((l) => l.kind === 'presentation') && layers.some((l) => l.kind === 'infrastructure');
+  const baseOf = (glob: string, file: string): string | undefined => {
+    const gs = glob.split('/');
+    const fs_ = file.split('/');
+    let k = gs.findIndex((g) => g === '**');
+    if (k < 0) k = gs.length - 1; // `src/adapters/*.ts`: the folder is everything but the last segment
+    else if (gs.slice(k + 1).some((g) => g === '**' || g.includes('/')) || k + 2 < gs.length) return undefined; // `**` then more folders
+    const prefix = gs.slice(0, k);
+    if (prefix.length === 0 || prefix.some((g) => g === '**') || fs_.length <= prefix.length) return undefined;
+    const base = fs_.slice(0, prefix.length).join('/');
+    return picomatch(prefix.join('/'), { dot: true })(base) ? base : undefined;
+  };
+  const adapterLayerOf = (file: string): AdapterLayer | undefined => {
+    if (layers.length === 0 || roleOf(file) !== 'adapter') return undefined;
+    const l = layers.find((x) => match(x.directories ?? [], file));
+    if (l === undefined || !ADAPTER_KIND.test(l.kind ?? '')) return undefined;
+    const bases = (l.directories ?? []).filter((g) => picomatch(g, { dot: true })(file)).map((g) => baseOf(g, file)).filter((b): b is string => b !== undefined);
+    if (bases.length === 0) return undefined;
+    const base = bases.sort((a, b) => b.length - a.length)[0]!;
+    return { name: l.name ?? '', kind: l.kind ?? '', base, splitsSides };
+  };
   const contextOf = (file: string): string | null => {
     const c = contexts.find((x) => file.startsWith(x.root));
     if (c) return c.name;
@@ -140,7 +173,7 @@ export function loadSpec(tree: string, specPath?: string, styleHint?: string): D
   return {
     source: found ? 'spec' : 'conventions', style, contexts, aggregates,
     repositories: ddd.repositories ?? DEFAULT_REPOSITORIES, domainEventTypes: ddd.domain_event_types ?? ['DomainEvent'], allow, invariants, specErrors,
-    roleOf, contextOf, isPublished,
+    roleOf, adapterLayerOf, contextOf, isPublished,
   };
 }
 

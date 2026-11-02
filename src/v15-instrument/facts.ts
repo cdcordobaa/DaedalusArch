@@ -16,9 +16,10 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { Node, Project, SyntaxKind, VariableDeclarationKind } from 'ts-morph';
+import { Node, Project, SyntaxKind, ts, VariableDeclarationKind } from 'ts-morph';
 import type { CallExpression, ClassDeclaration, IfStatement, InterfaceDeclaration, NewExpression, SourceFile, Type } from 'ts-morph';
 import { categoryOfModule } from '../apg-enrich/cheap/behaviour.js';
+import type { IoCategory } from '../apg-enrich/cheap/behaviour.js';
 import { guardShape, isTrivialParamNullCheck, normaliseCondition } from '../apg-enrich/cheap/guards.js';
 import type { DetectSpec, Role } from './spec.js';
 import { globMatch } from './spec.js';
@@ -74,8 +75,10 @@ export interface AdapterImportFact {
   readonly drivingShared: boolean;
   /** v1.5.5 (2026-10-29, symmetric): the target package is the `shared` or `common` folder of the importer's own side, driving or driven (`adapters/in|inbound|out|outbound`). */
   readonly sideShared: boolean;
-  /** 2026-10-29: every in-tree import of the target file is a domain or shared-kernel file, or a file of the target's own package. */
+  /** 2026-10-29: every in-tree import of the target file is a domain or shared-kernel file, or a file of the target's own package (v1.5.8: every module edge, re-exports included). */
   readonly targetHelperOnly: boolean;
+  /** v1.5.8: how the edge is written when it is not an import declaration (a re-export, `import =`, a dynamic `import()`, or a name imported through a barrel). */
+  readonly form?: 'export-from' | 'import-equals' | 'dynamic' | 'via-barrel';
 }
 /** HCAL-01: a transport concept (an HTTP status code, an HTTP or SQL error type) in domain, application or port code (H07). */
 export interface RepoMultiFact { readonly file: string; readonly line: number; readonly repo: string; readonly method: string; readonly root: string; readonly form: 'two-params' | 'collection' }
@@ -134,6 +137,47 @@ const DB_HANDLE = /(Transaction|Tx|Connection|Session|QueryRunner|EntityManager|
 const SK_HANDLE = /(Transaction|Tx|Connection)(Handle|Context)?$/;
 const REMOTE_PORT = /(Gateway|Client|Provider|Notifier|Mailer|Sender|Api|Http|Sdk)$/;
 const SCOPE_EXTERNAL = /transaction|^tx$|lock|atomic|unitOfWork|serializable/i;
+
+/**
+ * v1.5.8 (review #8): I/O packages the shared classifier (`apg-enrich/cheap/behaviour.ts`, not edited here) does not
+ * catalogue, read by R-PURE and R-COREIO only. Database drivers, query builders and hosted-database clients; HTTP
+ * clients; file-system packages; mail services.
+ */
+const V15_IO_MODULES: readonly (readonly [RegExp, IoCategory])[] = [
+  [/^(postgres|kysely|@supabase\/.+|pg-promise|slonik|mariadb|mssql|tedious|oracledb|@neondatabase\/serverless|@planetscale\/database|@libsql\/client|@vercel\/postgres|cassandra-driver|neo4j-driver|@elastic\/elasticsearch|@upstash\/redis|objection|dynamoose)$/, 'db'],
+  [/^(ky|ofetch|cross-fetch|isomorphic-fetch|needle|request|request-promise|wretch|@hapi\/wreck)$/, 'http-client'],
+  [/^(fs-extra|graceful-fs|fast-glob|glob)$/, 'fs'],
+  [/^(resend|postmark|mailgun-js|@sendgrid\/client)$/, 'mail'],
+];
+/** The I/O category of a package: the shared classifier, then the v1.5.8 additions. */
+export function ioCategoryOf(mod: string): IoCategory | null {
+  const c = categoryOfModule(mod);
+  if (c !== null) return c;
+  for (const [re, cat] of V15_IO_MODULES) if (re.test(mod)) return cat;
+  return null;
+}
+/**
+ * v1.5.8 (review #8): an import that brings in no value. `import type { Pool } from 'pg'`, and also an import whose every
+ * named binding carries the inline `type` modifier (`import { type Pool } from 'pg'`), with no default or namespace binding.
+ * A side-effect import (`import 'pg'`) is a value import.
+ */
+export function typeOnlyImport(imp: import('ts-morph').ImportDeclaration): boolean {
+  if (imp.isTypeOnly()) return true;
+  const named = imp.getNamedImports();
+  return named.length > 0 && imp.getDefaultImport() === undefined && imp.getNamespaceImport() === undefined && named.every((n) => n.isTypeOnly());
+}
+/** v1.5.8 (review #8): the package of each `import x = require('…')` of a file (not `import type x = require`), with its line. */
+export function importEqualsModules(sf: SourceFile): { module: string; line: number }[] {
+  const out: { module: string; line: number }[] = [];
+  for (const ie of sf.getDescendantsOfKind(SyntaxKind.ImportEqualsDeclaration)) {
+    if (ie.isTypeOnly()) continue;
+    const ref = ie.getModuleReference();
+    if (!Node.isExternalModuleReference(ref)) continue;
+    const e = ref.getExpression();
+    if (e !== undefined && Node.isStringLiteral(e)) out.push({ module: e.getLiteralValue(), line: ie.getStartLineNumber() });
+  }
+  return out;
+}
 
 const rel = (root: string, abs: string): string => path.relative(root, abs).split(path.sep).join('/');
 
@@ -1187,6 +1231,19 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
       let s = ne.getSymbol(); if (s?.isAlias()) s = s.getAliasedSymbol() ?? s;
       for (const d of s?.getDeclarations() ?? []) if (isEntity(d)) contracts.push({ contract: ne.getName(), file: f, line: ed.getStartLineNumber(), entity: entityName(d), entityFile: fileOf(d), via: 're-export', form: 'type' });
     }
+    // v1.5.8 (review #17): a star re-export (`export * from './domain/order/Order'`, `export * as orders from …`) publishes
+    // every export of the target, so each entity among them is exposed under its exported name.
+    for (const ed of sf.getExportDeclarations()) {
+      if (ed.getNamedExports().length > 0 || !ed.hasModuleSpecifier()) continue;
+      const t = ed.getModuleSpecifierSourceFile();
+      if (t === undefined || !inTree(t)) continue;
+      const ns = ed.getNamespaceExport()?.getName();
+      for (const [name, ds] of t.getExportedDeclarations()) {
+        if (name === 'default') continue;
+        const d = ds.find((x) => isEntity(x));
+        if (d !== undefined) contracts.push({ contract: ns !== undefined ? `${ns}.${name}` : name, file: f, line: ed.getStartLineNumber(), entity: entityName(d), entityFile: fileOf(d), via: 're-export *', form: 'type' });
+      }
+    }
   }
   // Mirror: a public domain method returning an anonymous object with exactly a contract type's property names (≥ 3).
   const contractShapes = new Map<string, { name: string; file: string }>();
@@ -1295,6 +1352,74 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   // folder (`src/adapters/in/http/…` → `src/adapters/in/http`). An adapter file that imports a file of another
   // adapter package couples two adapters that should only meet through ports, wired in the composition root.
   const ADAPTER_PKG = /^(.*?(?:adapters\/(?:in|out|inbound|outbound)|adapters|infrastructure)\/[^/]+)\//;
+  // v1.5.8 (review #3): when the spec declares the file's adapter layer, its package comes from that layer, and the
+  // folder regex above is the fallback. The layer's directory glob names a folder (`src/adapters/inbound/**` ->
+  // `src/adapters/inbound`). A folder that holds adapters (`adapters`, `adapters/<side>`, `infrastructure`, `infra`) has
+  // one package per sub-folder, as the regex reads it (`src/adapters/inbound/http`), and a file right in that folder
+  // belongs to the folder itself (`src/adapters/Flat.ts` -> `src/adapters`, which the regex left out). Any other declared
+  // adapter layer is one package (`src/http/**` -> `src/http`, which the regex left out too).
+  const CONTAINER_FOLDER = /(?:^|\/)(?:adapters?|infrastructure|infra)(?:\/(?:in|out|inbound|outbound|driving|driven|primary|secondary))?$/;
+  const SIDE_FOLDER = /^(?:in|out|inbound|outbound|driving|driven|primary|secondary)$/;
+  const pkgOf = (f: string): string | undefined => {
+    const l = spec.adapterLayerOf?.(f);
+    if (l === undefined) return ADAPTER_PKG.exec(f)?.[1];
+    if (!CONTAINER_FOLDER.test(l.base)) return l.base;
+    const segs = f.slice(l.base.length + 1).split('/');
+    let p = l.base; let i = 0;
+    if (/(?:^|\/)adapters?$/.test(l.base) && segs.length > 1 && SIDE_FOLDER.test(segs[0]!)) { p = `${p}/${segs[0]!}`; i = 1; }
+    return segs.length - i > 1 ? `${p}/${segs[i]!}` : p;
+  };
+  // v1.5.8 (review #5): the in-tree module edges of a file, not only its import declarations: `export … from`
+  // re-exports, `import x = require(…)`, dynamic `import('…')` with a string literal, and, for a named or default import
+  // of an in-tree file that re-exports it (a barrel), the file that declares the imported name (`via-barrel`, with the
+  // barrel it went through).
+  const compilerOptions = project.getCompilerOptions();
+  const resolutionHost = project.getModuleResolutionHost();
+  const resolveModule = (from: SourceFile, specifier: string): SourceFile | undefined => {
+    const r = ts.resolveModuleName(specifier, from.getFilePath(), compilerOptions, resolutionHost).resolvedModule;
+    return r === undefined ? undefined : project.getSourceFile(r.resolvedFileName);
+  };
+  interface ModuleEdge { readonly line: number; readonly specifier: string; readonly target: SourceFile; readonly form: 'import' | 'export-from' | 'import-equals' | 'dynamic' | 'via-barrel'; readonly via?: SourceFile }
+  const moduleEdges = (sf: SourceFile): ModuleEdge[] => {
+    const out: ModuleEdge[] = [];
+    for (const imp of sf.getImportDeclarations()) {
+      const t = imp.getModuleSpecifierSourceFile();
+      if (t === undefined) continue;
+      out.push({ line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), target: t, form: 'import' });
+      if (!inTree(t)) continue;
+      const names = [...imp.getNamedImports().map((n) => n.getNameNode()), ...(imp.getDefaultImport() !== undefined ? [imp.getDefaultImport()!] : [])];
+      const seenDecl = new Set<SourceFile>();
+      for (const n of names) {
+        let sym = n.getSymbol(); if (sym?.isAlias()) sym = sym.getAliasedSymbol() ?? sym;
+        for (const d of sym?.getDeclarations() ?? []) {
+          const df = d.getSourceFile();
+          if (df === t || df === sf || !inTree(df) || seenDecl.has(df)) continue;
+          seenDecl.add(df);
+          out.push({ line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), target: df, form: 'via-barrel', via: t });
+        }
+      }
+    }
+    for (const ed of sf.getExportDeclarations()) {
+      const t = ed.getModuleSpecifierSourceFile();
+      if (t !== undefined) out.push({ line: ed.getStartLineNumber(), specifier: ed.getModuleSpecifierValue() ?? '', target: t, form: 'export-from' });
+    }
+    for (const ie of sf.getDescendantsOfKind(SyntaxKind.ImportEqualsDeclaration)) {
+      const ref = ie.getModuleReference();
+      if (!Node.isExternalModuleReference(ref)) continue;
+      const e = ref.getExpression();
+      if (e === undefined || !Node.isStringLiteral(e)) continue;
+      const t = resolveModule(sf, e.getLiteralValue());
+      if (t !== undefined) out.push({ line: ie.getStartLineNumber(), specifier: e.getLiteralValue(), target: t, form: 'import-equals' });
+    }
+    for (const c of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+      if (c.getExpression().getKind() !== SyntaxKind.ImportKeyword) continue;
+      const a = c.getArguments()[0];
+      if (a === undefined || !(Node.isStringLiteral(a) || Node.isNoSubstitutionTemplateLiteral(a))) continue;
+      const t = resolveModule(sf, a.getLiteralValue());
+      if (t !== undefined) out.push({ line: c.getStartLineNumber(), specifier: a.getLiteralValue(), target: t, form: 'dynamic' });
+    }
+    return out;
+  };
   const adapterImports: AdapterImportFact[] = [];
   // 2026-10-29 (R-AXA shared helpers): a driving side's shared folder (`…/adapters/in/shared`, `…/adapters/in/common`,
   // `inbound` likewise) is that side's helper code (reply shapes, error translation), not another adapter. The rule
@@ -1310,9 +1435,11 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   };
   const drivingShared = sharedOfSide(DRIVING_SIDE);
   const sideShared = sharedOfSide(ANY_SIDE);
-  const helperOnly = (tsf: SourceFile, pkg: string): boolean => tsf.getImportDeclarations().every((d) => {
-    const x = d.getModuleSpecifierSourceFile();
-    if (x === undefined || !inTree(x)) return true; // a library import: not another adapter of this tree
+  // v1.5.8 (review #5): every module edge of the target counts here, so a shared file that re-exports another adapter
+  // (`export { PgOrders } from '../../out/pg/PgOrders'`) is not a helper.
+  const helperOnly = (tsf: SourceFile, pkg: string): boolean => moduleEdges(tsf).every((d) => {
+    const x = d.target;
+    if (!inTree(x)) return true; // a library import: not another adapter of this tree
     const xf = fileOf(x);
     const role = spec.roleOf(xf);
     return role === 'domain' || role === 'shared-kernel' || xf.startsWith(`${pkg}/`);
@@ -1320,17 +1447,24 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   for (const sf of files) {
     const f = fileOf(sf);
     if (spec.roleOf(f) !== 'adapter') continue;
-    const from = ADAPTER_PKG.exec(f)?.[1];
+    const from = pkgOf(f);
     if (from === undefined) continue;
     // CN-03 H03: a type-only import couples the two adapters as much as a value import does.
-    for (const imp of sf.getImportDeclarations()) {
-      const tsf = imp.getModuleSpecifierSourceFile();
-      if (tsf === undefined || !inTree(tsf)) continue;
+    const edges = moduleEdges(sf);
+    const crossing = (tsf: SourceFile): string | undefined => {
+      if (!inTree(tsf)) return undefined;
       const t = fileOf(tsf);
-      if (spec.roleOf(t) !== 'adapter') continue;
-      const to = ADAPTER_PKG.exec(t)?.[1];
-      if (to === undefined || to === from) continue;
-      adapterImports.push({ file: f, line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), target: t, fromPkg: from, toPkg: to, drivingShared: drivingShared(from, to), sideShared: sideShared(from, to), targetHelperOnly: helperOnly(tsf, to) });
+      if (spec.roleOf(t) !== 'adapter') return undefined;
+      const to = pkgOf(t);
+      return to === undefined || to === from ? undefined : to;
+    };
+    for (const e of edges) {
+      // a name imported through a barrel counts only when the barrel itself is no other adapter's file (that import is reported)
+      if (e.form === 'via-barrel' && (e.via === undefined || crossing(e.via) !== undefined)) continue;
+      const to = crossing(e.target);
+      if (to === undefined) continue;
+      const t = fileOf(e.target);
+      adapterImports.push({ file: f, line: e.line, specifier: e.specifier, target: t, fromPkg: from, toPkg: to, drivingShared: drivingShared(from, to), sideShared: sideShared(from, to), targetHelperOnly: helperOnly(e.target, to), ...(e.form !== 'import' ? { form: e.form } : {}) });
     }
   }
   bump('adapterImports', adapterImports.length);
@@ -1419,12 +1553,11 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   for (const sf of files) {
     const f = fileOf(sf);
     if (spec.roleOf(f) !== 'domain' && inAggregateModule(sf) === undefined) continue;
-    for (const imp of sf.getImportDeclarations()) {
-      if (imp.isTypeOnly()) continue;
-      const mod = imp.getModuleSpecifierValue();
+    const imports = [...sf.getImportDeclarations().filter((imp) => !typeOnlyImport(imp)).map((imp) => ({ module: imp.getModuleSpecifierValue(), line: imp.getStartLineNumber() })), ...importEqualsModules(sf)];
+    for (const { module: mod, line } of imports) {
       if (mod.startsWith('.') || mod.startsWith('/')) continue;
-      const category = categoryOfModule(mod.replace(/^node:/, ''));
-      if (category !== null) domainTech.push({ file: f, line: imp.getStartLineNumber(), module: mod, category });
+      const category = ioCategoryOf(mod.replace(/^node:/, ''));
+      if (category !== null) domainTech.push({ file: f, line, module: mod, category });
     }
   }
   bump('domainTech', domainTech.length);
@@ -1557,7 +1690,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   const EXTRA_IO = /^(child_process|net|tls|dgram|dns|http2|ws|socket\.io-client|ssh2|ftp|basic-ftp|mqtt|nats|memcached|aws-sdk|@aws-sdk\/.+|@google-cloud\/.+|@azure\/.+|firebase-admin|stripe|twilio)$/;
   const ioOf = (mod: string): string | null => {
     const m = mod.replace(/^node:/, '');
-    const c = categoryOfModule(m);
+    const c = ioCategoryOf(m);
     if (c !== null && c !== 'transport') return c;
     if (/^fs\//.test(m)) return 'fs';
     return EXTRA_IO.test(m) ? 'io' : null;
@@ -1569,11 +1702,15 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
     const role = spec.roleOf(f);
     if (role !== 'domain' && role !== 'application' && role !== 'port') continue;
     for (const imp of sf.getImportDeclarations()) {
-      if (imp.isTypeOnly()) continue;
+      if (typeOnlyImport(imp)) continue;
       const mod = imp.getModuleSpecifierValue();
       if (mod.startsWith('.') || mod.startsWith('/')) continue;
       const c = ioOf(mod);
       if (c !== null) coreIo.push({ file: f, line: imp.getStartLineNumber(), role, form: 'io-import', detail: `import from '${mod}' (${c})` });
+    }
+    for (const { module: mod, line } of importEqualsModules(sf)) {
+      const c = ioOf(mod);
+      if (c !== null) coreIo.push({ file: f, line, role, form: 'io-import', detail: `import = require('${mod}') (${c})` });
     }
     sf.forEachDescendant((n) => {
       if (Node.isCallExpression(n)) {
@@ -1611,7 +1748,11 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   };
   for (const sf of files) {
     const f = fileOf(sf);
-    if (spec.roleOf(f) !== 'adapter' || !INBOUND.test(f) || OUTBOUND.test(f)) continue;
+    if (spec.roleOf(f) !== 'adapter' || OUTBOUND.test(f)) continue;
+    // v1.5.8 (review #3): a file of a declared presentation layer is inbound too, when the spec splits the sides (it
+    // declares a presentation and an infrastructure layer), so `src/http/**` declared as presentation is read.
+    const layer = spec.adapterLayerOf?.(f);
+    if (!INBOUND.test(f) && !(layer !== undefined && layer.splitsSides && layer.kind === 'presentation')) continue;
     const handlers: { name: string; node: Node; params: import('ts-morph').ParameterDeclaration[]; ret: Type; line: number; method: boolean }[] = [];
     for (const c of sf.getClasses()) {
       if (/(Mapper|Presenter|Serializer)$/.test(c.getName() ?? '')) continue;
@@ -1998,9 +2139,14 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   };
   const seenModules = new Set<string>();
   const vendorExports: { mod: string; exportsOf: { name: string; decls: Node[] }[] }[] = [];
+  // v1.5.8: the vendor modules each adapter file imports (R-MIRROR2 `nearVendors`)
+  const vendorModsOf = new Map<SourceFile, Set<string>>();
+  const specToMod = new Map<string, string>();
   for (const sf of files) {
     if (spec.roleOf(fileOf(sf)) !== 'adapter') continue;
     for (const imp of sf.getImportDeclarations()) {
+      const known = specToMod.get(imp.getModuleSpecifierValue());
+      if (known !== undefined) { let m = vendorModsOf.get(sf); if (m === undefined) { m = new Set(); vendorModsOf.set(sf, m); } m.add(known); }
       const ms = imp.getModuleSpecifierValue();
       if (ms.startsWith('.') || ms.startsWith('/') || ms.startsWith('node:')) continue;
       let mod: string; let exportsOf: { name: string; decls: Node[] }[];
@@ -2019,6 +2165,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
         mod = ms;
         exportsOf = [...vsf.getExportedDeclarations()].map(([name, decls]) => ({ name, decls }));
       }
+      { specToMod.set(ms, mod); let m = vendorModsOf.get(sf); if (m === undefined) { m = new Set(); vendorModsOf.set(sf, m); } m.add(mod); }
       if (seenModules.has(mod)) continue;
       seenModules.add(mod);
       vendorExports.push({ mod, exportsOf });
@@ -2104,13 +2251,31 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
         const ownedBy = genericVendorTerm(t.kind, t.text) ? 'generic' : fromSpec.has(t.token) ? 'spec' : fromBaseline.has(t.token) ? 'baseline' : '';
         // v1.5.5: whether a core declaration of the same name copies the vendor's (the decl shape's own stoplist)
         const declOwnedBy = t.kind !== 'decl' ? '' : genericDeclName(t.text) ? 'generic' : fromSpec.has(`name:${declStem(t.text).join('')}`) ? 'spec' : fromBaseline.has(t.declToken) ? 'baseline' : '';
-        vendorTerms.push({ ...t, ownedBy, declOwnedBy });
+        // v1.5.8 (Hexagonal hand read t03): a one-word literal (`accepted`, `blocked`) of a coded vendor value set,
+        // generic only for being one word, and owned by neither the spec nor the baseline.
+        const oneWord = t.kind === 'literal' && ownedBy === 'generic' && t.codedSet && /^[a-z]{3,}$/.test(t.text) && !fromSpec.has(t.token) && !fromBaseline.has(t.token);
+        vendorTerms.push({ ...t, ownedBy, declOwnedBy, ...(oneWord ? { oneWord } : {}) });
+      }
+    }
+    // v1.5.8: a core file's near vendors are the vendor modules of the adapters that import it (any module edge), so a
+    // one-word vendor value is read only in the core types the vendor's own adapter translates into.
+    const nearOf = new Map<string, Set<string>>();
+    for (const [asf, mods] of vendorModsOf) {
+      for (const e of moduleEdges(asf)) {
+        if (!inTree(e.target)) continue;
+        const t = fileOf(e.target);
+        const r = spec.roleOf(t);
+        if (r !== 'domain' && r !== 'application' && r !== 'port') continue;
+        let s = nearOf.get(t); if (s === undefined) { s = new Set(); nearOf.set(t, s); }
+        for (const m of mods) s.add(m);
       }
     }
     for (const sf of files) {
       const f = fileOf(sf);
       const role = spec.roleOf(f);
-      if (role === 'domain' || role === 'application' || role === 'port') coreTerms.push(...coreTermsOf(sf, f, role));
+      if (role !== 'domain' && role !== 'application' && role !== 'port') continue;
+      const near = [...(nearOf.get(f) ?? [])].sort();
+      coreTerms.push(...coreTermsOf(sf, f, role).map((c) => (near.length > 0 ? { ...c, nearVendors: near } : c)));
     }
   }
   bump('vendorTerms', vendorTerms.length); bump('coreTerms', coreTerms.length);
