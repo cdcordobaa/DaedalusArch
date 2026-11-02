@@ -346,7 +346,16 @@ records alone with `--require-delivery-audit` and flags nothing.
 - Every change after registration is dated in this file before the data it would affect is seen. The pre-data
   addendum (§9.2) is not a deviation when it only fills its slots by the registered rules.
 
-*(No deviations: not registered.)*
+**DEV-HX-1 (dated 2026-11-02, after pilot run 1, before any study call).** Pilot run 1 stopped itself in session
+c020 (exit 3, mechanism stop: hub p95 7426 ms over 5 s; 12 of 13 edits with a hook event). The records tie the slow
+pushes to the live R-MIRROR-SEM judge calls made inside the push check (3.6–8.5 s each); one push (8.9 s) outlasted the
+relay's 8 s wait. Gates (a)–(e) were not evaluated and no arm was compared. Change: the hub runs with
+`DAEDALUS_MIRROR_SEM=off` (no judge; R-MIRROR-SEM never fires), as the scorer already does (§4). R-MIRROR-SEM is not
+counted in D_hx and is no outcome (B11), so the outcome, the counted rules, the frozen rules root, the task seal and the
+§9.1 script hashes are unchanged; no code changes. The hub's judge-call cap (§9.2) is therefore 0. Effect on the
+treatment: the `combined` arm no longer gets R-MIRROR-SEM findings; the semantic layer is not tested in this study. The
+whole pilot is run again from the start (run 2) under the same §5.1 gates; run 1 is reported and is not pilot data for
+the gates.
 
 ## 7. Limitations, stated before the run
 
