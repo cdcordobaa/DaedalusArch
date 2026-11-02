@@ -1,0 +1,348 @@
+{
+ "date": "2026-11-02",
+ "instrument": "v1.5.9",
+ "seenFrom": "experiments/sem-gate/cases.json",
+ "note": "Fresh SEM-GATE-2 cases (20 built: 11 form-A positives and 9 negatives, labelled by GATE.md \u00a73). The 53 SEM-GATE cases are read from seenFrom: the 4 form-A positives are seen (reported, not counted); the 33 negatives are the criterion-2b set.",
+ "cases": [
+  {
+   "id": "hxpb1-p1",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-p1/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/domain/model/KilnPhase.ts",
+    "coreSet": "KilnPhase"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "cast: an exported lower-case copy of the seven phases in a domain file; the service casts phaseCode to it and looks up a display table keyed by its members. V->C one to one (case changed), all 7 reached, no domain text names them"
+  },
+  {
+   "id": "hxpb1-p2",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-p2/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/domain/model/KilnStep.ts",
+    "coreSet": "KilnStep"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "switch: a domain function maps each phase text to a renamed union (booked, drying, climbing, atPeak, coolingDown, finished, failed), one case each; the service switches on the union. One to one, all 7 reached"
+  },
+  {
+   "id": "hxpb1-p3",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-p3/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/application/services/pieces/PieceService.ts",
+    "coreSet": "KilnState"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "Map: the service keeps a Map from phase text to a const object of renamed members (Booked ... Faulted) and branches on them. One to one, all 7 reached"
+  },
+  {
+   "id": "hxpb1-p4",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-p4/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/application/services/pieces/PieceService.ts",
+    "coreSet": "KilnCondition"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "if chain: a helper in the service upper-cases the text and maps each phase to a renamed enum (FAULTED falls to the last return, Tripped). One to one, all 7 reached"
+  },
+  {
+   "id": "hxpb1-p5",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-p5/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/application/services/pieces/PieceService.ts",
+    "coreSet": "FiringPhase"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "port method: a new KilnReadings.phaseOf returns the vendor phase as is; the service lower-cases it and casts it to a lower-case copy, then branches. One to one, all 7 reached"
+  },
+  {
+   "id": "hxpb1-q1",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-q1/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/domain/model/FiringProgress.ts",
+    "coreSet": "FiringProgress"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": false,
+   "note": "coarser: the clean five-step FiringProgress filled in the service by a table from the phase text (scheduled and candling -> waiting, ramping and holding -> firing); 3.1 two vendor values onto one member"
+  },
+  {
+   "id": "hxpb1-q2",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-q2/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/domain/model/FiringStep.ts",
+    "coreSet": "FiringStep"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": false,
+   "note": "coarser: a domain switch maps the phase text onto six studio steps (scheduled and candling -> booked); 3.1 two vendor values onto one member"
+  },
+  {
+   "id": "hxpb1-q3",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-q3/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/domain/model/FiringStage.ts",
+    "coreSet": "FiringStage"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": true,
+   "note": "twin of a renamed copy: a one-for-one enum (queued ... broken) filled by a core table, and ARCHITECTURE.md names every member as a studio stage with its own rule; 3.1 domain text names the members"
+  },
+  {
+   "id": "hxpb1-q4",
+   "source": "built",
+   "task": "hxpb1-pottery-kiln",
+   "tree": "experiments/sem-gate-2/cases/hxpb1-q4/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb1-pottery-kiln",
+   "target": {
+    "file": "src/application/services/pieces/PieceService.ts",
+    "coreSet": "FiringPhase"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": true,
+   "note": "twin of the shortcut cast: the same lower-case seven-phase cast, and ARCHITECTURE.md names all seven phases as the studio's own stages, each with a rule; 3.1 domain text names the members"
+  },
+  {
+   "id": "hxpb2-p1",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-p1/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/domain/model/OrderStep.ts",
+    "coreSet": "OrderStep"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "table: a domain table maps each job-state text to a renamed enum (Listed ... Contested); the service branches on it. One to one, all 6 reached"
+  },
+  {
+   "id": "hxpb2-p2",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-p2/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/domain/model/JobState.ts",
+    "coreSet": "JobState"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "cast: an exported same-spelling copy of the six job states in a domain file, cast in the service and switched on. One to one, all 6 reached"
+  },
+  {
+   "id": "hxpb2-p3",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-p3/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/domain/model/JobPhase.ts",
+    "coreSet": "JobPhase"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "if chain: a domain function maps each state text to a renamed union (advertised ... challenged), one branch each. One to one, all 6 reached"
+  },
+  {
+   "id": "hxpb2-p4",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-p4/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/application/services/jobs/TranslationOrderService.ts",
+    "coreSet": "JobStage"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "Map: the service keeps a Map from state text to a const object of renamed members (Open ... Contested). One to one, all 6 reached"
+  },
+  {
+   "id": "hxpb2-p5",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-p5/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/application/services/jobs/TranslationOrderService.ts",
+    "coreSet": "WorkState"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "conditional chain: a helper in the service maps the state text to a renamed union (disputed falls to the last arm, contested). One to one, all 6 reached"
+  },
+  {
+   "id": "hxpb2-q1",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-q1/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/domain/model/JobProgress.ts",
+    "coreSet": "JobProgress"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": false,
+   "note": "coarser: the clean five-step JobProgress filled in the service by a table from the state text (claimed and drafting -> translating); 3.1"
+  },
+  {
+   "id": "hxpb2-q2",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-q2/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/domain/model/PortalStep.ts",
+    "coreSet": "PortalStep"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": false,
+   "note": "coarser: a domain if chain maps the state text onto five portal steps (claimed and drafting -> inWork); 3.1"
+  },
+  {
+   "id": "hxpb2-q3",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-q3/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/domain/model/BureauStage.ts",
+    "coreSet": "BureauStage"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": true,
+   "note": "twin of a renamed copy: a one-for-one enum (offered ... queried) filled by a core table, and ARCHITECTURE.md names every member as a bureau stage with its own rule; 3.1 domain text names the members"
+  },
+  {
+   "id": "hxpb2-q4",
+   "source": "built",
+   "task": "hxpb2-translation-portal",
+   "tree": "experiments/sem-gate-2/cases/hxpb2-q4/tree",
+   "spec": "experiments/hx-study-set/part-b/hxpb2-translation-portal/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-b/hxpb2-translation-portal/seed",
+   "puzzle": "experiments/hx-study-set/part-b/hxpb2-translation-portal",
+   "target": {
+    "file": "src/application/services/jobs/TranslationOrderService.ts",
+    "coreSet": "OrderStage"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": true,
+   "note": "twin of the shortcut cast: the same six-state cast, and ARCHITECTURE.md names all six states as the bureau's own stages, each with a rule; 3.1 domain text names the members"
+  },
+  {
+   "id": "hxa2-p1",
+   "source": "built",
+   "task": "hxa2-canal-boats",
+   "tree": "experiments/sem-gate-2/cases/hxa2-p1/tree",
+   "spec": "experiments/hx-study-set/part-a/hxa2-canal-boats/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-a/hxa2-canal-boats/seed",
+   "puzzle": "experiments/hx-study-set/part-a/hxa2-canal-boats",
+   "target": {
+    "file": "src/domain/model/PolicyStanding.ts",
+    "coreSet": "PolicyStanding"
+   },
+   "label": "positive",
+   "form": "A",
+   "twin": false,
+   "note": "from kept agent tree c020 (a form-B positive, CoverPolicy.status): the adapter now copies the vendor policy state into CoverPolicy.insurerState and a domain table maps it to a renamed standing (live, awaitingPapers, cancelled). One to one, all 3 reached, not in domain text"
+  },
+  {
+   "id": "hxa2-q1",
+   "source": "built",
+   "task": "hxa2-canal-boats",
+   "tree": "experiments/sem-gate-2/cases/hxa2-q1/tree",
+   "spec": "experiments/hx-study-set/part-a/hxa2-canal-boats/spec.yaml",
+   "baseline": "experiments/hx-study-set/part-a/hxa2-canal-boats/seed",
+   "puzzle": "experiments/hx-study-set/part-a/hxa2-canal-boats",
+   "target": {
+    "file": "src/domain/model/HireCover.ts",
+    "coreSet": "HireCover"
+   },
+   "label": "negative",
+   "form": null,
+   "twin": false,
+   "note": "from kept agent tree c020 (a negative, CoverQuote.cover): the adapter no longer maps the quote state; a domain switch maps BOUND and REFERRED, the other three of five fall to none; 3.1 coarser"
+  }
+ ]
+}

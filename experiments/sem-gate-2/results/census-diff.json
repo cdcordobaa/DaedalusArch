@@ -1,0 +1,138 @@
+{
+ "before": {
+  "candidates": 75,
+  "asked": 52
+ },
+ "after": {
+  "candidates": 79,
+  "asked": 56
+ },
+ "unchanged": 75,
+ "added": [
+  {
+   "tree": "sem-gate/hxpb1-a1",
+   "file": "src/application/services/pieces/PieceService.ts",
+   "coreSet": "KilnPhase",
+   "vendor": "KilnwisePhase of kilnwise-sdk",
+   "mapSide": "core",
+   "asked": true,
+   "key": "f919b478e34698a4ff926956",
+   "coreMembers": [
+    "scheduled",
+    "candling",
+    "ramping",
+    "holding",
+    "cooling",
+    "complete",
+    "faulted"
+   ],
+   "pairs": [
+    "SCHEDULED->scheduled (cast)",
+    "CANDLING->candling (cast)",
+    "RAMPING->ramping (cast)",
+    "HOLDING->holding (cast)",
+    "COOLING->cooling (cast)",
+    "COMPLETE->complete (cast)",
+    "FAULTED->faulted (cast)"
+   ],
+   "mappedFrom": 7,
+   "mappedTo": 7,
+   "oneToOne": true,
+   "branches": 9,
+   "ownedBy": ""
+  },
+  {
+   "tree": "sem-gate/hxpb1-a2",
+   "file": "src/domain/model/KilnStage.ts",
+   "coreSet": "KilnStage",
+   "vendor": "KilnwisePhase of kilnwise-sdk",
+   "mapSide": "core",
+   "asked": true,
+   "key": "f43a196972b4cecb94d978b7",
+   "coreMembers": [
+    "Queued",
+    "Drying",
+    "Heating",
+    "Soaking",
+    "Easing",
+    "Done",
+    "Broken"
+   ],
+   "pairs": [
+    "SCHEDULED->Queued (object)",
+    "CANDLING->Drying (object)",
+    "RAMPING->Heating (object)",
+    "HOLDING->Soaking (object)",
+    "COOLING->Easing (object)",
+    "COMPLETE->Done (object)",
+    "FAULTED->Broken (object)"
+   ],
+   "mappedFrom": 7,
+   "mappedTo": 7,
+   "oneToOne": true,
+   "branches": 8,
+   "ownedBy": ""
+  },
+  {
+   "tree": "sem-gate/hxpb2-a1",
+   "file": "src/application/services/jobs/TranslationOrderService.ts",
+   "coreSet": "MarketState",
+   "vendor": "JobState of wordmarket-sdk",
+   "mapSide": "core",
+   "asked": true,
+   "key": "a4c11368f62def4ee56a7606",
+   "coreMembers": [
+    "posted",
+    "claimed",
+    "drafting",
+    "proofreading",
+    "delivered",
+    "disputed"
+   ],
+   "pairs": [
+    "posted->posted (cast)",
+    "claimed->claimed (cast)",
+    "drafting->drafting (cast)",
+    "proofreading->proofreading (cast)",
+    "delivered->delivered (cast)",
+    "disputed->disputed (cast)"
+   ],
+   "mappedFrom": 6,
+   "mappedTo": 6,
+   "oneToOne": true,
+   "branches": 1,
+   "ownedBy": ""
+  },
+  {
+   "tree": "sem-gate/hxpb2-a2",
+   "file": "src/domain/model/JobStep.ts",
+   "coreSet": "JobStep",
+   "vendor": "JobState of wordmarket-sdk",
+   "mapSide": "core",
+   "asked": true,
+   "key": "a0ed57348a1bdf55dddcc02a",
+   "coreMembers": [
+    "Open",
+    "Taken",
+    "Writing",
+    "Review",
+    "Handed",
+    "Contested"
+   ],
+   "pairs": [
+    "posted->Open (switch)",
+    "claimed->Taken (switch)",
+    "drafting->Writing (switch)",
+    "proofreading->Review (switch)",
+    "delivered->Handed (switch)"
+   ],
+   "mappedFrom": 5,
+   "mappedTo": 5,
+   "oneToOne": false,
+   "branches": 7,
+   "ownedBy": ""
+  }
+ ],
+ "removed": [],
+ "changed": []
+}
