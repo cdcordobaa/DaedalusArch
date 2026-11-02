@@ -3301,3 +3301,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Hexagonal study, protocol deviation stated before the main run; entry added after the fact (left out of PR #469 to avoid a conflict)
 
 ---
+
+## v1.5 Hexagonal study: results read and reported
+**Timestamp**: 2026-11-02T14:30:00Z
+**User Input**: "Run the plan until the Hexagonal study is finished, then assess the instrument against the five objectives."
+**AI Response**: "Read the main-run report from origin (results/v15-hx-study, 3815765fb): 660 of 660 turns, 663 of 703 calls, 0 redraws, scored and analysed once. H-HX supported (sum D 203 to 0, exact p 2.1e-22, task sign 10/0); joint reading supported (trap failures 87/110 to 12/110). Wrote Docs/DiagnosticRuns/v15-hx-study-2026-11-02.md (pilot runs 1 and 2, rehearsal, main run) and updated the instrument map: SO5 Hexagonal from open to met; v1.3 hold-out closed as not scored; calls through ports and DA1 done."
+**Context**: v1.5 Hexagonal study, reporting after the one scoring; no re-analysis
+
+---
