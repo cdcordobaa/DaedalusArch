@@ -3277,3 +3277,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.3 hold-out, pre-run addendum
 
 ---
+
+## v1.3 hold-out: attempt 4 stopped at step 2 (path-only check)
+**Timestamp**: 2026-11-02T03:35:39Z
+**User Input**: "Asked to run hold-out attempt 4 under addendum 4 with the committed adapter prompt; stop with no retry on any failure."
+**AI Response**: "After PR #463 merged, both hash rows matched. The fresh copy matched 1379b561… (608 files). The blind adapter session wrote nothing: its shell commands were denied, so converted/ was empty and had no MAP. The path-only check failed, so the attempt stopped with no retry: no header repair, no Neo4j, no live run, no figure. Recorded in Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md §11; the work directory was deleted."
+**Context**: v1.3 hold-out, attempt 4 (DELEG-H5)
+
+---
