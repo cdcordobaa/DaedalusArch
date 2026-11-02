@@ -118,5 +118,5 @@ exposed them.
 `isolation/`, `dry/`, `smoke/`, `probes/`; `run/` (`turns.jsonl`, `calls.jsonl`, `schedule.json`, `state.json`,
 `sessions/*.json`, `hub/*.push.jsonl`, `*.calls.jsonl`, `*.ledger.json`); `sessions/` (step trees from `--keep-trees`: 44
 sessions, 176 steps, 3569 files, tree hashes and canaries checked); `scores/` (`scores.json`, `cells.json`); `gate-b.json`;
-`private-id-map.json` (after generation). Checked before commit: no `costUsd`, no canary marker (`grep -rl canary-` empty),
+`private-id-map.json` (after generation). Checked before commit: no `costUsd`, no canary marker (the RUNBOOK §3 canary grep prints nothing),
 no personal path, no chat or agent message text; `git status --short --ignored` lists no ignored file under this folder.
