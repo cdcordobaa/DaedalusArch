@@ -13,6 +13,7 @@ import { deriveHoldsStateOfEdges } from './field-state.js';
 import { PackageNodeRegistry } from './package-node-factory.js';
 import { restrictToGraphMode } from './graph-mode.js';
 import { extractModuleWiringEdges } from './nest-module-extractor.js';
+import { derivePortCallEdges } from './port-calls.js';
 import {
   buildImportResolutionContext,
   countUnsupportedDynamicImports,
@@ -340,6 +341,11 @@ export function extractEdges(
         if (methodId) addEdge(buildEdge('CONTAINS', ifaceNodeId, methodId, {}));
       }
     }
+  }
+
+  // v1.5.6 `portCalls` (OFF in every frozen default): CALLS_VIA_PORT (Method → Method), after every other edge.
+  if (opts.portCalls) {
+    for (const edge of derivePortCallEdges(sourceFiles, lookup, projectRoot)) addEdge(edge);
   }
 
   const importEdges = merger.edges();

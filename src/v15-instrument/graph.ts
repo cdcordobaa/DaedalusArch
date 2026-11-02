@@ -8,7 +8,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { extractAPG, V13_APG2_OPTIONS } from '../apg-extractor/index.js';
+import { extractAPG, V15_APG_OPTIONS } from '../apg-extractor/index.js';
 import { executeQuery, MemoryGraph, parseCypher } from '../cypher-interp/index.js';
 import { fromDriver, toDriver } from '../cypher-interp/driver-values.js';
 import type { GraphNode } from '../cypher-interp/values.js';
@@ -134,10 +134,11 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     stats[t] = (stats[t] ?? 0) + 1;
   };
 
-  // Frozen facts (read-only import): every APG node and edge, so the rules can join on them.
+  // Frozen facts (read-only import): every APG node and edge, so the rules can join on them. v1.5.6: the APG v2 options
+  // plus CALLS_VIA_PORT (`V15_APG_OPTIONS`, `ops/notes/v15-calls-through-ports.md`); no rule reads that relation yet.
   const apgMethod = new Map<string, GraphNode>();
   if (opts.withApg !== false) {
-    const r = await extractAPG(path.resolve(tree), V13_APG2_OPTIONS, tsconfig);
+    const r = await extractAPG(path.resolve(tree), V15_APG_OPTIONS, tsconfig);
     if (r.success) {
       const byId = new Map<string, GraphNode>();
       for (const n of r.data.nodes) {

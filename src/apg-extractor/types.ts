@@ -96,6 +96,13 @@ export interface ExtractorOptions {
    */
   apg2?: boolean;
   /**
+   * v1.5.6 calls through ports, OFF in `V12E_DEFAULT_OPTIONS`, `V13_DEFAULT_OPTIONS` and `V13_APG2_OPTIONS`; ON in
+   * `V15_APG_OPTIONS`. Adds CALLS_VIA_PORT edges (Method → Method) from a class method that calls an interface or
+   * abstract member on a receiver typed by that port to every implementing class's method (`port-calls.ts`), after
+   * every other non-import edge. Every other node and edge is unchanged.
+   */
+  portCalls?: boolean;
+  /**
    * APG v2 only: the components to build. Empty = the top-level folders under `src/` (else under the project root).
    * `componentsFromLayerModel` (`apg2/components.ts`) derives them from a spec's layers and DDD contexts.
    */
@@ -236,6 +243,7 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   nullableInjects: false,
   fieldState: false,
   apg2: false,
+  portCalls: false,
   components: [],
 });
 
@@ -271,6 +279,15 @@ export const V13_FIELD_STATE_OPTIONS: Readonly<Required<ExtractorOptions>> = Obj
 export const V13_APG2_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
   ...V13_DEFAULT_OPTIONS,
   apg2: true,
+});
+
+/**
+ * v1.5.6 (`ops/notes/v15-calls-through-ports.md`): the APG v2 options plus CALLS_VIA_PORT edges. Read by the v1.5
+ * instrument's graph (`src/v15-instrument/graph.ts`); not the default, so every other graph is unchanged.
+ */
+export const V15_APG_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+  ...V13_APG2_OPTIONS,
+  portCalls: true,
 });
 
 /** The defaults every extractor entry point applies on the v1.3 branch. */

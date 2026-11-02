@@ -25,6 +25,10 @@ export const FIELD_STATE_EDGE_TYPES = ['HOLDS_STATE_OF'] as const;
 // APG v2 (`apg2` extractor option, OFF in both the v1.2E and the v1.3 defaults; `Docs/v1.3/apg2-design.md`). Kept
 // apart from NODE_TYPES / EDGE_TYPES for the same reason as V13_EDGE_TYPES: the frozen enumerations are mirrored by
 // the v1.2E report schema and registered artefacts.
+// v1.5.6 calls through ports (`portCalls` extractor option, OFF in every frozen default; ON in `V15_APG_OPTIONS`).
+// Kept apart for the same reason: a frozen graph and its readers are unchanged (`ops/notes/v15-calls-through-ports.md`).
+export const PORT_CALL_EDGE_TYPES = ['CALLS_VIA_PORT'] as const;
+
 export const APG2_NODE_TYPES = ['Component', 'Channel', 'IOCategory'] as const;
 export const APG2_EDGE_TYPES = [
   'SIGNATURE_USES',
@@ -62,6 +66,8 @@ export type EdgeType = (typeof EDGE_TYPES)[number];
 export type V13EdgeType = (typeof V13_EDGE_TYPES)[number];
 
 export type FieldStateEdgeType = (typeof FIELD_STATE_EDGE_TYPES)[number];
+
+export type PortCallEdgeType = (typeof PORT_CALL_EDGE_TYPES)[number];
 
 export type Apg2NodeType = (typeof APG2_NODE_TYPES)[number];
 
