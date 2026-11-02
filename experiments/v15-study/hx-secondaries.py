@@ -1,7 +1,7 @@
 """v1.5 Hexagonal study, descriptive secondaries 3-6 (registration §1, "Secondary outcomes"), zero calls, after the one
-scoring and analysis. Secondaries 1-2 come from scripts/v1.5/hx-study-analyse.ts. Secondary 7 (per-shape view of H11)
-needs the R-MIRROR2 shape word, which is in each finding's evidence and not in the scored identity; it is not computed
-here. Reads scores.json and run/sessions/*.json from the results branch.
+scoring and analysis, plus secondary 7. Secondaries 1-2 come from scripts/v1.5/hx-study-analyse.ts. Secondary 7 (per-shape
+view of H11) reads the R-MIRROR2 shape word that the scorer keeps on each final-step hit (`symbolicNewVsSeed[].shape`,
+from the finding's evidence; not part of the identity). Reads scores.json and run/sessions/*.json from the results branch.
 Run: python3 experiments/v15-study/hx-secondaries.py > results/v1.5-hx-study/hx-study/analysis/secondaries.json
 """
 import json, subprocess, collections, statistics
@@ -35,7 +35,14 @@ for arm in ('none', 'combined'):
         att.update(a.get('counts', {})); push += a.get('pushEvents', 0); pull += a.get('pullCalls', 0)
         pull_tools.update(a.get('pullByTool', {})); findings += a.get('findings', 0)
     # 5. not-counted and advisory rows, new identities per rule.
-    rows = collections.Counter(i.split('|')[0] for r in rs for i in r['exploratoryNew'])
+    # exploratoryNew holds every R-MIRROR2 identity, counted shapes included; split it by shape word (secondary 7).
+    rows = collections.Counter(i.split('|')[0] for r in rs for i in r['exploratoryNew'] if not i.startswith('R-MIRROR2|'))
+    # 7. per-shape view of H11: new R-MIRROR2 identities at the final step, and cells with at least one, per shape word.
+    shapes = collections.Counter(); shape_cells = collections.Counter()
+    for r in rs:
+        m2 = [h for h in r['steps'][-1].get('symbolicNewVsSeed') or [] if h['rule'] == 'R-MIRROR2']
+        shapes.update(h.get('shape', 'none') for h in m2)
+        shape_cells.update({h.get('shape', 'none') for h in m2})
     # 6. cost per cell.
     steps = [st for r in rs for st in r['_sess']['steps']]
     walls = [st['wallMs'] for st in steps if 'wallMs' in st]
@@ -45,6 +52,7 @@ for arm in ('none', 'combined'):
         'attribution': {'findings': findings, 'counts': dict(att)},
         'pushEvents': push, 'pullCalls': pull, 'pullByTool': dict(pull_tools),
         'notCountedNewByRule': {k: rows.get(k, 0) for k in NOT_COUNTED} | {k: v for k, v in rows.items() if k not in NOT_COUNTED},
+        'mirror2ByShape': {'counted': ['literal', 'error'], 'newIdentities': dict(sorted(shapes.items())), 'cellsWithAny': dict(sorted(shape_cells.items()))},
         'cost': {
             'steps': len(steps),
             'stepWallMsMedian': statistics.median(walls) if walls else None,

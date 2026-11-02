@@ -3310,6 +3310,26 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.5 Hexagonal study: secondary 7 and a correction to secondary 5
+**Timestamp**: 2026-11-02T16:47:44Z
+**User Input**: "Work through the instrument queue."
+**AI Response**: "Computed secondary 7 (per-shape view of H11) with zero calls from the shape word the scorer keeps on each final-step hit: none arm [literal] 141, [error] 24, [field] 33, [field-set] 7; combined arm 0 for every shape. Corrected secondary 5 in the study report: the R-MIRROR2 not-counted figure is 40 ([field] 33, [field-set] 7), not 205 (205 counted every shape). No confirmatory number changes."
+**Context**: Post-analysis descriptive secondaries (registration §1); experiments/v15-study/hx-secondaries.py; Docs/DiagnosticRuns/v15-hx-study-2026-11-02.md.
+## v1.5 rule set: independent adversarial review recorded
+**Timestamp**: 2026-11-02T17:11:23Z
+**User Input**: "Work through the instrument queue (item 10: an independent adversarial review of the v1.5 rule set)."
+**AI Response**: "A read-only reviewer that did not write the rules returned 24 findings traced through the code (FN, FP and identity). They are recorded in Docs/DiagnosticRuns/v15-rule-review-2026-11-02.md with a triage against the registered results. No registered number changes. #14 and #21 were passed to the H06 and H11-d development work, #19 and #20 to R-D5S, and #22 goes to threats to validity."
+**Context**: Exploratory instrument review outside the registered studies.
+## v1.5.7: R-INBYP (exploratory) and a side-aware R-AXA message
+**Timestamp**: 2026-11-02T17:06:59Z
+**User Input**: "Work through the instrument queue (item 14: the R-AXA gap the Hexagonal hand read found)."
+**AI Response**: "Added R-INBYP, a driving adapter that imports a driven port (fact USES_OUT_PORT), on no row, so neither counted nor delivered. On the Hexagonal study's kept trees, with zero calls, it fires in the 5 t11 combined sessions where the trap persisted and in no other session or seed. R-AXA's fix text no longer offers a driving adapter the out-port route that the t11 agents took. The registered rule list, the scorer and the recorded results are unchanged."
+**Context**: Construction, exploratory instrument work outside the registered study; experiments/hx-inbyp-dev/; tests/unit/v15-instrument/r-inbyp.test.ts.
+## v1.5.7 H06 R-ADAPTER-RULE: development revision
+**Timestamp**: 2026-11-02T17:24:56Z
+**User Input**: "Improve the exploratory rule R-ADAPTER-RULE (Hexagonal H06) so it detects its construct; zero model calls; development fit, not admission."
+**AI Response**: "Revised the ADAPTER_DECIDES fact in src/v15-instrument/facts.ts and added a dated v1.5.7 header to the rule file (Cypher query unchanged). The rule now also reads business thresholds and calendar rules on plain request or port data, one level down through a local const or an in-tree adapter helper, and nullable reads; numeric ternary arms count as prices; code literals chosen by an equality alone are mappings. H06 cases of HCAL-01..04 (development data): positives 4/14 to 14/14 (HCAL-03 + HCAL-04: 3/8 to 8/8), 0 FP on twins, legit cases and bases before and after. HCAL-05 has no H06 cases. Hexagonal study trees (descriptive): new R-ADAPTER-RULE identities arm none 7 to 10, combined 0 to 0; the counted Hexagonal rules gave byte-identical findings. Records and limits in experiments/h06-adapter-rule-dev/README.md; tests in tests/unit/v15-instrument/h06-adapter-rule.test.ts. Not admitted; needs a new blind sealed set."
+**Context**: v1.5.7 exploratory instrument work; no rule-set, admitted-row or counted-rule change
 ## v1.5.7 H11-d field names: R-MIRROR2 field shapes (exploratory, development fit)
 **Timestamp**: 2026-11-02T17:27:00Z
 **User Input**: "Improve R-MIRROR2 on H11-d (HCAL-07 4/6): separate H11-c from H11-d by shape word and cover the mixed-declaration list and vendor names held as object values, with zero model calls; keep every [literal] and [error] finding byte-identical on the Hexagonal study kept trees; do not open HCAL-07 files."
