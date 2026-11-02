@@ -3310,6 +3310,16 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.5 Hexagonal study: secondary 7 and a correction to secondary 5
+**Timestamp**: 2026-11-02T16:47:44Z
+**User Input**: "Work through the instrument queue."
+**AI Response**: "Computed secondary 7 (per-shape view of H11) with zero calls from the shape word the scorer keeps on each final-step hit: none arm [literal] 141, [error] 24, [field] 33, [field-set] 7; combined arm 0 for every shape. Corrected secondary 5 in the study report: the R-MIRROR2 not-counted figure is 40 ([field] 33, [field-set] 7), not 205 (205 counted every shape). No confirmatory number changes."
+**Context**: Post-analysis descriptive secondaries (registration §1); experiments/v15-study/hx-secondaries.py; Docs/DiagnosticRuns/v15-hx-study-2026-11-02.md.
+## v1.5 rule set: independent adversarial review recorded
+**Timestamp**: 2026-11-02T17:11:23Z
+**User Input**: "Work through the instrument queue (item 10: an independent adversarial review of the v1.5 rule set)."
+**AI Response**: "A read-only reviewer that did not write the rules returned 24 findings traced through the code (FN, FP and identity). They are recorded in Docs/DiagnosticRuns/v15-rule-review-2026-11-02.md with a triage against the registered results. No registered number changes. #14 and #21 were passed to the H06 and H11-d development work, #19 and #20 to R-D5S, and #22 goes to threats to validity."
+**Context**: Exploratory instrument review outside the registered studies.
 ## v1.5.7: R-INBYP (exploratory) and a side-aware R-AXA message
 **Timestamp**: 2026-11-02T17:06:59Z
 **User Input**: "Work through the instrument queue (item 14: the R-AXA gap the Hexagonal hand read found)."
