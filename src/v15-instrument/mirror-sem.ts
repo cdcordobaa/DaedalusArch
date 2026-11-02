@@ -51,7 +51,7 @@ export interface CoreValueSet {
 
 export interface VendorValueSet { readonly module: string; readonly name: string; readonly members: readonly string[]; readonly decl: string }
 
-export interface MapPair { readonly from: string; readonly to: string; readonly file: string; readonly line: number; readonly form: 'switch' | 'object' | 'conditional' | 'if' | 'map' }
+export interface MapPair { readonly from: string; readonly to: string; readonly file: string; readonly line: number; readonly form: 'switch' | 'object' | 'conditional' | 'if' | 'map' | 'cast' }
 export interface BranchSite { readonly file: string; readonly line: number; readonly form: string; readonly member: string; readonly text: string }
 
 export interface MirrorCandidateFact {
@@ -67,6 +67,8 @@ export interface MirrorCandidateFact {
   readonly oneToOne: boolean;
   readonly branches: readonly BranchSite[];
   readonly ownedBy: '' | 'baseline';
+  /** v1.5.9: 'core' when the mapping is a core-side translation of vendor text (no adapter maps into the set); absent otherwise. */
+  readonly mapSide?: 'core';
   /** The domain's own text: the spec file (comments stripped) and the tree's ARCHITECTURE / GLOSSARY / DOMAIN docs (capped). */
   readonly domainText: string;
 }
@@ -210,6 +212,278 @@ export function adapterMapsOf(sf: SourceFile, file: string): MapPair[] {
   return out;
 }
 
+// ── v1.5.9 (2026-11-02): core-side copies (the SEM-GATE form A) ─────────────────────────────────────────────────────
+//
+// The vendor's value reaches the core as text (an adapter copies it into a port's result, or the core reads a
+// vendor-declared property), and the core turns that text into a core value set itself: a cast (`as CoreSet`), a lookup
+// table or Map keyed by the text, or a switch / if chain on it. Only this provenance makes a core-side mapping a
+// candidate; a core set filled from text that does not trace to a vendor value is never one.
+
+/** A core-side translation: the vendor set the source text carries, and the pairs in vendor spelling (`from`). */
+export interface CoreMapPair extends MapPair { readonly vendor: string }
+/** A cast of vendor text to a named core type (its pairs are made once the core set is known). */
+export interface CoreCast { readonly target: string; readonly vendor: string; readonly file: string; readonly line: number }
+
+const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+const vendorId = (v: VendorValueSet): string => `${v.module}|${v.name}`;
+const NORMALIZER = /^(toLowerCase|toUpperCase|toLocaleLowerCase|toLocaleUpperCase|trim|trimStart|trimEnd)$/;
+
+/** The smallest vendor set holding every string literal of an expression's type (>= 2 literals), if it is one. */
+function vendorSetOfType(e: Node, sets: readonly VendorValueSet[]): VendorValueSet | undefined {
+  let lits: string[];
+  try {
+    const t = e.getType();
+    const parts = (t.isUnion() ? t.getUnionTypes() : [t]).filter((u) => !u.isUndefined() && !u.isNull());
+    const vs = parts.map((u) => (u.isStringLiteral() || u.isEnumLiteral() ? u.getLiteralValue() : undefined));
+    if (vs.length < 2 || vs.some((v) => typeof v !== 'string')) return undefined;
+    lits = vs as string[];
+  } catch { return undefined; }
+  let best: VendorValueSet | undefined;
+  for (const v of sets) if (lits.every((l) => v.members.includes(l)) && (best === undefined || v.members.length < best.members.length)) best = v;
+  return best;
+}
+
+/** A property read whose property is declared by a vendor module (a declaration file or node_modules) and typed as a vendor set. */
+function vendorRead(e: Node, sets: readonly VendorValueSet[]): VendorValueSet | undefined {
+  if (!Node.isPropertyAccessExpression(e) && !Node.isElementAccessExpression(e)) return undefined;
+  try {
+    const sym = Node.isPropertyAccessExpression(e) ? e.getNameNode().getSymbol() : e.getArgumentExpression()?.getSymbol();
+    const fromVendor = (sym?.getDeclarations() ?? []).some((d) => { const sf = d.getSourceFile(); return sf.isDeclarationFile() || sf.isInNodeModules(); });
+    return fromVendor ? vendorSetOfType(e, sets) : undefined;
+  } catch { return undefined; }
+}
+
+/** Strips string normalizers (`x.toLowerCase()`, `String(x)`, `` `${x}` ``, `x ?? ''`, `await x`) down to the value they pass on. */
+function passedOn(e: Node): Node {
+  let x = unwrap(e);
+  for (;;) {
+    if (Node.isAwaitExpression(x)) { x = unwrap(x.getExpression()); continue; }
+    if (Node.isCallExpression(x)) {
+      const c = x.getExpression();
+      if (Node.isPropertyAccessExpression(c) && NORMALIZER.test(c.getName()) && x.getArguments().length === 0) { x = unwrap(c.getExpression()); continue; }
+      if (Node.isIdentifier(c) && c.getText() === 'String' && x.getArguments().length === 1) { x = unwrap(x.getArguments()[0]!); continue; }
+    }
+    if (Node.isTemplateExpression(x) && x.getHead().getLiteralText() === '' && x.getTemplateSpans().length === 1 && x.getTemplateSpans()[0]!.getLiteral().getLiteralText() === '') { x = unwrap(x.getTemplateSpans()[0]!.getExpression()); continue; }
+    if (Node.isBinaryExpression(x) && (x.getOperatorToken().getKind() === SyntaxKind.QuestionQuestionToken || x.getOperatorToken().getKind() === SyntaxKind.BarBarToken)) { x = unwrap(x.getLeft()); continue; }
+    return x;
+  }
+}
+
+/** The name of a type: its alias or symbol; of a union, its one part that is not undefined, null, a Promise or a PromiseLike. */
+const nameOfType = (t: import('ts-morph').Type | undefined): string => {
+  if (t === undefined) return '';
+  const own = (t.getAliasSymbol() ?? t.getSymbol())?.getName();
+  if (own !== undefined && !t.isUnion()) return own === '__object' || own === '__type' ? '' : own;
+  if (!t.isUnion()) return '';
+  const parts = t.getUnionTypes().filter((u) => !u.isUndefined() && !u.isNull() && !/^(Promise|PromiseLike)$/.test(u.getSymbol()?.getName() ?? ''));
+  const names = [...new Set(parts.map((u) => (u.getAliasSymbol() ?? u.getSymbol())?.getName() ?? ''))];
+  return names.length === 1 && names[0] !== '__object' && names[0] !== '__type' ? names[0]! : (own ?? '');
+};
+const typeName = (n: Node): string => { try { return nameOfType(n.getType()); } catch { return ''; } };
+
+/**
+ * The fields and methods through which adapters hand vendor text to the core: an object-literal property (of a port's
+ * result, `KilnReading.phaseCode`) or a method's return value whose value is a vendor-declared property read, passed on
+ * as is or through a string normalizer only (a value the adapter maps is not vendor text any more).
+ */
+export function vendorCarriersOf(adapterFiles: readonly { sf: SourceFile }[], sets: readonly VendorValueSet[]): Map<string, VendorValueSet[]> {
+  const out = new Map<string, VendorValueSet[]>();
+  // two adapters may fill fields of one name from different vendor sets: a key keeps every set
+  const add = (k: string, v: VendorValueSet): void => { const xs = out.get(k) ?? []; if (!xs.includes(v)) xs.push(v); out.set(k, xs); };
+  for (const { sf } of adapterFiles) {
+    for (const o of sf.getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression)) {
+      let owner = '';
+      try { owner = nameOfType(o.getContextualType()); } catch { owner = ''; }
+      for (const p of o.getProperties()) {
+        const init = Node.isPropertyAssignment(p) ? p.getInitializer() : Node.isShorthandPropertyAssignment(p) ? p.getNameNode() : undefined;
+        if (init === undefined) continue;
+        const v = vendorRead(passedOn(init), sets);
+        if (v !== undefined) add(`field:${owner}.${(p as import('ts-morph').PropertyAssignment).getName()}`, v);
+      }
+    }
+    for (const cl of sf.getClasses()) {
+      for (const m of cl.getMethods()) {
+        for (const r of m.getDescendantsOfKind(SyntaxKind.ReturnStatement)) {
+          const e = r.getExpression();
+          if (e === undefined || r.getFirstAncestor((a) => Node.isFunctionLikeDeclaration(a)) !== m) continue;
+          const v = vendorRead(passedOn(e), sets);
+          if (v !== undefined) add(`method:${m.getName()}`, v);
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/** The name a function-like node is called by (a declaration, a method, or a const it is assigned to). */
+const calleeName = (f: Node): string | undefined => {
+  if (Node.isFunctionDeclaration(f) || Node.isMethodDeclaration(f)) return f.getName();
+  const p = f.getParent();
+  return p !== undefined && Node.isVariableDeclaration(p) ? p.getName() : undefined;
+};
+
+interface TraceCtx { readonly sets: readonly VendorValueSet[]; readonly carriers: ReadonlyMap<string, readonly VendorValueSet[]>; readonly calls: readonly import('ts-morph').CallExpression[] }
+
+/** The vendor sets the text of a core expression may carry, if it traces to vendor text (depth-capped; empty: it does not). */
+function traceVendor(e: Node, ctx: TraceCtx, depth = 0): readonly VendorValueSet[] {
+  if (depth > 3) return [];
+  const x = passedOn(e);
+  const direct = vendorRead(x, ctx.sets);
+  if (direct !== undefined) return [direct];
+  if (Node.isPropertyAccessExpression(x)) {
+    const owner = typeName(x.getExpression());
+    const exact = ctx.carriers.get(`field:${owner}.${x.getName()}`);
+    if (exact !== undefined) return exact;
+    if (owner !== '') return ctx.carriers.get(`field:.${x.getName()}`) ?? [];
+    // an unnamed receiver: any adapter field of that name
+    return [...new Set([...ctx.carriers.entries()].filter(([k]) => k.startsWith('field:') && k.endsWith(`.${x.getName()}`)).flatMap(([, v]) => v))];
+  }
+  if (Node.isCallExpression(x)) {
+    const c = x.getExpression();
+    return Node.isPropertyAccessExpression(c) ? ctx.carriers.get(`method:${c.getName()}`) ?? [] : [];
+  }
+  if (Node.isIdentifier(x)) {
+    let decl: Node | undefined;
+    try { decl = x.getSymbol()?.getDeclarations()[0]; } catch { decl = undefined; }
+    if (decl === undefined) return [];
+    if (Node.isVariableDeclaration(decl)) { const i = decl.getInitializer(); return i !== undefined ? traceVendor(i, ctx, depth + 1) : []; }
+    if (Node.isParameterDeclaration(decl)) {
+      const f = decl.getParent();
+      const name = calleeName(f);
+      if (name === undefined || !Node.isFunctionLikeDeclaration(f) && !Node.isArrowFunction(f) && !Node.isFunctionExpression(f)) return [];
+      const idx = (f as unknown as { getParameters(): Node[] }).getParameters().indexOf(decl);
+      const out: VendorValueSet[] = [];
+      for (const call of ctx.calls) {
+        const ce = call.getExpression();
+        const cn = Node.isIdentifier(ce) ? ce.getText() : Node.isPropertyAccessExpression(ce) ? ce.getName() : undefined;
+        const a = call.getArguments()[idx];
+        if (cn !== name || a === undefined) continue;
+        for (const v of traceVendor(a, ctx, depth + 1)) if (!out.includes(v)) out.push(v);
+      }
+      return out;
+    }
+  }
+  return [];
+}
+
+/** The first value a branch returns or assigns (the adapter-map reading). */
+function firstValue(stmts: Node[]): Node | undefined {
+  for (const s of stmts) {
+    if (Node.isReturnStatement(s)) return s.getExpression();
+    if (Node.isExpressionStatement(s)) { const e = s.getExpression(); if (Node.isBinaryExpression(e) && e.getOperatorToken().getKind() === SyntaxKind.EqualsToken) return e.getRight(); }
+    if (Node.isBlock(s)) return firstValue(s.getStatements());
+  }
+  return undefined;
+}
+
+/** The object literal or `new Map([...])` a table identifier is declared with (through imports). */
+function tableOf(e: Node): Node | undefined {
+  const x = unwrap(e);
+  if (Node.isObjectLiteralExpression(x)) return x;
+  if (!Node.isIdentifier(x)) return undefined;
+  try {
+    let sym = x.getSymbol();
+    if (sym?.isAlias() === true) sym = sym.getAliasedSymbol();
+    const d = sym?.getDeclarations()[0];
+    if (d === undefined || !Node.isVariableDeclaration(d)) return undefined;
+    const i = d.getInitializer();
+    if (i === undefined) return undefined;
+    const t = unwrap(i);
+    return Node.isObjectLiteralExpression(t) || (Node.isNewExpression(t) && /^(Map|ReadonlyMap)$/.test(t.getExpression().getText())) ? t : undefined;
+  } catch { return undefined; }
+}
+
+/**
+ * The core-side translations of vendor text in the core files: casts, lookup tables / Maps, switch and if chains whose
+ * source traces to vendor text (`traceVendor`). A pair's `from` is the vendor member its key or case names (case- and
+ * separator-insensitively); a key that names no member of the carried vendor set gives no pair.
+ */
+export function coreMapsOf(coreFiles: readonly { sf: SourceFile; file: string }[], adapterFiles: readonly { sf: SourceFile }[], sets: readonly VendorValueSet[]): { pairs: CoreMapPair[]; casts: CoreCast[] } {
+  const pairs: CoreMapPair[] = []; const casts: CoreCast[] = [];
+  if (sets.length === 0) return { pairs, casts };
+  const carriers = vendorCarriersOf(adapterFiles, sets);
+  const ctx: TraceCtx = { sets, carriers, calls: coreFiles.flatMap((c) => c.sf.getDescendantsOfKind(SyntaxKind.CallExpression)) };
+  const fileOfSf = new Map(coreFiles.map((c) => [c.sf, c.file] as const));
+  for (const { sf, file } of coreFiles) {
+    // a pair's site is where its key is written (a table imported from another core file is cited there)
+    const push = (vs: readonly VendorValueSet[], key: string | undefined, to: Node | undefined, line: number, form: MapPair['form']): void => {
+      if (key === undefined || to === undefined) return;
+      const k = coreKeyOf(to);
+      const at = fileOfSf.get(to.getSourceFile());
+      if (k === undefined || at === undefined) return;
+      for (const v of vs) {
+        const from = v.members.find((m) => norm(m) === norm(key));
+        if (from !== undefined) pairs.push({ from, to: k, file: at, line, form, vendor: vendorId(v) });
+      }
+    };
+    const fromTable = (tbl: Node, v: readonly VendorValueSet[]): void => {
+      if (Node.isObjectLiteralExpression(tbl)) {
+        for (const p of tbl.getProperties()) {
+          if (!Node.isPropertyAssignment(p)) continue;
+          const nn = p.getNameNode();
+          push(v, Node.isIdentifier(nn) ? nn.getText() : strOf(nn), p.getInitializer(), p.getStartLineNumber(), 'object');
+        }
+      } else if (Node.isNewExpression(tbl)) {
+        const a = tbl.getArguments()[0];
+        if (a === undefined || !Node.isArrayLiteralExpression(unwrap(a))) return;
+        for (const el of (unwrap(a) as import('ts-morph').ArrayLiteralExpression).getElements()) {
+          const t = unwrap(el);
+          if (Node.isArrayLiteralExpression(t) && t.getElements().length === 2) push(v, strOf(unwrap(t.getElements()[0]!)), t.getElements()[1], t.getStartLineNumber(), 'map');
+        }
+      }
+    };
+    for (const a of [...sf.getDescendantsOfKind(SyntaxKind.AsExpression), ...sf.getDescendantsOfKind(SyntaxKind.TypeAssertionExpression)]) {
+      const tn = a.getTypeNode();
+      if (tn === undefined || !Node.isTypeReference(tn)) continue;
+      for (const v of traceVendor(a.getExpression(), ctx)) casts.push({ target: tn.getTypeName().getText().split('.').pop()!, vendor: vendorId(v), file, line: a.getStartLineNumber() });
+    }
+    for (const ea of sf.getDescendantsOfKind(SyntaxKind.ElementAccessExpression)) {
+      const arg = ea.getArgumentExpression();
+      const v = arg !== undefined ? traceVendor(arg, ctx) : [];
+      const tbl = v.length > 0 ? tableOf(ea.getExpression()) : undefined;
+      if (tbl !== undefined && Node.isObjectLiteralExpression(tbl)) fromTable(tbl, v);
+    }
+    for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+      const c = call.getExpression();
+      if (!Node.isPropertyAccessExpression(c) || c.getName() !== 'get' || call.getArguments().length !== 1) continue;
+      const v = traceVendor(call.getArguments()[0]!, ctx);
+      const tbl = v.length > 0 ? tableOf(c.getExpression()) : undefined;
+      if (tbl !== undefined && Node.isNewExpression(tbl)) fromTable(tbl, v);
+    }
+    for (const sw of sf.getDescendantsOfKind(SyntaxKind.SwitchStatement)) {
+      const v = traceVendor(sw.getExpression(), ctx);
+      if (v.length === 0) continue;
+      for (const c of sw.getCaseBlock().getClauses()) {
+        if (!Node.isCaseClause(c)) continue;
+        let stmts: Node[] = c.getStatements();
+        for (let n: Node | undefined = c; stmts.length === 0 && n !== undefined;) { n = n.getNextSibling(); if (n !== undefined && (Node.isCaseClause(n) || Node.isDefaultClause(n))) stmts = n.getStatements(); }
+        push(v, strOf(unwrap(c.getExpression())), firstValue(stmts), c.getStartLineNumber(), 'switch');
+      }
+    }
+    const cmp = (e: Node): { v: readonly VendorValueSet[]; key: string } | undefined => {
+      const x = unwrap(e);
+      if (!Node.isBinaryExpression(x)) return undefined;
+      const k = x.getOperatorToken().getKind();
+      if (k !== SyntaxKind.EqualsEqualsEqualsToken && k !== SyntaxKind.EqualsEqualsToken) return undefined;
+      const [l, r] = [unwrap(x.getLeft()), unwrap(x.getRight())];
+      const key = strOf(r) ?? strOf(l);
+      const src = strOf(r) !== undefined ? l : r;
+      const v = key !== undefined ? traceVendor(src, ctx) : [];
+      return v.length > 0 && key !== undefined ? { v, key } : undefined;
+    };
+    for (const i of sf.getDescendantsOfKind(SyntaxKind.IfStatement)) {
+      const m = cmp(i.getExpression());
+      const t = i.getThenStatement();
+      if (m !== undefined) push(m.v, m.key, firstValue(Node.isBlock(t) ? t.getStatements() : [t]), i.getStartLineNumber(), 'if');
+    }
+    for (const c of sf.getDescendantsOfKind(SyntaxKind.ConditionalExpression)) {
+      const m = cmp(c.getCondition());
+      if (m !== undefined) push(m.v, m.key, c.getWhenTrue(), c.getStartLineNumber(), 'conditional');
+    }
+  }
+  return { pairs, casts };
+}
+
 const COMPARE = new Set([SyntaxKind.EqualsEqualsEqualsToken, SyntaxKind.ExclamationEqualsEqualsToken, SyntaxKind.EqualsEqualsToken, SyntaxKind.ExclamationEqualsToken]);
 const INCLUDES = /^(includes|has|indexOf)$/;
 
@@ -306,12 +580,14 @@ export interface CandidateInputs {
 export function mirrorCandidatesOf(inp: CandidateInputs): MirrorCandidateFact[] {
   if (inp.vendorSets.length === 0) return [];
   const pairs = inp.adapterFiles.flatMap((a) => adapterMapsOf(a.sf, a.file));
-  if (pairs.length === 0) return [];
+  // v1.5.9: core-side translations of vendor text, used only for a set no adapter maps into (so every v1.5.8 candidate is unchanged)
+  const core = coreMapsOf(inp.coreFiles, inp.adapterFiles, inp.vendorSets);
+  if (pairs.length === 0 && core.pairs.length === 0 && core.casts.length === 0) return [];
   const sets = inp.coreFiles.flatMap((c) => coreValueSetsOf(c.sf, c.file, c.role)).filter((s) => s.members.length >= 3);
   const out: MirrorCandidateFact[] = [];
   for (const s of sets) {
     const into = pairs.filter((p) => s.keys.has(p.to));
-    if (into.length < 2) continue;
+    if (into.length < 2) { const c = coreSideCandidate(s, core, inp); if (c !== undefined) out.push(c); continue; }
     // the vendor set covering the most mapped values (ties: the smaller set, then the name)
     let best: { v: VendorValueSet; ps: MapPair[] } | undefined;
     for (const v of inp.vendorSets) {
@@ -321,7 +597,7 @@ export function mirrorCandidatesOf(inp: CandidateInputs): MirrorCandidateFact[] 
       const bn = best === undefined ? -1 : new Set(best.ps.map((p) => p.from)).size;
       if (n >= 2 && (n > bn || (n === bn && (v.members.length < best!.v.members.length || (v.members.length === best!.v.members.length && `${v.module}|${v.name}` < `${best!.v.module}|${best!.v.name}`))))) best = { v, ps };
     }
-    if (best === undefined) continue;
+    if (best === undefined) { const c = coreSideCandidate(s, core, inp); if (c !== undefined) out.push(c); continue; }
     const uniq = new Map<string, MapPair>();
     for (const p of best.ps) { const k = `${p.from}->${s.keys.get(p.to)!}`; if (!uniq.has(k)) uniq.set(k, { ...p, to: s.keys.get(p.to)! }); }
     const ps = [...uniq.values()].sort((a, b) => best!.v.members.indexOf(a.from) - best!.v.members.indexOf(b.from) || (a.to < b.to ? -1 : 1));
@@ -339,6 +615,53 @@ export function mirrorCandidatesOf(inp: CandidateInputs): MirrorCandidateFact[] 
     });
   }
   return out.sort((a, b) => (a.id < b.id ? -1 : 1));
+}
+
+/**
+ * v1.5.9: the candidate of a core set filled by core-side translations of vendor text (casts to the set's name, table,
+ * Map, switch and if pairs into its members), when no adapter maps into it. The vendor set is the carried set with the
+ * most distinct mapped values (ties: the smaller set, then the name); the rest is the adapter-side reading.
+ */
+function coreSideCandidate(s: CoreValueSet, core: { pairs: readonly CoreMapPair[]; casts: readonly CoreCast[] }, inp: CandidateInputs): MirrorCandidateFact | undefined {
+  const short = s.name.split('.').pop()!;
+  // a table never fills itself (a display table keyed by vendor text is not a value set the text is mapped into)
+  const inOwnDecl = (p: MapPair): boolean => p.file === s.file && p.line >= s.line && p.line <= s.line + s.decl.split('\n').length;
+  const ps: CoreMapPair[] = core.pairs.filter((p) => s.keys.has(p.to) && !inOwnDecl(p));
+  for (const c of core.casts) {
+    if (c.target !== short || s.name.includes('.')) continue;
+    const v = inp.vendorSets.find((x) => vendorId(x) === c.vendor);
+    if (v === undefined) continue;
+    for (const m of v.members) {
+      const k = [...s.keys.keys()].find((key) => key.startsWith('lit:') && norm(key.slice(4)) === norm(m));
+      if (k !== undefined) ps.push({ from: m, to: k, file: c.file, line: c.line, form: 'cast', vendor: c.vendor });
+    }
+  }
+  let best: { v: VendorValueSet; ps: CoreMapPair[] } | undefined;
+  for (const v of inp.vendorSets) {
+    const vp = ps.filter((p) => p.vendor === vendorId(v));
+    const n = new Set(vp.map((p) => p.from)).size;
+    const bn = best === undefined ? -1 : new Set(best.ps.map((p) => p.from)).size;
+    if (n >= 2 && (n > bn || (n === bn && (v.members.length < best!.v.members.length || (v.members.length === best!.v.members.length && vendorId(v) < vendorId(best!.v)))))) best = { v, ps: vp };
+  }
+  if (best === undefined) return undefined;
+  const uniq = new Map<string, MapPair>();
+  for (const p of [...best.ps].sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : a.line - b.line))) {
+    const k = `${p.from}->${s.keys.get(p.to)!}`;
+    if (!uniq.has(k)) uniq.set(k, { from: p.from, to: s.keys.get(p.to)!, file: p.file, line: p.line, form: p.form });
+  }
+  const pairs = [...uniq.values()].sort((a, b) => best!.v.members.indexOf(a.from) - best!.v.members.indexOf(b.from) || (a.to < b.to ? -1 : 1));
+  const froms = new Set(pairs.map((p) => p.from)); const tos = new Set(pairs.map((p) => p.to));
+  const perFrom = new Map<string, Set<string>>(); const perTo = new Map<string, Set<string>>();
+  for (const p of pairs) { perFrom.set(p.from, (perFrom.get(p.from) ?? new Set()).add(p.to)); perTo.set(p.to, (perTo.get(p.to) ?? new Set()).add(p.from)); }
+  const oneToOne = [...perFrom.values()].every((x) => x.size === 1) && [...perTo.values()].every((x) => x.size === 1) && tos.size === s.members.length;
+  const branches = inp.coreFiles.flatMap((c) => branchSitesOf(c.sf, c.file, s, s.file)).sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : a.line - b.line));
+  return {
+    id: `${s.file}#${s.name}|${best.v.module}#${best.v.name}`,
+    file: s.file, line: s.line, role: s.role, coreSet: s.name, coreKind: s.kind, coreMembers: s.members, coreDecl: s.decl,
+    module: best.v.module, vendorSet: best.v.name, vendorMembers: best.v.members, vendorDecl: best.v.decl,
+    pairs, mappedFrom: froms.size, mappedTo: tos.size, oneToOne, branches,
+    ownedBy: inp.baseline.has(signatureOf(s)) ? 'baseline' : '', mapSide: 'core', domainText: inp.domainText,
+  };
 }
 
 // ── The model fact ───────────────────────────────────────────────────────────────────────────────────────────────
@@ -389,7 +712,7 @@ export function mirrorPrompt(c: MirrorCandidateFact): string {
     `Members: ${c.coreMembers.join(', ')}`,
     '```ts', c.coreDecl, '```',
     '',
-    '## Mapping table (vendor value -> core member, in the outbound adapter)',
+    c.mapSide === 'core' ? '## Mapping table (vendor value -> core member, in the core: the vendor value reaches the core as text)' : '## Mapping table (vendor value -> core member, in the outbound adapter)',
     ...c.pairs.map((p) => `- ${p.from} -> ${p.to.replace(/^lit:/, '').replace(/^ref:/, '')}  (${p.file}, ${p.form})`),
     ...(unmapped.length > 0 ? [`Vendor values with no mapping shown: ${unmapped.join(', ')}`] : []),
     ...(coreUnreached.length > 0 ? [`Core members no vendor value maps to: ${coreUnreached.join(', ')}`] : []),
