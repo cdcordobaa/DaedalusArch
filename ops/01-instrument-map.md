@@ -128,8 +128,8 @@ Confirmatory means registered before the data, or an external test chosen before
 | SO1 spec format | met with limits | 5 sealed style libraries used unchanged in Study 2b and the v1.5 studies; DDD and Hexagonal rows admitted on sealed sets | no expert review; spec-author κ 0.21 (two Claude sessions); 30+ rules over 7 dimensions is a declared deviation |
 | SO2 APG pipeline | met | imports = tsc 1.000 on 15 external repos; engine parity on 72,388 statements; 283/283 correct on external code; DETECT-02 sealed held-out scored once | no data-flow edges (FLOWS_TO 0 on real code); edge rows not human-checked |
 | SO3 gate and bounded model role | met for the gate, partly met for the model role | combined delivery (pull + edit gate) is the treatment of the registered final study; DDD H1 supported through it; R-MIRROR-SEM 2/2 on HCAL-07's sealed semantic positives | D_sem pilot 16/21 = 0.762 against a 0.80 bar; no registered semantic result; one model vendor |
-| SO4 validation | partly met | 283/283 external; κ 0.913–1.000 with three tools; v1.5 rows admitted on sealed sets (CAL-02/03 DDD 9 of 16 rows, recall 36/36, 0 FP; HCAL-07 Hexagonal, 0 FP on 25 clean cases); DETECT-02 held-out | v1.3 hold-out not scored (attempt 4 under addendum 4); meaning labels 0 of 60 (C3m) |
-| SO5 spec effect on agent-built architecture | met for Layered and DDD; Hexagonal open | Study 2b (Layered): H1 p = 0.0132, H2 p = 0.0001; v1.5 final study (DDD): ΣD 85 → 0, p = 6.0 × 10⁻⁸, trap failures 23/36 → 1/36, acceptance kept (31 vs 30 of 36) | Hexagonal: the final study's H2 was not rejected because its delivery did not carry the Hexagonal families; the Hexagonal study (registered 2026-10-30, DEV-HX-1) is running; one generator family; rule circularity (M186) |
+| SO4 validation | partly met | 283/283 external; κ 0.913–1.000 with three tools; v1.5 rows admitted on sealed sets (CAL-02/03 DDD 9 of 16 rows, recall 36/36, 0 FP; HCAL-07 Hexagonal, 0 FP on 25 clean cases); DETECT-02 held-out | v1.3 hold-out closed as not scored after 4 attempts; meaning labels 0 of 60 (C3m) |
+| SO5 spec effect on agent-built architecture | met for Layered, DDD and Hexagonal | Study 2b (Layered): H1 p = 0.0132, H2 p = 0.0001; v1.5 final study (DDD): ΣD 85 → 0, p = 6.0 × 10⁻⁸, trap failures 23/36 → 1/36; Hexagonal study: ΣD 203 → 0 over 110 blocks, p = 2.1 × 10⁻²², task sign 10/0, trap failures 87/110 → 12/110, acceptance kept (103 vs 105 of 110) | one generator family; rule circularity (M186), with the trap rate as the outcome independent of delivery; tasks chosen where the model alone fails; semantic layer not tested (DEV-HX-1) |
 
 ### SO1 spec format
 
@@ -139,7 +139,8 @@ Confirmatory means registered before the data, or an external test chosen before
 ### SO2 APG pipeline
 
 - **Established.** As on 2026-10-26, plus: DETECT-02's sealed held-out set scored once at the study rule hash (10/14 positives; 1/14 twins and 2/6 negative controls with a finding); the v1.5 graph rules carried the DDD result (85 new identities against 5 for the frozen import rules on the same snapshots).
-- **Missing.** v1.5 facts moved from `experiments/` into `src/` (§5 step 1d); calls through ports and DA1 (§5 step 1b); data-flow edges (N40); edge-row adjudication (L29).
+- **Done 2026-11-02 (v1.5.6).** Calls through ports (CALLS_VIA_PORT, 732/732 edges against the language service on 91 trees; PR 467) and DA1 (shared composition-root exclusion; PR 466).
+- **Missing.** v1.5 facts moved from `experiments/` into `src/` (§5 step 1d); data-flow edges (N40); edge-row adjudication (L29).
 
 ### SO3 gate and bounded model role
 
@@ -151,13 +152,14 @@ Confirmatory means registered before the data, or an external test chosen before
 
 - **Established.** External correctness and convergent agreement as before. Admission on sealed sets for the v1.5 rows: CAL-02 (7 of 16 DDD rows, pooled recall 28/28, 0 FP), CAL-03 (9 of 16, recall 36/36, 0 FP on their clean cases), HCAL-03 to HCAL-07 (Hexagonal rows; HCAL-07: H11 14/16 with d 4/6, H03 4/4, H07 3/3, 0 FP on 25 clean cases).
 - **Failed gates, reported.** R-D5S (DDD declared invariants): recall 4/6, FP 2/10 on sealed unseen cases; DDD invariants exploratory. H11-d (vendor field names): 4/6, not admitted. H06 (business rule in an adapter): 0/4, not admitted.
-- **Missing.** The v1.3 hold-out score (attempt 4 under addendum 4, PR 463; if it fails, "not scored" for good). Meaning labels, 0 of 60 (N114; rater booking is the author's). Human FP/FN root-cause review.
+- **Closed.** The v1.3 hold-out: not scored after four attempts (attempt 4 stopped at step 2; `Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md` §11).
+- **Missing.** Meaning labels, 0 of 60 (N114; rater booking is the author's). Human FP/FN root-cause review.
 
 ### SO5 spec effect on agent-built architecture
 
 - **Established (confirmatory).** Study 1 as registered (N141, N142). Study 2b on Layered (C8039–C8053). The v1.5 final study on DDD: H1 supported, ΣD 85 → 0 over 36 blocks, exact p = 6.0 × 10⁻⁸, task-level p = 0.004, every sensitivity the same decision; trap failures 23/36 → 1/36; acceptance 31 vs 30 of 36 (`results/v1.5-study/analysis/`).
 - **Not rejected.** Final study H2, Hexagonal (78 blocks, ΣD 16 vs 12, p = 1.00): the delivery did not carry the Hexagonal families, so this null does not bear on them.
-- **Open.** The Hexagonal study (registered 2026-10-30; DEV-HX-1 dated 2026-11-02 after pilot run 1 stopped on hub latency): pilot run 2, dress rehearsal and the 660-turn run in progress.
+- **Established (confirmatory), 2026-11-02.** The Hexagonal study (registered 2026-10-30; DEV-HX-1, DEV-HX-2): H-HX supported, ΣD 203 → 0 over 110 blocks, exact p = 2.1 × 10⁻²², task sign 10/0 (p = 0.002), all robustness lines the same; joint reading supported (trap failures 87/110 → 12/110, paired p = 4.0 × 10⁻¹⁹); acceptance 103 vs 105 of 110; about 10 s more per turn (`Docs/DiagnosticRuns/v15-hx-study-2026-11-02.md`). Open: the 8-block hand read and the zero-call aggregation of secondaries 3–5 and 7.
 - **Missing.** A second generator family; evidence that fewer rule hits means better architecture (C3m); the failure-pattern taxonomy's second coder.
 
 ---
@@ -262,6 +264,7 @@ The weakest link is still C3m, then C2r. Study 2b adds one more: the same rules 
 
 ## 9. Changelog
 
+- 2026-11-02 (later): SO5 Hexagonal from open to met (Hexagonal study supported); SO4 hold-out closed as not scored; SO2 calls through ports and DA1 done (v1.5.6).
 - 2026-11-02: §4 rewritten as an assessment by objective (verdict table), after the v1.5 final study, the admission sets, DETECT-02 held-out, the N2 pilot and the Hexagonal study registration. §3 and §5 not yet revised.
 - 2026-10-26: full revision. Study 2b closed and the hold-out attempts recorded. v1.5 prototype parts added. Objectives renumbered to Kap3. New component table (§3), status by objective (§4), ordered steps (§5) and decision list (§6). Removed the four-week path, the old SO table and the question list.
 - 2026-10-19 (evening): C3 and hold-out rows no longer lead with F23 (done); they point to U6 and the V4 ADR.
