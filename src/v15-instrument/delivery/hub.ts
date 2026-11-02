@@ -185,7 +185,13 @@ export class DeliveryHub {
     if (this.mcpSocket !== null) this.mcpServer = await this.listen(this.mcpSocket, (c) => this.mcpConnect(c), false);
   }
 
+  /** Waits for deferred R-MIRROR-SEM answers still in flight, so no model call outlives its cell. */
+  async settleJudge(): Promise<void> {
+    await this.s?.judge?.settle?.();
+  }
+
   async stop(): Promise<void> {
+    await this.settleJudge();
     this.closeCell();
     for (const [srv, sock] of [[this.hookServer, this.hookSocket], [this.mcpServer, this.mcpSocket]] as const) {
       await new Promise<void>((resolve) => (srv === null ? resolve() : srv.close(() => resolve())));
@@ -227,7 +233,8 @@ export class DeliveryHub {
       : null;
     const keyed = [...res.findings.map((f) => keyOf(f, res.aggregateRoots)), ...(lay?.findings ?? [])];
     const d: Delivered = { res, keyed, frozenCount: lay?.findings.length ?? 0, frozenError };
-    s.cache.set(k, d);
+    // a check made while a deferred judge answer is still out is not cached: the next check of this tree asks again
+    if ((s.judge?.inflight?.() ?? 0) === 0) s.cache.set(k, d);
     return d;
   }
 
