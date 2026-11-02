@@ -3309,3 +3309,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Hexagonal study, reporting after the one scoring; no re-analysis
 
 ---
+
+## v1.5 rule set: independent adversarial review recorded
+**Timestamp**: 2026-11-02T17:11:23Z
+**User Input**: "Work through the instrument queue (item 10: an independent adversarial review of the v1.5 rule set)."
+**AI Response**: "A read-only reviewer that did not write the rules returned 24 findings traced through the code (FN, FP and identity). They are recorded in Docs/DiagnosticRuns/v15-rule-review-2026-11-02.md with a triage against the registered results. No registered number changes. #14 and #21 were passed to the H06 and H11-d development work, #19 and #20 to R-D5S, and #22 goes to threats to validity."
+**Context**: Exploratory instrument review outside the registered studies.
+
+---
