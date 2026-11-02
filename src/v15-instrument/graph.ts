@@ -222,6 +222,11 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const b = node(['AdapterFile'], { file: x.target, pkg: x.toPkg });
     rel('ADAPTER_IMPORTS', a, b, { line: x.line, specifier: x.specifier, drivingShared: x.drivingShared, sideShared: x.sideShared, targetHelperOnly: x.targetHelperOnly });
   }
+  for (const x of facts.inboundOutPorts) {
+    const a = node(['AdapterFile'], { file: x.file, pkg: x.fromPkg });
+    const p = node(['PortFile'], { file: x.port });
+    rel('USES_OUT_PORT', a, p, { line: x.line, specifier: x.specifier, by: x.by });
+  }
   for (const x of facts.transports) {
     const u = node(['CoreFile'], { file: x.file, role: x.role });
     const t = node(['TransportConcept'], { form: x.form, detail: x.detail, typeText: x.typeText });

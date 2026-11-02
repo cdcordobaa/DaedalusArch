@@ -3309,3 +3309,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Hexagonal study, reporting after the one scoring; no re-analysis
 
 ---
+
+## v1.5.7: R-INBYP (exploratory) and a side-aware R-AXA message
+**Timestamp**: 2026-11-02T17:06:59Z
+**User Input**: "Work through the instrument queue (item 14: the R-AXA gap the Hexagonal hand read found)."
+**AI Response**: "Added R-INBYP, a driving adapter that imports a driven port (fact USES_OUT_PORT), on no row, so neither counted nor delivered. On the Hexagonal study's kept trees, with zero calls, it fires in the 5 t11 combined sessions where the trap persisted and in no other session or seed. R-AXA's fix text no longer offers a driving adapter the out-port route that the t11 agents took. The registered rule list, the scorer and the recorded results are unchanged."
+**Context**: Construction, exploratory instrument work outside the registered study; experiments/hx-inbyp-dev/; tests/unit/v15-instrument/r-inbyp.test.ts.
+
+---
