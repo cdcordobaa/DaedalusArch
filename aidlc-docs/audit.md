@@ -3269,3 +3269,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Hexagonal study, pre-data deviation before any study call
 
 ---
+
+## v1.3 hold-out: addendum 4 recorded before attempt 4
+**Timestamp**: 2026-11-02T03:05:00Z
+**User Input**: "Asked to use the v1.3 hold-out now rather than leave it unscored, keeping the Hexagonal study as the priority."
+**AI Response**: "Recorded addendum 4 (DELEG-H5) before any step: attempt 3 unchanged plus the frozen preset copied into each patch-format style's spec role; one live run on 0 structure problems, otherwise not scored for good."
+**Context**: v1.3 hold-out, pre-run addendum
+
+---
