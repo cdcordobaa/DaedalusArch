@@ -1,0 +1,11 @@
+export type CoverStatus = 'bound' | 'in_review' | 'none';
+
+/** The hirer's cover for one hire, as the quote line shows it; the premium is in pounds. */
+export interface CoverQuote {
+  readonly quoteRef: string;
+  readonly premium: number;
+  /** The insurer's own word for the quote, printed on the quote line as is. */
+  readonly insurerState: string;
+  /** Where the cover stands for a hire: in force, still with an underwriter, or not there. */
+  readonly cover: CoverStatus;
+}

@@ -1,0 +1,10 @@
+import type { LockerDoors } from '../../../application/ports/out/LockerDoors';
+import type { LockBankDriver } from './LockBankDriver';
+
+export class LockBankDoors implements LockerDoors {
+  constructor(private readonly lockbank: LockBankDriver) {}
+
+  open(buildingId: string, bay: number): boolean {
+    return this.lockbank.pulse({ hub: buildingId, bay, holdMs: 800 }).result === 'OPENED';
+  }
+}

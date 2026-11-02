@@ -1,0 +1,13 @@
+export interface PriceView {
+  readonly sku: string;
+  readonly name: string;
+  readonly currency: string;
+  /** null when no usable rate exists; see `reason`. */
+  readonly amount: number | null;
+  readonly reason?: string;
+  readonly estimated: boolean;
+}
+
+export interface PriceProduct {
+  price(sku: string, currency: string): Promise<PriceView>;
+}
