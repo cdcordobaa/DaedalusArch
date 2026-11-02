@@ -93,5 +93,5 @@ Sessions 05:49:16Z–12:52:56Z (7 h 04 min); scoring 1 h 00 min; whole run from 
 
 `isolation/`, `dry/`, `smoke/`, `probes/`, `run/` (turns, calls, schedule, state, per-session `session.json` with
 `deliveryAudit`, hub push/calls/ledger), `sessions/` (`--keep-trees`: 220 sessions, 880 steps), `scores/`,
-`analysis/`, `private-id-map.json`. Privacy checks: no `costUsd`, no `canary-` marker, no personal path, no chat or
+`analysis/`, `private-id-map.json`. Privacy checks: no cost field, no canary marker (RUNBOOK §3 grep empty), no personal path, no chat or
 agent message text; `git status --short --ignored` lists no ignored file under this folder.
