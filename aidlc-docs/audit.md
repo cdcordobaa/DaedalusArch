@@ -3285,3 +3285,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.3 hold-out, attempt 4 (DELEG-H5)
 
 ---
+
+## v1.5 Hexagonal study: pilot run 2, dress rehearsal and pre-data addendum
+**Timestamp**: 2026-11-02T05:10:00Z
+**User Input**: "Scheduled routine: run the agent pilot again after DEV-HX-1, evaluate the five registered gates, and only if all pass run the dress rehearsal and fill the four post-pilot slots of the registration."
+**AI Response**: "Pilot run 2 (132 turns, 135 of 143 calls, 0 redraws, 0 hub judge calls, CLI 2.1.316) passed gates (a) to (e); records on results/v15-hx-pilot-r2. Dress rehearsal on t01 and t02 (12 turns, 15 of 16 calls) passed all four criteria; records on results/v15-hx-rehearsal. Filled only the four slot cells of the registration's pre-data addendum and added the dated line; no other change."
+**Context**: v1.5 Hexagonal study, pre-data addendum before the first study call; no arm contrast computed
+
+---
