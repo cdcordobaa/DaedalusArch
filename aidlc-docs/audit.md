@@ -3269,3 +3269,27 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Hexagonal study, pre-data deviation before any study call
 
 ---
+
+## v1.3 hold-out: addendum 4 recorded before attempt 4
+**Timestamp**: 2026-11-02T03:05:00Z
+**User Input**: "Asked to use the v1.3 hold-out now rather than leave it unscored, keeping the Hexagonal study as the priority."
+**AI Response**: "Recorded addendum 4 (DELEG-H5) before any step: attempt 3 unchanged plus the frozen preset copied into each patch-format style's spec role; one live run on 0 structure problems, otherwise not scored for good."
+**Context**: v1.3 hold-out, pre-run addendum
+
+---
+
+## v1.3 hold-out: attempt 4 stopped at step 2 (path-only check)
+**Timestamp**: 2026-11-02T03:35:39Z
+**User Input**: "Asked to run hold-out attempt 4 under addendum 4 with the committed adapter prompt; stop with no retry on any failure."
+**AI Response**: "After PR #463 merged, both hash rows matched. The fresh copy matched 1379b561… (608 files). The blind adapter session wrote nothing: its shell commands were denied, so converted/ was empty and had no MAP. The path-only check failed, so the attempt stopped with no retry: no header repair, no Neo4j, no live run, no figure. Recorded in Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md §11; the work directory was deleted."
+**Context**: v1.3 hold-out, attempt 4 (DELEG-H5)
+
+---
+
+## v1.5 Hexagonal study: pilot run 2, dress rehearsal and pre-data addendum
+**Timestamp**: 2026-11-02T05:10:00Z
+**User Input**: "Scheduled routine: run the agent pilot again after DEV-HX-1, evaluate the five registered gates, and only if all pass run the dress rehearsal and fill the four post-pilot slots of the registration."
+**AI Response**: "Pilot run 2 (132 turns, 135 of 143 calls, 0 redraws, 0 hub judge calls, CLI 2.1.316) passed gates (a) to (e); records on results/v15-hx-pilot-r2. Dress rehearsal on t01 and t02 (12 turns, 15 of 16 calls) passed all four criteria; records on results/v15-hx-rehearsal. Filled only the four slot cells of the registration's pre-data addendum and added the dated line; no other change."
+**Context**: v1.5 Hexagonal study, pre-data addendum before the first study call; no arm contrast computed
+
+---
