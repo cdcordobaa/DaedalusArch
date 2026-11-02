@@ -3342,3 +3342,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 instrument, exploratory development fit; admission would need a new blind sealed set
 
 ---
+
+## v1.5.7: instrument id and study-report follow-up
+**Timestamp**: 2026-11-02T18:17:39Z
+**User Input**: "Work through the instrument queue."
+**AI Response**: "Bumped INSTRUMENT_ID to v1.5.7 after PRs 476, 478, 479 and 480 merged; the counted rows and lists are unchanged. Added the R-INBYP follow-up to the Hexagonal study report's limits. No registered number changes."
+**Context**: Closing step of the 2026-11-02 instrument queue.
+
+---
