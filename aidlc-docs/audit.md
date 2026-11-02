@@ -3363,3 +3363,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 instrument, exploratory; development data only, admission needs a fresh blind set; no registered number changes.
 
 ---
+## v1.5.9 and SEM-GATE-2: R-MIRROR-SEM core-side candidates, semantic gate re-run
+**Timestamp**: 2026-11-02T22:55:43Z
+**User Input**: "Widen R-MIRROR-SEM to core-side renamed copies and re-run the semantic gate on fresh cases; write an agent-run plan only if it passes."
+**AI Response**: "Instrument v1.5.9 (src/v15-instrument/mirror-sem.ts): a core value set no adapter maps into is also a candidate when the core fills it from vendor text a port carries (cast, lookup table or Map, switch / if / conditional chain); question, Cypher rule and cache keys unchanged. Zero-call census over the 12 SEM-GATE built trees and 220 kept study trees: 75 earlier candidates unchanged, 4 added (the SEM-GATE form-A targets), none removed. SEM-GATE-2 criteria and 20 fresh cases (11 form-A positives, 9 negatives with 4 twins; from the hxpb1/hxpb2 reference trees and kept tree c020; all pass task tests and tsc) pushed in 069494e8a before any judge call. Ran once: 24 gate calls plus 2 in the latency run. Form-A recall 11/11, FP 0/9 fresh and 0/33 original, 0 citation problems, deferred hub p95 240 ms. Verdict PASS; experiments/sem-gate-2/AGENT-RUN-PLAN.md written, not run. Record: experiments/sem-gate-2/README.md."
+**Context**: Exploratory neuro-symbolic gate; R-MIRROR-SEM stays uncounted; no counted list or registered result changes.
+
+---
