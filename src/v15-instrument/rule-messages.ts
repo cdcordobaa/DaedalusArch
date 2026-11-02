@@ -31,6 +31,7 @@ export const RULE_LABELS: Readonly<Record<string, string>> = {
   'R-H5': 'infrastructure in a port',
   'R-INJ': 'concrete adapter injected',
   'R-AXA': 'adapter imports adapter',
+  'R-INBYP': 'driving adapter uses a driven port',
   'R-TRANSPORT': 'transport concept in the core',
   'R-LOCATOR': 'service locator',
   'R-COREIO': 'core I/O without a port',
@@ -68,6 +69,7 @@ export const RULE_TEXT: Readonly<Record<string, string>> = {
   'R-H5': 'A port states what the application needs in its own terms. Vendor types, adapter types and locking or transaction mechanisms stay inside the adapter that implements it.',
   'R-INJ': 'Application code depends on ports (interfaces), never on adapter classes. Only the composition root knows and constructs the adapters.',
   'R-AXA': 'Adapters meet only through the application\'s ports: an inbound adapter calls a use case, an outbound adapter implements a port, and the composition root wires them. One adapter does not import another.',
+  'R-INBYP': 'A driving adapter turns a request into a call on an in-port (a use case) and turns the answer back. It does not hold a driven port, so it never reads or writes stored state without the application.',
   'R-TRANSPORT': 'Domain and application code speak in their own terms: they report domain errors and results. Only an adapter turns them into HTTP statuses, HTTP errors or storage errors.',
   'R-LOCATOR': 'A class receives its collaborators through its constructor, wired once in the composition root. It does not ask a container, registry or static accessor for them at run time.',
   'R-COREIO': 'Domain and application code reach the outside world (network, files, environment, database or cache clients, child processes) only through ports that adapters implement, so the core runs and is tested without that world.',
@@ -101,7 +103,20 @@ const BUILDERS: Readonly<Record<string, Builder>> = {
     const [, from, target, toPkg] = m as unknown as [string, string, string, string];
     return {
       why: `${f.file} (${at(f)}), in adapter package ${from}, imports ${target}, a file of the adapter package ${toPkg}.`,
-      fix: `Remove the import of ${target} from ${f.file}. If ${f.file} needs data or an action from it, call a use case through an in-port (inbound adapter) or depend on the port that ${target} implements (outbound), and let the composition root connect the adapters. If ${target} is only a helper (shaping a reply, translating an error), give ${from} its own copy instead of reaching into ${toPkg}.`,
+      // v1.5.7 (2026-11-02): a driving adapter is told only the in-port route; offering it "the port that X implements"
+      // led agents to swap the import for an out-port and keep the bypass (Hexagonal study hand read, t11; R-INBYP).
+      fix: /(?:^|\/)adapters\/(?:in|inbound)\/[^/]+$/.test(from)
+        ? `Remove the import of ${target} from ${f.file}. ${from} is a driving adapter: if it needs data or an action from ${target}, call a use case through an in-port (add one, or extend an existing one); do not depend on ${target}'s port either. Let the composition root connect the adapters. If ${target} is only a helper (shaping a reply, translating an error), give ${from} its own copy instead of reaching into ${toPkg}.`
+        : `Remove the import of ${target} from ${f.file}. If ${f.file} needs data or an action from it, call a use case through an in-port (inbound adapter) or depend on the port that ${target} implements (outbound), and let the composition root connect the adapters. If ${target} is only a helper (shaping a reply, translating an error), give ${from} its own copy instead of reaching into ${toPkg}.`,
+    };
+  },
+  'R-INBYP': (f) => {
+    const m = /^(.+?) \(a driving adapter\) imports the driven port (.+?) \((?:path|implemented)\)$/.exec(f.evidence);
+    if (m === null) return null;
+    const [, from, port] = m as unknown as [string, string, string];
+    return {
+      why: `${f.file} (${at(f)}), in the driving adapter package ${from}, imports the driven port ${port}, so it can use stored state or a device without going through a use case.`,
+      fix: `Remove ${port} from ${f.file}. Put the work in a use case behind an in-port (add one, or extend an existing one), call that in-port from ${f.file}, and let the composition root hand ${from} only in-ports.`,
     };
   },
   'R-INJ': (f) => {

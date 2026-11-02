@@ -55,6 +55,19 @@ export interface CalcFact { readonly unit: string; readonly file: string; readon
 /** CN-01: an aggregate root that holds another aggregate root's object instead of its id (K16). */
 export interface RefFact { readonly root: string; readonly file: string; readonly line: number; readonly member: string; readonly target: string }
 /** HCAL-01 (2026-10-27): an adapter that imports another adapter package (H03). */
+/**
+ * v1.5.7 (2026-11-02, R-INBYP, exploratory): a file of a driving adapter package (`…/adapters/in|inbound/<x>`) imports a
+ * driven (out-) port, value or type import, so it can read or write stored state without a use case. A port is driven
+ * when its path says so (`ports/out|outbound|driven|secondary/`) or when a file of a driven adapter package imports it
+ * (the adapter implements it). Found by the Hexagonal study's hand read (t11): R-AXA sees adapter-to-adapter imports
+ * only, so retyping `mqtt -> MemoryLockers` to the out-port `Lockers` hid the bypass.
+ */
+export interface InboundOutPortFact {
+  readonly file: string; readonly line: number; readonly specifier: string; readonly port: string; readonly fromPkg: string;
+  /** How the port was judged driven: by its folder name, or because a driven adapter imports it. */
+  readonly by: 'path' | 'implemented';
+}
+
 export interface AdapterImportFact {
   readonly file: string; readonly line: number; readonly specifier: string; readonly target: string; readonly fromPkg: string; readonly toPkg: string;
   /** 2026-10-29 (R-AXA shared helpers): the target package is the `shared` or `common` folder of the importer's own driving (inbound) side. */
@@ -91,6 +104,8 @@ export interface Facts {
   readonly calcs: readonly CalcFact[];
   readonly refs: readonly RefFact[];
   readonly adapterImports: readonly AdapterImportFact[];
+  /** v1.5.7 (2026-11-02, R-INBYP, exploratory): a driving adapter that depends on a driven port. */
+  readonly inboundOutPorts: readonly InboundOutPortFact[];
   readonly transports: readonly TransportFact[];
   readonly domainTech: readonly DomainTechFact[];
   readonly locators: readonly LocatorFact[];
@@ -1276,6 +1291,40 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   }
   bump('adapterImports', adapterImports.length);
 
+  // ── INBOUND_USES_OUTPORT (v1.5.7, R-INBYP, exploratory) ─────────────────────────────────────────────────────────────
+  // A driving adapter hands a request to an in-port (a use case); it never holds a driven port itself. A port file is
+  // driven by its folder (`ports/out/…`) or because a driven adapter package imports it; an in-port is neither.
+  const DRIVING_PKG = /(?:^|\/)adapters\/(?:in|inbound)\/[^/]+$/;
+  const DRIVEN_PKG = /(?:^|\/)adapters\/(?:out|outbound)\/[^/]+$/;
+  const DRIVEN_PORT_PATH = /(?:^|\/)ports?\/(?:out|outbound|driven|secondary)\//;
+  const DRIVING_PORT_PATH = /(?:^|\/)ports?\/(?:in|inbound|driving|primary)\//;
+  const implementedPorts = new Set<string>();
+  for (const sf of files) {
+    const from = ADAPTER_PKG.exec(fileOf(sf))?.[1];
+    if (from === undefined || !DRIVEN_PKG.test(from)) continue;
+    for (const imp of sf.getImportDeclarations()) {
+      const tsf = imp.getModuleSpecifierSourceFile();
+      if (tsf !== undefined && inTree(tsf) && spec.roleOf(fileOf(tsf)) === 'port') implementedPorts.add(fileOf(tsf));
+    }
+  }
+  const inboundOutPorts: InboundOutPortFact[] = [];
+  for (const sf of files) {
+    const f = fileOf(sf);
+    if (spec.roleOf(f) !== 'adapter') continue;
+    const from = ADAPTER_PKG.exec(f)?.[1];
+    if (from === undefined || !DRIVING_PKG.test(from)) continue;
+    for (const imp of sf.getImportDeclarations()) {
+      const tsf = imp.getModuleSpecifierSourceFile();
+      if (tsf === undefined || !inTree(tsf)) continue;
+      const t = fileOf(tsf);
+      if (spec.roleOf(t) !== 'port' || DRIVING_PORT_PATH.test(t)) continue;
+      const by = DRIVEN_PORT_PATH.test(t) ? 'path' : implementedPorts.has(t) ? 'implemented' : undefined;
+      if (by === undefined) continue;
+      inboundOutPorts.push({ file: f, line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), port: t, fromPkg: from, by });
+    }
+  }
+  bump('inboundOutPorts', inboundOutPorts.length);
+
   // ── USES_TRANSPORT (HCAL-01 H07) ────────────────────────────────────────────────────────────────────────────────
   // ── REPO_PERSISTS_MANY (CN-02 K04) ──────────────────────────────────────────────────────────────────────────────
   // A repository (class or interface) write method whose signature takes two or more aggregate-root instances, or a
@@ -2055,7 +2104,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   bump('mirrorCandidates', mirrorCandidates.length);
 
   return {
-    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
+    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, inboundOutPorts, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
     locators, coreIo, entityOut, adapterRules, mirrors, vendorTerms, coreTerms, mirrorCandidates, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }
