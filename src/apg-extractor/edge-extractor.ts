@@ -66,7 +66,7 @@ export function extractEdges(
   options: ExtractorOptions = {},
   checkpoint?: FileCheckpoint,
 ): EdgeExtractionResult {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const opts = { portCalls: false, ...DEFAULT_OPTIONS, ...options };
   const edgeSet = new Map<string, APGEdge>(); // key=(type+sourceId+targetId) for dedup, non-import types only
   const warnings: ExtractorWarning[] = [];
   const counts = { resolvedInternal: 0, external: 0, externalOutOfRootAlias: 0, unresolved: 0, droppedNoFileNode: 0, unsupportedDynamic: 0 };

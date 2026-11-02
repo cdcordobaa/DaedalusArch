@@ -227,7 +227,13 @@ export const DEFAULT_EXCLUDE_PATTERNS = [
  * The frozen v1.2E extractor defaults: the v1.3 features are OFF. Pass these (or `dynamicImports: false,
  * moduleWiring: false, reExportEdges: 'resolved-only', memberFacts: false`) to reproduce the v1.2E instrument's graph.
  */
-export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+/**
+ * The frozen defaults (v1.2E, v1.3 and their variants) carry no `portCalls` key at all, so the Study 2 frozen-tunables
+ * record (`Docs/v1.3/study2-tunables.json`) is unchanged; an absent key reads as off.
+ */
+export type FrozenExtractorOptions = Readonly<Omit<Required<ExtractorOptions>, 'portCalls'> & Pick<ExtractorOptions, 'portCalls'>>;
+
+export const V12E_DEFAULT_OPTIONS: FrozenExtractorOptions = Object.freeze({
   lenientMode: true,
   includeDecorators: true,
   maxBarrelDepth: 10,
@@ -243,7 +249,6 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   nullableInjects: false,
   fieldState: false,
   apg2: false,
-  portCalls: false,
   components: [],
 });
 
@@ -252,7 +257,7 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
  * resolved re-export edges, class-member facts, Package edges for `paths` aliases onto declaration stubs
  * (F-P01-ALIAS), aliases that shadow built-in names (N33) and nullable constructor injections (N38) are ON. The flags stay, so a caller can still turn each one off explicitly.
  */
-export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+export const V13_DEFAULT_OPTIONS: FrozenExtractorOptions = Object.freeze({
   ...V12E_DEFAULT_OPTIONS,
   dynamicImports: true,
   moduleWiring: true,
@@ -267,7 +272,7 @@ export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.
  * v1.3 field-level state facts: the v1.3 defaults plus HOLDS_STATE_OF edges. Not the default, so every v1.3 graph read
  * by the existing templates, metrics and reports is unchanged.
  */
-export const V13_FIELD_STATE_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+export const V13_FIELD_STATE_OPTIONS: FrozenExtractorOptions = Object.freeze({
   ...V13_DEFAULT_OPTIONS,
   fieldState: true,
 });
@@ -276,7 +281,7 @@ export const V13_FIELD_STATE_OPTIONS: Readonly<Required<ExtractorOptions>> = Obj
  * APG v2 (`Docs/v1.3/apg2-design.md`): the v1.3 defaults plus the generic architectural edges. Not the default, so
  * every v1.3 graph read by the existing templates, metrics and reports is unchanged.
  */
-export const V13_APG2_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+export const V13_APG2_OPTIONS: FrozenExtractorOptions = Object.freeze({
   ...V13_DEFAULT_OPTIONS,
   apg2: true,
 });
@@ -291,4 +296,4 @@ export const V15_APG_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.free
 });
 
 /** The defaults every extractor entry point applies on the v1.3 branch. */
-export const DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = V13_DEFAULT_OPTIONS;
+export const DEFAULT_OPTIONS: FrozenExtractorOptions = V13_DEFAULT_OPTIONS;

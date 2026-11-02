@@ -57,9 +57,12 @@ const useCase = (importLine: string, type: string): Record<string, string> => ({
 const PORT_USE = useCase("import { OrderRepository } from '../ports/OrderRepository';", 'OrderRepository');
 
 describe('option defaults', () => {
-  it('portCalls is OFF in the v1.2E, v1.3 and APG v2 options and ON in V15_APG_OPTIONS', () => {
-    expect([V12E_DEFAULT_OPTIONS.portCalls, V13_DEFAULT_OPTIONS.portCalls, V13_APG2_OPTIONS.portCalls, V15_APG_OPTIONS.portCalls]).toEqual([false, false, false, true]);
-    expect({ ...V15_APG_OPTIONS, portCalls: false }).toEqual(V13_APG2_OPTIONS);
+  it('portCalls is absent (off) from the frozen v1.2E, v1.3 and APG v2 options and ON in V15_APG_OPTIONS', () => {
+    // absent, not false: the Study 2 frozen-tunables record must stay byte-identical
+    for (const o of [V12E_DEFAULT_OPTIONS, V13_DEFAULT_OPTIONS, V13_APG2_OPTIONS]) expect('portCalls' in o).toBe(false);
+    expect(V15_APG_OPTIONS.portCalls).toBe(true);
+    const { portCalls: _on, ...rest } = V15_APG_OPTIONS;
+    expect(rest).toEqual(V13_APG2_OPTIONS);
   });
 
   it('no CALLS_VIA_PORT edge with the option off; every other edge is the same with it on', () => {
