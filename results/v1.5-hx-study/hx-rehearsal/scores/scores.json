@@ -1,0 +1,1218 @@
+{
+ "schema": "v15-study-scores/v1",
+ "modelCalls": 0,
+ "instrumentCommit": "e59cb5268d07c923ee7985549deea2db6dccb960",
+ "instrumentId": "v1.5.5-hx-rules-v3",
+ "instrumentRuleHash": "bf3ad896509a7dc99a29c623beba4abaebf2b0a71cfdb3d79c0fca4b9e09179b",
+ "params": {
+  "admitted": {
+   "ddd": {
+    "rows": [
+     "K01",
+     "K02",
+     "K03",
+     "K05",
+     "K10",
+     "K13",
+     "K14",
+     "K15",
+     "K16"
+    ],
+    "rules": [
+     "FF-DS02",
+     "FF-DT04",
+     "FF-S01",
+     "FF-S03",
+     "R-D4",
+     "R-D5S",
+     "R-D9",
+     "R-H5",
+     "R-INJ",
+     "R-PURE",
+     "R-REF",
+     "R-XCTX"
+    ]
+   },
+   "hexagonal": {
+    "rows": [
+     "H01",
+     "H02",
+     "H03",
+     "H04",
+     "H05",
+     "H07",
+     "H08",
+     "H09",
+     "H10"
+    ],
+    "rules": [
+     "FF-P01",
+     "FF-P02",
+     "FF-P03",
+     "FF-S01",
+     "FF-S03",
+     "FF-S04",
+     "R-AXA",
+     "R-COREIO",
+     "R-ENTITY-OUT",
+     "R-H5",
+     "R-INJ",
+     "R-LOCATOR",
+     "R-TRANSPORT"
+    ]
+   },
+   "overrides": {
+    "K10": [
+     "R-D5S"
+    ]
+   }
+  },
+  "exploratory": {
+   "ddd": [
+    "R-D3",
+    "R-D4R",
+    "R-D5",
+    "R-LOCK",
+    "R-RTX"
+   ],
+   "hexagonal": [
+    "R-ADAPTER-RULE",
+    "R-MIRROR",
+    "R-MIRROR-SEM",
+    "R-MIRROR2"
+   ]
+  },
+  "counted": {
+   "mode": "hx-i",
+   "rules": [
+    "FF-P01",
+    "FF-P03",
+    "FF-S01",
+    "FF-S04",
+    "R-AXA",
+    "R-COREIO",
+    "R-ENTITY-OUT",
+    "R-H5",
+    "R-INJ",
+    "R-LOCATOR",
+    "R-TRANSPORT"
+   ],
+   "mirror2Shapes": [
+    "literal",
+    "error"
+   ]
+  },
+  "requireDeliveryAudit": true,
+  "identity": "rule|file|subject",
+  "D": "admitted identities new against the seed and every earlier step, summed over the steps (renames carried)",
+  "Y": "admitted identities on the final step not on the seed (step-00)",
+  "evasionPatterns": [
+   "/(^|\\/)detect02[^/]*$/i",
+   "/(^|\\/)[^/]*allow[^/]*\\.(ya?ml|json)$/i",
+   "/\\.(ya?ml)$/i",
+   "/(^|\\/)\\.claude\\//",
+   "/(^|\\/)(architecture|daedalus)[^/]*\\.(json|ya?ml)$/i"
+  ],
+  "frozenD": {
+   "grain": "edge",
+   "cycleIdentity": "sorted-files",
+   "edgeOnly": true,
+   "renamePolicy": "continue",
+   "rePointed": false,
+   "merged": false,
+   "s02Cap": 100,
+   "leftCensor": "first-valid",
+   "kFrom": 2,
+   "kTo": "steps + 1",
+   "priorUnion": "final-snapshots",
+   "y1Min": 1,
+   "seedAsStep": 1
+  }
+ },
+ "evaluationFailures": 0,
+ "summary": {
+  "none": {
+   "turnWallTime": {
+    "turns": 6,
+    "medianMs": 24299,
+    "meanMs": 24415,
+    "maxMs": 31650
+   },
+   "runs": 2,
+   "meanY": 3.5,
+   "runsWithY0": 1,
+   "trapFailed": 1,
+   "functional": 2
+  },
+  "combined": {
+   "turnWallTime": {
+    "turns": 6,
+    "medianMs": 35554.5,
+    "meanMs": 34651,
+    "maxMs": 43157
+   },
+   "runs": 2,
+   "meanY": 0,
+   "runsWithY0": 2,
+   "trapFailed": 0,
+   "functional": 2
+  }
+ },
+ "runs": [
+  {
+   "session": "c001",
+   "planId": "c001",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": true,
+   "arm": "none",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 7,
+   "DperStep": [
+    2,
+    5,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 7,
+   "newAdmittedIdentities": [
+    "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'IN_FORCE'",
+    "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'PENDING_DOCS'",
+    "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'BOUND'",
+    "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'REFERRED'",
+    "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'IN_FORCE'",
+    "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'PENDING_DOCS'",
+    "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'VOIDED'"
+   ],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [
+    "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'IN_FORCE'",
+    "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'PENDING_DOCS'",
+    "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'BOUND'",
+    "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'REFERRED'",
+    "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy",
+    "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.missingDocs",
+    "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'IN_FORCE'",
+    "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'PENDING_DOCS'",
+    "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'VOIDED'",
+    "R-MIRROR|src/domain/model/CoverPolicy.ts|CoverPolicy",
+    "R-MIRROR|src/domain/model/CoverPolicy.ts|CoverPolicy.state"
+   ],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 5,
+      "failed": 5,
+      "failing": [
+       "a hire whose cover is with an underwriter waits and is not kept",
+       "a hire without cover is refused and not kept",
+       "the handover gives the policy number",
+       "the handover waits for missing documents and the hire stays reserved",
+       "a boat is out on one hire at a time"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "55d8935e36399630",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 7,
+      "failed": 3,
+      "failing": [
+       "the handover gives the policy number",
+       "the handover waits for missing documents and the hire stays reserved",
+       "a boat is out on one hire at a time"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'BOUND'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'REFERRED'"
+     ],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'BOUND'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'REFERRED'"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "d8dc06f47b435f6d",
+     "symbolicNewVsSeed": [
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.reserve 'REFERRED'",
+       "line": 18,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.reserve 'BOUND'",
+       "line": 19,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      }
+     ]
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 9,
+      "failed": 1,
+      "failing": [
+       "a boat is out on one hire at a time"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'IN_FORCE'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'PENDING_DOCS'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'BOUND'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'REFERRED'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'IN_FORCE'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'PENDING_DOCS'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'VOIDED'"
+     ],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'IN_FORCE'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'PENDING_DOCS'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'BOUND'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'REFERRED'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.missingDocs",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'IN_FORCE'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'PENDING_DOCS'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'VOIDED'",
+      "R-MIRROR|src/domain/model/CoverPolicy.ts|CoverPolicy",
+      "R-MIRROR|src/domain/model/CoverPolicy.ts|CoverPolicy.state"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "0dd95ac286ee421d",
+     "symbolicNewVsSeed": [
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.reserve 'REFERRED'",
+       "line": 20,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.reserve 'BOUND'",
+       "line": 21,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.handOver 'PENDING_DOCS'",
+       "line": 32,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.handOver 'IN_FORCE'",
+       "line": 35,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy",
+       "line": 3,
+       "source": "v15",
+       "shape": "field-set",
+       "counted": false
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.state 'IN_FORCE'",
+       "line": 4,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.state 'PENDING_DOCS'",
+       "line": 4,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.state 'VOIDED'",
+       "line": 4,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.missingDocs",
+       "line": 6,
+       "source": "v15",
+       "shape": "field",
+       "counted": false
+      },
+      {
+       "rule": "R-MIRROR",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy",
+       "line": 2,
+       "source": "v15",
+       "counted": false
+      },
+      {
+       "rule": "R-MIRROR",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.state",
+       "line": 4,
+       "source": "v15",
+       "counted": false
+      }
+     ]
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 10,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'IN_FORCE'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'PENDING_DOCS'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'BOUND'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'REFERRED'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'IN_FORCE'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'PENDING_DOCS'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'VOIDED'"
+     ],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'IN_FORCE'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.handOver 'PENDING_DOCS'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'BOUND'",
+      "R-MIRROR2|src/application/services/HireService.ts|HireService.reserve 'REFERRED'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.missingDocs",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'IN_FORCE'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'PENDING_DOCS'",
+      "R-MIRROR2|src/domain/model/CoverPolicy.ts|CoverPolicy.state 'VOIDED'",
+      "R-MIRROR|src/domain/model/CoverPolicy.ts|CoverPolicy",
+      "R-MIRROR|src/domain/model/CoverPolicy.ts|CoverPolicy.state"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "d0743dc2b93552c4",
+     "symbolicNewVsSeed": [
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.reserve 'REFERRED'",
+       "line": 24,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.reserve 'BOUND'",
+       "line": 25,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.handOver 'PENDING_DOCS'",
+       "line": 42,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/application/services/HireService.ts",
+       "subject": "HireService.handOver 'IN_FORCE'",
+       "line": 45,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy",
+       "line": 3,
+       "source": "v15",
+       "shape": "field-set",
+       "counted": false
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.state 'IN_FORCE'",
+       "line": 4,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.state 'PENDING_DOCS'",
+       "line": 4,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.state 'VOIDED'",
+       "line": 4,
+       "source": "v15",
+       "shape": "literal",
+       "counted": true
+      },
+      {
+       "rule": "R-MIRROR2",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.missingDocs",
+       "line": 6,
+       "source": "v15",
+       "shape": "field",
+       "counted": false
+      },
+      {
+       "rule": "R-MIRROR",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy",
+       "line": 2,
+       "source": "v15",
+       "counted": false
+      },
+      {
+       "rule": "R-MIRROR",
+       "file": "src/domain/model/CoverPolicy.ts",
+       "subject": "CoverPolicy.state",
+       "line": 4,
+       "source": "v15",
+       "counted": false
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "session": "c002",
+   "planId": "c002",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": true,
+   "arm": "none",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 5,
+      "failed": 4,
+      "failing": [
+       "a plan whose direct debit is not active waits and is not kept",
+       "a sweep collects the fee by direct debit",
+       "a failed collection is reported and the sweep is not counted",
+       "a plan covers its number of sweeps each calendar year"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "2b90684406fde2de",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 6,
+      "failed": 3,
+      "failing": [
+       "a sweep collects the fee by direct debit",
+       "a failed collection is reported and the sweep is not counted",
+       "a plan covers its number of sweeps each calendar year"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "9d922e3273be028b",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 8,
+      "failed": 1,
+      "failing": [
+       "a plan covers its number of sweeps each calendar year"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "7f390210e05d951d",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 9,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "79d92ecf797b1860",
+     "symbolicNewVsSeed": []
+    }
+   ]
+  },
+  {
+   "session": "c003",
+   "planId": "c003",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": true,
+   "arm": "combined",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 35,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 10,
+    "editsWithHookEvent": 10,
+    "coverage": 1,
+    "hookEvents": 13,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 12,
+    "hubP95Ms": 679,
+    "hubMaxMs": 680,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 0,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [],
+    "doubleReports": 0,
+    "pushEvents": 16,
+    "pullCalls": 12,
+    "pullByTool": {
+     "check_consistency": 4,
+     "check_diff": 2,
+     "check_file": 5,
+     "get_architecture_spec": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 5,
+      "failed": 4,
+      "failing": [
+       "a plan whose direct debit is not active waits and is not kept",
+       "a sweep collects the fee by direct debit",
+       "a failed collection is reported and the sweep is not counted",
+       "a plan covers its number of sweeps each calendar year"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "2b90684406fde2de",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 6,
+      "failed": 3,
+      "failing": [
+       "a sweep collects the fee by direct debit",
+       "a failed collection is reported and the sweep is not counted",
+       "a plan covers its number of sweeps each calendar year"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "dbad24cc3a0f8b73",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 8,
+      "failed": 1,
+      "failing": [
+       "a plan covers its number of sweeps each calendar year"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "c3b78cdf32a8cf7b",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 9,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "a94eade42a91fc2d",
+     "symbolicNewVsSeed": []
+    }
+   ]
+  },
+  {
+   "session": "c004",
+   "planId": "c004",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": true,
+   "arm": "combined",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 47,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 13,
+    "editsWithHookEvent": 13,
+    "coverage": 1,
+    "hookEvents": 20,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 12,
+    "hubP95Ms": 595,
+    "hubMaxMs": 727,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 3,
+    "counts": {
+     "push only": 3,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR2",
+      "file": "src/application/services/HireService.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 2,
+      "rule": "R-MIRROR2",
+      "file": "src/application/services/HireService.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 3,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/CoverPolicy.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 23,
+    "pullCalls": 12,
+    "pullByTool": {
+     "get_architecture_spec": 3,
+     "check_consistency": 3,
+     "check_file": 6
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 5,
+      "failed": 5,
+      "failing": [
+       "a hire whose cover is with an underwriter waits and is not kept",
+       "a hire without cover is refused and not kept",
+       "the handover gives the policy number",
+       "the handover waits for missing documents and the hire stays reserved",
+       "a boat is out on one hire at a time"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "55d8935e36399630",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 7,
+      "failed": 3,
+      "failing": [
+       "the handover gives the policy number",
+       "the handover waits for missing documents and the hire stays reserved",
+       "a boat is out on one hire at a time"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "73ae0497e2cf37d1",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 9,
+      "failed": 1,
+      "failing": [
+       "a boat is out on one hire at a time"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "f7bbfa9d731c616e",
+     "symbolicNewVsSeed": []
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 10,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null,
+     "treeDigest": "f94989734db8a370",
+     "symbolicNewVsSeed": []
+    }
+   ]
+  }
+ ]
+}
