@@ -50,8 +50,9 @@ The registered outcomes count only new identities against the seed, in both arms
 **Missed shapes (FN).** A missed shape lowers D in both arms. It biases the contrast only if the treatment pushes
 agents into the shapes the rules miss. The Hexagonal hand read found exactly one such case: the out-port bypass in t11,
 2 of 110 blocks (R-INBYP, PR 476). The trap check is independent of the rules, so a bias of this kind would show up as
-"D fell, trap persisted". The registered §4 hand read of the 8 such blocks found no shape from this review other than
-that one.
+"D fell, trap persisted". The registered §4 hand read of the 8 such blocks found two
+missed shapes: that one, and one-word vendor terms that R-MIRROR2 treats as generic (a gap already known, which agents
+met but did not choose because of the delivery). It found none of the other shapes in this review.
 
 **False positives (FP).** A false positive raises D in both arms. Under `combined` the hub also pushes the false
 finding to the agent, which may then change code that was correct. The trap rate (87 → 12 of 110) and acceptance (103
