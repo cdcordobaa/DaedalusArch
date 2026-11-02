@@ -5,6 +5,7 @@
 // fix: Move the check into the owner aggregate named in the spec (for a set invariant, the aggregate that holds the set) and let this code call it.
 // applies: invariants declared in the spec's DDD block (kind set or single); uniqueness invariants never apply; nothing when the spec declares none
 // facts: Unit, INVARIANT_SITE (matched terms, collection of an `over` type), Invariant
+// v1.5.7 (2026-11-02, development fit, exploratory): the INVARIANT_SITE guards take three more readings and one exemption. A then-block that throws after other statements (`{ log.warn(…); throw … }`) and a `case` clause that throws (cond `<switch> === <case>`) are guards; `continue`/`break` counts as a rejection only when the loop skips a write (a root command, a storage sink or a unit with a write footprint), so a filter loop is not one; in the domain or shared kernel outside every aggregate module, a guard that reads no aggregate (no root-typed value, no collection of an `over` type) is a value checking itself and is not reported. Rule text unchanged; the facts change only in `src/v15-instrument/facts.ts`. See `experiments/r-d5s-dev/README.md`
 MATCH (u:Unit)-[s:INVARIANT_SITE]->(i:Invariant)
 RETURN s.file AS file, s.line AS line, u.name AS subject,
        'checks declared invariant ' + i.id + ' (' + i.statement + ') outside its owner ' + i.owner + ': if (' + s.cond + ')' AS evidence,

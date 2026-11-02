@@ -940,27 +940,66 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   const checked = spec.invariants.filter((v) => v.kind !== 'uniqueness');
   // CN-01 K10: a rejection need not throw. An entry point rejects by returning (a response, a result) or by skipping
   // (continue/break) in its then-branch.
+  // v1.5.7 (2026-11-02): (a) a then-block that throws after other statements (`{ log.warn(…); throw … }`) rejects too
+  // (`guardShape` takes a lone throw only); (b) `continue`/`break` rejects only when the loop skips a write: the rest of
+  // the loop body calls a root's command (a void method of a root class), a storage sink, or a unit whose write
+  // footprint is not empty; a filter loop (`if (b.roomId !== roomId) continue; out.push(b)`) skips nothing that writes.
+  const loopOf = (n: Node): Node | undefined => {
+    for (let a = n.getParent(); a !== undefined; a = a.getParent()) {
+      if (Node.isForOfStatement(a) || Node.isForInStatement(a) || Node.isForStatement(a) || Node.isWhileStatement(a) || Node.isDoStatement(a)) return a;
+      if (Node.isFunctionLikeDeclaration(a) || Node.isArrowFunction(a) || Node.isFunctionExpression(a)) return undefined;
+    }
+    return undefined;
+  };
+  const footprintCache = new Map<Node, boolean>();
+  const unitWrites = (t: Node): boolean => {
+    if (!footprintCache.has(t)) { const tu = units.get(t); footprintCache.set(t, tu !== undefined && footprint(tu).length > 0); }
+    return footprintCache.get(t) === true;
+  };
+  const loopWrites = (loop: Node): boolean => loop.getDescendants().some((c) => {
+    if (!Node.isCallExpression(c)) return false;
+    const d = declOfCall(c);
+    if (d === undefined) return false;
+    if (isSink(d, c)) return true;
+    const o = memberOwner(d);
+    if (o && rootDecls.has(o) && (Node.isMethodDeclaration(d) || Node.isMethodSignature(d)) && d.getReturnType().isVoid()) return true;
+    return targetsOf(d).some((t) => inTree(t) && unitWrites(t));
+  });
   const rejectsWithoutThrow = (st: IfStatement): boolean => {
     const t = st.getThenStatement();
     const firsts = Node.isBlock(t) ? t.getStatements() : [t];
-    return firsts.some((x) => Node.isReturnStatement(x) || Node.isContinueStatement(x) || Node.isBreakStatement(x));
+    return firsts.some((x) => Node.isReturnStatement(x) || Node.isThrowStatement(x)
+      || ((Node.isContinueStatement(x) || Node.isBreakStatement(x)) && (() => { const l = loopOf(st); return l !== undefined && loopWrites(l); })()));
   };
-  const invariantGuardsOf = (u: Unit): IfStatement[] => bodyNodes(u).filter((n): n is IfStatement => Node.isIfStatement(n) && (guardShape(n) !== undefined || rejectsWithoutThrow(n)) && !isTrivialParamNullCheck(n));
+  // v1.5.7: a `case` clause that throws (`switch (status) { case 'full': throw … }`) is a guard on `<switch> === <case>`;
+  // `default` is not (its condition is every other value).
+  interface InvariantGuard { readonly reach: readonly Node[]; readonly cond: string; readonly line: number }
+  const invariantGuardsOf = (u: Unit): InvariantGuard[] => bodyNodes(u).flatMap((n): InvariantGuard[] => {
+    if (Node.isIfStatement(n)) {
+      return (guardShape(n) !== undefined || rejectsWithoutThrow(n)) && !isTrivialParamNullCheck(n)
+        ? [{ reach: [n.getExpression()], cond: n.getExpression().getText(), line: n.getStartLineNumber() }] : [];
+    }
+    if (Node.isCaseClause(n) && n.getStatements().some((x) => Node.isThrowStatement(x) || (Node.isBlock(x) && x.getStatements().some((y) => Node.isThrowStatement(y))))) {
+      const sw = n.getFirstAncestorByKind(SyntaxKind.SwitchStatement);
+      if (sw === undefined) return [];
+      return [{ reach: [sw.getExpression(), n.getExpression()], cond: `${sw.getExpression().getText()} === ${n.getExpression().getText()}`, line: n.getStartLineNumber() }];
+    }
+    return [];
+  });
   for (const u of units.values()) {
     if (checked.length === 0) break;
     const role = spec.roleOf(u.file);
     if (role === 'contract') continue;
     for (const g of invariantGuardsOf(u)) {
-      const cond = g.getExpression();
-      const reach: Node[] = [cond];
-      for (const x of [cond, ...cond.getDescendants()]) {
+      const reach: Node[] = [...g.reach];
+      for (const x of g.reach.flatMap((c) => [c, ...c.getDescendants()])) {
         if (Node.isIdentifier(x)) {
           const d = x.getSymbol()?.getDeclarations()[0];
-          if (d && Node.isVariableDeclaration(d) && d.getSourceFile() === g.getSourceFile()) { const init = d.getInitializer(); if (init) reach.push(init); }
+          if (d && Node.isVariableDeclaration(d) && d.getSourceFile() === u.node.getSourceFile()) { const init = d.getInitializer(); if (init) reach.push(init); }
         }
         if (Node.isCallExpression(x)) {
           const d = declOfCall(x);
-          if (d && d.getSourceFile() === g.getSourceFile() && (Node.isFunctionDeclaration(d) || Node.isMethodDeclaration(d))) { const b = d.getBody(); if (b) reach.push(b); }
+          if (d && d.getSourceFile() === u.node.getSourceFile() && (Node.isFunctionDeclaration(d) || Node.isMethodDeclaration(d))) { const b = d.getBody(); if (b) reach.push(b); }
         }
       }
       const names = new Set<string>();
@@ -977,12 +1016,17 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
         return { v, matched, over, hit: matched.length >= 2 || (matched.length >= 1 && over !== undefined) };
       }).filter((x) => x.hit);
       if (scored.some((x) => { const o = spec.aggregates.find((a) => a.name === x.v.owner); return o !== undefined && globMatch([o.module], u.file); })) continue;
+      // v1.5.7: in the domain layer outside every aggregate module, a guard that reads no aggregate (no root-typed value,
+      // no collection of an `over` type) checks a value, not aggregate state: a value object validating itself
+      // (`if (checkIn >= checkOut) throw` in `domain/shared/DateRange.ts`) shares term names with an invariant but is
+      // not that invariant. Application, adapter and composition guards keep the term match (they read DTOs and views).
+      if ((role === 'domain' || role === 'shared-kernel') && inAggregateModule(u.node) === undefined && scored.every((x) => x.over === undefined) && !types.some((t) => rootsIn(t).length > 0)) continue;
       const best = Math.max(0, ...scored.map((x) => x.matched.length));
       for (const { v, matched, over } of scored.filter((x) => x.matched.length === best)) {
         {
           invariantSites.push({
             invariant: v.id, kind: v.kind, owner: v.owner ?? '', statement: v.statement, unit: u.name, file: u.file,
-            line: g.getStartLineNumber(), cond: cond.getText().replace(/\s+/g, ' '), role, matched, overCollection: over ?? null,
+            line: g.line, cond: g.cond.replace(/\s+/g, ' '), role, matched, overCollection: over ?? null,
           });
         }
       }
