@@ -4,6 +4,7 @@
 // rule: The domain model depends on nothing technical: it holds state and rules, and reaches the outside world only through ports that adapters implement (Evans: isolate the domain; Cockburn: dependencies point inward).
 // fix: Declare a port for what the domain needs (for example a Geocoder), call it from the application service, and implement it in an adapter with the package.
 // applies: files the spec puts in the domain layer, and files inside a declared aggregate module; type-only imports are not reported
+// v1.5.8 (2026-11-02, exploratory, rule review #8; the query is unchanged): an import whose every named binding has the inline `type` modifier is type-only and not read; `import x = require('…')` is read; more I/O packages are catalogued (postgres, kysely, @supabase/*, fs-extra, ky and others; `ioCategoryOf` in facts.ts)
 // facts: DomainFile, DOMAIN_IMPORTS_TECH, TechModule
 MATCH (d:DomainFile)-[x:DOMAIN_IMPORTS_TECH]->(t:TechModule)
 RETURN d.file AS file, x.line AS line, d.file AS subject,

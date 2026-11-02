@@ -3350,3 +3350,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Closing step of the 2026-11-02 instrument queue.
 
 ---
+
+## v1.5.8: import and scope fact fixes (exploratory, development fit)
+**Timestamp**: 2026-11-02T20:43:00Z
+**User Input**: "Build the approved v1.5.8 fact work: spec-derived adapter packages (review #3), re-exports, barrels and dynamic import() as R-AXA edges (#5), inline type imports, import = require and catalogue gaps for R-COREIO and R-PURE (#8), export * for R-D9 (#17), and a narrow R-MIRROR2 reading of one-word vendor terms (Hexagonal hand read t03/t09); dev regression per change; counted lists unchanged; merge once CI is green."
+**AI Response**: "Implemented #3, #5, #8, #17 in src/v15-instrument/facts.ts and spec.ts (folder regexes kept as fallback) and R-MIRROR2 shape [word] for one-word vendor values of a coded vendor set that sit in a core value set, are decided on in the core and live in a file the vendor's adapter imports. One-word vendor field names (t09) were left out: that reading fired on a labelled clean HCAL-04 twin. INSTRUMENT_ID v1.5.8; HX_COUNTED_RULES, HX_MIRROR2_SHAPES and rule-set.ts rows unchanged. Regression (experiments/v158-dev): 762 dev trees unchanged for every rule; Hexagonal study trees unchanged except R-MIRROR2 [word] +9 none, +2 combined, all t03 sessions that failed the oracle. Tests: tests/unit/v15-instrument/v158-fact-fixes.test.ts."
+**Context**: v1.5 instrument, exploratory; development data only, admission needs a fresh blind set; no registered number changes.
+
+---
