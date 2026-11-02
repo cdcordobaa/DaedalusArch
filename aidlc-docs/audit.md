@@ -3358,3 +3358,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory neuro-symbolic gate; widening the rule to core-side copies would need a new instrument version.
 
 ---
+
+## Deviation record: X-1 extension
+**Timestamp**: 2026-11-02T22:05:37Z
+**User Input**: "Record the extension of deviation X-1 to the later registered studies rather than treat it as already covering them."
+**AI Response**: "Added a dated 'X-1 extension' section and changelog line to Docs/v1.4/deviation-x1-and-so3a.md covering the v1.5 final study and the Hexagonal study; the registrations fix their tests."
+**Context**: Proposal-level deviation record; docs only, zero model calls.
+
+---
