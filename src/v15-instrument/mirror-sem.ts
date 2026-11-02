@@ -417,10 +417,46 @@ export interface CallRequest { readonly model: string; readonly system: string; 
 export interface CallResult { readonly answer: unknown; readonly model: string | null; readonly error: string | null; readonly durationMs: number; readonly inputTokens: number | null; readonly outputTokens: number | null }
 export type Caller = (req: CallRequest) => Promise<CallResult>;
 
-export type JudgedFrom = 'session' | 'disk' | 'call' | 'miss' | 'error';
+export type JudgedFrom = 'session' | 'disk' | 'call' | 'miss' | 'error' | 'pending';
 export interface Judged { readonly verdict: MirrorVerdict | null; readonly key: string; readonly from: JudgedFrom; readonly ms: number }
 export interface JudgeStats { asked: number; session: number; disk: number; calls: number; misses: number; errors: number; callMs: number }
-export interface MirrorJudge { judge(c: MirrorCandidateFact): Promise<Judged>; readonly stats: JudgeStats }
+export interface MirrorJudge {
+  judge(c: MirrorCandidateFact): Promise<Judged>;
+  readonly stats: JudgeStats;
+  /** Deferred judges only: waits for every call still in flight (the hub calls it when a cell closes). */
+  settle?(): Promise<void>;
+  /** Deferred judges only: calls still in flight. */
+  inflight?(): number;
+}
+
+/**
+ * A judge that never makes a check wait for the model. The first ask of a key starts the inner judge in the
+ * background and answers `pending` at once (no verdict, so R-MIRROR-SEM does not fire on that check); a later ask of
+ * the same key gets the inner answer once it has arrived. Pilot run 1 of the Hexagonal study stopped on hub latency
+ * because the live judge sat inside the push check (DEV-HX-1); this keeps the check at its symbolic cost.
+ */
+export function deferredJudge(inner: MirrorJudge): MirrorJudge {
+  const inflight = new Map<string, Promise<Judged>>();
+  const done = new Map<string, Judged>();
+  return {
+    get stats() { return inner.stats; },
+    async judge(c: MirrorCandidateFact): Promise<Judged> {
+      const key = mirrorKeyOf(c);
+      const d = done.get(key);
+      if (d !== undefined) {
+        if (d.verdict !== null) return inner.judge(c); // the inner session map answers at no cost and keeps its counters
+        done.delete(key); // a failed answer is asked again, as the live judge does
+      }
+      if (!inflight.has(key)) {
+        const p = inner.judge(c).then((j) => { done.set(key, j); inflight.delete(key); return j; });
+        inflight.set(key, p);
+      }
+      return { verdict: null, key, from: 'pending', ms: 0 };
+    },
+    async settle(): Promise<void> { await Promise.all([...inflight.values()]); },
+    inflight: () => inflight.size,
+  };
+}
 
 export interface JudgeOptions {
   /** live: cache, then one call (one retry on an invalid answer); replay: cache only (a miss is not asked). */
@@ -539,13 +575,14 @@ export function cliCaller(opts: { ambient?: boolean; timeoutMs?: number } = {}):
 
 /**
  * The judge a delivery-hub session uses: live (the CLI route) with the disk cache, unless `DAEDALUS_MIRROR_SEM` is
- * `off` (no judge: R-MIRROR-SEM never fires) or `replay` (cache only), or the process is a jest worker (no judge, so no
- * test makes a model call).
+ * `off` (no judge: R-MIRROR-SEM never fires), `replay` (cache only) or `deferred` (live, off the check path: a new
+ * candidate fires from the next check on), or the process is a jest worker (no judge, so no test makes a model call).
  */
 export function sessionJudgeFromEnv(env: NodeJS.ProcessEnv = process.env, ledger?: string): MirrorJudge | null {
   const m = env['DAEDALUS_MIRROR_SEM'];
   if (m === 'off' || (env['JEST_WORKER_ID'] !== undefined && m !== 'live' && m !== 'replay')) return null;
-  return createMirrorJudge({ mode: m === 'replay' ? 'replay' : 'live', caller: cliCaller(), ...(ledger !== undefined ? { ledger } : {}) });
+  const j = createMirrorJudge({ mode: m === 'replay' ? 'replay' : 'live', caller: cliCaller(), ...(ledger !== undefined ? { ledger } : {}) });
+  return m === 'deferred' ? deferredJudge(j) : j;
 }
 
 /**
