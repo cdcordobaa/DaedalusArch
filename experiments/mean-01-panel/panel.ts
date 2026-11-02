@@ -16,9 +16,10 @@
  */
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import {
-  AGY_EXPLORATORY_VERSIONS, AGY_HOME_DEFAULT, AgyCliProvider, checkAgyIsolation, expandHome,
+  AGY_EXPLORATORY_VERSIONS, AGY_HOME_DEFAULT, AgyCliProvider, buildAgyChildEnv, checkAgyIsolation, expandHome,
 } from '../../src/llm-critic/agy-cli-provider.js';
 import type { LLMCallContext, LLMOptions } from '../../src/shared/interfaces/llm-provider.js';
 import { NodeProcessRunner } from '../../src/shared/process/node-process-runner.js';
@@ -70,7 +71,9 @@ export const RESPONSE_SCHEMA = JSON.stringify({
   properties: {
     A: { type: 'string', enum: ['yes', 'no', 'unsure'] },
     B: { type: 'string', enum: ['yes', 'no', 'unsure'] },
-    why_not: { type: 'string', enum: ['T', 'W', 'F', 'M', 'C', 'X', ''] },
+    // Runner fix after the pilot (README): the Gemini API rejects an empty string in an enum (400), so the code is a
+    // plain string here and `parseAnswer` checks it against T|W|F|M|C|X|"". The prompt text is unchanged.
+    why_not: { type: 'string' },
     note: { type: 'string' },
   },
   required: ['A', 'B', 'why_not', 'note'],
@@ -154,7 +157,7 @@ interface Answer { readonly A: Val; readonly B: Val; readonly why_not: string; r
 interface Call {
   readonly itemId: string; readonly run: number; readonly attempt: number; readonly at: string;
   readonly promptSha256: string; readonly requestedModel: string; readonly servedModel: string | null;
-  readonly durationMs: number; readonly ok: boolean; readonly errorCode?: string; readonly answer?: Answer;
+  readonly durationMs: number; readonly ok: boolean; readonly errorCode?: string; readonly errorMessage?: string; readonly answer?: Answer;
 }
 
 const VALS = new Set(['yes', 'no', 'unsure']);
@@ -203,6 +206,7 @@ async function run(which: string): Promise<void> {
   fs.mkdirSync(path.dirname(LEDGER), { recursive: true });
   const done = new Set(readLedger().filter((c) => c.ok).map((c) => `${c.itemId}#${String(c.run)}`));
   let calls = 0;
+  let failStreak = 0;
   // Run-major order: run 1 of every item, then run 2, then run 3. Every call is a fresh process and cwd.
   for (let runNo = 1; runNo <= RUNS; runNo++) {
     for (const it of items) {
@@ -222,11 +226,14 @@ async function run(which: string): Promise<void> {
         } else {
           const e = r.errors[0];
           const policy = POLICY_RE.test(`${e?.message ?? ''} ${JSON.stringify(e?.context ?? {})}`);
-          call = { ...base, servedModel: null, ok: false, errorCode: policy ? 'POLICY_SUSPECT' : (e?.code ?? 'UNKNOWN') };
+          call = { ...base, servedModel: null, ok: false, errorCode: policy ? 'POLICY_SUSPECT' : (e?.code ?? 'UNKNOWN'), errorMessage: `${e?.message ?? ''} ${JSON.stringify(e?.context ?? {})}`.slice(0, 400) };
         }
         fs.appendFileSync(LEDGER, `${JSON.stringify(call)}\n`);
         process.stdout.write(`${it.id} run ${String(runNo)} attempt ${String(attempt)}: ${call.ok ? 'ok' : (call.errorCode ?? '?')} (${String(Math.round(call.durationMs / 1000))} s; calls this session ${String(calls)})\n`);
-        if (call.ok) break;
+        if (call.ok) { failStreak = 0; break; }
+        failStreak++;
+        if (call.errorMessage !== undefined) process.stdout.write(`  error: ${call.errorMessage}\n`);
+        if (failStreak >= 3) { process.stdout.write('STOP: 3 failed calls in a row; no further calls\n'); return; }
         if (call.errorCode === 'POLICY_SUSPECT' || STOP_CODES.has(call.errorCode ?? '')) {
           process.stdout.write(`STOP: ${call.errorCode ?? '?'}; no further calls\n`);
           return;
@@ -395,6 +402,14 @@ function promptShas(): void {
 async function main(): Promise<void> {
   const [cmd, ...rest] = process.argv.slice(2);
   if (cmd === 'preflight') { await preflight(); return; }
+  if (cmd === 'models') {
+    // Zero model calls: `agy models` in the labeller home, from a fresh neutral cwd.
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'daedalus-labeller-'));
+    const r = await new NodeProcessRunner().run('agy', ['models'], { cwd, env: buildAgyChildEnv(process.env, expandHome(AGY_HOME_DEFAULT)), timeoutMs: 30_000, stdin: '' });
+    fs.rmSync(cwd, { recursive: true, force: true });
+    process.stdout.write(r.success ? `${r.data.stdout}\n${r.data.stderr}\n` : `failed: ${r.errors[0]?.message ?? '?'}\n`);
+    return;
+  }
   if (cmd === 'prompt-sha') { promptShas(); return; }
   if (cmd === 'run') { const i = rest.indexOf('--items'); await run(i >= 0 ? (rest[i + 1] ?? '') : 'sample'); return; }
   if (cmd === 'score') { score(); return; }
