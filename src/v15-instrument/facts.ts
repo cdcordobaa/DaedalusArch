@@ -16,7 +16,7 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { Node, Project, SyntaxKind } from 'ts-morph';
+import { Node, Project, SyntaxKind, VariableDeclarationKind } from 'ts-morph';
 import type { CallExpression, ClassDeclaration, IfStatement, InterfaceDeclaration, NewExpression, SourceFile, Type } from 'ts-morph';
 import { categoryOfModule } from '../apg-enrich/cheap/behaviour.js';
 import { guardShape, isTrivialParamNullCheck, normaliseCondition } from '../apg-enrich/cheap/guards.js';
@@ -1555,6 +1555,16 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   // validation (typeof, presence, parse, regex and Number tests read request data, not domain state), identity and
   // version reads (a store's own uniqueness and concurrency checks), conditionals in a catch clause (error
   // translation), and a branch that only maps an equality on a decided state to an HTTP status.
+  // v1.5.7 (2026-11-02, H06 development on HCAL-01..04): the condition may also decide on plain request or port data
+  // when it is shaped like a business rule: (c) a business threshold, a relational comparison of a numeric value
+  // with a non-trivial constant (not 0, 1 or -1; a literal, a constant expression, an UPPER_CASE or static readonly
+  // numeric constant), the value not a size, status, retry, paging or timing mechanism; (d) a calendar rule, a
+  // comparison of a Date's day, hour, month or day-of-month with a constant. The read is also looked for one level
+  // down: in the initializer of a local const the condition names, and in the returned expression of an in-tree
+  // adapter function or method the condition calls (an `isTrivialClaim(request)` helper). Nullable types are read
+  // without null and undefined (`order?.status`). A ternary arm that is a numeric literal is a price or rate; a
+  // string or boolean literal chosen by an equality alone (a ternary arm, or a switch whose clauses all return such
+  // literals) is a code mapping, not a decision.
   const adapterRules: AdapterRuleFact[] = [];
   const ARITH_OPS = new Set([SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken, SyntaxKind.SlashToken, SyntaxKind.PercentToken]);
   const ARITH_ASSIGN = new Set([SyntaxKind.PlusEqualsToken, SyntaxKind.MinusEqualsToken, SyntaxKind.AsteriskEqualsToken, SyntaxKind.SlashEqualsToken]);
@@ -1562,7 +1572,8 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   const MECHANISM_FIELD = /^(_?id|\w+Id|version|revision|etag|createdAt|updatedAt)$/;
   const VALIDATION_CALL = /^(test|match|isNaN|isFinite|isInteger|isSafeInteger|parse\w*|isArray)$/;
   /** The in-tree domain declaration (class, interface, alias, enum; not an error class) a type names, if any. */
-  const domainDeclOf = (t: Type): Node | undefined => {
+  const domainDeclOf = (t0: Type): Node | undefined => {
+    const t = t0.getNonNullableType();
     const ds = new Set<Node>();
     for (const d of t.getAliasSymbol()?.getDeclarations() ?? []) ds.add(d);
     for (const d of t.getSymbol()?.getDeclarations() ?? []) if (Node.isEnumDeclaration(d) || Node.isEnumMember(d)) ds.add(Node.isEnumMember(d) ? d.getParentOrThrow() : d);
@@ -1579,7 +1590,118 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   };
   const calleeName = (c: CallExpression): string => { const e = c.getExpression(); return Node.isPropertyAccessExpression(e) ? e.getName() : e.getText(); };
   /** A domain-state read in a condition (its text), or undefined: see the section comment for what counts. */
+  /** A numeric constant's value (a literal, a negated literal, a product or sum of constants, an UPPER_CASE const or a static readonly member with a numeric initializer), or undefined. */
+  const numericConst = (x: Node, depth = 0): number | undefined => {
+    if (depth > 4) return undefined;
+    if (Node.isParenthesizedExpression(x)) return numericConst(x.getExpression(), depth + 1);
+    if (Node.isNumericLiteral(x)) return Number(x.getText().replace(/_/g, ''));
+    if (Node.isPrefixUnaryExpression(x) && x.getOperatorToken() === SyntaxKind.MinusToken) { const v = numericConst(x.getOperand(), depth + 1); return v === undefined ? undefined : -v; }
+    if (Node.isBinaryExpression(x) && ARITH_OPS.has(x.getOperatorToken().getKind())) {
+      const a = numericConst(x.getLeft(), depth + 1); const b = numericConst(x.getRight(), depth + 1);
+      if (a === undefined || b === undefined) return undefined;
+      switch (x.getOperatorToken().getKind()) { case SyntaxKind.PlusToken: return a + b; case SyntaxKind.MinusToken: return a - b; case SyntaxKind.AsteriskToken: return a * b; case SyntaxKind.SlashToken: return a / b; default: return a % b; }
+    }
+    const id = Node.isPropertyAccessExpression(x) ? x.getNameNode() : Node.isIdentifier(x) ? x : undefined;
+    if (id === undefined) return undefined;
+    const d = id.getSymbol()?.getDeclarations()[0];
+    if (d === undefined) return undefined;
+    const init = Node.isVariableDeclaration(d) && /^[A-Z][A-Z0-9_]+$/.test(d.getName()) && d.getVariableStatement()?.getDeclarationKind() === VariableDeclarationKind.Const ? d.getInitializer()
+      : Node.isPropertyDeclaration(d) && d.isStatic() && d.isReadonly() ? d.getInitializer() : undefined;
+    return init !== undefined ? numericConst(init, depth + 1) : undefined;
+  };
+  // the compared value is a size, status, retry, paging, timing or position mechanism, not a business quantity
+  const MECHANISM_OPERAND = /^(length|size|byteLength|status|statusCode|code|attempts?|attemptCount|retries|retryCount|tries|page|pageSize|perPage|offset|limit|skip|take|timeout\w*|delay\w*|\w+Ms|elapsed\w*|version|revision|index|idx|[ijkn]|port|depth)$/i;
+  // a constant named for a timing, retry, paging or port mechanism (`MAX_AGE_MS`, `RETRY_LIMIT`, `PAGE_SIZE`)
+  const MECHANISM_CONST = /(^|_)(MS|TIMEOUT|TTL|RETRY|RETRIES|ATTEMPTS?|PAGE_SIZE|PORT|LENGTH|LEN)(_|$)|\.(length|size)$/;
+  const operandName = (x: Node): string | undefined => {
+    while (Node.isParenthesizedExpression(x) || Node.isAsExpression(x) || Node.isNonNullExpression(x)) x = x.getExpression();
+    if (Node.isPropertyAccessExpression(x)) return x.getName();
+    if (Node.isIdentifier(x)) return x.getText();
+    if (Node.isCallExpression(x)) return calleeName(x).replace(/^.*\./, '');
+    return undefined;
+  };
+  /** (c) a business threshold: `amountCents < 500`, `durationSeconds >= MINIMUM`, `days > 180`. */
+  const threshold = (x: Node): string | undefined => {
+    if (!Node.isBinaryExpression(x) || !RELATIONAL.has(x.getOperatorToken().getKind())) return undefined;
+    for (const [a, b] of [[x.getLeft(), x.getRight()], [x.getRight(), x.getLeft()]] as const) {
+      const v = numericConst(b);
+      if (MECHANISM_CONST.test(b.getText())) continue;
+      if (v === undefined || v === 0 || v === 1 || v === -1 || numericConst(a) !== undefined) continue;
+      const t = a.getType();
+      if (!(t.isNumber() || t.isNumberLiteral())) continue;
+      const nm = operandName(a);
+      if (nm !== undefined && MECHANISM_OPERAND.test(nm)) continue;
+      return `threshold ${x.getText().replace(/\s+/g, ' ').slice(0, 80)}`;
+    }
+    return undefined;
+  };
+  const CALENDAR = /^get(UTC)?(Day|Hours|Month|Date)$/;
+  /** (d) a calendar rule: `startsAt.getUTCDay() === 0`, or a local const holding such a component (`month < 2`). */
+  const calendar = (x: Node): string | undefined => {
+    if (!Node.isBinaryExpression(x) || !COMPARE.has(x.getOperatorToken().getKind())) return undefined;
+    const isComponent = (a: Node): boolean => {
+      if (Node.isIdentifier(a)) {
+        const d = a.getSymbol()?.getDeclarations()[0];
+        const init = d !== undefined && Node.isVariableDeclaration(d) ? d.getInitializer() : undefined;
+        if (init === undefined) return false;
+        a = init;
+      }
+      if (!Node.isCallExpression(a)) return false;
+      const e = a.getExpression();
+      return Node.isPropertyAccessExpression(e) && CALENDAR.test(e.getName()) && e.getExpression().getType().getText() === 'Date';
+    };
+    for (const [a, b] of [[x.getLeft(), x.getRight()], [x.getRight(), x.getLeft()]] as const) {
+      if ((numericConst(b) !== undefined || isConstant(b)) && isComponent(a)) return `calendar ${x.getText().replace(/\s+/g, ' ').slice(0, 80)}`;
+    }
+    return undefined;
+  };
+  /** One level down from a condition: the initializers of local consts it names and the returned expressions of in-tree adapter helpers it calls. */
+  const expansions = (cond: Node): { node: Node; helper: boolean }[] => {
+    const out: { node: Node; helper: boolean }[] = [];
+    for (const x of [cond, ...cond.getDescendants()]) {
+      if (Node.isIdentifier(x) && !Node.isPropertyAccessExpression(x.getParent())) {
+        const d = x.getSymbol()?.getDeclarations()[0];
+        if (d !== undefined && Node.isVariableDeclaration(d) && d.getVariableStatement()?.getDeclarationKind() === VariableDeclarationKind.Const && d.getSourceFile() === cond.getSourceFile()
+          && d.getFirstAncestor((a) => units.has(a)) !== undefined && d.getFirstAncestor((a) => units.has(a)) === cond.getFirstAncestor((a) => units.has(a))) {
+          // a local const read for a presence test (`found === undefined`) is a lookup, not a decision
+          const up = x.getParent();
+          const presence = Node.isBinaryExpression(up) && EQUALITY.has(up.getOperatorToken().getKind()) && isNullish(up.getLeft() === x ? up.getRight() : up.getLeft());
+          const init = d.getInitializer(); if (init !== undefined && !presence) out.push({ node: init, helper: false });
+        }
+      }
+      if (Node.isCallExpression(x)) {
+        for (const u of targetsOf(declOfCall(x))) {
+          if (!inTree(u) || roleOfNode(u) !== 'adapter') continue;
+          if (Node.isArrowFunction(u) && !Node.isBlock(u.getBody())) { out.push({ node: u.getBody(), helper: true }); continue; }
+          for (const r of u.getDescendantsOfKind(SyntaxKind.ReturnStatement)) {
+            if (r.getFirstAncestor((a) => units.has(a)) !== u) continue;
+            const e = r.getExpression(); if (e !== undefined) out.push({ node: e, helper: true });
+          }
+        }
+      }
+    }
+    return out;
+  };
+  /** A threshold or calendar comparison in a condition, outside transport validation (typeof, parse and Number tests). */
+  const shapedRead = (cond: Node): string | undefined => {
+    const inside = new Set(cond.getDescendants());
+    for (const x of [cond, ...cond.getDescendants()]) {
+      if (x.getAncestors().some((a) => inside.has(a) && (Node.isTypeOfExpression(a) || Node.isArrowFunction(a) || Node.isFunctionExpression(a) || (Node.isCallExpression(a) && VALIDATION_CALL.test(calleeName(a)))))) continue;
+      const r = threshold(x) ?? calendar(x);
+      if (r !== undefined) return r;
+    }
+    return undefined;
+  };
+  // the v1.5.6 domain-state reading first (so its findings read as before), then the v1.5.7 shapes, then one level down
   const domainRead = (cond: Node): string | undefined => {
+    const r = domainRead1(cond) ?? shapedRead(cond);
+    if (r !== undefined) return r;
+    // a local const's initializer is read for the v1.5.7 shapes only (a `find` callback in it is a lookup), a helper's
+    // returned expression for both readings
+    for (const e of expansions(cond)) { const x = (e.helper ? domainRead1(e.node) : undefined) ?? shapedRead(e.node); if (x !== undefined) return x; }
+    return undefined;
+  };
+  const domainRead1 = (cond: Node): string | undefined => {
     const inside = new Set(cond.getDescendants());
     const validation = (x: Node): boolean => x.getAncestors().some((a) => inside.has(a) && (Node.isTypeOfExpression(a) || (Node.isCallExpression(a) && VALIDATION_CALL.test(calleeName(a)))));
     for (const x of [cond, ...cond.getDescendants()]) {
@@ -1618,7 +1740,15 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   };
   const short = (n: Node): string => n.getText().replace(/\s+/g, ' ').slice(0, 60);
   /** What a branch does that a business rule does, or undefined. `stmt` false: an expression branch (a ternary arm). */
-  const branchEffect = (branch: Node, stmt: boolean): { effect: string; http: boolean } | undefined => {
+  /** A literal that names a code: a string, a boolean or an enum member (what a mapping returns). */
+  const isCodeLiteral = (e: Node): boolean => Node.isStringLiteral(e) || Node.isNoSubstitutionTemplateLiteral(e) || Node.isTrueLiteral(e) || Node.isFalseLiteral(e)
+    || (Node.isPropertyAccessExpression(e) && (e.getNameNode().getSymbol()?.getDeclarations() ?? []).some((d) => Node.isEnumMember(d)));
+  /**
+   * What a branch does that a business rule does, or undefined. `stmt` false: an expression branch (a ternary arm).
+   * `ranked` (v1.5.7): the condition ranks or dates a value (a relational comparison, a threshold or a calendar read);
+   * a code literal chosen without ranking is a mapping (`status === 'paid' ? 'PAID' : 'OPEN'`, a switch to column codes).
+   */
+  const branchEffect = (branch: Node, stmt: boolean, ranked = true): { effect: string; http: boolean } | undefined => {
     const nodes = [branch, ...branch.getDescendants()];
     for (const n of nodes) {
       if (!Node.isNewExpression(n) && !Node.isCallExpression(n)) continue;
@@ -1636,6 +1766,9 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
         if (d !== undefined && Node.isMethodDeclaration(d) && !d.isStatic() && o !== undefined && Node.isClassDeclaration(o) && inTree(o) && roleOfNode(o) === 'domain' && !isErrorClass(o)) {
           let rt = d.getReturnType(); if (rt.getSymbol()?.getName() === 'Promise') rt = rt.getTypeArguments()[0] ?? rt;
           if (rt.isVoid()) return { effect: `changes state: ${short(n)}`, http: false };
+          // v1.5.7: computes a new domain value with the value's own operation (`invoice.amount.add(fee)`)
+          const rs = rt.getSymbol();
+          if (rs?.getDeclarations().includes(o) === true) return { effect: `computes ${short(n)}`, http: false };
         }
       }
       if (Node.isBinaryExpression(n) && (n.getOperatorToken().getKind() === SyntaxKind.EqualsToken || ARITH_ASSIGN.has(n.getOperatorToken().getKind()))) {
@@ -1646,7 +1779,16 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
       if ((Node.isBinaryExpression(n) && (ARITH_OPS.has(n.getOperatorToken().getKind()) || ARITH_ASSIGN.has(n.getOperatorToken().getKind())) && n.getType().isNumber())
         || (Node.isCallExpression(n) && /^Math\.(round|floor|ceil|min|max)$/.test(n.getExpression().getText()))) return { effect: `computes ${short(n)}`, http: false };
     }
-    if (!stmt) return undefined;
+    if (!stmt) {
+      // v1.5.7: a ternary arm that is a numeric literal other than 0, 1 or -1 is a price or rate (`tier === 'gold' ? 0.2 : 0`);
+      // a code literal arm is a decision only under a ranking condition (`total > 15000 ? 'high' : level`)
+      let e: Node = branch;
+      while (Node.isParenthesizedExpression(e) || Node.isAsExpression(e)) e = e.getExpression();
+      const v = numericConst(e);
+      if (v !== undefined && v !== 0 && v !== 1 && v !== -1) return { effect: `chooses ${short(e)}`, http: false };
+      if (ranked && isCodeLiteral(e)) return { effect: `chooses ${short(e)}`, http: false };
+      return undefined;
+    }
     // returns early with a business result: a literal, an object or array, a new value, or a failure result
     for (const s of Node.isBlock(branch) ? branch.getStatements() : [branch]) {
       if (!Node.isReturnStatement(s)) continue;
@@ -1657,6 +1799,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
       const result = http || Node.isStringLiteral(e) || Node.isNoSubstitutionTemplateLiteral(e) || Node.isTemplateExpression(e) || Node.isNumericLiteral(e) || Node.isTrueLiteral(e) || Node.isFalseLiteral(e)
         || Node.isObjectLiteralExpression(e) || Node.isArrayLiteralExpression(e) || Node.isNewExpression(e)
         || (Node.isCallExpression(e) && /^(fail|failure|err|error|reject|rejected|declined|denied|refused)$/.test(calleeName(e)));
+      if (result && !ranked && isCodeLiteral(e)) continue; // v1.5.7: a code mapping, inbound or outbound
       if (result) return { effect: `returns ${short(e)}`, http };
     }
     return undefined;
@@ -1682,8 +1825,9 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
         : domainRead(cond);
       if (read === undefined) return;
       const equalityOnly = ![cond, ...cond.getDescendants()].some((x) => (Node.isBinaryExpression(x) && RELATIONAL.has(x.getOperatorToken().getKind())) || Node.isCallExpression(x));
+      const ranked = !equalityOnly || /^(threshold|calendar) /.test(read);
       for (const [b, stmt] of branches) {
-        const e = branchEffect(b, stmt);
+        const e = branchEffect(b, stmt, ranked);
         if (e === undefined || (e.http && equalityOnly)) continue; // an equality mapped to an HTTP status is translation
         const line = n.getStartLineNumber();
         if (!seen.has(line)) { seen.add(line); adapterRules.push({ file: f, line, unit: unitName(n), cond: cond.getText().replace(/\s+/g, ' ').slice(0, 100), reads: read, effect: e.effect }); }

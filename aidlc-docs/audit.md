@@ -3309,3 +3309,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Hexagonal study, reporting after the one scoring; no re-analysis
 
 ---
+
+## v1.5.7 H06 R-ADAPTER-RULE: development revision
+**Timestamp**: 2026-11-02T17:24:56Z
+**User Input**: "Improve the exploratory rule R-ADAPTER-RULE (Hexagonal H06) so it detects its construct; zero model calls; development fit, not admission."
+**AI Response**: "Revised the ADAPTER_DECIDES fact in src/v15-instrument/facts.ts and added a dated v1.5.7 header to the rule file (Cypher query unchanged). The rule now also reads business thresholds and calendar rules on plain request or port data, one level down through a local const or an in-tree adapter helper, and nullable reads; numeric ternary arms count as prices; code literals chosen by an equality alone are mappings. H06 cases of HCAL-01..04 (development data): positives 4/14 to 14/14 (HCAL-03 + HCAL-04: 3/8 to 8/8), 0 FP on twins, legit cases and bases before and after. HCAL-05 has no H06 cases. Hexagonal study trees (descriptive): new R-ADAPTER-RULE identities arm none 7 to 10, combined 0 to 0; the counted Hexagonal rules gave byte-identical findings. Records and limits in experiments/h06-adapter-rule-dev/README.md; tests in tests/unit/v15-instrument/h06-adapter-rule.test.ts. Not admitted; needs a new blind sealed set."
+**Context**: v1.5.7 exploratory instrument work; no rule-set, admitted-row or counted-rule change
+
+---
