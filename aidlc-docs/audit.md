@@ -3351,6 +3351,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## SEM-GATE: zero-agent gate for R-MIRROR-SEM (queue item 9, step 1)
+**Timestamp**: 2026-11-02T20:34:32Z
+**User Input**: "Run the zero-agent semantic gate for R-MIRROR-SEM before any agent run on hxpb1/hxpb2."
+**AI Response**: "Fixed criteria, labelling rule and 53 new cases in experiments/sem-gate/GATE.md (pushed in 3f12c1dcd before any judge call): 12 built from the hxpb1/hxpb2 task material, 41 distinct candidate questions from the kept Hexagonal study trees. Criterion 1 split by form because the census showed core-side copies never reach the judge. Ran once: 49 judge calls plus 2 in the deferred-latency run. Form A recall 0/4 (no candidate, structural), form B 16/16, FP 0/33, 0 citation problems, deferred hub p95 490 ms. Verdict FAIL on 1a; no agent-run plan written. Record: experiments/sem-gate/README.md."
+**Context**: Exploratory neuro-symbolic gate; widening the rule to core-side copies would need a new instrument version.
 ## v1.5.8: import and scope fact fixes (exploratory, development fit)
 **Timestamp**: 2026-11-02T20:43:00Z
 **User Input**: "Build the approved v1.5.8 fact work: spec-derived adapter packages (review #3), re-exports, barrels and dynamic import() as R-AXA edges (#5), inline type imports, import = require and catalogue gaps for R-COREIO and R-PURE (#8), export * for R-D9 (#17), and a narrow R-MIRROR2 reading of one-word vendor terms (Hexagonal hand read t03/t09); dev regression per change; counted lists unchanged; merge once CI is green."
