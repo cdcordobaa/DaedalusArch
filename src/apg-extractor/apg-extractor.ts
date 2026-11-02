@@ -35,7 +35,7 @@ export async function extractAPG(
   /** Scale controls (`--max-files`, the memory guard, `--skip-excluded-sources`); absent = the extraction as before. */
   limits: ExtractionLimits = {},
 ): Promise<DomainResult<APGResult>> {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const opts = { portCalls: false, ...DEFAULT_OPTIONS, ...options };
   const absoluteProjectPath = resolve(projectPath);
 
   if (!existsSync(absoluteProjectPath)) {

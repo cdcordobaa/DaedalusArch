@@ -22,7 +22,7 @@ export function extractNodes(
   options: ExtractorOptions = {},
   checkpoint?: FileCheckpoint,
 ): NodeExtractionResult {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const opts = { portCalls: false, ...DEFAULT_OPTIONS, ...options };
   const nodes: APGNode[] = [];
   const skipped: SkippedFile[] = [];
 
