@@ -14,9 +14,15 @@ The frozen loader (`scripts/v1.3/lib/reference-model.ts` at X = `4d28d280`, head
 firewall spec the frozen tool accepts. The spec is part of the frozen tool, not of the cases: the hold-out cases are
 planted variants of a clean project, scored against the style's frozen preset.
 
-**Repair (attempt 4, one try only).** Attempt 3's steps 1–4 unchanged (fresh copy checked against `1379b561…`; the
-attempt-1 blind adapter session re-run unchanged; the deterministic header-only repair of creation patches; the
-attempt-2 verifier). Then one added step, by a deterministic script, not a model:
+**Repair (attempt 4, one try only).** Attempt 3's steps 1, 3 and 4 unchanged (fresh copy checked against
+`1379b561…`; the deterministic header-only repair of creation patches; the attempt-2 verifier). Step 2 changes in one
+respect: **the attempt-1 adapter prompt was not preserved** (it lived only in the 2026-10-20 coordinator session and
+its deleted work directory; a search of the repository, its history and the local transcripts on 2026-11-02 found
+the flags and the allow-list but not the prompt). The blind adapter therefore runs with the same flags and allow-list
+and with a **new prompt, committed verbatim before the session** (`Docs/v1.3/holdout-adapter-prompt-attempt-4.md`,
+hash in `Docs/v1.3/sealed-hashes.md`). The prompt never decided validity: the adapter's output is accepted only if the
+attempt-2 verifier finds it path-only (every converted file equals a source file by content hash, 0 files whose content
+matches no source file, a consistent MAP). Then one added step, by a deterministic script, not a model:
 
 - **3b.** For each patch-format style (`clean-architecture`, `layered`, `nestjs`, `hexagonal`), the file the style's
   descriptor names in its spec role is replaced by a byte copy of `presets/<style>.yaml` at X. The script prints, per
