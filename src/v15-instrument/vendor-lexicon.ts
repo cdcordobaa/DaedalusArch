@@ -44,6 +44,12 @@
  *     (`['claim_ref', 'claim_status'] as const`), with a name token, the list as its `set` (`<symbol>@<line>:<col>`) and
  *     the number of the list's non-id string elements as `ownerFields`, so the rule can test a list that names a vendor
  *     declaration's fields as it tests a type's declared fields.
+ *
+ * v1.5.7 (2026-11-02, H11-d field names, still extraction only): an object literal is read as two more lists of names,
+ * its string values (`context: 'object-value'`, `{ postcode: 'consignee_postcode' }`) and its keys (`context:
+ * 'object-key'`, identifier, string and shorthand keys), each with its own `set` (`<symbol>@<line>:<col>#value|#key`)
+ * and `ownerFields`, so a table of vendor field names is tested like a list. Keys stay read as `literal` terms too
+ * (context `key`, v1.5.5); the `listed` terms carry name tokens only, so the literal and error shapes never meet them.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -64,7 +70,7 @@ export interface VendorTermFact {
   /** v1.5.5: for a declaration, why its NAME is not the vendor's own when a core declaration copies it (as `ownedBy`). */
   readonly declOwnedBy: '' | 'generic' | 'spec' | 'baseline';
 }
-export type CoreContext = 'compare' | 'switch' | 'includes' | 'union' | 'enum' | 'const-set' | 'error' | 'value' | 'other' | 'field' | 'method' | 'key' | 'decl' | 'listed';
+export type CoreContext = 'compare' | 'switch' | 'includes' | 'union' | 'enum' | 'const-set' | 'error' | 'value' | 'other' | 'field' | 'method' | 'key' | 'decl' | 'listed' | 'object-value' | 'object-key';
 export interface CoreTermFact {
   readonly file: string; readonly line: number; readonly role: Role; readonly kind: 'literal' | 'field' | 'method' | 'decl' | 'listed';
   readonly text: string; readonly token: string;
@@ -300,16 +306,35 @@ export function coreTermsOf(sf: SourceFile, file: string, role: Role): CoreTermF
   for (const t of sf.getDescendantsOfKind(SyntaxKind.TupleType)) {
     lists.push({ host: t, items: t.getElements().map((e) => (Node.isNamedTupleMember(e) ? e.getTypeNode() : e)).filter((e) => Node.isLiteralTypeNode(e) && strOf(e.getLiteral()) !== undefined).map((e) => (e as import('ts-morph').LiteralTypeNode).getLiteral()) });
   }
-  for (const { host, items } of lists) {
+  // v1.5.7: an object literal holds names too: its string values (`{ postcode: 'consignee_postcode' }`) and its keys
+  // (`{ consignee_postcode: … }`), each read as one list of that object (`object-value`, `object-key`).
+  const named: { host: Node; items: { node: Node; text: string }[]; context: CoreContext; tag: string }[] = [];
+  for (const { host, items } of lists) named.push({ host, items: items.map((x) => ({ node: x, text: strOf(x)! })), context: 'listed', tag: '' });
+  for (const o of sf.getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression)) {
+    const values: { node: Node; text: string }[] = [];
+    const keys: { node: Node; text: string }[] = [];
+    for (const p of o.getProperties()) {
+      if (Node.isPropertyAssignment(p)) {
+        const k = p.getNameNode();
+        if (Node.isIdentifier(k)) keys.push({ node: k, text: k.getText() });
+        else { const s = strOf(k); if (s !== undefined) keys.push({ node: k, text: s }); }
+        const init = p.getInitializer();
+        const v = init === undefined ? undefined : unwrap(init);
+        const s = strOf(v);
+        if (v !== undefined && s !== undefined) values.push({ node: v, text: s });
+      } else if (Node.isShorthandPropertyAssignment(p)) keys.push({ node: p.getNameNode(), text: p.getName() });
+    }
+    named.push({ host: o, items: values, context: 'object-value', tag: 'value' }, { host: o, items: keys, context: 'object-key', tag: 'key' });
+  }
+  for (const { host, items, context, tag } of named) {
     if (items.length === 0) continue;
-    const texts = items.map((x) => strOf(x)!).filter((t) => t !== '');
+    const texts = items.map((x) => x.text).filter((t) => t !== '');
     const n = new Set(texts.filter((t) => t !== 'id')).size;
     const { line, column } = sf.getLineAndColumnAtPos(host.getStart());
     const sym = symbolOf(host);
-    for (const x of items) {
-      const text = strOf(x)!;
+    for (const { node: x, text } of items) {
       if (text === '') continue;
-      out.push({ file, line: x.getStartLineNumber(), role, kind: 'listed', text, token: nameToken(text), symbol: sym, context: 'listed', set: `${sym}@${String(line)}:${String(column)}`, setSize: texts.length, owner: sym, ownerFields: n });
+      out.push({ file, line: x.getStartLineNumber(), role, kind: 'listed', text, token: nameToken(text), symbol: sym, context, set: `${sym}@${String(line)}:${String(column)}${tag === '' ? '' : `#${tag}`}`, setSize: texts.length, owner: sym, ownerFields: n });
     }
   }
   const fieldOwner = (n: Node): { owner: string; fields: number } => {
