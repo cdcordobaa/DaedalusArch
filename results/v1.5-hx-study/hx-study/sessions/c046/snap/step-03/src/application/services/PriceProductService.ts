@@ -1,0 +1,54 @@
+import { PricingError } from '../../domain/errors/PricingError';
+import { PriceList } from '../../domain/services/PriceList';
+import { PriceRounding } from '../../domain/services/PriceRounding';
+import type { PriceProduct, PriceView } from '../ports/in/PriceProduct';
+import type { ExchangeRate, ExchangeRates } from '../ports/out/ExchangeRates';
+
+const MAX_RATE_AGE_MS = 24 * 60 * 60 * 1000;
+const UNAVAILABLE = 'Prices in this currency are not available right now.';
+
+export class PriceProductService implements PriceProduct {
+  constructor(
+    private readonly rates: ExchangeRates,
+    private readonly prices: PriceList = new PriceList(),
+    private readonly now: () => Date = () => new Date(),
+  ) {}
+
+  private readonly rounding = new PriceRounding();
+  private readonly lastUsable = new Map<string, ExchangeRate>();
+
+  async price(sku: string, currency: string): Promise<PriceView> {
+    if (!/^[A-Z]{3}$/.test(currency)) throw new PricingError('currency must be a three-letter code');
+    const product = this.prices.product(sku);
+    const euro = this.prices.euroPrice(product);
+    if (currency === 'EUR') {
+      return { sku: product.sku, name: product.name, currency: euro.currency, amount: euro.amount, estimated: false };
+    }
+    const found = await this.rates.latestFromEur(currency);
+    let rate = found?.find((r) => this.usable(r, currency));
+    let estimated = false;
+    if (rate !== undefined) {
+      this.lastUsable.set(currency, rate);
+    } else if (found === undefined) {
+      // Ratewise is unavailable: fall back to the last rate we were allowed to use.
+      const earlier = this.lastUsable.get(currency);
+      if (earlier !== undefined && this.usable(earlier, currency)) {
+        rate = earlier;
+        estimated = true;
+      }
+    }
+    if (rate === undefined) {
+      return { sku: product.sku, name: product.name, currency, amount: null, estimated: false, reason: UNAVAILABLE };
+    }
+    const amount = this.rounding.round(currency, product.euroCents, rate.mid, rate.decimals);
+    return { sku: product.sku, name: product.name, currency, amount, estimated };
+  }
+
+  private usable(rate: ExchangeRate, currency: string): boolean {
+    if (rate.currency !== currency || rate.indicative) return false;
+    if (!Number.isFinite(rate.mid) || rate.mid <= 0) return false;
+    const fixedAt = rate.fixedAt.getTime();
+    if (Number.isNaN(fixedAt)) return false;
+    return this.now().getTime() - fixedAt <= MAX_RATE_AGE_MS;
+  }
+}

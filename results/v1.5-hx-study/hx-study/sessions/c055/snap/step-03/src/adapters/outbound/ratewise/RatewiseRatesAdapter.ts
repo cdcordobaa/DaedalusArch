@@ -1,0 +1,23 @@
+import { RatewiseUnavailableError, type RatewiseClient } from 'ratewise-sdk';
+import type { EuroRate, ExchangeRates } from '../../../application/ports/out/ExchangeRates';
+
+export class RatewiseRatesAdapter implements ExchangeRates {
+  constructor(private readonly client: RatewiseClient) {}
+
+  async latestFromEuro(currency: string): Promise<EuroRate[] | null> {
+    try {
+      const result = await this.client.latest({ base: 'EUR', symbols: [currency] });
+      if (result.base !== 'EUR') return [];
+      return result.rates.map((r) => ({
+        currency: r.symbol,
+        mid: r.mid,
+        asOf: new Date(r.asOf),
+        indicative: r.quality !== 'FIRM',
+        minorUnits: r.minorUnits,
+      }));
+    } catch (e) {
+      if (e instanceof RatewiseUnavailableError) return null;
+      throw e;
+    }
+  }
+}

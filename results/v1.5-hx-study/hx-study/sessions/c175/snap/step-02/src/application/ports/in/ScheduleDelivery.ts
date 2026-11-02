@@ -1,0 +1,22 @@
+export interface DeliveryRequest {
+  readonly orderId: string;
+  readonly street: string;
+  readonly postcode: string;
+  readonly city: string;
+  readonly country: string;
+}
+
+export interface DeliveryView {
+  readonly orderId: string;
+  readonly status: string;
+  readonly address?: string;
+  readonly latitude?: number;
+  readonly longitude?: number;
+  readonly reason?: string;
+  /** true when the address could not be checked (verification service down). */
+  readonly unverified?: boolean;
+}
+
+export interface ScheduleDelivery {
+  schedule(request: DeliveryRequest): Promise<DeliveryView>;
+}
