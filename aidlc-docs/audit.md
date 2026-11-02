@@ -3293,3 +3293,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Hexagonal study, pre-data addendum before the first study call; no arm contrast computed
 
 ---
+
+## v1.5 Hexagonal study: deviation DEV-HX-2 (order seed)
+**Timestamp**: 2026-11-02T04:26:00Z (merge time of PR #469)
+**User Input**: "Run the plan until the Hexagonal study is finished; take the recommended option at each step."
+**AI Response**: "Recorded DEV-HX-2 in the registration (§6): §2 states the session order seed as 20261030, while the hash-pinned driver uses ORDER_SEED = 20261029. The study runs with 20261029. The seed only orders sessions, assigns no arm, and was stated before any outcome was seen; the §4 analysis seeds are unchanged. No code change."
+**Context**: v1.5 Hexagonal study, protocol deviation stated before the main run; entry added after the fact (left out of PR #469 to avoid a conflict)
+
+---
