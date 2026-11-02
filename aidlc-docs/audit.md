@@ -3309,3 +3309,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 Hexagonal study, reporting after the one scoring; no re-analysis
 
 ---
+
+## v1.5.7 R-D5S development revision (K10, exploratory)
+**Timestamp**: 2026-11-02T17:29:59Z
+**User Input**: "Improve R-D5S (declared invariant enforced outside its owner, K10) after its failed unseen gate (4/6, 2/10); check the independent review's hypotheses #19 and #20 against the cases; zero model calls; open a PR, do not merge."
+**AI Response**: "Found that CN-01 (fa2f17fc3) already fixed both unseen failure causes (owner-first; non-throw rejections) after the seal; main now scores 6/6 recall, 0/10 FP on experiments/d5-unseen, so that set is development material and 4/6, 2/10 stays the reported historical gate. Confirmed the review's hypotheses on new fixtures (log-then-throw and switch-case misses; filter-loop continue and domain value-object FPs) and revised only the INVARIANT_SITE facts in src/v15-instrument/facts.ts (guards.ts, all v1.4 code and rule-set.ts untouched). Regression over 422 committed trees (d5-unseen, CAL-01 to CAL-03): every v1.5 finding identical before and after; CAL-03 K10 4/4, 0/6 unchanged. The DDD study's session trees were not kept, so no study-tree diff. Record: experiments/r-d5s-dev/README.md; tests: tests/unit/v15-instrument/r-d5s-v157.test.ts."
+**Context**: v1.5 instrument, exploratory development fit; admission would need a new blind sealed set
+
+---

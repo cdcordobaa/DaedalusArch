@@ -1,0 +1,5408 @@
+{
+  "modelCalls": 0,
+  "summary": {
+    "d5-unseen": {
+      "k10Recall": "6/6",
+      "k10Fp": "0/10",
+      "anyCleanFp": "0/10",
+      "firesOnOtherRowPositives": [],
+      "cleanCasesFlagged": [],
+      "k10Missed": []
+    },
+    "cal-01": {
+      "k10Recall": "2/2",
+      "k10Fp": "0/3",
+      "anyCleanFp": "0/50",
+      "firesOnOtherRowPositives": [],
+      "cleanCasesFlagged": [],
+      "k10Missed": []
+    },
+    "cal-02": {
+      "k10Recall": "0/4",
+      "k10Fp": "0/6",
+      "anyCleanFp": "0/98",
+      "firesOnOtherRowPositives": [],
+      "cleanCasesFlagged": [],
+      "k10Missed": [
+        "claims/K10-pos1",
+        "claims/K10-pos2",
+        "maintenance/K10-pos1",
+        "maintenance/K10-pos2"
+      ]
+    },
+    "cal-03": {
+      "k10Recall": "4/4",
+      "k10Fp": "0/6",
+      "anyCleanFp": "0/98",
+      "firesOnOtherRowPositives": [],
+      "cleanCasesFlagged": [],
+      "k10Missed": []
+    }
+  },
+  "rows": [
+    {
+      "set": "d5-unseen",
+      "domain": "clinic",
+      "case": "legit-1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/scheduling/domain/doctorday/DoctorDay.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "clinic",
+      "case": "legit-2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "clinic",
+      "case": "pos-1",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/scheduling/application/ScheduleService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 12
+        },
+        {
+          "rule": "R-D5",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 15
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 15,
+          "evidence": "checks declared invariant slot-no-double-book (a doctor never has two overlapping appointments) outside its owner DoctorDay: if (existing.start < end && start < existing.end)"
+        },
+        {
+          "rule": "R-REF",
+          "file": "src/scheduling/domain/doctorday/DoctorDay.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "clinic",
+      "case": "pos-2",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/scheduling/application/ScheduleService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 14
+        },
+        {
+          "rule": "R-D5",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 26
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 26,
+          "evidence": "checks declared invariant cancel-notice-window (an appointment cannot be cancelled inside its notice window) outside its owner Appointment: if (appt.start - now < cancelWindowMs)"
+        },
+        {
+          "rule": "R-REF",
+          "file": "src/scheduling/domain/doctorday/DoctorDay.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "clinic",
+      "case": "pos-3",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/scheduling/infrastructure/http/BookingController.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 12
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/scheduling/infrastructure/http/BookingController.ts",
+          "line": 12,
+          "evidence": "checks declared invariant slot-no-double-book (a doctor never has two overlapping appointments) outside its owner DoctorDay: if (overlapping.length > 0)"
+        },
+        {
+          "rule": "R-REF",
+          "file": "src/scheduling/domain/doctorday/DoctorDay.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "clinic",
+      "case": "twin-1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 12
+        },
+        {
+          "rule": "R-REF",
+          "file": "src/scheduling/domain/doctorday/DoctorDay.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "clinic",
+      "case": "twin-2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 12
+        },
+        {
+          "rule": "R-REF",
+          "file": "src/scheduling/domain/doctorday/DoctorDay.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "clinic",
+      "case": "twin-3",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/scheduling/application/ScheduleService.ts",
+          "line": 12
+        },
+        {
+          "rule": "R-REF",
+          "file": "src/scheduling/domain/doctorday/DoctorDay.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "warehouse",
+      "case": "legit-1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "warehouse",
+      "case": "legit-2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "warehouse",
+      "case": "pos-1",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/storage/application/PutAwayService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/storage/application/PutAwayService.ts",
+          "line": 14
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/storage/application/PutAwayService.ts",
+          "line": 14,
+          "evidence": "checks declared invariant bin-capacity (stock in a bin never exceeds its capacity) outside its owner Bin: if (used + quantity > bin.capacity)"
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "warehouse",
+      "case": "pos-2",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/storage/application/PutAwayService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/storage/application/PutAwayService.ts",
+          "line": 20
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/storage/application/PutAwayService.ts",
+          "line": 20,
+          "evidence": "checks declared invariant pallet-weight-limit (a pallet never carries more than its maximum weight) outside its owner Pallet: if (pallet.weightKg + crateKg > pallet.maxWeightKg)"
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "warehouse",
+      "case": "pos-3",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/storage/infrastructure/messaging/PutAwayHandler.ts",
+      "hits": [
+        {
+          "rule": "R-ADAPTER-RULE",
+          "file": "src/storage/infrastructure/messaging/PutAwayHandler.ts",
+          "line": 16
+        },
+        {
+          "rule": "R-D5",
+          "file": "src/storage/infrastructure/messaging/PutAwayHandler.ts",
+          "line": 16
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/storage/infrastructure/messaging/PutAwayHandler.ts",
+          "line": 16,
+          "evidence": "checks declared invariant bin-capacity (stock in a bin never exceeds its capacity) outside its owner Bin: if (total > bin.capacity)"
+        }
+      ]
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "warehouse",
+      "case": "twin-1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "warehouse",
+      "case": "twin-2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "d5-unseen",
+      "domain": "warehouse",
+      "case": "twin-3",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "base",
+      "row": null,
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K09-legit",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K09-pos1",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/ticketing/application/TicketingService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-D5",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 47
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K09-pos2",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/ticketing/application/TicketingService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-D5",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 45
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K09-twin1",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K09-twin2",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K10-legit",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K10-pos1",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/ticketing/application/TicketingService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-D5",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 47
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 47,
+          "evidence": "checks declared invariant seat-sold-once (a seat is sold at most once per show) outside its owner Show: if (show.isSold(seatId))"
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K10-pos2",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/ticketing/infrastructure/http/TicketController.ts",
+      "hits": [
+        {
+          "rule": "R-ADAPTER-RULE",
+          "file": "src/ticketing/infrastructure/http/TicketController.ts",
+          "line": 24
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-D5",
+          "file": "src/ticketing/infrastructure/http/TicketController.ts",
+          "line": 24
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/ticketing/infrastructure/http/TicketController.ts",
+          "line": 24,
+          "evidence": "checks declared invariant seat-sold-once (a seat is sold at most once per show) outside its owner Show: if (show !== undefined && show.isSold(req.seatId))"
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K10-twin1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K10-twin2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K11-legit",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K11-pos1",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/ticketing/application/TicketingService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 27
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 35
+        },
+        {
+          "rule": "R-LOCK",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K11-pos2",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/payments/application/PaymentService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-LOCK",
+          "file": "src/payments/application/PaymentService.ts",
+          "line": 27
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K11-twin1",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K11-twin2",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K12-legit",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K12-pos1",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/ticketing/application/TicketingService.ts",
+      "hits": [
+        {
+          "rule": "R-D3",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 45
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K12-pos2",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/ticketing/application/TicketingService.ts",
+      "hits": [
+        {
+          "rule": "R-D3",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 45
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K12-twin1",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K12-twin2",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K13-legit",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K13-pos1",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/payments/application/PaymentGateway.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/payments/application/PaymentGateway.ts",
+          "line": 4
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/payments/application/PaymentGateway.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K13-pos2",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/ticketing/application/TicketExporter.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/ticketing/application/TicketExporter.ts",
+          "line": 5
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/ticketing/application/TicketExporter.ts",
+          "line": 5
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K13-twin1",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K13-twin2",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K14-legit",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K14-pos1",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/ticketing/index.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-D9",
+          "file": "src/ticketing/index.ts",
+          "line": 6
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K14-pos2",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/ticketing/contracts/TicketingApi.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-D9",
+          "file": "src/ticketing/contracts/TicketingApi.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K14-twin1",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 26
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 34
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K14-twin2",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K15-legit",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K15-pos1",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/ticketing/application/ShowReportService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-INJ",
+          "file": "src/ticketing/application/ShowReportService.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K15-pos2",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/payments/application/PaymentReportService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-INJ",
+          "file": "src/payments/application/PaymentReportService.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K15-twin1",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K15-twin2",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K16-legit",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K16-pos1",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/ticketing/domain/ticket/Ticket.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-REF",
+          "file": "src/ticketing/domain/ticket/Ticket.ts",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K16-pos2",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/ticketing/domain/show/Show.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        },
+        {
+          "rule": "R-REF",
+          "file": "src/ticketing/domain/show/Show.ts",
+          "line": 12
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K16-twin1",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "events",
+      "case": "K16-twin2",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 25
+        },
+        {
+          "rule": "R-D4",
+          "file": "src/ticketing/application/TicketingService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "base",
+      "row": null,
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k01-legit",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k01-pos1",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/billing/application/BillingService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k01-pos2",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/catalog/application/CatalogService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k01-twin1",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k01-twin2",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k02-legit",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k02-pos1",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/billing/domain/charge/Charge.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k02-pos2",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/catalog/domain/equipment/Equipment.ts",
+      "hits": [
+        {
+          "rule": "R-TRANSPORT",
+          "file": "src/catalog/domain/equipment/Equipment.ts",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k02-twin1",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k02-twin2",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k03-legit",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k03-pos1",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/rentals/application/RentalService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/rentals/application/RentalService.ts",
+          "line": 51
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k03-pos2",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/catalog/application/CatalogService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/catalog/application/CatalogService.ts",
+          "line": 65
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k03-twin1",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k03-twin2",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/catalog/application/CatalogService.ts",
+          "line": 65
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k04-legit",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k04-pos1",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/rentals/infrastructure/InMemoryRentalRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4R",
+          "file": "src/rentals/application/RentalRepository.ts",
+          "line": 7
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/rentals/infrastructure/InMemoryRentalRepository.ts",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k04-pos2",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/catalog/infrastructure/InMemoryEquipmentRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4R",
+          "file": "src/catalog/application/EquipmentRepository.ts",
+          "line": 6
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/catalog/infrastructure/InMemoryEquipmentRepository.ts",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k04-twin1",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k04-twin2",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k05-legit",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k05-pos1",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/rentals/application/RentalService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/rentals/application/RentalService.ts",
+          "line": 20
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/rentals/application/RentalService.ts",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k05-pos2",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/billing/application/BillingService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/billing/application/BillingService.ts",
+          "line": 38
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/billing/application/BillingService.ts",
+          "line": 38
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k05-twin1",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k05-twin2",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k06-legit",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k06-pos1",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/main.ts",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k06-pos2",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/main.ts",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k06-twin1",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k06-twin2",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k07-legit",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k07-pos1",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/billing/application/BillingService.ts",
+      "hits": [
+        {
+          "rule": "R-RTX",
+          "file": "src/billing/application/BillingService.ts",
+          "line": 39
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k07-pos2",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/billing/application/BillingService.ts",
+      "hits": [
+        {
+          "rule": "R-RTX",
+          "file": "src/billing/application/BillingService.ts",
+          "line": 21
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k07-twin1",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k07-twin2",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k08-legit",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/rentals/application/RentalService.ts",
+          "line": 32
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k08-pos1",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/rentals/application/RentalService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/rentals/application/RentalService.ts",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k08-pos2",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/rentals/application/RentalService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/rentals/application/RentalService.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k08-twin1",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-01",
+      "domain": "rental",
+      "case": "k08-twin2",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "base",
+      "row": null,
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K01-legit",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K01-pos1",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/claims/application/ClaimService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K01-pos2",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K01-twin1",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K01-twin2",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K02-legit",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K02-pos1",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/claims/domain/claim/Claim.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K02-pos2",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/payouts/domain/payout/Payout.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K02-twin1",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K02-twin2",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K03-legit",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 51
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K03-pos1",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/claims/application/ClaimService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 49
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K03-pos2",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K03-twin1",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K03-twin2",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K04-legit",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K04-pos1",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/claims/infrastructure/InMemoryClaimRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 49
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/claims/domain/claim/ClaimRepository.ts",
+          "line": 6
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/claims/infrastructure/InMemoryClaimRepository.ts",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K04-pos2",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/policies/infrastructure/InMemoryPolicyRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/policies/application/PolicyService.ts",
+          "line": 40
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/policies/domain/policy/PolicyRepository.ts",
+          "line": 6
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/policies/infrastructure/InMemoryPolicyRepository.ts",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K04-twin1",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K04-twin2",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K05-legit",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K05-pos1",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/claims/application/ClaimService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 22
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 22
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K05-pos2",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 31
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 31
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K05-twin1",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K05-twin2",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K06-legit",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K06-pos1",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K06-pos2",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K06-twin1",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K06-twin2",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K07-legit",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K07-pos1",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutService.ts",
+      "hits": [
+        {
+          "rule": "R-RTX",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 51
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K07-pos2",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutService.ts",
+      "hits": [
+        {
+          "rule": "R-RTX",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 49
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K07-twin1",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K07-twin2",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K08-legit",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K08-pos1",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/claims/application/ClaimService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K08-pos2",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 32
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K08-twin1",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K08-twin2",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K09-legit",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K09-pos1",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/claims/application/ClaimService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K09-pos2",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/policies/application/PolicyService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/policies/application/PolicyService.ts",
+          "line": 28
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K09-twin1",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K09-twin2",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K10-legit",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K10-pos1",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/policies/application/PolicyService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/policies/application/PolicyService.ts",
+          "line": 28
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K10-pos2",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/policies/api/PolicyController.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/policies/api/PolicyController.ts",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K10-twin1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K10-twin2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K11-legit",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K11-pos1",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/claims/application/ClaimService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K11-pos2",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/policies/infrastructure/InMemoryPolicyRepository.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K11-twin1",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K11-twin2",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K12-legit",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K12-pos1",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/claims/application/ClaimService.ts",
+      "hits": [
+        {
+          "rule": "R-D3",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K12-pos2",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutService.ts",
+      "hits": [
+        {
+          "rule": "R-D3",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 41
+        },
+        {
+          "rule": "R-D3",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 42
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K12-twin1",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K12-twin2",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K13-legit",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K13-pos1",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/payouts/application/ChargeGateway.ts",
+      "hits": [
+        {
+          "rule": "R-H5",
+          "file": "src/payouts/application/ChargeGateway.ts",
+          "line": 4
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/payouts/application/ChargeGateway.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K13-pos2",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutLedger.ts",
+      "hits": [
+        {
+          "rule": "R-H5",
+          "file": "src/payouts/application/PayoutLedger.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K13-twin1",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K13-twin2",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K14-legit",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K14-pos1",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/claims/contracts/ClaimDetails.ts",
+      "hits": [
+        {
+          "rule": "R-D9",
+          "file": "src/claims/contracts/ClaimDetails.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K14-pos2",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/payouts/index.ts",
+      "hits": [
+        {
+          "rule": "R-D9",
+          "file": "src/payouts/index.ts",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K14-twin1",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K14-twin2",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K15-legit",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K15-pos1",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/claims/application/ClaimService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/claims/application/ClaimService.ts",
+          "line": 14
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K15-pos2",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/payouts/application/PayoutService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/payouts/application/PayoutService.ts",
+          "line": 16
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K15-twin1",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K15-twin2",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K16-legit",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K16-pos1",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/claims/domain/claim/Claim.ts",
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/claims/domain/claim/Claim.ts",
+          "line": 34
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K16-pos2",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/payouts/domain/payout/Payout.ts",
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/payouts/domain/payout/Payout.ts",
+          "line": 16
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K16-twin1",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "claims",
+      "case": "K16-twin2",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "base",
+      "row": null,
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K01-legit",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K01-pos1",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/invoicing/application/InvoiceService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K01-pos2",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K01-twin1",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K01-twin2",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K02-legit",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K02-pos1",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/invoicing/domain/invoice/Invoice.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K02-pos2",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/properties/domain/property/Property.ts",
+      "hits": [
+        {
+          "rule": "R-COREIO",
+          "file": "src/properties/domain/property/Property.ts",
+          "line": 1
+        },
+        {
+          "rule": "R-PURE",
+          "file": "src/properties/domain/property/Property.ts",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K02-twin1",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K02-twin2",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K03-legit",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K03-pos1",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 61
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K03-pos2",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/properties/application/PropertyService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/properties/application/PropertyService.ts",
+          "line": 74
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K03-twin1",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K03-twin2",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K04-legit",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K04-pos1",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/workorders/infrastructure/InMemoryWorkOrderRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 61
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/workorders/domain/workorder/WorkOrderRepository.ts",
+          "line": 7
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/workorders/infrastructure/InMemoryWorkOrderRepository.ts",
+          "line": 15
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K04-pos2",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/properties/infrastructure/InMemoryPropertyRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/properties/application/PropertyService.ts",
+          "line": 74
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/properties/domain/property/PropertyRepository.ts",
+          "line": 7
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/properties/infrastructure/InMemoryPropertyRepository.ts",
+          "line": 15
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K04-twin1",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K04-twin2",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K05-legit",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K05-pos1",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 62
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 62
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K05-pos2",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/invoicing/application/InvoiceService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/invoicing/application/InvoiceService.ts",
+          "line": 66
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/invoicing/application/InvoiceService.ts",
+          "line": 66
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K05-twin1",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K05-twin2",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K06-legit",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K06-pos1",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K06-pos2",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K06-twin1",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K06-twin2",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K07-legit",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K07-pos1",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": [
+        {
+          "rule": "R-RTX",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 66
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K07-pos2",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": [
+        {
+          "rule": "R-RTX",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 68
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K07-twin1",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K07-twin2",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K08-legit",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K08-pos1",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 65
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K08-pos2",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/invoicing/application/InvoiceService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/invoicing/application/InvoiceService.ts",
+          "line": 68
+        },
+        {
+          "rule": "R-D5",
+          "file": "src/invoicing/application/InvoiceService.ts",
+          "line": 69
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K08-twin1",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K08-twin2",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K09-legit",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K09-pos1",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K09-pos2",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/invoicing/application/InvoiceService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/invoicing/application/InvoiceService.ts",
+          "line": 28
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K09-twin1",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K09-twin2",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K10-legit",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K10-pos1",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/properties/application/PropertyService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/properties/application/PropertyService.ts",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K10-pos2",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/properties/api/PropertyController.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/properties/api/PropertyController.ts",
+          "line": 21
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K10-twin1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K10-twin2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K11-legit",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K11-pos1",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K11-pos2",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/properties/infrastructure/InMemoryPropertyRepository.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K11-twin1",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K11-twin2",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K12-legit",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K12-pos1",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": [
+        {
+          "rule": "R-D3",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K12-pos2",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/invoicing/application/InvoiceService.ts",
+      "hits": [
+        {
+          "rule": "R-D3",
+          "file": "src/invoicing/application/InvoiceService.ts",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K12-twin1",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K12-twin2",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K13-legit",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K13-pos1",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/workorders/application/ContractorMailer.ts",
+      "hits": [
+        {
+          "rule": "R-H5",
+          "file": "src/workorders/application/ContractorMailer.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K13-pos2",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/invoicing/application/InvoiceExporter.ts",
+      "hits": [
+        {
+          "rule": "R-H5",
+          "file": "src/invoicing/application/InvoiceExporter.ts",
+          "line": 5
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/invoicing/application/InvoiceExporter.ts",
+          "line": 5
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/invoicing/application/InvoiceExporter.ts",
+          "line": 5
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K13-twin1",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K13-twin2",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K14-legit",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K14-pos1",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/properties/index.ts",
+      "hits": [
+        {
+          "rule": "R-D9",
+          "file": "src/properties/index.ts",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K14-pos2",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/invoicing/contracts/InvoiceContracts.ts",
+      "hits": [
+        {
+          "rule": "R-D9",
+          "file": "src/invoicing/contracts/InvoiceContracts.ts",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K14-twin1",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K14-twin2",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K15-legit",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K15-pos1",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/invoicing/application/InvoiceService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/invoicing/application/InvoiceService.ts",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K15-pos2",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/workorders/application/WorkOrderService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/workorders/application/WorkOrderService.ts",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K15-twin1",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K15-twin2",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K16-legit",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K16-pos1",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/invoicing/domain/invoice/Invoice.ts",
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/invoicing/domain/invoice/Invoice.ts",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K16-pos2",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/workorders/domain/workorder/WorkOrder.ts",
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/workorders/domain/workorder/WorkOrder.ts",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K16-twin1",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-02",
+      "domain": "maintenance",
+      "case": "K16-twin2",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "base",
+      "row": null,
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K01-legit",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K01-pos1",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/pilots/application/PilotBriefingService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K01-pos2",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/permits/api/PermitSurveyController.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K01-twin1",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K01-twin2",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K02-legit",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K02-pos1",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/permits/domain/permit/ReferencePolicy.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K02-pos2",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/pilots/domain/pilot/value-objects/LicenceNumber.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K02-twin1",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K02-twin2",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K03-legit",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K03-pos1",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/pilots/application/DroneDispatchService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/pilots/application/DroneDispatchService.ts",
+          "line": 10
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K03-pos2",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/pilots/application/PilotTransferService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/pilots/application/PilotTransferService.ts",
+          "line": 6
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K03-twin1",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K03-twin2",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K04-legit",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K04-pos1",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/pilots/infrastructure/InMemoryPilotRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/pilots/application/PilotTransferService.ts",
+          "line": 6
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/pilots/domain/pilot/PilotRepository.ts",
+          "line": 8
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/pilots/infrastructure/InMemoryPilotRepository.ts",
+          "line": 16
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K04-pos2",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/permits/infrastructure/InMemoryPermitRepository.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K04-twin1",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K04-twin2",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K05-legit",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K05-pos1",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/pilots/application/PilotDispatchService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/pilots/application/PilotDispatchService.ts",
+          "line": 10
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/pilots/application/PilotDispatchService.ts",
+          "line": 10
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K05-pos2",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/permits/application/PermitApprovalService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/permits/application/PermitApprovalService.ts",
+          "line": 12
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/permits/application/PermitApprovalService.ts",
+          "line": 12
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K05-twin1",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K05-twin2",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K06-legit",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K06-pos1",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/main.ts",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K06-pos2",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K06-twin1",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K06-twin2",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K07-legit",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K07-pos1",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/surveys/application/SurveyService.ts",
+      "hits": [
+        {
+          "rule": "R-RTX",
+          "file": "src/surveys/application/SurveyService.ts",
+          "line": 47
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K07-pos2",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/permits/application/PermitService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K07-twin1",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K07-twin2",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/permits/application/PermitService.ts",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K08-legit",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/pilots/application/PreferredDroneService.ts",
+          "line": 16
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K08-pos1",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/surveys/application/SurveyAmendmentService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/surveys/application/SurveyAmendmentService.ts",
+          "line": 12
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K08-pos2",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/surveys/api/SurveyController.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K08-twin1",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K08-twin2",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K09-legit",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/pilots/application/PilotScheduleService.ts",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K09-pos1",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/surveys/application/SurveyScopeService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/surveys/application/SurveyScopeService.ts",
+          "line": 12
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K09-pos2",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/pilots/application/PilotScheduleService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/pilots/application/PilotScheduleService.ts",
+          "line": 12
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K09-twin1",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K09-twin2",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K10-legit",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K10-pos1",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/pilots/application/PilotRosterService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/pilots/application/PilotRosterService.ts",
+          "line": 16
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/pilots/application/PilotRosterService.ts",
+          "line": 16,
+          "evidence": "checks declared invariant pilot-weekly-hours-cap (the hours assigned to a pilot never exceed the pilot's weekly hour cap) outside its owner Pilot: if (pilot.assignedHours + hours > pilot.weeklyHourCap)"
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K10-pos2",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/pilots/api/PilotController.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/pilots/api/PilotController.ts",
+          "line": 14
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/pilots/api/PilotController.ts",
+          "line": 14,
+          "evidence": "checks declared invariant pilot-weekly-hours-cap (the hours assigned to a pilot never exceed the pilot's weekly hour cap) outside its owner Pilot: if (projected > before.weeklyHourCap)"
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K10-twin1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K10-twin2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K11-legit",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K11-pos1",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/pilots/application/GuardedPilotService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K11-pos2",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/permits/application/PermitSubmissionQueue.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K11-twin1",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K11-twin2",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K12-legit",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K12-pos1",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/surveys/application/SurveyPricingService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K12-pos2",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/pilots/application/FlightLogService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K12-twin1",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K12-twin2",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K13-legit",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K13-pos1",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/surveys/application/ports/BookingMailer.ts",
+      "hits": [
+        {
+          "rule": "R-H5",
+          "file": "src/surveys/application/ports/BookingMailer.ts",
+          "line": 4
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/surveys/application/ports/BookingMailer.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K13-pos2",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/permits/application/ports/PermitArchive.ts",
+      "hits": [
+        {
+          "rule": "R-H5",
+          "file": "src/permits/application/ports/PermitArchive.ts",
+          "line": 4
+        },
+        {
+          "rule": "R-H5",
+          "file": "src/permits/application/ports/PermitArchive.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K13-twin1",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K13-twin2",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K14-legit",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K14-pos1",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/surveys/contracts/SurveyEnvelope.ts",
+      "hits": [
+        {
+          "rule": "R-D9",
+          "file": "src/surveys/contracts/SurveyEnvelope.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K14-pos2",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/pilots/index.ts",
+      "hits": [
+        {
+          "rule": "R-D9",
+          "file": "src/pilots/index.ts",
+          "line": 9
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K14-twin1",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K14-twin2",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K15-legit",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K15-pos1",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/surveys/application/SurveyService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/surveys/application/SurveyService.ts",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K15-pos2",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/permits/application/PermitService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/permits/application/PermitService.ts",
+          "line": 14
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K15-twin1",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K15-twin2",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K16-legit",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K16-pos1",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/pilots/domain/pilot/Pilot.ts",
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/pilots/domain/pilot/Pilot.ts",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K16-pos2",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/pilots/domain/drone/Drone.ts",
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/pilots/domain/drone/Drone.ts",
+          "line": 7
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K16-twin1",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "drones",
+      "case": "K16-twin2",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "base",
+      "row": null,
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K01-legit",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K01-pos1",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K01-pos2",
+      "row": "K01",
+      "label": "violation",
+      "file": "src/casting/application/ProductionLookup.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K01-twin1",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K01-twin2",
+      "row": "K01",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K02-legit",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K02-pos1",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/productions/domain/production/Production.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K02-pos2",
+      "row": "K02",
+      "label": "violation",
+      "file": "src/casting/domain/actor/Actor.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K02-twin1",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K02-twin2",
+      "row": "K02",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K03-legit",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K03-pos1",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/casting/application/CastingService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/casting/application/CastingService.ts",
+          "line": 41
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K03-pos2",
+      "row": "K03",
+      "label": "violation",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/rehearsals/application/RehearsalService.ts",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K03-twin1",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K03-twin2",
+      "row": "K03",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K04-legit",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K04-pos1",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/casting/domain/cast-booking/CastBookingRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/casting/application/CastingService.ts",
+          "line": 41
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/casting/domain/cast-booking/CastBookingRepository.ts",
+          "line": 7
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/casting/infrastructure/InMemoryCastBookingRepository.ts",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K04-pos2",
+      "row": "K04",
+      "label": "violation",
+      "file": "src/rehearsals/domain/room/RehearsalRoomRepository.ts",
+      "hits": [
+        {
+          "rule": "R-D4R",
+          "file": "src/rehearsals/domain/room/RehearsalRoomRepository.ts",
+          "line": 6
+        },
+        {
+          "rule": "R-D4R",
+          "file": "src/rehearsals/infrastructure/InMemoryRehearsalRoomRepository.ts",
+          "line": 15
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K04-twin1",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K04-twin2",
+      "row": "K04",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K05-legit",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K05-pos1",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/casting/application/CastingService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/casting/application/CastingService.ts",
+          "line": 43
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/casting/application/CastingService.ts",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K05-pos2",
+      "row": "K05",
+      "label": "violation",
+      "file": "src/productions/application/ProductionService.ts",
+      "hits": [
+        {
+          "rule": "R-D4",
+          "file": "src/productions/application/ProductionService.ts",
+          "line": 48
+        },
+        {
+          "rule": "R-XCTX",
+          "file": "src/productions/application/ProductionService.ts",
+          "line": 48
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K05-twin1",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K05-twin2",
+      "row": "K05",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K06-legit",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K06-pos1",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K06-pos2",
+      "row": "K06",
+      "label": "violation",
+      "file": "src/main.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K06-twin1",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K06-twin2",
+      "row": "K06",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K07-legit",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K07-pos1",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/productions/application/ProductionService.ts",
+      "hits": [
+        {
+          "rule": "R-RTX",
+          "file": "src/productions/application/ProductionService.ts",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K07-pos2",
+      "row": "K07",
+      "label": "violation",
+      "file": "src/casting/application/CastingService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K07-twin1",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K07-twin2",
+      "row": "K07",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K08-legit",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K08-pos1",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/productions/application/ProductionService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/productions/application/ProductionService.ts",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K08-pos2",
+      "row": "K08",
+      "label": "violation",
+      "file": "src/rehearsals/api/RehearsalController.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/rehearsals/api/RehearsalController.ts",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K08-twin1",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K08-twin2",
+      "row": "K08",
+      "label": "clean",
+      "file": null,
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/rehearsals/api/RehearsalController.ts",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K09-legit",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K09-pos1",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/casting/application/CastingService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/casting/application/CastingService.ts",
+          "line": 52
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K09-pos2",
+      "row": "K09",
+      "label": "violation",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K09-twin1",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K09-twin2",
+      "row": "K09",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K10-legit",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K10-pos1",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/productions/application/ProductionService.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/productions/application/ProductionService.ts",
+          "line": 34
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/productions/application/ProductionService.ts",
+          "line": 34,
+          "evidence": "checks declared invariant production-cast-capacity (the cast of a production never exceeds its maximum cast size) outside its owner Production: if (production.castIds.length >= production.maxCast)"
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K10-pos2",
+      "row": "K10",
+      "label": "violation",
+      "file": "src/productions/api/ProductionController.ts",
+      "hits": [
+        {
+          "rule": "R-D5",
+          "file": "src/productions/api/ProductionController.ts",
+          "line": 13
+        },
+        {
+          "rule": "R-D5S",
+          "file": "src/productions/api/ProductionController.ts",
+          "line": 13,
+          "evidence": "checks declared invariant production-cast-capacity (the cast of a production never exceeds its maximum cast size) outside its owner Production: if (dto.castIds.length >= dto.maxCast)"
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K10-twin1",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K10-twin2",
+      "row": "K10",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K11-legit",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K11-pos1",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K11-pos2",
+      "row": "K11",
+      "label": "violation",
+      "file": "src/casting/application/CastingService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K11-twin1",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K11-twin2",
+      "row": "K11",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K12-legit",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K12-pos1",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/casting/application/CastingService.ts",
+      "hits": [
+        {
+          "rule": "R-D3",
+          "file": "src/casting/application/CastingService.ts",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K12-pos2",
+      "row": "K12",
+      "label": "violation",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K12-twin1",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K12-twin2",
+      "row": "K12",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K13-legit",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K13-pos1",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/productions/application/ports/TicketingGateway.ts",
+      "hits": [
+        {
+          "rule": "R-H5",
+          "file": "src/productions/application/ports/TicketingGateway.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K13-pos2",
+      "row": "K13",
+      "label": "violation",
+      "file": "src/casting/application/ports/ActorAvailabilityPort.ts",
+      "hits": [
+        {
+          "rule": "R-H5",
+          "file": "src/casting/application/ports/ActorAvailabilityPort.ts",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K13-twin1",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K13-twin2",
+      "row": "K13",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K14-legit",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K14-pos1",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/productions/index.ts",
+      "hits": [
+        {
+          "rule": "R-D9",
+          "file": "src/productions/index.ts",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K14-pos2",
+      "row": "K14",
+      "label": "violation",
+      "file": "src/rehearsals/contracts/RoomDto.ts",
+      "hits": [
+        {
+          "rule": "R-D9",
+          "file": "src/rehearsals/contracts/RoomDto.ts",
+          "line": 6
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K14-twin1",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K14-twin2",
+      "row": "K14",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K15-legit",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K15-pos1",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/casting/application/CastingService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/casting/application/CastingService.ts",
+          "line": 16
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K15-pos2",
+      "row": "K15",
+      "label": "violation",
+      "file": "src/rehearsals/application/RehearsalService.ts",
+      "hits": [
+        {
+          "rule": "R-INJ",
+          "file": "src/rehearsals/application/RehearsalService.ts",
+          "line": 9
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K15-twin1",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K15-twin2",
+      "row": "K15",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K16-legit",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K16-pos1",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/casting/domain/cast-booking/CastBooking.ts",
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/casting/domain/cast-booking/CastBooking.ts",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K16-pos2",
+      "row": "K16",
+      "label": "violation",
+      "file": "src/casting/domain/actor/Actor.ts",
+      "hits": [
+        {
+          "rule": "R-REF",
+          "file": "src/casting/domain/actor/Actor.ts",
+          "line": 6
+        }
+      ]
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K16-twin1",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    },
+    {
+      "set": "cal-03",
+      "domain": "theatre",
+      "case": "K16-twin2",
+      "row": "K16",
+      "label": "clean",
+      "file": null,
+      "hits": []
+    }
+  ]
+}
