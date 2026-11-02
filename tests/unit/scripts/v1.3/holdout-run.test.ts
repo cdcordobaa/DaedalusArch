@@ -36,7 +36,7 @@ function holdoutCopy(styles: readonly string[]): string {
 function io(): { out: string[]; err: string[]; io: { env: NodeJS.ProcessEnv; out: (t: string) => void; err: (t: string) => void } } {
   const out: string[] = [];
   const err: string[] = [];
-  return { out, err, io: { env: { NEO4J_URI: 'bolt://user:pw@localhost:7687', NEO4J_PASSWORD: 'pw' }, out: (t) => out.push(t), err: (t) => err.push(t) } };
+  return { out, err, io: { env: { NEO4J_URI: 'bolt://user:Fake-Pw-0x7e@localhost:7687', NEO4J_PASSWORD: 'Fake-Pw-0x7e' }, out: (t) => out.push(t), err: (t) => err.push(t) } };
 }
 
 const cleanGit: GitRunner = (args) => {
@@ -282,7 +282,7 @@ describe('holdoutMain', () => {
     expect(md).toContain('1.000 (11/11)');
     const prov = JSON.parse(fs.readFileSync(path.join(out, 'holdout-run-provenance.json'), 'utf8')) as Record<string, unknown>;
     expect(prov).toMatchObject({ standIn: false, mode: 'live', commit: 'a'.repeat(40), neo4j: 'bolt://localhost:7687', started: '2026-10-15T12:00:00.000Z' });
-    expect(JSON.stringify(prov)).not.toContain('pw');
+    expect(JSON.stringify(prov)).not.toContain('Fake-Pw-0x7e');
     expect(prov.lockfileSha256).toMatch(/^[0-9a-f]{64}$/);
     expect(prov.frozenPaths).toEqual(expect.arrayContaining(['package-lock.json']));
     expect((prov.dependencies as Record<string, string>).typescript).toMatch(/^\d+\.\d+\.\d+/);
