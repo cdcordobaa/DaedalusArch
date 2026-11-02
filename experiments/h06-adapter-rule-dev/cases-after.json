@@ -1,0 +1,410 @@
+[
+ {
+  "set": "hcal-01",
+  "domain": "subscriptions",
+  "case": "base",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-01",
+  "domain": "subscriptions",
+  "case": "H06-legit",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-01",
+  "domain": "subscriptions",
+  "case": "H06-pos1",
+  "label": "violation",
+  "file": "src/adapters/in/http/subscription-controller.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/in/http/subscription-controller.ts:66 SubscriptionController.quote decides on domain state (threshold b.activeCount >= 5) and returns { status: 422, body: { error: 'too many subscriptions' } }",
+   "src/adapters/in/http/subscription-controller.ts:69 SubscriptionController.quote decides on domain state (threshold b.activeCount >= 3) and computes Math.round(b.monthlyCents * 0.9)"
+  ]
+ },
+ {
+  "set": "hcal-01",
+  "domain": "subscriptions",
+  "case": "H06-pos2",
+  "label": "violation",
+  "file": "src/adapters/out/persistence/in-memory-invoice-repository.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/out/persistence/in-memory-invoice-repository.ts:10 InMemoryInvoiceRepository.save decides on domain state (threshold Date.now() - invoice.issuedAt.getTime() > 30 * 86_400_000) and computes invoice.amount.add(invoice.amount.percent(5))"
+  ]
+ },
+ {
+  "set": "hcal-01",
+  "domain": "subscriptions",
+  "case": "H06-twin1",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-01",
+  "domain": "subscriptions",
+  "case": "H06-twin2",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-02",
+  "domain": "meters",
+  "case": "base",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-02",
+  "domain": "meters",
+  "case": "H06-legit",
+  "label": "clean",
+  "file": "src/adapters/in/http/reading.controller.ts",
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-02",
+  "domain": "meters",
+  "case": "H06-pos1",
+  "label": "violation",
+  "file": "src/adapters/in/http/bill.controller.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/in/http/bill.controller.ts:11 BillController.get decides on domain state (threshold result.projectedKwh > 500) and computes Math.round(result.cents * 0.05)",
+   "src/adapters/in/http/bill.controller.ts:13 BillController.get decides on domain state (threshold total > 15000) and chooses \"high\""
+  ]
+ },
+ {
+  "set": "hcal-02",
+  "domain": "meters",
+  "case": "H06-pos2",
+  "label": "violation",
+  "file": "src/adapters/out/persistence/in-memory-tariff.repository.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/out/persistence/in-memory-tariff.repository.ts:19 InMemoryTariffRepository.find decides on domain state (calendar month === 11) and computes Math.round(tier.centsPerKwh * 1.15)"
+  ]
+ },
+ {
+  "set": "hcal-02",
+  "domain": "meters",
+  "case": "H06-twin1",
+  "label": "clean",
+  "file": "src/domain/billing-estimator.ts",
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-02",
+  "domain": "meters",
+  "case": "H06-twin2",
+  "label": "clean",
+  "file": "src/domain/tariff.ts",
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-02",
+  "domain": "recruitment",
+  "case": "base",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-02",
+  "domain": "recruitment",
+  "case": "H06-legit",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-02",
+  "domain": "recruitment",
+  "case": "H06-pos1",
+  "label": "violation",
+  "file": "src/adapters/in/http/opening-controller.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/in/http/opening-controller.ts:17 OpeningController.postApplication decides on domain state (threshold yearsExperience < 2) and returns { status: 422, body: { message: \"minimum two years of experi"
+  ]
+ },
+ {
+  "set": "hcal-02",
+  "domain": "recruitment",
+  "case": "H06-pos2",
+  "label": "violation",
+  "file": "src/adapters/out/persistence/in-memory-repositories.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/out/persistence/in-memory-repositories.ts:24 InMemoryApplicationRepository.save decides on domain state (application.score) and changes state: application.reject()"
+  ]
+ },
+ {
+  "set": "hcal-02",
+  "domain": "recruitment",
+  "case": "H06-twin1",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-02",
+  "domain": "recruitment",
+  "case": "H06-twin2",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-03",
+  "domain": "museum-loans",
+  "case": "base",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-03",
+  "domain": "museum-loans",
+  "case": "H06-legit",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-03",
+  "domain": "museum-loans",
+  "case": "H06-pos1",
+  "label": "violation",
+  "file": "src/adapters/in/http/loan.controller.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/in/http/loan.controller.ts:24 LoanController.post decides on domain state (threshold days > 180) and returns { status: 422, body: { id: '', status: 'rejected' } }"
+  ]
+ },
+ {
+  "set": "hcal-03",
+  "domain": "museum-loans",
+  "case": "H06-pos2",
+  "label": "violation",
+  "file": "src/adapters/out/persistence/in-memory-loan.repository.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/out/persistence/in-memory-loan.repository.ts:10 InMemoryLoanRepository.save decides on domain state (loan.status) and changes state: loan.reject()"
+  ]
+ },
+ {
+  "set": "hcal-03",
+  "domain": "museum-loans",
+  "case": "H06-twin1",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-03",
+  "domain": "museum-loans",
+  "case": "H06-twin2",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-03",
+  "domain": "solar-coop",
+  "case": "base",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-03",
+  "domain": "solar-coop",
+  "case": "H06-legit",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-03",
+  "domain": "solar-coop",
+  "case": "H06-pos1",
+  "label": "violation",
+  "file": "src/adapters/out/payment/payment-provider.gateway.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/out/payment/payment-provider.gateway.ts:8 PaymentProviderGateway.send decides on domain state (amount.cents) and returns 'carried-over'"
+  ]
+ },
+ {
+  "set": "hcal-03",
+  "domain": "solar-coop",
+  "case": "H06-pos2",
+  "label": "violation",
+  "file": "src/adapters/out/persistence/in-memory-share-subscription.repository.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/out/persistence/in-memory-share-subscription.repository.ts:18 InMemoryShareSubscriptionRepository.save decides on domain state (subscription.shares) and raises new DomainError('a member may hold at most 100 shares')"
+  ]
+ },
+ {
+  "set": "hcal-03",
+  "domain": "solar-coop",
+  "case": "H06-twin1",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-03",
+  "domain": "solar-coop",
+  "case": "H06-twin2",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-04",
+  "domain": "radio-station",
+  "case": "base",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-04",
+  "domain": "radio-station",
+  "case": "H06-legit",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-04",
+  "domain": "radio-station",
+  "case": "H06-pos1",
+  "label": "violation",
+  "file": "src/adapters/in/http/donation.controller.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/in/http/donation.controller.ts:10 DonationController.post decides on domain state (threshold dto.amountCents < 500) and returns { status: 422, body: { error: 'Donations under 5.00 are not "
+  ]
+ },
+ {
+  "set": "hcal-04",
+  "domain": "radio-station",
+  "case": "H06-pos2",
+  "label": "violation",
+  "file": "src/adapters/out/royalty/playlog-report.gateway.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/out/royalty/playlog-report.gateway.ts:31 PlayLogReportGateway.submit decides on domain state (report.durationSeconds) and returns { verdict: 'held', receiptRef: 'skipped-short-play' }"
+  ]
+ },
+ {
+  "set": "hcal-04",
+  "domain": "radio-station",
+  "case": "H06-twin1",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-04",
+  "domain": "radio-station",
+  "case": "H06-twin2",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-04",
+  "domain": "vet-clinic",
+  "case": "base",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-04",
+  "domain": "vet-clinic",
+  "case": "H06-legit",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-04",
+  "domain": "vet-clinic",
+  "case": "H06-pos1",
+  "label": "violation",
+  "file": "src/adapters/in/http/appointment.controller.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/in/http/appointment.controller.ts:16 AppointmentController.book decides on domain state (calendar startsAt.getUTCDay() === 0) and returns { status: 422, body: { error: 'clinic is closed on Sundays' "
+  ]
+ },
+ {
+  "set": "hcal-04",
+  "domain": "vet-clinic",
+  "case": "H06-pos2",
+  "label": "violation",
+  "file": "src/adapters/out/claims/petclaim-claims.gateway.ts",
+  "ok": true,
+  "hits": [
+   "src/adapters/out/claims/petclaim-claims.gateway.ts:25 PetClaimsGateway.submit decides on domain state (threshold request.amountCents < MINIMUM_CLAIM_CENTS) and returns { reference: 'local-skip', outcome: 'rejected', reason: 'lim"
+  ]
+ },
+ {
+  "set": "hcal-04",
+  "domain": "vet-clinic",
+  "case": "H06-twin1",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ },
+ {
+  "set": "hcal-04",
+  "domain": "vet-clinic",
+  "case": "H06-twin2",
+  "label": "clean",
+  "file": null,
+  "ok": true,
+  "hits": []
+ }
+]
