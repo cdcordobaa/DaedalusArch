@@ -432,12 +432,14 @@ analysis seeds of §4 (`20261030`) are those of `hx-study-analyse.ts` and are un
 
 | Item | Value |
 |---|---|
-| Agent pilot report | **slot** (published whatever the gates say) |
-| Gate exits (a)–(e), re-levering round used or not | **slot** |
+| Agent pilot report | Run 1 (stopped, mechanism stop; DEV-HX-1): `results/v1.5-hx-study/hx-pilot/README.md` on branch `results/v15-hx-pilot` (`3a05ca271`). Run 2 (the pilot for the gates): `results/v1.5-hx-study/hx-pilot-r2/README.md` on branch `results/v15-hx-pilot-r2`, commit `84cecc969`; CLI 2.1.316; 135 of 143 calls, 132 turns (66 per arm), 0 redraws, 0 resumes, 0 integrity flags |
+| Gate exits (a)–(e), re-levering round used or not | All five PASS on run 2. (a) `auditVerdict` flags 0 of 22 `combined` sessions; `findingsAgreement` 0 differences; 66 of 66 step snapshots comparable (at least 3 per session); 0 evasion-candidate steps. (b) 0 missing (22 sessions, 66 steps). (c) 11 of 11 tasks fail a trap in at least 1 of 2 `none` runs. (d) 37 counted keys exposed, 37 resolved by session end (1.00). (e) tasks passing tests in at least 1 of 2 runs: `combined` 11, `none` 10. Re-levering round not used |
 | Final r and its achieved power at RR 0.25 | fixed before registration (§3, D9): r = 10, power 0.765 (scenario A) |
 | Study caps | fixed in §9.1 at r = 10 (660 turns, cap 700; calls 703) |
-| Hub judge-call cap | **slot** (by the §9.1 rule) |
-| Dress rehearsal exit (§5.2) | **slot** |
+| Hub judge-call cap | 0 (DEV-HX-1: the hub runs with `DAEDALUS_MIRROR_SEM=off`; pilot run 2 made 0 hub judge calls) |
+| Dress rehearsal exit (§5.2) | PASS (all four criteria): tasks t01, t02 (the first two of the sealed set), 12 turns, 15 of 16 calls; `results/v1.5-hx-study/hx-rehearsal/README.md` on branch `results/v15-hx-rehearsal`, commit `688843699` |
+
+Filled 2026-11-02 (05:10 UTC), after pilot run 2 and the dress rehearsal, before the first study call.
 
 ## 10. Open items
 
