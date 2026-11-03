@@ -1,0 +1,10 @@
+export interface RecordPressReportCommand {
+  readonly runRef: string;
+  readonly runState: string;
+  readonly juiceLitres: number;
+  readonly residueKg: number;
+}
+
+export interface RecordPressReportPort {
+  record(command: RecordPressReportCommand): Promise<void>;
+}

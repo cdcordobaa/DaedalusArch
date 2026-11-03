@@ -78,4 +78,12 @@ the bar is reported as such; no rule, prompt or label changes after the results 
 
 ## Seal
 
-Filled in at step 3.
+Filled in at step 3, 2026-11-03 (UTC), before any scoring.
+
+- Cases: `SEAL.sha256`, 282 files (bases, cases, labels of the three domains). Root (sha256 of `SEAL.sha256`):
+  `e4641f0211ddc943ab8637349ca1217fb1026db9e9a8da906471619832decb01`.
+- Scoring copy: `SCORING-COPY.sha256`, 282 files, glossary key removed from all 58 case specs. Root:
+  `321a054ff46f4e094e95cf6f44b175dad1f3d10b10f1fc9879b6405ac7275f76`.
+- Rule hash: stub in `SEAL.root`, written by the scoring session.
+- Built: 58 cases, 29 positive and 29 clean (all clean cases are hard twins). Counts per row in `README.md`.
+- Check: `experiments/hcal-08/verify-seal.sh`.

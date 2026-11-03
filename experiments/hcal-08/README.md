@@ -1,0 +1,70 @@
+# HCAL-08: held-back calibration set for the v1.5.8 to v1.5.10 Hexagonal shapes
+
+Built and sealed by one blind session on 2026-11-03 (UTC). Not scored. Brief: `BRIEF.md`. Seal: `SEAL.sha256` (every
+file under the three domains), `SCORING-COPY.sha256` (the scoring copy), `SEAL.root` (roots, script hashes, the rule
+hash stub). Check with `experiments/hcal-08/verify-seal.sh`.
+
+## Layout
+
+```
+<domain>/base/                 clean application: spec.yaml (with a domain glossary), tsconfig.json, vendor/<sdk>/, src/
+<domain>/cases/<ID>/           spec.yaml (with the builder glossary key) and only the files the case adds or changes
+<domain>/labels.json           answer key for the domain's cases
+```
+
+Domains: `glacier-guiding` (vendor `icetrail-sdk`), `orchard-cooperative` (`pressmark-sdk`), `luthier-workshop`
+(`bowcraft-sdk`). Cases never delete a base file; where a case moves a file, the base copy stays in the overlay.
+
+`check-compile.sh [tsc]` type-checks every base and every case overlaid on a copy of its base: 61 trees, all pass with
+tsc 5.9.3 strict and the options of HCAL-06. Two cases (`orchard-cooperative` `EDGE-pos2` and `EDGE-twin2`) use
+`import x = require()`, which tsc refuses under `"module": "ESNext"`. They ship a `tsconfig.json` that changes only
+`module` to `"Preserve"`. The earlier format has no behaviour test, so none is added.
+
+## Counts
+
+| Row | Positives | Clean | of which hard twins | Domains |
+|---|---|---|---|---|
+| HX8-WORD | 6 (field 3, value 3) | 6 | 6 | 3 |
+| HX8-SET | 6 | 6 | 6 | 3 |
+| HX8-KEY | 6 | 7 | 7 | 3 |
+| HX8-EDGE | 11 (a 2, b 2, c 3, d 2, e 2) | 10 (a 2, b 2, c 3, d 1, e 2) | 10 | 3 |
+| **Total** | **29** | **29** | **29** | 58 cases |
+
+Per domain: glacier-guiding 19, orchard-cooperative 19, luthier-workshop 20.
+
+## Answer key
+
+`labels.json` keeps the HCAL fields the scorer reads (`rule`, `label`, `file`, `note`) and the extra fields of
+HCAL-06: `line` (1-based line of the labelled file for a positive, else `null`), `subshape` and `kind`. `rule` holds
+this set's row key. `subshape` is `field`/`value` for HX8-WORD, the declaration form for HX8-SET, the lookup form for
+HX8-KEY and `a`–`e` for HX8-EDGE (the sub-cases in `BRIEF.md`).
+
+## Glossary key and scoring copy
+
+Each case `spec.yaml` ends with the builder's glossary key, a comment block that starts with the line
+`# --- HCAL-08 builder glossary key (not part of the spec; stripped in the scoring copy) ---` and names the vendor
+terms, the core terms and the rationale. A reader of the raw spec text would see it, so the set is scored from the
+scoring copy: `scoring-copy.sh <empty dir>` copies the three domains and removes the header line, every line after it
+and the empty lines before it, then checks the result against `SCORING-COPY.sha256`. After the strip, 45 case specs
+are byte-identical to their base spec. The other 13 add a glossary term or an adapter folder, as their notes say.
+
+## Before scoring
+
+- **Base check not run by the builder.** The scoring session runs it before any case and records a base finding in
+  `SEAL.root`, not repaired.
+- **Row keys.** The four `HX8-…` keys are not in the instrument's row map. They need a mapping to rules before the seal
+  is opened.
+- **Rule hash.** `RULES-FROZEN.sha256` is left to the scoring session (stub in `SEAL.root`); `verify-seal.sh` checks it
+  once it exists.
+
+## Labels to look at (builder's flags, before the seal)
+
+- **SET twins with coincidental words** (`SET-twin2` in all three domains, glacier `SET-twin1`): each core set holds
+  one word the vendor also uses, and the spec glossary declares the set as the domain's. Under HX8-WORD they would be
+  clean by the glossary.
+- **Clean by the glossary alone**: glacier `KEY-twin3`, orchard `KEY-twin2` (vendor-keyed lookup, keys declared as
+  ours) and `WORD-twin1` in all three domains.
+- **HX8-EDGE sub-case e positives** (glacier `EDGE-pos4`, luthier `EDGE-pos4`): the moved adapter also holds the
+  vendor-to-core mapping code, now inside a core layer by the spec. The label is the SDK import.
+- **glacier `SET-pos1`**: after the cast, the aggregate compares the copied values with `===`; the label is the
+  declaration of the copied set.
