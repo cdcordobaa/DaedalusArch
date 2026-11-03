@@ -3377,3 +3377,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory neuro-symbolic gate; R-MIRROR-SEM stays uncounted; no counted list or registered result changes.
 
 ---
+## v1.5.10 and SEM-GATE-3: R-MIRROR-SEM form C (core lookups keyed by vendor values)
+**Timestamp**: 2026-11-03T16:08:51Z
+**User Input**: "Widen R-MIRROR-SEM's candidate step to an untyped vendor-keyed lookup table (the SEM-2 pilot miss in c005), gate it with zero agents as SEM-GATE-3, and merge as v1.5.10 only if the gate passes; counted findings must not change."
+**AI Response**: "Cause of the miss: v1.5.9 traced the port-carried vendor text and read the table, but counts a core-side pair only as a mapping into a declared core value set; the table's values are plain strings and a table never fills itself, so no candidate. v1.5.10 (src/v15-instrument/mirror-sem.ts): a core lookup (object / Record / as-const object, Map, switch or equality chain) with >= 3 keys naming at least half of a vendor value set, consulted with vendor text, is a candidate whose core set is its key set; every earlier candidate and question key unchanged (census over 83 gate trees and the 220 kept study trees: none removed or changed, 35 and 23 form-C additions, no kept study tree gains one). SEM-GATE-3 criteria, 8 fresh form-C cases and labels pushed in 1d894b84d before any judge call. Ran once: 23 gate calls plus 2 in the latency run. Form A 11/11, fresh form C 6/6, dev (pilot c001 c005 c006 c008) 4/4, FP 0/52, 0 citation problems, deferred hub p95 289 ms. Verdict PASS. Counted regression: 993 trees (11 seeds, 220 kept study trees, 762 dev-set trees) byte-identical at v1.5.9 and v1.5.10. Record: experiments/sem-gate-3/README.md, Docs/v1.5/instrument-changelog.md."
+**Context**: Exploratory neuro-symbolic rule work; R-MIRROR-SEM stays uncounted; no counted list or registered result changes.
+
+---
