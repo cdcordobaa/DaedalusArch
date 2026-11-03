@@ -200,7 +200,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-11-02 | **Hexagonal study run and analysed** (PRs #473, #475, #477): 220 sessions, H-HX supported, ΣD 203 to 0, p 2.1 × 10⁻²², task sign 10/0, trap failures 87/110 to 12/110, acceptance 103 vs 105 of 110; §4 hand read of 8 blocks (2 hidden, PR #476 R-INBYP follow-up, exploratory); independent rule review (24 findings, PR #477) | |
 | 2026-11-02 | SEM-GATE fails on form A (0 / 4, PR #482); v1.5.7 to v1.5.9 development work (PRs #476, #478–#480, #481, #483, #485); SEM-GATE-2 passes on fresh cases (11 / 11, 0 / 9, PR #485); X-1 extended to the final and Hexagonal studies (PR #484, decision row 90) | |
 | 2026-11-03 | SEM-2 agent pilot stops at gate G4 (0 / 4 none sessions show the trap), run not made (PR #486, decision row 91) | |
-| 2026-11-03 | Daily thesis sync: claims C10442–C10468 (part `v15-g`), nulls M306–M312, chronology rows 90–91, open items §18; 4 ledger citations re-anchored. Window 97e85be6..636ba8b6 (PRs #472–#486). Public sync PR and private thesis PR: see branch `thesis-sync-20261103` | |
+| 2026-11-03 | Daily thesis sync: claims C10442–C10468 (part `v15-g`), nulls M306–M312, chronology rows 90–91, open items §18; 4 ledger citations re-anchored. Window 97e85be6..636ba8b6 (PRs #472–#486). Public sync PR #487 (merged); private thesis PR cdcordobaa/tesis-msc-unal#44 (open for the author: claim change in Kap3, not compiled) | |
 
 ## What the timeline shows for the thesis
 
