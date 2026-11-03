@@ -2,8 +2,11 @@ cases e4641f0211ddc943ab8637349ca1217fb1026db9e9a8da906471619832decb01 (282 file
 scoring-copy 321a054ff46f4e094e95cf6f44b175dad1f3d10b10f1fc9879b6405ac7275f76 (282 files; sha256 of SCORING-COPY.sha256; glossary key removed from all 58 case specs)
 script:scoring-copy.sh 68d55b02ee133d849efbb72ceda62bf231512c186192da40c72604a96b79d5ea
 script:check-compile.sh ad0b10277d2ca7905ae2845a9ff86d455ec4a4a436693e2076d379b1590c811a
-rules STUB (not written by the builder; the scoring session writes RULES-FROZEN.sha256 with the selection rule of HCAL-06/07 and records its root on this line before any case is scored)
-rules source: STUB
+rules 05bd4c36f9323d4794daea0cbc46613db3c03d9249e7bf3d8e6e1fb1b668c1ef (RULES-FROZEN.sha256, 46 files: every tracked non-test .ts and .cypher under src/v15-instrument plus experiments/cal-01/score.ts, the selection rule of HCAL-06/07)
+rules source: branch hcal08/admission on main b460c5ea8 (instrument v1.5.10, after PR 490) with the row-map scorer change (415438ffe); written 2026-11-03 before any base or case is scored
 base check: not run before the seal (blind builder, no checker run); the scoring session runs it first and records any base finding on a line here, not repaired
 row map: HX8-WORD, HX8-SET, HX8-KEY and HX8-EDGE are this set's own row keys; the scoring session maps each to the instrument's rules before the seal is opened
 verify: experiments/hcal-08/verify-seal.sh
+seal check (2026-11-03T17:22Z, main b460c5ea8, before any scoring): verify-seal.sh passes on all 282 files, no file added; root e4641f0211ddc943 matches the cases line; scoring copy root 321a054ff46f4e09 matches; scoring-copy.sh and check-compile.sh hashes match
+row map (2026-11-03, before any case is scored): HX8-WORD R-MIRROR2[word]; HX8-SET R-MIRROR-SEM form A + R-MIRROR2[literal]/[error]; HX8-KEY R-MIRROR-SEM form C; HX8-EDGE R-AXA R-PURE R-COREIO R-D9 FF-S01 FF-S04 FF-P01 (v1.5.8-fed subset reported too); scorer --rows hcal08 (README, Row map)
+base check (2026-11-03T17:29Z, rules 05bd4c36f9323d47 and the scoring copy 321a054ff46f4e09 verified first, before any case was scored): no finding of any HX8 row's mapped rules on any base; glacier-guiding has one R-D4 finding (src/application/record-conditions.use-case.ts:11; a DDD rule in no HX8 row; recorded, not repaired); luthier-workshop and orchard-cooperative clean; the R-MIRROR-SEM judge was asked 2 base candidates in 2 calls (luthier DeliveryStage vs bowcraft-sdk Fulfilment, orchard PressingProgress vs pressmark-sdk RunState), both answered no; record results/bases.json, ledger results/bases-mirror-sem-calls*.jsonl
