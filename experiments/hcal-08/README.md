@@ -1,6 +1,6 @@
 # HCAL-08: held-back calibration set for the v1.5.8 to v1.5.10 Hexagonal shapes
 
-Built and sealed by one blind session on 2026-11-03 (UTC). Not scored. Brief: `BRIEF.md`. Seal: `SEAL.sha256` (every
+Built and sealed by one blind session on 2026-11-03 (UTC). Scored once on 2026-11-03 (record `result.json`, report `Docs/DiagnosticRuns/v15-hcal08-admission-2026-11-03.md`). Brief: `BRIEF.md`. Seal: `SEAL.sha256` (every
 file under the three domains), `SCORING-COPY.sha256` (the scoring copy), `SEAL.root` (roots, script hashes, the rule
 hash stub). Check with `experiments/hcal-08/verify-seal.sh`.
 
