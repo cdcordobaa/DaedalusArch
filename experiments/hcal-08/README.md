@@ -68,3 +68,30 @@ are byte-identical to their base spec. The other 13 add a glossary term or an ad
   vendor-to-core mapping code, now inside a core layer by the spec. The label is the SDK import.
 - **glacier `SET-pos1`**: after the cast, the aggregate compares the copied values with `===`; the label is the
   declaration of the copied set.
+
+## Row map (scoring session, 2026-11-03, before any case is scored)
+
+Written from the PR records only (PR 483, v1.5.8; PR 485, v1.5.9; PR 490, v1.5.10) and the instrument's rule headers,
+before any case, label note or glossary key was opened. It is `HCAL08_ROW_RULES` in `experiments/cal-01/score.ts`,
+used with `--rows hcal08`. A row entry `RULE[shape]` counts a finding of that rule with that shape only. R-MIRROR2's
+shape is the word its evidence starts with. R-MIRROR-SEM's form is read from its judged candidate: `C` when the core
+set is a core lookup's key set (`coreKind` `keys`, v1.5.10), and `A` otherwise (v1.5.9, a core value set filled from
+vendor text).
+
+| Row | Mapped rules | Source |
+|---|---|---|
+| HX8-WORD | R-MIRROR2 `[word]` | PR 483 (t03: one-word vendor values; one-word vendor field names left out) |
+| HX8-SET | R-MIRROR-SEM form A; R-MIRROR2 `[literal]` and `[error]` (the counted R-MIRROR2 shapes, `HX_MIRROR2_SHAPES.i`) | PR 485 |
+| HX8-KEY | R-MIRROR-SEM form C | PR 490 |
+| HX8-EDGE | R-AXA, R-PURE, R-COREIO, R-D9 (the v1.5 rules whose edges the v1.5.8 facts #3, #5, #8 and #17 feed); FF-S01, FF-S04, FF-P01 (the frozen dependency rules of H01/H02, the rows whose construct is a core file that depends on an adapter or a framework) | PR 483 |
+
+- **Caught.** A positive is caught when a mapped rule (with its shape, where one is named) has a finding in the
+  labelled file. **Flagged.** A clean case is flagged when a mapped rule has a finding anywhere in its tree. Each case
+  is scored with its domain's base as the baseline, as in HCAL-06 and HCAL-07. Findings of rules outside a row's map
+  are kept in the record (`other`) and reported, but they do not count for that row.
+- **HX8-EDGE, two readings.** The row is scored against all seven rules above. The report also gives the reading
+  restricted to the v1.5.8-fed rules (R-AXA, R-PURE, R-COREIO, R-D9). That reading is computed from the same record
+  and needs no extra run. Sub-cases a–e are reported separately.
+- **Uncounted rules are rows here.** R-MIRROR2 `[word]` and R-MIRROR-SEM are not in the Hexagonal study's counted list,
+  and R-PURE and R-D9 are not Hexagonal-row rules. Admitting their shapes as rows is the purpose of this set. The
+  admission itself changes no counted list.
