@@ -95,3 +95,10 @@ vendor text).
 - **Uncounted rules are rows here.** R-MIRROR2 `[word]` and R-MIRROR-SEM are not in the Hexagonal study's counted list,
   and R-PURE and R-D9 are not Hexagonal-row rules. Admitting their shapes as rows is the purpose of this set. The
   admission itself changes no counted list.
+
+## Rule freeze (2026-11-03, before any scoring)
+
+`RULES-FROZEN.sha256` replaces the stub. It uses the selection rule of HCAL-06 and HCAL-07: every tracked non-test `.ts`
+and `.cypher` under `src/v15-instrument`, plus the scorer. That makes 46 files, root `05bd4c36f9323d47`. The source is
+this branch on `main` `b460c5ea8` (instrument `v1.5.10`), with the row-map scorer change. Compared with HCAL-07's list,
+one file is new: `rules/r-inbyp-driving-adapter-uses-out-port.cypher` (v1.5.7). `verify-seal.sh` checks the hash.
