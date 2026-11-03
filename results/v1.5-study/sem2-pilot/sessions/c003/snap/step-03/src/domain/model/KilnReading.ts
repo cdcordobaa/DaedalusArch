@@ -1,0 +1,12 @@
+/** What a student sees for a piece: the studio's own words. */
+export type PickupStatus = 'DROPPED_OFF' | 'WAITING' | 'IN_THE_KILN' | 'COOLING_DOWN' | 'READY_FOR_PICKUP' | 'FIRING_FAILED';
+
+/** The newest reading of the kiln a piece is in, for the studio log. */
+export interface KilnReading {
+  /** The pickup status this reading means, translated from the kiln's phase. */
+  readonly pickup: PickupStatus;
+  readonly takenAt: string;
+  readonly celsius: number;
+  /** The kiln's own word for its phase, lower case, printed in the studio log as is. */
+  readonly phaseCode: string;
+}
