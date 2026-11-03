@@ -65,7 +65,8 @@
 | [2026-10-30 sync: HCAL-06 and HCAL-07 admissions, pilot ladder, HX-COVERAGE, SO5 panel, DEV-3](claims-ledger/v15-d-hcal06-07-ladder-hxcoverage.md) | C10388–C10417 | 30 | 9 | 6 | 15 | 0 |
 | [2026-10-31 sync: Hexagonal delivery study pre-registration (design, power, seal, visibility) and its gate (b) tooling](claims-ledger/v15-e-hexagonal-prereg.md) | C10418–C10431 | 14 | 11 | 0 | 3 | 0 |
 | [2026-11-02 sync: Hexagonal study pilot, rehearsal and deviations DEV-HX-1/2; hold-out attempt 4 stopped (DELEG-H5)](claims-ledger/v15-f-hx-pilot-holdout-attempt4.md) | C10432–C10441 | 10 | 7 | 3 | 0 | 0 |
-| **total** | C0001–C10441 | **10,167** | 5,410 | 1,107 | 3,266 | 384 |
+| [2026-11-03 sync: Hexagonal study result (H-HX), v1.5 rule review, SEM-GATE and SEM-GATE-2, SEM-2 pilot, X-1 extension](claims-ledger/v15-g-hx-result-sem-gates.md) | C10442–C10468 | 27 | 15 | 3 | 9 | 0 |
+| **total** | C0001–C10468 | **10,194** | 5,425 | 1,110 | 3,275 | 384 |
 
 By evidence type (recounted 2026-10-23 over all parts; +3 descriptive on 2026-10-25; +17 descriptive, +69 criterion and +4 correctness on 2026-10-27; +7 descriptive and +4 criterion on 2026-10-28): descriptive 2,806, criterion 1,794, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,015, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
 
