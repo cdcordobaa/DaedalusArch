@@ -134,3 +134,29 @@ Planned calls: 15 calibration + 180 sample = 195, plus retries. Call ledger: `re
 | `result.json` | counts, C3m, per stratum, call count, failures |
 | `author-audit.md` | the 30 audit ids and the answer sheet |
 | `README.md` | what ran, and any runner fix |
+
+## Addendum 1 (2026-11-03, before any API call): route change from agy to the Gemini API
+
+**Why.** The agy route never completed a labelling turn: in the pilot 2 calls timed out at 240 s, and one diagnostic
+call on C1 (raw stream kept in `results/diag/`, commit `be487a956`) shows the prompt accepted and no model step, no tool
+step and no answer before the print timeout. Under the stop rule recorded for that call, the agy route is stopped.
+
+**What changes.**
+- **Route:** the Gemini Developer API, the same model family (`gemini-4-argon`), `thinkingLevel: high` (the
+  closest match to agy's "High" model; ADR-035). Called with `@google/generative-ai` from `panel-api.ts`.
+  - The model is offered no tools and no tool config. A function call in an answer is rejected and stops the run.
+  - The key comes from the environment; it is never written to a file or a log.
+- **Prompt:** the user text is unchanged (`promptFor`, the same sha256 per item as `results/prompt-sha256.json`). The
+  API needs a system instruction, so it gets the fixed line `You label one item for a research study. Reply with the
+  requested JSON object only.` That line is recorded here before any call.
+- **Schema and parser:** unchanged (`RESPONSE_SCHEMA`, `parseAnswer`).
+- **Ledger:** `results/api-calls.jsonl` holds no prompt text. Each line records the served model version and the
+  usage counts, prompt, thinking and output tokens, so the run's cost is measured, not estimated.
+- **Order and caps:**
+  1. Calibration C1–C5 × 3 runs = 15 calls, with a cap of 20 calls including retries. The calibration answers never
+     count.
+  2. The 60 sample items only after the author has seen the calibration record, with a cap of 80 calls per run.
+- **Stop rules:** unchanged. Any quota, auth, policy or safety error stops the run, and so do 3 failed calls in a
+  row.
+
+Unchanged: the codebook, the items, the majority rule, the scoring and the author audit.
