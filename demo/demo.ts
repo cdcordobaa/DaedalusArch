@@ -9,7 +9,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { basename } from 'node:path';
+import { basename, resolve } from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
 
@@ -84,9 +84,9 @@ const PROJECTS: Array<{
   },
 ];
 
+// The graph-build experiment sits next to this repository; DEMO_REPORTS_DIR overrides it.
 const REPORTS_DIR =
-  '/Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall' +
-  '/graph-build-experiment/integration/reports';
+  process.env.DEMO_REPORTS_DIR ?? resolve(process.cwd(), '..', 'graph-build-experiment/integration/reports');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 # usage: run-task.sh N   (runs task N with the headless agent, then the independent evaluation)
 set -u
-SP=/private/tmp/claude-501/-Volumes-Life-OS-Users-Arkatechie-Development-Archi-Firewall-DaedalusArch/3ea7dab4-b64a-4481-829e-334a9bfa22a1/scratchpad
+SP=${AGENTPROOF_WORK:?set AGENTPROOF_WORK to the work folder that holds agentproof-app, wt-agentproof, runs and scripts}
 A=$SP/agentproof-app; W=$SP/wt-agentproof; R=$SP/runs; N=$1; SID=$(cat $R/session-id)
 export HEAVY_ADMISSION_BYPASS=1
 if [ "$N" = "1" ]; then SESS=(--session-id "$SID"); else SESS=(--resume "$SID"); fi
