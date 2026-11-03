@@ -253,7 +253,7 @@ describe('R-MIRROR-SEM v1.5.9: core-side copies (symbolic)', () => {
     };
     const tree = path.join(root, 'table');
     const yes = await runTree(tree, rules, { spec: SPEC, withApg: false, scratch, mirrorJudge: stub('yes') });
-    expect(yes.findings.filter((f) => f.rule === 'R-MIRROR-SEM').map((f) => `${f.file}|${f.subject}`)).toEqual(['src/domain/stage.ts|ParcelStage']);
+    expect(yes.findings.filter((f) => f.rule === 'R-MIRROR-SEM').map((f) => `${f.file}|${f.subject}`)).toEqual(['src/domain/stage.ts|ParcelStage', 'src/domain/stage.ts|STAGE_OF']); // v1.5.10: the table's key set is a form-C candidate too
     const no = await runTree(tree, rules, { spec: SPEC, withApg: false, scratch, mirrorJudge: stub('no') });
     expect(no.findings.filter((f) => f.rule === 'R-MIRROR-SEM')).toHaveLength(0);
   });

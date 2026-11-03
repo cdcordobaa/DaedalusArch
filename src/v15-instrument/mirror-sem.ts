@@ -58,7 +58,7 @@ export interface MirrorCandidateFact {
   /** Stable identity: core file, core set, vendor module and set. */
   readonly id: string;
   readonly file: string; readonly line: number; readonly role: Role;
-  readonly coreSet: string; readonly coreKind: CoreValueSet['kind']; readonly coreMembers: readonly string[]; readonly coreDecl: string;
+  readonly coreSet: string; readonly coreKind: CoreValueSet['kind'] | 'keys'; readonly coreMembers: readonly string[]; readonly coreDecl: string;
   readonly module: string; readonly vendorSet: string; readonly vendorMembers: readonly string[]; readonly vendorDecl: string;
   readonly pairs: readonly MapPair[];
   /** Distinct vendor values mapped, distinct core members mapped to. */
@@ -323,6 +323,8 @@ const calleeName = (f: Node): string | undefined => {
 };
 
 interface TraceCtx { readonly sets: readonly VendorValueSet[]; readonly carriers: ReadonlyMap<string, readonly VendorValueSet[]>; readonly calls: readonly import('ts-morph').CallExpression[] }
+const traceCtxOf = (coreFiles: readonly { sf: SourceFile }[], adapterFiles: readonly { sf: SourceFile }[], sets: readonly VendorValueSet[]): TraceCtx =>
+  ({ sets, carriers: vendorCarriersOf(adapterFiles, sets), calls: coreFiles.flatMap((c) => c.sf.getDescendantsOfKind(SyntaxKind.CallExpression)) });
 
 /** The vendor sets the text of a core expression may carry, if it traces to vendor text (depth-capped; empty: it does not). */
 function traceVendor(e: Node, ctx: TraceCtx, depth = 0): readonly VendorValueSet[] {
@@ -398,11 +400,10 @@ function tableOf(e: Node): Node | undefined {
  * source traces to vendor text (`traceVendor`). A pair's `from` is the vendor member its key or case names (case- and
  * separator-insensitively); a key that names no member of the carried vendor set gives no pair.
  */
-export function coreMapsOf(coreFiles: readonly { sf: SourceFile; file: string }[], adapterFiles: readonly { sf: SourceFile }[], sets: readonly VendorValueSet[]): { pairs: CoreMapPair[]; casts: CoreCast[] } {
+export function coreMapsOf(coreFiles: readonly { sf: SourceFile; file: string }[], adapterFiles: readonly { sf: SourceFile }[], sets: readonly VendorValueSet[], given?: TraceCtx): { pairs: CoreMapPair[]; casts: CoreCast[] } {
   const pairs: CoreMapPair[] = []; const casts: CoreCast[] = [];
   if (sets.length === 0) return { pairs, casts };
-  const carriers = vendorCarriersOf(adapterFiles, sets);
-  const ctx: TraceCtx = { sets, carriers, calls: coreFiles.flatMap((c) => c.sf.getDescendantsOfKind(SyntaxKind.CallExpression)) };
+  const ctx: TraceCtx = given ?? traceCtxOf(coreFiles, adapterFiles, sets);
   const fileOfSf = new Map(coreFiles.map((c) => [c.sf, c.file] as const));
   for (const { sf, file } of coreFiles) {
     // a pair's site is where its key is written (a table imported from another core file is cited there)
@@ -563,6 +564,7 @@ export function baselineSetSignatures(baseline: string, roleOf: (file: string) =
     const role = roleOf(f);
     if (role !== 'domain' && role !== 'application' && role !== 'port') continue;
     for (const s of coreValueSetsOf(sf, f, role)) out.add(signatureOf(s));
+    for (const k of keySignaturesOf(sf)) out.add(k); // v1.5.10: form-C key shapes (`keys:` prefix, never a value-set signature)
   }
   return out;
 }
@@ -580,11 +582,12 @@ export interface CandidateInputs {
 export function mirrorCandidatesOf(inp: CandidateInputs): MirrorCandidateFact[] {
   if (inp.vendorSets.length === 0) return [];
   const pairs = inp.adapterFiles.flatMap((a) => adapterMapsOf(a.sf, a.file));
+  const ctx = traceCtxOf(inp.coreFiles, inp.adapterFiles, inp.vendorSets);
   // v1.5.9: core-side translations of vendor text, used only for a set no adapter maps into (so every v1.5.8 candidate is unchanged)
-  const core = coreMapsOf(inp.coreFiles, inp.adapterFiles, inp.vendorSets);
-  if (pairs.length === 0 && core.pairs.length === 0 && core.casts.length === 0) return [];
-  const sets = inp.coreFiles.flatMap((c) => coreValueSetsOf(c.sf, c.file, c.role)).filter((s) => s.members.length >= 3);
+  const core = coreMapsOf(inp.coreFiles, inp.adapterFiles, inp.vendorSets, ctx);
   const out: MirrorCandidateFact[] = [];
+  const sets = pairs.length === 0 && core.pairs.length === 0 && core.casts.length === 0 ? []
+    : inp.coreFiles.flatMap((c) => coreValueSetsOf(c.sf, c.file, c.role)).filter((s) => s.members.length >= 3);
   for (const s of sets) {
     const into = pairs.filter((p) => s.keys.has(p.to));
     if (into.length < 2) { const c = coreSideCandidate(s, core, inp); if (c !== undefined) out.push(c); continue; }
@@ -614,7 +617,222 @@ export function mirrorCandidatesOf(inp: CandidateInputs): MirrorCandidateFact[] 
       ownedBy: inp.baseline.has(signatureOf(s)) ? 'baseline' : '', domainText: inp.domainText,
     });
   }
+  // v1.5.10: form C, an untyped lookup keyed by the vendor's own values (only where no earlier candidate has the name)
+  const taken = new Set(out.map((c) => `${c.file}#${c.coreSet}`));
+  for (const c of keyCandidatesOf(inp, ctx)) if (!taken.has(`${c.file}#${c.coreSet}`)) out.push(c);
   return out.sort((a, b) => (a.id < b.id ? -1 : 1));
+}
+
+// ── v1.5.10 (2026-11-03): form C, a core lookup keyed by the vendor's own values ──────────────────────────────────────
+//
+// The SEM-2 pilot (c005, c006, c001, c008) ended with `const STAGES: Readonly<Record<string, string | undefined>> =
+// { posted: 'FINDING_TRANSLATOR', ... }` in the core service, indexed with the port-carried vendor text
+// (`STAGES[s.stateCode]`). No core value set receives the looked-up values (they are plain strings) and the table
+// never fills itself, so v1.5.9 builds no candidate. Here the core set is the lookup's KEY set: an object literal /
+// `Record` / `as const` object, a `new Map([...])`, a switch, or an equality chain whose keys (>= 3) match, by `norm`,
+// at least half of a vendor value set that the text it is indexed or compared with carries (`traceVendor`).
+
+/** One core lookup: its key set, where the vendor text consults it, and the vendor sets that text carries. */
+interface KeyLookup {
+  readonly name: string; readonly file: string; readonly line: number; readonly role: Role; readonly decl: string;
+  readonly form: MapPair['form'];
+  readonly keys: { readonly key: string; readonly file: string; readonly line: number }[];
+  readonly vendors: VendorValueSet[];
+  readonly sites: BranchSite[];
+}
+
+/** The name of the function (or class member) a node sits in, else the file's base name. */
+const holderName = (n: Node): string => {
+  for (let a: Node | undefined = n.getParent(); a !== undefined; a = a.getParent()) {
+    if (Node.isFunctionDeclaration(a) || Node.isMethodDeclaration(a)) return a.getName() ?? 'fn';
+    if ((Node.isArrowFunction(a) || Node.isFunctionExpression(a))) { const p = a.getParent(); if (p !== undefined && Node.isVariableDeclaration(p)) return p.getName(); }
+  }
+  return path.basename(n.getSourceFile().getFilePath()).replace(/\.ts$/, '');
+};
+const holderNode = (n: Node): Node => n.getFirstAncestor((a) => Node.isFunctionLikeDeclaration(a) || Node.isArrowFunction(a) || Node.isFunctionExpression(a)) ?? n.getSourceFile();
+const shortText = (n: Node): string => { const t = n.getText().replace(/\s+/g, ' '); return t.length <= 60 ? t : `${t.slice(0, 57)}...`; };
+
+/** The string keys of a table literal (object literal of property assignments, or `new Map([[k, v], ...])`), else undefined. */
+function tableKeysOf(t: Node): { key: string; line: number }[] | undefined {
+  if (Node.isObjectLiteralExpression(t)) {
+    const ks: { key: string; line: number }[] = [];
+    for (const p of t.getProperties()) {
+      if (!Node.isPropertyAssignment(p)) return undefined;
+      const nn = p.getNameNode();
+      const k = Node.isIdentifier(nn) ? nn.getText() : strOf(nn);
+      if (k === undefined) return undefined;
+      ks.push({ key: k, line: p.getStartLineNumber() });
+    }
+    return ks;
+  }
+  if (Node.isNewExpression(t) && /^(Map|ReadonlyMap)$/.test(t.getExpression().getText())) {
+    const a = t.getArguments()[0];
+    if (a === undefined || !Node.isArrayLiteralExpression(unwrap(a))) return undefined;
+    const ks: { key: string; line: number }[] = [];
+    for (const el of (unwrap(a) as import('ts-morph').ArrayLiteralExpression).getElements()) {
+      const x = unwrap(el);
+      const k = Node.isArrayLiteralExpression(x) && x.getElements().length === 2 ? strOf(unwrap(x.getElements()[0]!)) : undefined;
+      if (k === undefined) return undefined;
+      ks.push({ key: k, line: x.getStartLineNumber() });
+    }
+    return ks;
+  }
+  return undefined;
+}
+
+/** The variable a table literal initializes (a `const T = {...}` / `new Map(...)`, typed or not, `as const` or not). */
+const tableVarOf = (t: Node): import('ts-morph').VariableDeclaration | undefined => {
+  let p = t.getParent();
+  while (p !== undefined && (Node.isAsExpression(p) || Node.isSatisfiesExpression(p) || Node.isParenthesizedExpression(p) || Node.isTypeAssertion(p))) p = p.getParent();
+  return p !== undefined && Node.isVariableDeclaration(p) ? p : undefined;
+};
+
+const EQUALITY = new Set([SyntaxKind.EqualsEqualsEqualsToken, SyntaxKind.EqualsEqualsToken, SyntaxKind.ExclamationEqualsEqualsToken, SyntaxKind.ExclamationEqualsToken]);
+
+/**
+ * The lookups of the core files that text from a vendor consults (form C): table index `T[x]`, `M.get(x)`, `switch (x)`
+ * and equality chains on `x` (grouped by the function and the text of `x`), where `x` traces to vendor text.
+ */
+function keyLookupsOf(coreFiles: readonly { sf: SourceFile; file: string; role: Role }[], ctx: TraceCtx): KeyLookup[] {
+  const byNode = new Map<Node, KeyLookup>();
+  const fileOf = new Map(coreFiles.map((c) => [c.sf, c] as const));
+  const lineText = (n: Node): string => (n.getSourceFile().getFullText().split('\n')[n.getStartLineNumber() - 1] ?? '').trim().slice(0, 160);
+  const add = (key: Node, mk: () => Omit<KeyLookup, 'vendors' | 'sites'> | undefined, vs: readonly VendorValueSet[], site: Node, form: string): void => {
+    if (vs.length === 0) return;
+    let k = byNode.get(key);
+    if (k === undefined) { const m = mk(); if (m === undefined) return; k = { ...m, vendors: [], sites: [] }; byNode.set(key, k); }
+    for (const v of vs) if (!k.vendors.includes(v)) k.vendors.push(v);
+    const at = fileOf.get(site.getSourceFile());
+    if (at !== undefined && !k.sites.some((s) => s.file === at.file && s.line === site.getStartLineNumber())) k.sites.push({ file: at.file, line: site.getStartLineNumber(), form, member: '', text: lineText(site) });
+  };
+  const tableLookup = (expr: Node, arg: Node, site: Node, form: 'index' | 'get'): void => {
+    const vs = traceVendor(arg, ctx);
+    if (vs.length === 0) return;
+    const t = tableOf(expr);
+    if (t === undefined || (form === 'index') !== Node.isObjectLiteralExpression(t)) return;
+    add(t, () => {
+      const at = fileOf.get(t.getSourceFile());
+      const ks = tableKeysOf(t);
+      if (at === undefined || ks === undefined) return undefined;
+      const v = tableVarOf(t);
+      const host = v?.getVariableStatement() ?? v ?? t;
+      return { name: v?.getName() ?? `${holderName(t)}:table`, file: at.file, line: (v ?? t).getStartLineNumber(), role: at.role, decl: declText(host),
+        form: Node.isNewExpression(t) ? 'map' : 'object', keys: ks.map((x) => ({ key: x.key, file: at.file, line: x.line })) };
+    }, vs, site, form);
+  };
+  for (const { sf, file, role } of coreFiles) {
+    for (const ea of sf.getDescendantsOfKind(SyntaxKind.ElementAccessExpression)) {
+      const a = ea.getArgumentExpression();
+      if (a !== undefined && strOf(unwrap(a)) === undefined) tableLookup(ea.getExpression(), a, ea, 'index');
+    }
+    for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+      const c = call.getExpression();
+      if (Node.isPropertyAccessExpression(c) && c.getName() === 'get' && call.getArguments().length === 1) tableLookup(c.getExpression(), call.getArguments()[0]!, call, 'get');
+    }
+    for (const sw of sf.getDescendantsOfKind(SyntaxKind.SwitchStatement)) {
+      const vs = traceVendor(sw.getExpression(), ctx);
+      add(sw, () => {
+        const ks = sw.getCaseBlock().getClauses().flatMap((c) => { const s = Node.isCaseClause(c) ? strOf(unwrap(c.getExpression())) : undefined; return s !== undefined ? [{ key: s, file, line: c.getStartLineNumber() }] : []; });
+        return { name: `${holderName(sw)}:switch(${shortText(passedOn(sw.getExpression()))})`, file, line: sw.getStartLineNumber(), role, decl: declText(sw), form: 'switch', keys: ks };
+      }, vs, sw, 'switch');
+    }
+    // equality chains: one lookup per (function, compared text)
+    const groups = new Map<string, { holder: Node; src: Node; cmps: { key: string; line: number; at: Node }[]; vs: VendorValueSet[] }>();
+    const holderIds = new Map<Node, number>();
+    for (const b of sf.getDescendantsOfKind(SyntaxKind.BinaryExpression)) {
+      if (!EQUALITY.has(b.getOperatorToken().getKind())) continue;
+      const [l, r] = [unwrap(b.getLeft()), unwrap(b.getRight())];
+      const key = strOf(r) ?? strOf(l);
+      if (key === undefined || (strOf(r) !== undefined && strOf(l) !== undefined)) continue;
+      const src = strOf(r) !== undefined ? l : r;
+      const vs = traceVendor(src, ctx);
+      if (vs.length === 0) continue;
+      const h = holderNode(b);
+      if (!holderIds.has(h)) holderIds.set(h, holderIds.size);
+      const gk = `${String(holderIds.get(h))}\0${passedOn(src).getText()}`;
+      const g = groups.get(gk) ?? { holder: h, src, cmps: [], vs: [] };
+      g.cmps.push({ key, line: b.getStartLineNumber(), at: b });
+      for (const v of vs) if (!g.vs.includes(v)) g.vs.push(v);
+      groups.set(gk, g);
+    }
+    for (const g of groups.values()) {
+      const first = g.cmps[0]!.at;
+      for (const c of g.cmps) {
+        add(g.cmps[0]!.at, () => ({
+          name: `${holderName(first)}:compare(${shortText(passedOn(g.src))})`, file, line: first.getStartLineNumber(), role,
+          decl: declText(Node.isSourceFile(g.holder) ? first.getParentOrThrow() : g.holder), form: 'if',
+          keys: g.cmps.map((x) => ({ key: x.key, file, line: x.line })),
+        }), g.vs, c.at, 'compare');
+      }
+    }
+  }
+  return [...byNode.values()];
+}
+
+/** The syntactic key shapes of a core file (tables, switches, equality chains; no tracing): `keys:<name>|<keys>` signatures. */
+function keySignaturesOf(sf: SourceFile): string[] {
+  const out: string[] = [];
+  const sig = (name: string, keys: readonly string[]): void => { const ks = [...new Set(keys)]; if (ks.length >= 3) out.push(`keys:${name}|${ks.sort().join(',')}`); };
+  for (const vd of sf.getDescendantsOfKind(SyntaxKind.VariableDeclaration)) {
+    const i = vd.getInitializer();
+    const ks = i !== undefined ? tableKeysOf(unwrap(i)) : undefined;
+    if (ks !== undefined) sig(vd.getName(), ks.map((k) => k.key));
+  }
+  for (const sw of sf.getDescendantsOfKind(SyntaxKind.SwitchStatement)) {
+    sig(`${holderName(sw)}:switch(${shortText(passedOn(sw.getExpression()))})`, sw.getCaseBlock().getClauses().flatMap((c) => { const s = Node.isCaseClause(c) ? strOf(unwrap(c.getExpression())) : undefined; return s !== undefined ? [s] : []; }));
+  }
+  const groups = new Map<string, { name: string; keys: string[] }>();
+  const holderIds = new Map<Node, number>();
+  for (const b of sf.getDescendantsOfKind(SyntaxKind.BinaryExpression)) {
+    if (!EQUALITY.has(b.getOperatorToken().getKind())) continue;
+    const [l, r] = [unwrap(b.getLeft()), unwrap(b.getRight())];
+    const key = strOf(r) ?? strOf(l);
+    if (key === undefined || (strOf(r) !== undefined && strOf(l) !== undefined)) continue;
+    const src = strOf(r) !== undefined ? l : r;
+    const h = holderNode(b);
+    if (!holderIds.has(h)) holderIds.set(h, holderIds.size);
+    const gk = `${String(holderIds.get(h))}\0${passedOn(src).getText()}`;
+    const g = groups.get(gk) ?? { name: `${holderName(b)}:compare(${shortText(passedOn(src))})`, keys: [] };
+    g.keys.push(key);
+    groups.set(gk, g);
+  }
+  for (const g of groups.values()) sig(g.name, g.keys);
+  return out;
+}
+
+/**
+ * v1.5.10: the form-C candidates. A lookup is a candidate when its distinct keys number >= 3 and, for one vendor set
+ * the consulting text carries, the keys name (by `norm`) at least half of that set's values. The core set is the key
+ * set; a pair is vendor value -> the key that names it; the branch sites are where the vendor text consults the lookup.
+ */
+function keyCandidatesOf(inp: CandidateInputs, ctx: TraceCtx): MirrorCandidateFact[] {
+  const out: MirrorCandidateFact[] = [];
+  for (const k of keyLookupsOf(inp.coreFiles, ctx)) {
+    const keys = [...new Map(k.keys.map((x) => [x.key, x] as const)).values()];
+    if (keys.length < 3) continue;
+    let best: { v: VendorValueSet; n: number } | undefined;
+    for (const v of k.vendors) {
+      const n = v.members.filter((m) => keys.some((x) => norm(x.key) === norm(m))).length;
+      if (n < 2 || n * 2 < v.members.length) continue;
+      if (best === undefined || n > best.n || (n === best.n && (v.members.length < best.v.members.length || (v.members.length === best.v.members.length && vendorId(v) < vendorId(best.v))))) best = { v, n };
+    }
+    if (best === undefined) continue;
+    const v = best.v;
+    const pairs: MapPair[] = [];
+    for (const m of v.members) for (const x of keys) if (norm(x.key) === norm(m)) pairs.push({ from: m, to: x.key, file: x.file, line: x.line, form: k.form });
+    const froms = new Set(pairs.map((p) => p.from)); const tos = new Set(pairs.map((p) => p.to));
+    const oneToOne = pairs.length === froms.size && pairs.length === tos.size && tos.size === keys.length;
+    const members = keys.map((x) => x.key);
+    out.push({
+      id: `${k.file}#${k.name}|${v.module}#${v.name}`,
+      file: k.file, line: k.line, role: k.role, coreSet: k.name, coreKind: 'keys', coreMembers: members, coreDecl: k.decl,
+      module: v.module, vendorSet: v.name, vendorMembers: v.members, vendorDecl: v.decl,
+      pairs, mappedFrom: froms.size, mappedTo: tos.size, oneToOne,
+      branches: [...k.sites].sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : a.line - b.line)),
+      ownedBy: inp.baseline.has(`keys:${k.name}|${[...members].sort().join(',')}`) ? 'baseline' : '', mapSide: 'core', domainText: inp.domainText,
+    });
+  }
+  return out;
 }
 
 /**
@@ -712,7 +930,10 @@ export function mirrorPrompt(c: MirrorCandidateFact): string {
     `Members: ${c.coreMembers.join(', ')}`,
     '```ts', c.coreDecl, '```',
     '',
-    c.mapSide === 'core' ? '## Mapping table (vendor value -> core member, in the core: the vendor value reaches the core as text)' : '## Mapping table (vendor value -> core member, in the outbound adapter)',
+    ...(c.coreKind === 'keys'
+      // v1.5.10 (form C): the core set is the key set of a core lookup that vendor text consults
+      ? ['## Mapping table (vendor value -> core key, in the core: the vendor value reaches the core as text and the core looks it up by these keys)', 'The core set is the set of keys (or case labels) of this lookup; what each key leads to is in the declaration above.']
+      : [c.mapSide === 'core' ? '## Mapping table (vendor value -> core member, in the core: the vendor value reaches the core as text)' : '## Mapping table (vendor value -> core member, in the outbound adapter)']),
     ...c.pairs.map((p) => `- ${p.from} -> ${p.to.replace(/^lit:/, '').replace(/^ref:/, '')}  (${p.file}, ${p.form})`),
     ...(unmapped.length > 0 ? [`Vendor values with no mapping shown: ${unmapped.join(', ')}`] : []),
     ...(coreUnreached.length > 0 ? [`Core members no vendor value maps to: ${coreUnreached.join(', ')}`] : []),
