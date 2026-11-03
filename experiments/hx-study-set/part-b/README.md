@@ -141,6 +141,27 @@ there; clean and trap pass every case; seed and clean pass the oracle, trap fail
 Part-B pairs (structural): hxpb1/hxpb2 0.250, hxpb1/hxpb3 0.139, hxpb1/hxpb4 0.147, hxpb2/hxpb3 0.151, hxpb2/hxpb4 0.142,
 hxpb3/hxpb4 0.200.
 
+## Form C (2026-11-03)
+
+In the SEM-2 pilot, coding agents also wrote the renamed copy as a lookup table in the service with no declared type:
+an object literal (or `Map`) keyed by the vendor's values and indexed by the vendor text a port carries. The
+`value-set-copy` check counted only a declared union, enum or string array, so those trees passed. The library now
+has an opt-in form C (`params: { keySets: true }`, stated in the `pilot-oracle.ts` header): object-literal keys, `Map`
+keys, `switch` labels and comparison chains on one expression count as a core set when they match a vendor set (three
+or more values, at least half matching after normalisation) and the core branches on them with vendor text.
+
+- Enabled only in `hxpb1-pottery-kiln/oracle.ts` and `hxpb2-translation-portal/oracle.ts` (not sealed). Every other
+  oracle under `experiments/trap-pilot-v2/` and `experiments/hx-study-set/` gives the same verdict and the same evidence
+  on its seed, clean and trap trees before and after the change (27 oracles, 81 trees, 81 verdicts identical; the
+  only evidence change is one added item on each of the hxpb1 and hxpb2 trap trees):
+  `_checks/oracle-regression-form-c-2026-11-03.json`.
+- New fixtures `solutions/trap-keys/` in hxpb1 (a `Map` read with `.get`, a destructured comparison) and hxpb2 (a
+  `Record<string, …>` table indexed by `stateCode`, an optional-chain comparison): they pass the task tests and tsc and
+  fail the oracle; seed and clean still pass, trap still fails. `verify.ts` checks the tree when it exists; its run is
+  `_checks/verification-form-c-2026-11-03.json` (`verification.json` stays the seal-time record).
+- The updated oracles on the eight SEM-2 pilot step-03 trees: `_checks/sem2-pilot-oracle-v2.json` (verdict, matched
+  set, file:line per session). Every failure is hand-read before it counts.
+
 ## Notes
 
 - **Lever (a) is uneven, as in the pilot.** In hxpb1 and hxpb2 the step-1 trap is one file (a type and a switch or

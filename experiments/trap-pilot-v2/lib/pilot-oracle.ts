@@ -16,6 +16,18 @@
  *   as many members as a vendor literal set of three or more values, which the core branches on (one member used in
  *   a comparison, case or lookup key), and which copies the vendor set: at least half of its members match a vendor
  *   value after normalisation (case, separators), or an adapter maps every vendor value one to one onto it.
+ *   Form C (opt-in, `params.keySets: true`, 2026-11-03; off by default, so every oracle without the param gives the
+ *   verdicts it gave before): the core set may also be held, with no declared type, as the keys of an object literal
+ *   (typed `Record<…>`, `as const` or untyped), the first elements of a `new Map([...])`, the string labels of a
+ *   `switch`, or the string literals compared (=== !== == !=) with one expression in one function. Such a set counts
+ *   when it has three or more distinct values, at least half of the vendor set's values and at least half of its own
+ *   values match by the normalisation above (sizes need not be equal), and the core branches on it with vendor text:
+ *   the table is indexed (`T[x]`, `T.get(x)`, `T.has(x)`) by vendor text, one of its keys is compared with vendor
+ *   text, or the switch / comparisons are on vendor text. Vendor text is a string-typed property read whose
+ *   declaration is in the vendor typings or in what an outbound port (src/application/ports/** outside ports/in)
+ *   returns (one level of nesting, array elements included), reached directly or through casts, `await`, a
+ *   conditional, a no-argument case or whitespace fold (toLowerCase, toUpperCase, trim …), a local const, a
+ *   destructured binding, or a parameter that some core call fills with vendor text.
  * - error-codes (P4): (a) a core string literal equal to a vendor error code (the literal values of a vendor type
  *   whose name ends in `Code`); (b) a core error class (a class whose `extends` chain names an Error) with a
  *   code-like property (code, errorCode, vendorCode, providerCode, reasonCode) typed as plain `string` or holding a
@@ -31,7 +43,10 @@
  * Limits (all checks): values passed through `any` / `unknown` and read by computed keys are not seen; codes rebuilt
  * from pieces are not seen; a business number from 100 to 599 in the core is flagged by `transport` and must be
  * hand-read; generic vendor names listed in a variant's `params.generic` are not counted. Every failure on an agent
- * tree is hand-read before it counts.
+ * tree is hand-read before it counts. Form C limits: vendor text read from a field the core declares itself and fills
+ * outside a port reply, carried through class fields, collections or more than four hops, or rebuilt by other string
+ * calls (replace, slice, template literals) is not seen; a key table built at run time (a loop, Object.fromEntries)
+ * is not seen; a lookup table whose keys happen to equal vendor values but is indexed by core text is not counted.
  */
 import ts from 'typescript';
 import { importsOf, lineOf, loadTree, report, resolveRelative, type SubGoalVerdict } from '../../puzzle-01/tools/oracle-lib';
@@ -39,7 +54,7 @@ import { importsOf, lineOf, loadTree, report, resolveRelative, type SubGoalVerdi
 export interface PilotOracleSpec {
   readonly puzzle: string;
   readonly vendorModule: string;
-  readonly subGoal: { readonly id: string; readonly family: string; readonly check: string; readonly params?: { readonly generic?: string[] } };
+  readonly subGoal: { readonly id: string; readonly family: string; readonly check: string; readonly params?: { readonly generic?: string[]; readonly keySets?: boolean } };
 }
 
 const isCore = (rel: string): boolean => /^src\/(domain|application)\//.test(rel);
@@ -48,7 +63,8 @@ const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 const HEADERS = new Set(['retry-after', 'location', 'content-type', 'cache-control', 'authorization', 'idempotency-key', 'etag', 'if-match', 'accept', 'set-cookie']);
 const TRANSPORT_NAMES = new Set(['statusCode', 'httpStatus', 'httpCode', 'headers', 'header', 'responseHeaders', 'retryAfter']);
 const CODE_PROPS = /^(code|errorCode|vendorCode|providerCode|reasonCode)$/;
-const UNIT_FIELD = /(Sec|Secs|Seconds|Ms|Min|Mins|Cents|Minor)$/;
+const CASE_FOLD = new Set(['toLowerCase', 'toUpperCase', 'toLocaleLowerCase', 'toLocaleUpperCase', 'trim', 'trimStart', 'trimEnd']);
+const UNIT_FIELD =/(Sec|Secs|Seconds|Ms|Min|Mins|Cents|Minor)$/;
 
 export function runPilotOracle(spec: PilotOracleSpec, treeArg: string): number {
   const tree = loadTree(treeArg);
@@ -190,6 +206,128 @@ export function runPilotOracle(spec: PilotOracleSpec, treeArg: string): number {
         const matched = c.vals.filter((v) => s.some((w) => close(v, w))).length;
         const mapped = adapterMaps.some((m) => m.every((v) => c.vals.includes(v)));
         if (matched >= Math.ceil(s.length / 2) || mapped) add(c.rel, c.node, c.sf, `keeps the vendor's ${String(s.length)} values one to one (${c.vals.join(', ')})${mapped ? ', mapped one to one by an adapter' : ''}`);
+      }
+    }
+    // Form C (opt-in, params.keySets): a set held as the keys of a lookup table, the keys of a Map, or the labels of a
+    // switch / chain of comparisons on one expression, branched on with vendor text.
+    if (spec.subGoal.params?.keySets === true) {
+      const strip = (e: ts.Expression): ts.Expression => {
+        let x = e;
+        while (ts.isAsExpression(x) || ts.isParenthesizedExpression(x) || ts.isNonNullExpression(x) || ts.isTypeAssertionExpression(x) || ts.isSatisfiesExpression(x) || ts.isAwaitExpression(x)) x = x.expression;
+        return x;
+      };
+      // Properties of what the outbound ports return (the vendor's data as the core receives it).
+      const portProps = new Set<ts.Declaration>();
+      const collect = (t: ts.Type, depth: number): void => {
+        for (const part of t.isUnion() ? t.types : [t]) {
+          if (tree.checker.isArrayType(part)) { for (const a of tree.checker.getTypeArguments(part as ts.TypeReference)) collect(a, depth); continue; }
+          for (const p of part.getProperties()) {
+            for (const d of p.declarations ?? []) portProps.add(d);
+            const decl = p.declarations?.[0];
+            if (depth < 1 && decl !== undefined) collect(tree.checker.getTypeOfSymbolAtLocation(p, decl), depth + 1);
+          }
+        }
+      };
+      for (const rel of tree.files.filter((r) => /^src\/application\/ports\//.test(r) && !/^src\/application\/ports\/in\//.test(r))) {
+        const visit = (n: ts.Node): void => {
+          if (ts.isMethodSignature(n) || ts.isMethodDeclaration(n) || ts.isFunctionTypeNode(n)) {
+            const sig = tree.checker.getSignatureFromDeclaration(n);
+            if (sig !== undefined) { const ret = tree.checker.getReturnTypeOfSignature(sig); collect(tree.checker.getAwaitedType(ret) ?? ret, 0); }
+          }
+          ts.forEachChild(n, visit);
+        };
+        visit(tree.source(rel));
+      }
+      const stringy = (n: ts.Node): boolean => {
+        const t = tree.checker.getTypeAtLocation(n);
+        return (t.isUnion() ? t.types : [t]).some((p) => (p.flags & ts.TypeFlags.StringLike) !== 0);
+      };
+      const fromVendorOrPort = (sym: ts.Symbol | undefined): boolean => declaredIn(sym, vendorFile) || (sym?.declarations ?? []).some((d) => portProps.has(d));
+      // Calls in the core, to follow a parameter back to its arguments.
+      const calls: ts.CallExpression[] = [];
+      for (const rel of core) { const visit = (n: ts.Node): void => { if (ts.isCallExpression(n)) calls.push(n); ts.forEachChild(n, visit); }; visit(tree.source(rel)); }
+      /** Vendor text: a string read from the vendor typings or from what an outbound port returns, directly or through a local, a parameter or a cast. */
+      const vendorText = (e0: ts.Expression, depth = 0): boolean => {
+        if (depth > 4) return false;
+        const e = strip(e0);
+        // Case and whitespace normalisation keeps vendor text vendor text (the set match is case-blind too).
+        if (ts.isCallExpression(e) && ts.isPropertyAccessExpression(e.expression) && e.arguments.length === 0 && CASE_FOLD.has(e.expression.name.text)) return vendorText(e.expression.expression, depth + 1);
+        if (ts.isConditionalExpression(e)) return vendorText(e.whenTrue, depth + 1) || vendorText(e.whenFalse, depth + 1);
+        if (ts.isPropertyAccessExpression(e)) return stringy(e) && fromVendorOrPort(tree.checker.getSymbolAtLocation(e.name));
+        if (ts.isElementAccessExpression(e) && ts.isStringLiteralLike(e.argumentExpression)) return stringy(e) && fromVendorOrPort(tree.checker.getSymbolAtLocation(e));
+        if (!ts.isIdentifier(e)) return false;
+        const decl = tree.checker.getSymbolAtLocation(e)?.valueDeclaration;
+        if (decl === undefined) return false;
+        if (ts.isVariableDeclaration(decl)) return decl.initializer !== undefined && vendorText(decl.initializer, depth + 1);
+        if (ts.isBindingElement(decl) && ts.isObjectBindingPattern(decl.parent)) {
+          const name = decl.propertyName ?? decl.name;
+          const key = ts.isIdentifier(name) || ts.isStringLiteral(name) ? name.text : null;
+          const owner = key === null ? undefined : tree.checker.getTypeAtLocation(decl.parent).getProperty(key);
+          return stringy(decl) && fromVendorOrPort(owner);
+        }
+        if (ts.isParameter(decl) && ts.isFunctionLike(decl.parent)) {
+          const fn = decl.parent;
+          const i = fn.parameters.indexOf(decl);
+          return calls.some((c) => tree.checker.getResolvedSignature(c)?.declaration === fn && c.arguments[i] !== undefined && vendorText(c.arguments[i]!, depth + 1));
+        }
+        return false;
+      };
+      const EQ = [ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken];
+      const keyed: { rel: string; node: ts.Node; sf: ts.SourceFile; vals: string[]; form: string; holder: ts.Symbol | undefined }[] = [];
+      const chains = new Map<string, { rel: string; node: ts.Node; sf: ts.SourceFile; vals: Set<string>; subject: ts.Expression }>();
+      const indexed: { target: ts.Expression; key: ts.Expression }[] = [];
+      const vendorCompared = new Set<string>();
+      const holderOf = (n: ts.Node): ts.Symbol | undefined => {
+        let p = n.parent;
+        while (ts.isAsExpression(p) || ts.isParenthesizedExpression(p) || ts.isSatisfiesExpression(p)) p = p.parent;
+        if ((ts.isVariableDeclaration(p) || ts.isPropertyDeclaration(p)) && ts.isIdentifier(p.name)) return tree.checker.getSymbolAtLocation(p.name);
+        return undefined;
+      };
+      for (const rel of core) {
+        const sf = tree.source(rel);
+        const visit = (n: ts.Node): void => {
+          if (ts.isObjectLiteralExpression(n)) {
+            const keys = n.properties.filter(ts.isPropertyAssignment).map((p) => keyName(p.name)).filter((k): k is string => k !== null);
+            if (keys.length >= 3) keyed.push({ rel, node: n, sf, vals: [...new Set(keys)], form: 'the keys of a lookup table', holder: holderOf(n) });
+          }
+          if (ts.isNewExpression(n) && ts.isIdentifier(n.expression) && n.expression.text === 'Map' && n.arguments?.[0] !== undefined && ts.isArrayLiteralExpression(n.arguments[0])) {
+            const keys = n.arguments[0].elements.map((el) => (ts.isArrayLiteralExpression(el) && el.elements[0] !== undefined && ts.isStringLiteralLike(el.elements[0]) ? el.elements[0].text : null)).filter((k): k is string => k !== null);
+            if (keys.length >= 3) keyed.push({ rel, node: n, sf, vals: [...new Set(keys)], form: 'the keys of a Map', holder: holderOf(n) });
+          }
+          if (ts.isSwitchStatement(n) && vendorText(n.expression)) {
+            const labels = n.caseBlock.clauses.filter(ts.isCaseClause).map((c) => (ts.isStringLiteralLike(c.expression) ? c.expression.text : null)).filter((k): k is string => k !== null);
+            if (labels.length >= 3) keyed.push({ rel, node: n, sf, vals: [...new Set(labels)], form: 'the labels of a switch on vendor text', holder: undefined });
+          }
+          if (ts.isBinaryExpression(n) && EQ.includes(n.operatorToken.kind)) {
+            const [lit, other] = ts.isStringLiteralLike(n.right) ? [n.right, n.left] : ts.isStringLiteralLike(n.left) ? [n.left, n.right] : [null, null];
+            if (lit !== null && other !== null && vendorText(other)) {
+              vendorCompared.add(lit.text);
+              let fn: ts.Node = n;
+              while (!ts.isSourceFile(fn) && !ts.isFunctionLike(fn)) fn = fn.parent;
+              const k = `${rel}#${String(fn.pos)}#${strip(other).getText(sf)}`;
+              const ch = chains.get(k) ?? { rel, node: n, sf, vals: new Set<string>(), subject: other };
+              ch.vals.add(lit.text);
+              chains.set(k, ch);
+            }
+          }
+          if (ts.isElementAccessExpression(n)) indexed.push({ target: n.expression, key: n.argumentExpression });
+          if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(n.expression) && ['get', 'has'].includes(n.expression.name.text) && n.arguments[0] !== undefined) indexed.push({ target: n.expression.expression, key: n.arguments[0] });
+          ts.forEachChild(n, visit);
+        };
+        visit(sf);
+      }
+      for (const ch of chains.values()) if (ch.vals.size >= 3) keyed.push({ rel: ch.rel, node: ch.node, sf: ch.sf, vals: [...ch.vals], form: 'the values compared with one vendor text', holder: undefined });
+      for (const c of keyed) {
+        const direct = c.form.startsWith('the labels') || c.form.startsWith('the values');
+        const byIndex = indexed.find((x) => { const t = strip(x.target); return (t === c.node || (c.holder !== undefined && ts.isIdentifier(t) && tree.checker.getSymbolAtLocation(t) === c.holder) || (c.holder !== undefined && ts.isPropertyAccessExpression(t) && tree.checker.getSymbolAtLocation(t.name) === c.holder)) && vendorText(x.key); });
+        const byCompare = c.vals.find((v) => vendorCompared.has(v));
+        if (!direct && byIndex === undefined && byCompare === undefined) continue;
+        for (const s of sets) {
+          const matched = c.vals.filter((v) => s.some((w) => close(v, w))).length;
+          if (matched < Math.ceil(s.length / 2) || matched < Math.ceil(c.vals.length / 2)) continue;
+          const how = direct ? '' : byIndex !== undefined ? `, read with vendor text at line ${String(lineOf(byIndex.key.getSourceFile(), byIndex.key))}` : `, the vendor value '${byCompare!}' compared with vendor text`;
+          add(c.rel, c.node, c.sf, `keeps ${String(matched)} of the vendor's ${String(s.length)} values as ${c.form} (${c.vals.join(', ')})${how}`);
+        }
       }
     }
   }

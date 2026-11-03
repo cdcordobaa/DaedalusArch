@@ -3377,3 +3377,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory neuro-symbolic gate; R-MIRROR-SEM stays uncounted; no counted list or registered result changes.
 
 ---
+## Rule-blind oracle: form C value-set copies (lookup-table keys)
+**Timestamp**: 2026-11-03T15:42:10Z
+**User Input**: "Extend the rule-blind value-set-copy oracle check to a renamed vendor value set written as an untyped lookup table (form C), opt-in for hxpb1/hxpb2 only, with fixtures, a regression proof over every pilot and study-set oracle, and verdicts on the eight SEM-2 pilot step-03 trees; zero model calls."
+**AI Response**: "experiments/trap-pilot-v2/lib/pilot-oracle.ts: new opt-in params.keySets for value-set-copy (object-literal keys, Map keys, switch labels and comparison chains branched on with vendor text from the vendor typings or an outbound port); enabled only in the hxpb1 and hxpb2 oracles. New fixtures solutions/trap-keys in hxpb1 and hxpb2 pass tests and tsc and fail the oracle; part-B verify.ts checks them (run in _checks/verification-form-c-2026-11-03.json; verification.json kept). Regression: 27 oracles, 81 trees, 81 verdicts identical, evidence identical except one added item on the hxpb1 and hxpb2 trap trees. SEM-2 pilot step-03: c001, c005, c006, c008 fail; c002, c003, c004, c007 pass (_checks/sem2-pilot-oracle-v2.json). Seal check unchanged."
+**Context**: Rule-blind oracle work; no instrument, rule or scorer read; no sealed or registered result changes.
+
+---
