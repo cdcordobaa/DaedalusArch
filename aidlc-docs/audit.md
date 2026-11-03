@@ -3389,3 +3389,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Exploratory neuro-symbolic rule work; R-MIRROR-SEM stays uncounted; no counted list or registered result changes.
 
 ---
+
+---
+## HCAL-08: blind build and seal of a held-back Hexagonal calibration set
+**Timestamp**: 2026-11-03T16:55:04Z
+**User Input**: "Build and seal a fresh held-back calibration set (HCAL-08) for one blind admission of the v1.5.8 to v1.5.10 Hexagonal shapes, in construct terms, with new domains and vendors; do not score it; zero model calls."
+**AI Response**: "Brief experiments/hcal-08/BRIEF.md committed first (f9a9b65a6). Built three new domains (glacier-guiding/icetrail-sdk, orchard-cooperative/pressmark-sdk, luthier-workshop/bowcraft-sdk) in the HCAL-06 format: 58 cases, 29 positive, 29 clean (all hard twins), over rows HX8-WORD (6/6), HX8-SET (6/6), HX8-KEY (6/7) and HX8-EDGE (11/10, sub-cases a to e). All 61 trees pass tsc strict (check-compile.sh). Labels per domain with a line and a one-line note per case; each case spec ends with a builder glossary key, removed in the scoring copy. Sealed in c5ada98e4: SEAL.sha256 (282 files, root e4641f02...), SCORING-COPY.sha256 (root 321a054f...), verify-seal.sh, rule hash left as a stub. No checker run, no case scored, no model calls. Disclosure: after the seal commit, reading the end of this log to append this entry showed the summaries of the v1.5.9 and v1.5.10 rule changes; no case file changed after the seal."
+**Context**: Calibration set build for a later admission; the builder read no instrument, rule, scorer or rule-development file; no counted or registered result changes.

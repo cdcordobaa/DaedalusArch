@@ -1,0 +1,8 @@
+export enum PressStage {
+  QUEUED = 'QUEUED',
+  MILLING = 'MILLING',
+  PRESSING = 'PRESSING',
+  SETTLING = 'SETTLING',
+  BOTTLED = 'BOTTLED',
+  SPOILED = 'SPOILED',
+}
