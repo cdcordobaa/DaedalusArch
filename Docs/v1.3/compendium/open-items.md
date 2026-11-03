@@ -250,3 +250,16 @@ Line numbers in §16 and earlier cite the registration as it stood on 2026-10-31
 | Hexagonal study: pilot run 2 and the dress rehearsal passed; pre-data addendum filled. The next step is the first study call; the thesis may still describe it only as a registered design with a passed pilot, with no result. The 2026-10-31 item "agent pilot not done" is closed | agent | `Docs/v1.5/hexagonal-study-preregistration.md:435` |
 | DEV-HX-1 and DEV-HX-2 are agent-recorded deviations; the author has not signed them in this record. The thesis must list both | author | `Docs/v1.5/hexagonal-study-preregistration.md:349` |
 | Pilot results branches (`results/v15-hx-pilot-r2`, `results/v15-hx-rehearsal`) are not on main; the ledger quotes the registration's slots. Merge or deposit before the defence so the figures can be checked | agent | `Docs/v1.5/hexagonal-study-preregistration.md:435` |
+
+## 18. State on 2026-11-03 (refresh after PRs #472–#486)
+
+The Hexagonal study has run; the §17 item "the thesis may describe it only as a registered design" is closed. Use the ledger part `v15-g` for current anchors.
+
+| Item | Owner | Source |
+|---|---|---|
+| The Hexagonal study result (H-HX supported, ΣD 203 to 0 over 110 blocks) is on main as a report; the results records are on branch `results/v15-hx-study` and `results/v15-hx-pilot-r2`, `results/v15-hx-rehearsal`, not on main. Merge or deposit them before the defence so the figures can be re-derived | agent | `Docs/DiagnosticRuns/v15-hx-study-2026-11-02.md:3` |
+| DEV-HX-1, DEV-HX-2 and the X-1 extension were recorded after or around the data by the coordinator; the author should read and sign them | author | `Docs/v1.4/deviation-x1-and-so3a.md:100` |
+| The 24 rule-review findings are unreproduced; fixtures are needed before any is counted or any rule changes, and a changed rule needs a fresh blind admission | agent | `Docs/DiagnosticRuns/v15-rule-review-2026-11-02.md:8` |
+| R-INBYP, R-D5S (v1.5.7), H06 R-ADAPTER-RULE and R-MIRROR2 changes are exploratory development work, not admitted, not counted | author | `Docs/DiagnosticRuns/v15-hx-study-2026-11-02.md:128` |
+| SEM thread: SEM-GATE-2 passed, SEM-2 pilot was uninformative (G4 red). An agent-level test needs tasks that draw out the shortcut, which is a new exploratory design and is not started | author | `Docs/DiagnosticRuns/v15-sem2-pilot-2026-11-02.md:58` |
+| Hold-out: closed as not scored after four attempts | author | `ops/01-instrument-map.md:244` |

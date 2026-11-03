@@ -197,6 +197,10 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-11-01 | **Hold-out attempt 4 (DELEG-H5)**: addendum 4 and the new adapter prompt merged (PR #463), then the attempt stopped at the step-2 path-only check, no live run, hold-out still not scored (PR #468) | |
 | 2026-11-02 | **Hexagonal study pilot and rehearsal**: DEV-HX-1 (hub judge off after pilot run 1 stopped, PR #461), DEV-HX-2 (order seed 20261029, PR #469); pilot run 2 passes gates (a)–(e) and the dress rehearsal passes; the pre-data addendum fills the §9.2 slots (PR #470). No study call yet | |
 | 2026-11-02 | Daily thesis sync: claims C10432–C10441 (part `v15-f`), nulls M301–M305, chronology rows 87–89, open items §17; ledger citations re-anchored (64 moved lines). Window 6d17e910..97e85be6 also holds engineering PRs with no evidence figures (#462 deferred judge mode, #464 ops assessment, #465 CI ratchet, #466 and #467 v1.5.6 extractor). Public PR and private thesis PR: see the sync PRs of branch `thesis-sync-20261102` | |
+| 2026-11-02 | **Hexagonal study run and analysed** (PRs #473, #475, #477): 220 sessions, H-HX supported, ΣD 203 to 0, p 2.1 × 10⁻²², task sign 10/0, trap failures 87/110 to 12/110, acceptance 103 vs 105 of 110; §4 hand read of 8 blocks (2 hidden, PR #476 R-INBYP follow-up, exploratory); independent rule review (24 findings, PR #477) | |
+| 2026-11-02 | SEM-GATE fails on form A (0 / 4, PR #482); v1.5.7 to v1.5.9 development work (PRs #476, #478–#480, #481, #483, #485); SEM-GATE-2 passes on fresh cases (11 / 11, 0 / 9, PR #485); X-1 extended to the final and Hexagonal studies (PR #484, decision row 90) | |
+| 2026-11-03 | SEM-2 agent pilot stops at gate G4 (0 / 4 none sessions show the trap), run not made (PR #486, decision row 91) | |
+| 2026-11-03 | Daily thesis sync: claims C10442–C10468 (part `v15-g`), nulls M306–M312, chronology rows 90–91, open items §18; 4 ledger citations re-anchored. Window 97e85be6..636ba8b6 (PRs #472–#486). Public sync PR and private thesis PR: see branch `thesis-sync-20261103` | |
 
 ## What the timeline shows for the thesis
 
