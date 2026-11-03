@@ -97,7 +97,7 @@ export interface NormaliseOptions {
   readonly repoRoot?: string;
   /**
    * Other spellings of the root (e.g. the shell's `PWD` when the repo is
-   * reached through `/Users/arkatechie/dev-link/...`). Each is used only when
+   * reached through `/Users/<name>/dev-link/...`). Each is used only when
    * it resolves to the same real path as `repoRoot`. Defaults to
    * `process.env.PWD` and `process.env.INIT_CWD`.
    */
