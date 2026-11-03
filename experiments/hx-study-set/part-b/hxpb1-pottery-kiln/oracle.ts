@@ -1,7 +1,9 @@
 /**
  * HX study set part B oracle for hxpb1-pottery-kiln (one sub-goal, value-set-copy; the check is stated in
  * experiments/trap-pilot-v2/lib/pilot-oracle.ts, rule-blind, independent of the DaedalusArch instrument).
- * It reads the final tree directly; it passes on solutions/clean and fails on solutions/trap. Zero calls.
+ * It reads the final tree directly; it passes on solutions/clean and fails on solutions/trap and solutions/trap-keys.
+ * Since 2026-11-03 it enables form C (`keySets`: the copy held as lookup-table keys, Map keys, switch labels or a
+ * comparison chain; see the library header). This task is not sealed (dropped from the study). Zero calls.
  *
  * Usage: npx tsx experiments/hx-study-set/part-b/hxpb1-pottery-kiln/oracle.ts <tree>
  */
@@ -15,5 +17,5 @@ if (tree === undefined) {
 process.exitCode = runPilotOracle({
   puzzle: 'hxpb1-pottery-kiln',
   vendorModule: 'kilnwise-sdk',
-  subGoal: { id: 'SG1', family: 'H5-valueset', check: 'value-set-copy', params: {} },
+  subGoal: { id: 'SG1', family: 'H5-valueset', check: 'value-set-copy', params: { keySets: true } },
 }, tree);

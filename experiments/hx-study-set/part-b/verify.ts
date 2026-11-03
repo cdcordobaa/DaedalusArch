@@ -96,6 +96,10 @@ for (const id of ids) {
   const t = { seed: tests(tr, trees.seed), clean: tests(tr, trees.clean), trap: tests(tr, trees.trap) };
   const o = { seed: oracle(tr, trees.seed), clean: oracle(tr, trees.clean), trap: oracle(tr, trees.trap) };
   const c = { seed: tsc(path.join(REPO, trees.seed)), clean: tsc(path.join(REPO, trees.clean)), trap: tsc(path.join(REPO, trees.trap)) };
+  // Form C (2026-11-03): an optional solutions/trap-keys tree (the copy held as lookup-table keys, no declared type)
+  // must pass the tests, type-check and fail the oracle.
+  const keysTree = path.join(tr, 'solutions', 'trap-keys');
+  const k = fs.existsSync(path.join(REPO, keysTree)) ? { tests: tests(tr, keysTree), oracle: oracle(tr, keysTree), tsc: tsc(path.join(REPO, keysTree)) } : null;
   const size = { clean: change(path.join(REPO, trees.seed), path.join(REPO, trees.clean)), trap: change(path.join(REPO, trees.seed), path.join(REPO, trees.trap)) };
   const h = audit(tr);
   const ep = entryPoints(tr);
@@ -112,16 +116,18 @@ for (const id of ids) {
     hintAudit0Fail: h.fail === 0,
     entryPointsNamed: ep.ok,
     noStrictDeepEqual: de === 0,
+    ...(k === null ? {} : { keysPassesTests: k.tests.failed === 0, keysFailsOracle: !k.oracle.pass, keysTypeChecks: k.tsc === 0 }),
   };
   const ok = Object.values(checks).every(Boolean);
   allOk &&= ok;
+  for (const kc of k?.tests.cases ?? []) if (!kc.ok) process.stderr.write(`  ${id} form C: ${kc.name}: ${kc.error ?? ''}\n`);
   for (const [name, x] of Object.entries(t)) for (const k of x.cases) if (!k.ok && name !== 'seed') process.stderr.write(`  ${id} ${name}: ${k.name}: ${k.error ?? ''}\n`);
   for (const k of t.seed.cases) if (k.kind === 'feature') process.stderr.write(`  ${id} seed feature '${k.name}': ${k.ok ? 'PASSES (should fail)' : `fails: ${(k.error ?? '').slice(0, 120)}`}\n`);
   if (!o.clean.pass) process.stderr.write(`  ${id} clean oracle: ${o.clean.items.join(' | ')}\n`);
   if (!o.seed.pass) process.stderr.write(`  ${id} seed oracle: ${o.seed.items.join(' | ')}\n`);
   for (const m of ep.missing) process.stderr.write(`  ${id} entry point: ${m}\n`);
-  rows.push({ task: id, shape: meta.studySet.shape, levers: meta.studySet.levers, ok, checks, tests: { seed: [count(t.seed, 'regression'), count(t.seed, 'feature')], clean: [count(t.clean, 'regression'), count(t.clean, 'feature')], trap: [count(t.trap, 'regression'), count(t.trap, 'feature')] }, oracle: { seed: o.seed.pass, clean: o.clean.pass, trap: o.trap.pass, trapItems: o.trap.items.length, trapEvidence: o.trap.items }, tsc: c, size, hintAudit: h, entryPoints: ep, deepEqualUses: de });
-  process.stdout.write(`${ok ? 'ok  ' : 'FAIL'} ${id} [${meta.studySet.levers.join('')}] tests seed ${count(t.seed, 'regression')},${count(t.seed, 'feature')} clean ${count(t.clean, 'regression')},${count(t.clean, 'feature')} trap ${count(t.trap, 'regression')},${count(t.trap, 'feature')}; oracle seed ${o.seed.pass ? 'pass' : 'fail'} clean ${o.clean.pass ? 'pass' : 'fail'} trap ${o.trap.pass ? 'pass' : `fail (${String(o.trap.items.length)})`}; tsc ${c.seed}/${c.clean}/${c.trap}; size clean ${size.clean.files}f/${size.clean.lines}l trap ${size.trap.files}f/${size.trap.lines}l; audit ${h.fail} FAIL ${h.warn} WARN [${h.warnTerms.join(', ')}]; entry points ${ep.ok ? 'named' : 'MISSING'}; deepEqual ${de}\n`);
+  rows.push({ task: id, shape: meta.studySet.shape, levers: meta.studySet.levers, ok, checks, tests: { seed: [count(t.seed, 'regression'), count(t.seed, 'feature')], clean: [count(t.clean, 'regression'), count(t.clean, 'feature')], trap: [count(t.trap, 'regression'), count(t.trap, 'feature')] }, oracle: { seed: o.seed.pass, clean: o.clean.pass, trap: o.trap.pass, trapItems: o.trap.items.length, trapEvidence: o.trap.items }, tsc: c, size, hintAudit: h, entryPoints: ep, deepEqualUses: de, ...(k === null ? {} : { formC: { tests: [count(k.tests, 'regression'), count(k.tests, 'feature')], oracle: k.oracle.pass, evidence: k.oracle.items, tsc: k.tsc } }) });
+  process.stdout.write(`${ok ? 'ok  ' : 'FAIL'} ${id} [${meta.studySet.levers.join('')}] tests seed ${count(t.seed, 'regression')},${count(t.seed, 'feature')} clean ${count(t.clean, 'regression')},${count(t.clean, 'feature')} trap ${count(t.trap, 'regression')},${count(t.trap, 'feature')}; oracle seed ${o.seed.pass ? 'pass' : 'fail'} clean ${o.clean.pass ? 'pass' : 'fail'} trap ${o.trap.pass ? 'pass' : `fail (${String(o.trap.items.length)})`}; tsc ${c.seed}/${c.clean}/${c.trap}; size clean ${size.clean.files}f/${size.clean.lines}l trap ${size.trap.files}f/${size.trap.lines}l; audit ${h.fail} FAIL ${h.warn} WARN [${h.warnTerms.join(', ')}]; entry points ${ep.ok ? 'named' : 'MISSING'}; deepEqual ${de}${k === null ? '' : `; form C tests ${count(k.tests, 'regression')},${count(k.tests, 'feature')} oracle ${k.oracle.pass ? 'pass' : `fail (${String(k.oracle.items.length)})`} tsc ${k.tsc}`}\n`);
 }
 const jsonOut = opt('--json');
 if (jsonOut !== undefined) fs.writeFileSync(jsonOut, `${JSON.stringify({ date: new Date().toISOString().slice(0, 10), allOk, auditTerms: AUDIT_TERMS, rows }, null, 1)}\n`);
