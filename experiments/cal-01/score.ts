@@ -22,6 +22,10 @@
  * only with that shape. R-MIRROR2's shape is the word its evidence starts with (`[word] …`); R-MIRROR-SEM's is the form
  * of its judged candidate, `C` for a core lookup's key set (`coreKind` 'keys', v1.5.10) and `A` otherwise. Hits carry
  * `shape` when it is known, and the judged record carries `coreKind`. Earlier sets score as before.
+ * HCAL-09 (2026-11-04): `--rows hcal09` (`HCAL09_ROW_RULES`, written before any HCAL-09 case was scored,
+ * `experiments/hcal-09/README.md`, "Row map"). HX9-WORD/SET/KEY/EDGE take the HX8 rows' rule ids, HX9-EDGE plus
+ * R-APPVENDOR (v1.5.11, built for that row on HCAL-08); HX9-FIELD takes the H11-d row's rules (H11's, as HCAL-07 scored
+ * H11-d), HX9-RULE the H06 row's, DX9-SET the K10 row's as scored (`ROW_OVERRIDES.K10`, R-D5S). No scoring change.
  */
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -31,7 +35,7 @@ import { buildContext, parseArgs } from '../../src/mcp-server/context.js';
 import { checkDiffTool } from '../../src/mcp-server/tools.js';
 import YAML from 'yaml';
 import { loadRules, runTree } from '../../src/v15-instrument/index.js';
-import { DDD_ROW_RULES, HEX_ROW_RULES } from '../../src/v15-instrument/rule-set.js';
+import { DDD_ROW_RULES, HEX_ROW_RULES, ROW_OVERRIDES } from '../../src/v15-instrument/rule-set.js';
 import { cliCaller, createMirrorJudge, defaultCacheDir, MIRROR_SEM_MODEL, MIRROR_SEM_VERSION, type MirrorJudge } from '../../src/v15-instrument/mirror-sem.js';
 
 // `--dir experiments/<set>` scores another set (CAL-02, HCAL-01); `--rows hex` uses the Hexagonal row map.
@@ -47,7 +51,17 @@ export const HCAL08_ROW_RULES: Readonly<Record<string, readonly string[]>> = {
   'HX8-KEY': ['R-MIRROR-SEM[C]'],
   'HX8-EDGE': ['R-AXA', 'R-PURE', 'R-COREIO', 'R-D9', 'FF-S01', 'FF-S04', 'FF-P01'],
 };
-const ROWS: Readonly<Record<string, readonly string[]>> = argOf('--rows') === 'hex' ? HEX_ROW_RULES : argOf('--rows') === 'hcal08' ? HCAL08_ROW_RULES : ROW_RULES;
+/** HCAL-09's row keys → rules; fixed before any HCAL-09 case was scored, from the existing maps, unchanged but for R-APPVENDOR. */
+export const HCAL09_ROW_RULES: Readonly<Record<string, readonly string[]>> = {
+  'HX9-WORD': HCAL08_ROW_RULES['HX8-WORD'] ?? [],
+  'HX9-SET': HCAL08_ROW_RULES['HX8-SET'] ?? [],
+  'HX9-KEY': HCAL08_ROW_RULES['HX8-KEY'] ?? [],
+  'HX9-EDGE': [...(HCAL08_ROW_RULES['HX8-EDGE'] ?? []), 'R-APPVENDOR'],
+  'HX9-FIELD': HEX_ROW_RULES['H11'] ?? [],
+  'HX9-RULE': HEX_ROW_RULES['H06'] ?? [],
+  'DX9-SET': ROW_OVERRIDES['K10'] ?? [],
+};
+const ROWS: Readonly<Record<string, readonly string[]>> = argOf('--rows') === 'hex' ? HEX_ROW_RULES : argOf('--rows') === 'hcal08' ? HCAL08_ROW_RULES : argOf('--rows') === 'hcal09' ? HCAL09_ROW_RULES : ROW_RULES;
 // Development runs: `--only K08,K12` scores those rows' cases (plus the base), `--out <file>` writes the record
 // elsewhere, so a sealed set's result.json is never overwritten.
 const ONLY = argOf('--only')?.split(',');
