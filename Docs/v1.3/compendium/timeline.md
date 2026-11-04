@@ -205,7 +205,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-11-03 | R-MIRROR-SEM v1.5.10 (form C) and SEM-GATE-3: PASS on fresh fixtures, 0 / 52 false positives, 993 trees byte-identical (PR #490) | |
 | 2026-11-03 | HCAL-08 blind admission scored once: SET 6/6 met; WORD 0/6, KEY 0/6, EDGE 6/11 not met; R-MIRROR-SEM formed no candidate (PRs #494, #495) | |
 | 2026-11-03 | The building-process layer and the old paper drafts were removed from the public tree (PRs #491, #492); the ledger check reads the cited paper files from their last commit | |
-| 2026-11-04 | Daily thesis sync: claims C10469–C10489 (part `v15-h`), nulls M313–M315, chronology rows 92–93, open items §19. Window 636ba8b6..a31bbb47 (PRs #488–#495). Public sync PR and private thesis PR: see `.sync-state.json` | |
+| 2026-11-04 | Daily thesis sync: claims C10469–C10489 (part `v15-h`), nulls M313–M315, chronology rows 92–93, open items §19. Window 636ba8b6..a31bbb47 (PRs #488–#495). Public sync PR #496 (merged); private thesis PR cdcordobaa/tesis-msc-unal#45 (open for the author: not compiled; note on #44) | |
 
 ## What the timeline shows for the thesis
 
