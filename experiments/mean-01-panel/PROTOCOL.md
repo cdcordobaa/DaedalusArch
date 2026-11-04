@@ -160,3 +160,16 @@ step and no answer before the print timeout. Under the stop rule recorded for th
   row.
 
 Unchanged: the codebook, the items, the majority rule, the scoring and the author audit.
+
+## Addendum 2 (2026-11-04, before any further sample call): larger output budget
+
+**Why.** The first sample pass gave 74 of 180 answers and then stopped on HTTP 402 (account credit, not a model or
+policy error). Two items (M21 run 1, M02 run 2) ended with `finishReason: MAX_TOKENS` on both attempts: the thinking used
+the whole 16,384-token output budget and no answer was written.
+
+**What changes.** For every sample call from now on, `maxOutputTokens` rises from 16,384 to 32,768. Nothing else
+changes. Every answer already recorded finished under the old budget, so a larger budget would not have changed it. The
+74 recorded answers stay as they are and are not re-asked.
+
+**Retries.** The two `MAX_TOKENS` items count as unanswered, so they are asked again under the new budget (the runner
+skips only `ok` lines). The HTTP 402 lines are not model answers and are also asked again. The stop rules are unchanged.

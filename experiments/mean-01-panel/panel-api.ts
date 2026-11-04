@@ -40,7 +40,7 @@ async function main(): Promise<void> {
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: toGeminiResponseSchema(RESPONSE_SCHEMA),
-      maxOutputTokens: 16384,
+      maxOutputTokens: 32768,
       thinkingConfig: { thinkingLevel: 'high' },
     } as never,
   });
