@@ -1,0 +1,235 @@
+{
+ "EDGE-pos1": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/application/ports/out/sensor-lease.port.ts",
+  "line": 10,
+  "subshape": "c",
+  "kind": "positive",
+  "note": "The sensor lease port adds a method that returns the raw vendor lease, typed with an inline import('hivepulse-sdk') type."
+ },
+ "EDGE-pos2": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/application/ports/out/index.ts",
+  "line": 4,
+  "subshape": "d",
+  "kind": "positive",
+  "note": "The outbound ports index publishes the lease gateway adapter with export *, and the composition root takes the gateway from there."
+ },
+ "EDGE-pos3": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/domain/sensors/hivepulse-lease.gateway.ts",
+  "line": 4,
+  "subshape": "e",
+  "kind": "positive",
+  "note": "The lease gateway moves to src/domain/sensors/; the spec puts that folder in the domain layer, and the file imports the SDK."
+ },
+ "EDGE-twin1": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "c",
+  "kind": "hard-twin",
+  "note": "The webhook DTO types the colony state with an inline import('hivepulse-sdk') type; an inbound adapter may depend on the vendor's types."
+ },
+ "EDGE-twin2": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "e",
+  "kind": "hard-twin",
+  "note": "The telemetry webhook moves to src/webhooks/ and checks the vendor signature with the SDK; the spec adds src/webhooks/** to the inbound adapter layer."
+ },
+ "FIELD-pos1": {
+  "rule": "HX9-FIELD",
+  "label": "violation",
+  "file": "src/domain/frame-reading.ts",
+  "line": 1,
+  "subshape": "mapping-table",
+  "kind": "positive",
+  "catalog": "H11-d",
+  "note": "The domain reads a raw frame through a table keyed by the vendor's field names, and the telemetry use case applies it to the frame the port carries."
+ },
+ "FIELD-pos2": {
+  "rule": "HX9-FIELD",
+  "label": "violation",
+  "file": "src/domain/colony.ts",
+  "line": 8,
+  "subshape": "declared-field",
+  "kind": "positive",
+  "catalog": "H11-d",
+  "note": "The core colony reading declares the vendor's weight_kg field under the vendor's name, carried from the frame through the port."
+ },
+ "FIELD-twin1": {
+  "rule": "HX9-FIELD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "declared-field",
+  "kind": "hard-twin",
+  "catalog": "H11-d",
+  "note": "The placement keeps the grower's pollination contract, whose snake_case field names are the apiary's own contract form fields, declared in the spec glossary."
+ },
+ "FIELD-twin2": {
+  "rule": "HX9-FIELD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "declared-field",
+  "kind": "hard-twin",
+  "catalog": "H11-d",
+  "note": "The core colony reading keeps the hive weight under the domain's own name, hiveMassKg; the webhook handler maps weight_kg to it."
+ },
+ "KEY-pos1": {
+  "rule": "HX9-KEY",
+  "label": "violation",
+  "file": "src/application/record-telemetry.use-case.ts",
+  "line": 17,
+  "subshape": "equality-chain",
+  "kind": "positive",
+  "note": "The telemetry use case derives the vigour with an equality chain over the vendor's colony states, with the state text the port carries."
+ },
+ "KEY-pos2": {
+  "rule": "HX9-KEY",
+  "label": "violation",
+  "file": "src/domain/sensor-cover.ts",
+  "line": 1,
+  "subshape": "map",
+  "kind": "positive",
+  "note": "The domain decides whether sensors are live from a Map keyed by the vendor's lease states, read with the state text the lease port carries."
+ },
+ "KEY-twin1": {
+  "rule": "HX9-KEY",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "record",
+  "kind": "hard-twin",
+  "note": "The delivery rule scores colonies from a Record keyed by the core's own vigour words."
+ },
+ "KEY-twin2": {
+  "rule": "HX9-KEY",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "map",
+  "kind": "hard-twin",
+  "note": "The webhook handler replaces its switch with a Map keyed by the vendor's colony states; the lookup stays in the inbound adapter."
+ },
+ "RULE-pos1": {
+  "rule": "HX9-RULE",
+  "label": "violation",
+  "file": "src/adapters/out/sensors/hivepulse-lease.gateway.ts",
+  "line": 15,
+  "subshape": "calculation",
+  "kind": "positive",
+  "catalog": "H06",
+  "note": "The lease gateway decides how many sensors a yard gets (one per four hives, at least two); the use case passes the hive count and the domain no longer holds the promise."
+ },
+ "RULE-pos2": {
+  "rule": "HX9-RULE",
+  "label": "violation",
+  "file": "src/adapters/in/webhook/hivepulse-telemetry.handler.ts",
+  "line": 12,
+  "subshape": "threshold",
+  "kind": "positive",
+  "catalog": "H06",
+  "note": "The webhook handler downgrades a colony to weak when its brood is below 33 degrees, the apiary's health rule; the domain has no such rule."
+ },
+ "RULE-twin1": {
+  "rule": "HX9-RULE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "dedup",
+  "kind": "hard-twin",
+  "catalog": "H06",
+  "note": "The webhook handler drops a frame it has already seen (same hive tag and timestamp), since the vendor retries deliveries; technical work only."
+ },
+ "RULE-twin2": {
+  "rule": "HX9-RULE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "threshold",
+  "kind": "hard-twin",
+  "catalog": "H06",
+  "note": "Same feature as the brood temperature rule, but the domain holds it: the handler passes the temperature and the delivery rule downgrades cold colonies."
+ },
+ "SET-pos1": {
+  "rule": "HX9-SET",
+  "label": "violation",
+  "file": "src/domain/hive-condition.ts",
+  "line": 1,
+  "subshape": "enum",
+  "kind": "positive",
+  "note": "The domain declares an enum copy of the vendor's six colony states, and the telemetry use case casts the state text the port carries to it."
+ },
+ "SET-pos2": {
+  "rule": "HX9-SET",
+  "label": "violation",
+  "file": "src/domain/sensor-cover.ts",
+  "line": 1,
+  "subshape": "const-array",
+  "kind": "positive",
+  "note": "The domain declares a const array copy of the vendor's lease states; the lease port carries the vendor's state text and the use case casts it."
+ },
+ "SET-twin1": {
+  "rule": "HX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "union",
+  "kind": "hard-twin",
+  "note": "The domain declares its own sensor coverage words; the lease gateway maps the vendor's lease state and unit count to them."
+ },
+ "SET-twin2": {
+  "rule": "HX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "union",
+  "kind": "hard-twin",
+  "note": "The domain declares the outcomes of an on-site inspection; nominal is the only word it shares with the vendor's six colony states, and the glossary declares the set as ours."
+ },
+ "WORD-pos1": {
+  "rule": "HX9-WORD",
+  "label": "violation",
+  "file": "src/domain/colony.ts",
+  "line": 8,
+  "subshape": "field",
+  "kind": "positive",
+  "note": "The colony reading gains the sensor's firmware under the vendor's field name, carried from the telemetry frame through the port."
+ },
+ "WORD-pos2": {
+  "rule": "HX9-WORD",
+  "label": "violation",
+  "file": "src/domain/colony.ts",
+  "line": 1,
+  "subshape": "value",
+  "kind": "positive",
+  "note": "The colony vigour gains the vendor's absconded colony state word as a core value."
+ },
+ "WORD-twin1": {
+  "rule": "HX9-WORD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "value",
+  "kind": "hard-twin",
+  "note": "The apiary's own hive inspection marks a colony queenless and the placement keeps it; the spec glossary declares queenless as a domain term."
+ },
+ "WORD-twin2": {
+  "rule": "HX9-WORD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "field",
+  "kind": "hard-twin",
+  "note": "The placement keeps the timestamp of the last on-site inspection, sent over HTTP; timestamp is a generic word the vendor also uses as a field."
+ }
+}

@@ -1,0 +1,122 @@
+{
+ "SETINV-pos1": {
+  "rule": "DX9-SET",
+  "label": "violation",
+  "file": "src/extraction/application/BlastService.ts",
+  "line": 21,
+  "subshape": "service-throw",
+  "kind": "positive",
+  "catalog": "K10",
+  "note": "The blast service adds up the month's planned blasts and throws when the new blast would pass the bench permit; the Bench no longer checks it."
+ },
+ "SETINV-pos2": {
+  "rule": "DX9-SET",
+  "label": "violation",
+  "file": "src/extraction/api/BlastController.ts",
+  "line": 12,
+  "subshape": "controller",
+  "kind": "positive",
+  "catalog": "K10",
+  "note": "The blast controller asks the service for the permit and the tonnes already planned and refuses the request itself; the service and the Bench plan the blast without the check."
+ },
+ "SETINV-pos3": {
+  "rule": "DX9-SET",
+  "label": "violation",
+  "file": "src/extraction/infrastructure/InMemoryBlastRepository.ts",
+  "line": 24,
+  "subshape": "repository",
+  "kind": "positive",
+  "catalog": "K10",
+  "note": "The in-memory blast repository refuses to save a blast that would take its bench over the monthly permit; the Bench no longer checks it."
+ },
+ "SETINV-pos4": {
+  "rule": "DX9-SET",
+  "label": "violation",
+  "file": "src/haulage/application/HaulService.ts",
+  "line": 28,
+  "subshape": "service-result",
+  "kind": "positive",
+  "catalog": "K10",
+  "note": "The haul service works out the shift total in a local variable and returns a refusal result when the load would pass the truck's allowance; the Truck no longer checks it."
+ },
+ "SETINV-pos5": {
+  "rule": "DX9-SET",
+  "label": "violation",
+  "file": "src/haulage/domain/haul/Haul.ts",
+  "line": 19,
+  "subshape": "other-aggregate",
+  "kind": "positive",
+  "catalog": "K10",
+  "note": "The Haul aggregate's factory takes the shift's hauls and the truck's allowance and refuses an over-allowance load; the owner Truck no longer checks it."
+ },
+ "SETINV-pos6": {
+  "rule": "DX9-SET",
+  "label": "violation",
+  "file": "src/haulage/domain/policies/PayloadPolicy.ts",
+  "line": 8,
+  "subshape": "domain-service",
+  "kind": "positive",
+  "catalog": "K10",
+  "note": "A payload policy in src/haulage/domain/policies/, outside the Truck aggregate's module, checks the shift allowance and the service calls it; the Truck no longer checks it."
+ },
+ "SETINV-twin1": {
+  "rule": "DX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "owner-check",
+  "kind": "hard-twin",
+  "catalog": "K10",
+  "note": "A new re-plan feature: the service hands the month's blasts to the Bench, which checks the permit before the blast's tonnes change."
+ },
+ "SETINV-twin2": {
+  "rule": "DX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "input-check",
+  "kind": "hard-twin",
+  "catalog": "K10",
+  "note": "The haul service rejects a weighing with no positive net load and a shift date that is not a calendar date, before the Truck checks its allowance; neither is a declared invariant."
+ },
+ "SETINV-twin3": {
+  "rule": "DX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "uniqueness-store",
+  "kind": "hard-twin",
+  "catalog": "K10",
+  "note": "The haul store refuses a second haul with the same weighbridge ticket; haul-ticket-unique is a uniqueness invariant the spec leaves to the store."
+ },
+ "SETINV-twin4": {
+  "rule": "DX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "single-in-owner",
+  "kind": "hard-twin",
+  "catalog": "K10",
+  "note": "A customer may drop an order line; QuarryOrder itself refuses to drop the last one, the single invariant order-has-lines."
+ },
+ "SETINV-twin5": {
+  "rule": "DX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "owner-read",
+  "kind": "hard-twin",
+  "catalog": "K10",
+  "note": "The blast controller shows the permit tonnes left for a month; the Bench works the figure out from the blasts the service hands it, and nothing is refused outside the Bench."
+ },
+ "SETINV-twin6": {
+  "rule": "DX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "owner-check-total",
+  "kind": "hard-twin",
+  "catalog": "K10",
+  "note": "The haul store sums the shift's tonnes in one query and the service hands that total to the Truck, which still compares it with the allowance and decides."
+ }
+}

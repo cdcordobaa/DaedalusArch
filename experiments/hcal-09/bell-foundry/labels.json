@@ -1,0 +1,262 @@
+{
+ "EDGE-pos1": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/domain/errors.ts",
+  "line": 1,
+  "subshape": "a",
+  "kind": "positive",
+  "note": "A supply adapters barrel re-exports the gateway and the supplier's display name, and the domain errors take the name from it."
+ },
+ "EDGE-pos2": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/application/record-dispatch.use-case.ts",
+  "line": 17,
+  "subshape": "b",
+  "kind": "positive",
+  "note": "The dispatch use case loads the notification adapter's templates with a dynamic import() to log refused bronze."
+ },
+ "EDGE-pos3": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/application/order-metal.use-case.ts",
+  "line": 1,
+  "subshape": "c",
+  "kind": "positive",
+  "note": "The order use case takes the vendor SDK with import sdk = require() to recognise a vendor shortage error."
+ },
+ "EDGE-pos4": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/domain/index.ts",
+  "line": 7,
+  "subshape": "d",
+  "kind": "positive",
+  "note": "The domain's public index publishes the alloy gateway adapter with export *, and the composition root takes it from there."
+ },
+ "EDGE-twin1": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "a",
+  "kind": "hard-twin",
+  "note": "An inbound ports barrel re-exports the inbound ports, and the controller and the webhook handler import through it; inbound adapters may depend on application."
+ },
+ "EDGE-twin2": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "b",
+  "kind": "hard-twin",
+  "note": "The webhook handler loads a domain helper with a dynamic import() before it answers; inbound adapters may depend on domain."
+ },
+ "EDGE-twin3": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "c",
+  "kind": "hard-twin",
+  "note": "The alloy gateway takes the vendor SDK with import sdk = require(); an outbound adapter may depend on the vendor."
+ },
+ "EDGE-twin4": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "d",
+  "kind": "hard-twin",
+  "note": "The domain's public index publishes the domain files with export *, and the use cases import from it; application may depend on domain."
+ },
+ "FIELD-pos1": {
+  "rule": "HX9-FIELD",
+  "label": "violation",
+  "file": "src/application/record-dispatch.use-case.ts",
+  "line": 6,
+  "subshape": "mapping-table",
+  "kind": "positive",
+  "catalog": "H11-d",
+  "note": "The dispatch use case reads the raw notice the port carries through a table whose values are the vendor's field names."
+ },
+ "FIELD-pos2": {
+  "rule": "HX9-FIELD",
+  "label": "violation",
+  "file": "src/domain/metal-lot.ts",
+  "line": 7,
+  "subshape": "declared-field",
+  "kind": "positive",
+  "catalog": "H11-d",
+  "note": "The core metal lot declares the vendor's tin_pct field under the vendor's name, filled by the alloy gateway."
+ },
+ "FIELD-twin1": {
+  "rule": "HX9-FIELD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "mapping-table",
+  "kind": "hard-twin",
+  "catalog": "H11-d",
+  "note": "The webhook handler reads the notice through a table of the vendor's field names; the table stays in the inbound adapter."
+ },
+ "FIELD-twin2": {
+  "rule": "HX9-FIELD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "declared-field",
+  "kind": "hard-twin",
+  "catalog": "H11-d",
+  "note": "The core metal lot keeps the tin content under the domain's own name, tinContentPercent; the gateway maps tin_pct to it."
+ },
+ "KEY-pos1": {
+  "rule": "HX9-KEY",
+  "label": "violation",
+  "file": "src/domain/bell-commission.ts",
+  "line": 40,
+  "subshape": "switch",
+  "kind": "positive",
+  "note": "The commission switches on the vendor's dispatch states, with the state text the port carries."
+ },
+ "KEY-pos2": {
+  "rule": "HX9-KEY",
+  "label": "violation",
+  "file": "src/application/order-metal.use-case.ts",
+  "line": 7,
+  "subshape": "object-literal",
+  "kind": "positive",
+  "note": "The order use case reads the casting lead time from an object literal keyed by the vendor's purity grades, with the grade text the supplier port carries."
+ },
+ "KEY-twin1": {
+  "rule": "HX9-KEY",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "record",
+  "kind": "hard-twin",
+  "note": "The commission words its stage for the parish from a Record keyed by the core's own commission statuses."
+ },
+ "KEY-twin2": {
+  "rule": "HX9-KEY",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "record",
+  "kind": "hard-twin",
+  "note": "The webhook handler replaces its equality chain with a Record keyed by the vendor's dispatch states; the lookup stays in the inbound adapter."
+ },
+ "RULE-pos1": {
+  "rule": "HX9-RULE",
+  "label": "violation",
+  "file": "src/adapters/out/supply/ingotline-alloy.gateway.ts",
+  "line": 15,
+  "subshape": "calculation",
+  "kind": "positive",
+  "catalog": "H06",
+  "note": "The alloy gateway works out how much bronze a bell needs (12 % pour loss plus 40 kg for the runner); the use case passes only the bell weight and the domain no longer holds the rule."
+ },
+ "RULE-pos2": {
+  "rule": "HX9-RULE",
+  "label": "violation",
+  "file": "src/adapters/in/http/commission.controller.ts",
+  "line": 17,
+  "subshape": "threshold",
+  "kind": "positive",
+  "catalog": "H06",
+  "note": "The controller decides whether a tuning is accepted (within 8 cents) and passes the verdict through the port; the domain no longer holds the tolerance."
+ },
+ "RULE-twin1": {
+  "rule": "HX9-RULE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "rate-limit",
+  "kind": "hard-twin",
+  "catalog": "H06",
+  "note": "The alloy gateway spaces its calls to the vendor at least 500 ms apart, the vendor's published rate limit; technical work only."
+ },
+ "RULE-twin2": {
+  "rule": "HX9-RULE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "shape-check",
+  "kind": "hard-twin",
+  "catalog": "H06",
+  "note": "The webhook handler refuses a notice whose heat number or dispatch state is missing, a transport shape check, before it calls the port."
+ },
+ "SET-pos1": {
+  "rule": "HX9-SET",
+  "label": "violation",
+  "file": "src/application/dispatch-steps.ts",
+  "line": 1,
+  "subshape": "const-array",
+  "kind": "positive",
+  "note": "The application declares a const array copy of the vendor's six dispatch states, and the dispatch use case casts the state text the port carries to it."
+ },
+ "SET-pos2": {
+  "rule": "HX9-SET",
+  "label": "violation",
+  "file": "src/domain/bronze-grade.ts",
+  "line": 1,
+  "subshape": "union",
+  "kind": "positive",
+  "note": "The domain declares a union copy of the vendor's purity grades; the supplier port carries the vendor's grade text and the order use case casts it to the union."
+ },
+ "SET-twin1": {
+  "rule": "HX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "union",
+  "kind": "hard-twin",
+  "note": "The domain declares its own tone colours; the alloy gateway maps the vendor's purity grades to them, so no vendor value reaches the core."
+ },
+ "SET-twin2": {
+  "rule": "HX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "union",
+  "kind": "hard-twin",
+  "note": "The domain declares the furnace steps of a casting day; POURED is the only word it shares with the vendor's six dispatch states, and the glossary declares the set as ours."
+ },
+ "WORD-pos1": {
+  "rule": "HX9-WORD",
+  "label": "violation",
+  "file": "src/domain/metal-lot.ts",
+  "line": 7,
+  "subshape": "field",
+  "kind": "positive",
+  "note": "The dispatch notice's carrier is carried through the port and kept on the core metal lot under the vendor's field name."
+ },
+ "WORD-pos2": {
+  "rule": "HX9-WORD",
+  "label": "violation",
+  "file": "src/domain/commission-status.ts",
+  "line": 1,
+  "subshape": "value",
+  "kind": "positive",
+  "note": "The commission status gains the vendor's ASSAYED dispatch word as a core status value."
+ },
+ "WORD-twin1": {
+  "rule": "HX9-WORD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "field",
+  "kind": "hard-twin",
+  "note": "The foundry's own lab assay of a cast bell is recorded over HTTP and kept on the commission; the spec glossary declares assay as a domain term."
+ },
+ "WORD-twin2": {
+  "rule": "HX9-WORD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "field",
+  "kind": "hard-twin",
+  "note": "The parish may add a comment when the metal is ordered, and the commission keeps it; comment is a generic word the vendor also uses as a field."
+ }
+}
