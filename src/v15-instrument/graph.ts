@@ -7,6 +7,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { ts } from 'ts-morph';
 import { fileURLToPath } from 'node:url';
 import { extractAPG, V15_APG_OPTIONS } from '../apg-extractor/index.js';
 import { executeQuery, MemoryGraph, parseCypher } from '../cypher-interp/index.js';
@@ -94,12 +95,42 @@ export function loadRules(dir = rulesDir()): Rule[] {
   });
 }
 
-/** A harness-style tsconfig for the tree (DETECT-01 shape): strict, ES2022, no @types, `src/**` only. */
+/**
+ * v1.5.11: the module-resolution settings of the tree's own `tsconfig.json` (its `extends` chain read by TypeScript):
+ * `baseUrl` when the project sets one, and `paths` with every target made absolute (against `baseUrl`, else the
+ * directory of the tsconfig that declares `paths`), so the harness tsconfig, which lives in a scratch folder, resolves
+ * the same aliases. Nothing else of the project's tsconfig is taken. Empty when the tree has no tsconfig, or it sets
+ * neither option, or it cannot be read.
+ */
+export function projectResolution(tree: string): { baseUrl?: string; paths?: Record<string, string[]> } {
+  const file = path.join(path.resolve(tree), 'tsconfig.json');
+  if (!fs.existsSync(file)) return {};
+  try {
+    const read = ts.readConfigFile(file, (f) => ts.sys.readFile(f));
+    if (read.error !== undefined || read.config === undefined) return {};
+    const parsed = ts.parseJsonConfigFileContent(read.config, ts.sys, path.dirname(file), undefined, file);
+    const o = parsed.options as ts.CompilerOptions & { pathsBasePath?: string };
+    const out: { baseUrl?: string; paths?: Record<string, string[]> } = {};
+    if (typeof o.baseUrl === 'string') out.baseUrl = path.resolve(path.dirname(file), o.baseUrl);
+    if (o.paths !== undefined) {
+      const base = out.baseUrl ?? (typeof o.pathsBasePath === 'string' ? o.pathsBasePath : path.dirname(file));
+      out.paths = Object.fromEntries(Object.entries(o.paths).map(([k, targets]) => [k, targets.map((t) => path.resolve(base, t))]));
+    }
+    return out;
+  } catch { return {}; }
+}
+
+/**
+ * A harness-style tsconfig for the tree (DETECT-01 shape): strict, ES2022, no @types, `src/**` only. v1.5.11: plus the
+ * tree's own `baseUrl` and `paths` (`projectResolution`), so a vendor SDK the project maps with `paths` (HCAL's
+ * `vendor/<sdk>/index.d.ts`) resolves to its declarations. A tree with no tsconfig, or one with neither option, gets
+ * the earlier tsconfig byte for byte.
+ */
 export function writeTsconfig(tree: string, scratch: string): string {
   fs.mkdirSync(scratch, { recursive: true });
   const file = path.join(scratch, `${Buffer.from(path.resolve(tree)).toString('base64url').slice(-60)}.tsconfig.json`);
   const config = {
-    compilerOptions: { strict: true, target: 'ES2022', lib: ['ES2022'], module: 'commonjs', moduleResolution: 'node', esModuleInterop: true, skipLibCheck: true, noEmit: true, types: [], experimentalDecorators: true },
+    compilerOptions: { strict: true, target: 'ES2022', lib: ['ES2022'], module: 'commonjs', moduleResolution: 'node', esModuleInterop: true, skipLibCheck: true, noEmit: true, types: [], experimentalDecorators: true, ...projectResolution(tree) },
     include: [`${path.resolve(tree).replace(/\/+$/, '')}/src/**/*.ts`],
     exclude: [`${path.resolve(tree)}/src/**/*.spec.ts`, `${path.resolve(tree)}/src/**/*.test.ts`],
   };
@@ -226,6 +257,11 @@ export async function buildGraph(tree: string, opts: BuildOptions = {}): Promise
     const a = node(['AdapterFile'], { file: x.file, pkg: x.fromPkg });
     const p = node(['PortFile'], { file: x.port });
     rel('USES_OUT_PORT', a, p, { line: x.line, specifier: x.specifier, by: x.by });
+  }
+  for (const x of facts.appVendor) {
+    const a = node(['CoreFile'], { file: x.file, role: x.role });
+    const v = node(['VendorPackage'], { name: x.pkg, adapter: x.adapter });
+    rel('APP_IMPORTS_VENDOR', a, v, { line: x.line, specifier: x.specifier, form: x.form });
   }
   for (const x of facts.transports) {
     const u = node(['CoreFile'], { file: x.file, role: x.role });

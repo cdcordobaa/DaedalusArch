@@ -3405,6 +3405,13 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.5 calibration, blind admission; no rule, prompt, label or counted list changed; ADMITTED_HEX_ROWS unchanged; admission decisions left to the author.
 
 ---
+## v1.5.11: fixes from the HCAL-08 hand read (exploratory)
+**Timestamp**: 2026-11-04T19:09:51Z
+**User Input**: "Make instrument v1.5.11 with the fixes the HCAL-08 admission exposed, in this order: honour the tree's tsconfig paths and baseUrl; add the smallest exploratory check for an application-layer file that imports the vendor package; fix the package assignment of a barrel in adapters/out; trace a webhook DTO typed string only if that is a small fact fix. Registered results must reproduce, and any counted change goes behind an opt-in flag."
+**AI Response**: "INSTRUMENT_ID v1.5.11. (1) writeTsconfig takes the tree's own baseUrl and paths, read through TypeScript, with absolute targets. A declaration reached through an exact paths entry is named by its specifier. The three HCAL-08 KEY-pos2 cases now form their form-C candidate without copying the SDK to node_modules. (2) R-APPVENDOR (exploratory, on no row, not delivered): an application or port file imports, in any module edge, a package that an adapter of the tree imports. (3) A pure barrel directly in a folder of adapters has no adapter package (R-AXA). (4) Not done, left as a limit: tracing an inbound DTO typed string needs a structural-mirror heuristic inside R-MIRROR-SEM's candidate step. Regression, zero calls: 993 trees (11 seeds, 220 kept study trees, 762 dev-set trees) are byte-identical for every rule except R-APPVENDOR. R-APPVENDOR fires on no study tree, and on 4 dev trees that are all labelled positives. The CAL-01..03 and HCAL-01..06 scorers are identical per case, so no opt-in flag is needed. HCAL-08 development numbers (no longer blind, no judge): HX8-EDGE 6/11 with 0/10 false flags (was 1/10), and 11/11 with R-APPVENDOR added; the other rows are unchanged. Record: experiments/v1511-dev/README.md, Docs/v1.5/instrument-changelog.md."
+**Context**: Exploratory instrument work on development data; no counted rule, row or list changes; no registered study is rescored.
+
+---
 ## HCAL-09: blind build and seal of a fresh held-back calibration set
 **Timestamp**: 2026-11-04T19:16:42Z
 **User Input**: "Build and seal a fresh blind calibration set (HCAL-09) in the HCAL-08 procedure: the four HCAL-08 rows again on new material, plus the rows never re-admitted after their post-seal fixes (H11-d vendor field names in the core, H06 business rule in an adapter, K10/R-D5S declared set invariant outside its owner); new domains and vendor SDKs; realistic projects; do not score it; zero model calls."
