@@ -62,3 +62,24 @@ committed records.
 
 Pilot 24 generator turns plus at most a few judge calls per `combined` session (one per new candidate question, cached);
 run 120 turns. One heavy job at a time, at most one Neo4j (the hub uses the in-memory graph), jest `--maxWorkers=2`.
+
+## 7. Addendum (2026-11-04, before the run): instrument v1.5.10 and a confirmation pilot
+
+**Why.** The pilot (`results/v15-sem2`, 669354c95) stopped on G4 red: 0 of 4 `none` sessions took the shortcut by the
+oracle. A hand read of the kept trees showed the oracle missed the shape the agents wrote (an untyped vendor-keyed
+table in core, "form C"), and so did R-MIRROR-SEM v1.5.9. Both were fixed on development material: the rule-blind
+oracle gained an opt-in key-set check enabled for hxpb1 and hxpb2 (PR 489; the pilot rescored with it: `none` 3 of 4
+with the shortcut, `combined` 1 of 4), and R-MIRROR-SEM v1.5.10 reads form C (PR 490, SEM-GATE-3 passed). The pilot
+report carries the correction (PR 493). G4 therefore holds on the rescored pilot.
+
+**What changes.**
+- Instrument: v1.5.10 (`INSTRUMENT_ID`), frozen for the run at commit 64b43fc31 plus this addendum. Any later
+  instrument change on `main` is not used.
+- Oracle: the trap verdict uses the oracle at that commit (key-set check on for hxpb1 and hxpb2).
+- Because the instrument changed after the pilot, a **confirmation pilot** runs first: 1 replicate, 2 tasks × 2 arms =
+  4 sessions, 12 turns, phase `sem2-pilot2`. It must pass G1, G2, G3 and G5 (§4). G4 is not re-required (2 `none`
+  sessions are too few to bear on it; the rescored pilot already satisfies it).
+- Then the run as in §2: 10 replicates, 40 sessions, 120 turns, phase `sem2-run`. Neither pilot is pooled into it.
+- Records go to a new results branch `results/v15-sem2-run` from the run commit, not to `main`.
+
+Unchanged: tasks, arms, generator, judge route, deferred mode, order seed, caps, stop rules, outcome and reporting (§5).
