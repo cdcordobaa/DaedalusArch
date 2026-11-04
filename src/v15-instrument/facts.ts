@@ -69,6 +69,21 @@ export interface InboundOutPortFact {
   readonly by: 'path' | 'implemented';
 }
 
+/**
+ * v1.5.11 (2026-11-04, R-APPVENDOR, exploratory; HCAL-08 hand read): an application-layer file (role application or
+ * port) depends on a package that an adapter file of the same tree imports, so the core reaches the vendor the adapter
+ * wraps without it. Every module edge counts, type-only and inline `type` imports included: an import declaration, an
+ * `export … from` re-export, `import x = require(…)`, a dynamic `import('…')` and an `import('…').X` type. A package
+ * is named by its bare specifier (`@scope/name` or `name`); relative, absolute and `node:` specifiers, and a `paths`
+ * alias that resolves into the tree's own source, are not packages.
+ */
+export interface AppVendorFact {
+  readonly file: string; readonly line: number; readonly role: Role; readonly pkg: string; readonly specifier: string;
+  readonly form: 'import' | 'type-import' | 'export-from' | 'import-equals' | 'dynamic' | 'import-type';
+  /** The first adapter file (path order) that imports the package. */
+  readonly adapter: string;
+}
+
 export interface AdapterImportFact {
   readonly file: string; readonly line: number; readonly specifier: string; readonly target: string; readonly fromPkg: string; readonly toPkg: string;
   /** 2026-10-29 (R-AXA shared helpers): the target package is the `shared` or `common` folder of the importer's own driving (inbound) side. */
@@ -109,6 +124,8 @@ export interface Facts {
   readonly adapterImports: readonly AdapterImportFact[];
   /** v1.5.7 (2026-11-02, R-INBYP, exploratory): a driving adapter that depends on a driven port. */
   readonly inboundOutPorts: readonly InboundOutPortFact[];
+  /** v1.5.11 (2026-11-04, R-APPVENDOR, exploratory): an application-layer file that imports the package an adapter wraps. */
+  readonly appVendor: readonly AppVendorFact[];
   readonly transports: readonly TransportFact[];
   readonly domainTech: readonly DomainTechFact[];
   readonly locators: readonly LocatorFact[];
@@ -191,7 +208,22 @@ export function externalModuleOf(decl: Node): string | null {
   const ambient = decl.getFirstAncestor((a) => Node.isModuleDeclaration(a));
   if (ambient !== undefined && Node.isModuleDeclaration(ambient)) return ambient.getName().replace(/^['"]|['"]$/g, '');
   const m = /\/node_modules\/((?:@[^/]+\/)?[^/]+)\//.exec(sf.getFilePath());
-  return m ? m[1]! : path.basename(sf.getFilePath());
+  return m ? m[1]! : vendoredPackageOf(sf.getFilePath()) ?? path.basename(sf.getFilePath());
+}
+/**
+ * v1.5.11: the name of a declaration file outside node_modules that the tree's tsconfig `paths` map a bare specifier
+ * to (a vendored SDK, `"tagbank-sdk": ["./vendor/tagbank-sdk/index.d.ts"]` -> `tagbank-sdk`), else the name in a
+ * `package.json` beside it, else undefined. The harness tsconfig carries the tree's `paths` since v1.5.11, so such a
+ * file now resolves; before, it did not, and the CN-05 fallback named the module by its specifier. `computeFacts`
+ * sets the alias map for the tree it reads.
+ */
+let pathsAliases = new Map<string, string>();
+function vendoredPackageOf(file: string): string | undefined {
+  const alias = pathsAliases.get(path.resolve(file));
+  if (alias !== undefined) return alias;
+  const pj = path.join(path.dirname(file), 'package.json');
+  if (!fs.existsSync(pj)) return undefined;
+  try { const n = (JSON.parse(fs.readFileSync(pj, 'utf8')) as { name?: unknown }).name; return typeof n === 'string' && n !== '' ? n : undefined; } catch { return undefined; }
 }
 
 /** Class/interface/alias declarations a type mentions: unions, arrays, readonly arrays, tuples, generics, aliases. */
@@ -223,6 +255,12 @@ export interface FactOptions { readonly specFile?: string | undefined; readonly 
 export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, opts: FactOptions = {}): Facts {
   const root = path.resolve(tree);
   const project = new Project({ tsConfigFilePath: tsconfig, skipAddingFilesFromTsConfig: false });
+  // v1.5.11: the exact (non-wildcard) `paths` entries of the harness tsconfig, target file -> specifier
+  pathsAliases = new Map();
+  for (const [k, targets] of Object.entries(project.getCompilerOptions().paths ?? {})) {
+    if (k.includes('*')) continue;
+    for (const t of targets) for (const c of [t, `${t}.d.ts`, path.join(t, 'index.d.ts')]) if (/\.d\.[cm]?ts$/.test(c) && !pathsAliases.has(path.resolve(c))) pathsAliases.set(path.resolve(c), k);
+  }
   const files = project.getSourceFiles().filter((sf) => !sf.isDeclarationFile() && !sf.getFilePath().includes('/node_modules/'));
   const fileOf = (n: Node): string => rel(root, n.getSourceFile().getFilePath());
   const inTree = (n: Node): boolean => { const f = n.getSourceFile(); return !f.isDeclarationFile() && !f.getFilePath().includes('/node_modules/'); };
@@ -1360,7 +1398,15 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   // adapter layer is one package (`src/http/**` -> `src/http`, which the regex left out too).
   const CONTAINER_FOLDER = /(?:^|\/)(?:adapters?|infrastructure|infra)(?:\/(?:in|out|inbound|outbound|driving|driven|primary|secondary))?$/;
   const SIDE_FOLDER = /^(?:in|out|inbound|outbound|driving|driven|primary|secondary)$/;
+  // v1.5.11 (HCAL-08 glacier EDGE-twin1): a pure barrel (every statement an `export … from`) right in a folder of
+  // adapters (`src/adapters/out/index.ts`) is no adapter package of its own: its re-exports are not adapter-to-adapter
+  // edges, and an adapter that imports it reaches the declaring files (`via-barrel`), which are judged as before.
+  const rootBarrels = new Set(files.filter((sf) => {
+    const st = sf.getStatements();
+    return st.length > 0 && st.every((s) => Node.isExportDeclaration(s) && s.getModuleSpecifier() !== undefined) && CONTAINER_FOLDER.test(path.posix.dirname(fileOf(sf)));
+  }).map(fileOf));
   const pkgOf = (f: string): string | undefined => {
+    if (rootBarrels.has(f)) return undefined;
     const l = spec.adapterLayerOf?.(f);
     if (l === undefined) return ADAPTER_PKG.exec(f)?.[1];
     if (!CONTAINER_FOLDER.test(l.base)) return l.base;
@@ -1502,6 +1548,66 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
     }
   }
   bump('inboundOutPorts', inboundOutPorts.length);
+
+  // ── APP_IMPORTS_VENDOR (v1.5.11, R-APPVENDOR, exploratory) ──────────────────────────────────────────────────────────
+  // The packages the tree's adapters import are the vendors they wrap; an application or port file that names one in
+  // any module edge depends on the vendor itself. Read from the specifier text, so it holds whether or not the package
+  // resolves (a study tree has no node_modules); a specifier that resolves into the tree's own code is no package.
+  const packageOf = (ms: string): string | undefined => {
+    if (ms === '' || ms.startsWith('.') || ms.startsWith('/') || ms.startsWith('node:')) return undefined;
+    return /^((?:@[^/]+\/)?[^/]+)/.exec(ms)?.[1];
+  };
+  const ownCode = (from: SourceFile, ms: string): boolean => {
+    const r = ts.resolveModuleName(ms, from.getFilePath(), compilerOptions, resolutionHost).resolvedModule;
+    if (r === undefined) return false;
+    const abs = path.resolve(r.resolvedFileName);
+    return !abs.includes('/node_modules/') && !/\.d\.[cm]?ts$/.test(abs) && abs.startsWith(`${root}/`);
+  };
+  interface AppEdge { readonly line: number; readonly specifier: string; readonly form: AppVendorFact['form'] }
+  const packageEdges = (sf: SourceFile): AppEdge[] => {
+    const out: AppEdge[] = [];
+    for (const imp of sf.getImportDeclarations()) out.push({ line: imp.getStartLineNumber(), specifier: imp.getModuleSpecifierValue(), form: typeOnlyImport(imp) ? 'type-import' : 'import' });
+    for (const ed of sf.getExportDeclarations()) { const ms = ed.getModuleSpecifierValue(); if (ms !== undefined) out.push({ line: ed.getStartLineNumber(), specifier: ms, form: 'export-from' }); }
+    for (const ie of sf.getDescendantsOfKind(SyntaxKind.ImportEqualsDeclaration)) {
+      const ref = ie.getModuleReference();
+      if (!Node.isExternalModuleReference(ref)) continue;
+      const e = ref.getExpression();
+      if (e !== undefined && Node.isStringLiteral(e)) out.push({ line: ie.getStartLineNumber(), specifier: e.getLiteralValue(), form: 'import-equals' });
+    }
+    for (const c of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+      if (c.getExpression().getKind() !== SyntaxKind.ImportKeyword) continue;
+      const a = c.getArguments()[0];
+      if (a !== undefined && (Node.isStringLiteral(a) || Node.isNoSubstitutionTemplateLiteral(a))) out.push({ line: c.getStartLineNumber(), specifier: a.getLiteralValue(), form: 'dynamic' });
+    }
+    for (const it of sf.getDescendantsOfKind(SyntaxKind.ImportType)) {
+      const arg = it.getArgument();
+      const lit = Node.isLiteralTypeNode(arg) ? arg.getLiteral() : undefined;
+      if (lit !== undefined && Node.isStringLiteral(lit)) out.push({ line: it.getStartLineNumber(), specifier: lit.getLiteralValue(), form: 'import-type' });
+    }
+    return out;
+  };
+  const adapterPackages = new Map<string, string>(); // package -> first adapter file (path order) importing it
+  for (const sf of [...files].sort((x, y) => (fileOf(x) < fileOf(y) ? -1 : 1))) {
+    const f = fileOf(sf);
+    if (spec.roleOf(f) !== 'adapter') continue;
+    for (const e of packageEdges(sf)) {
+      const pkg = packageOf(e.specifier);
+      if (pkg !== undefined && !adapterPackages.has(pkg) && !ownCode(sf, e.specifier)) adapterPackages.set(pkg, f);
+    }
+  }
+  const appVendor: AppVendorFact[] = [];
+  for (const sf of adapterPackages.size > 0 ? files : []) {
+    const f = fileOf(sf);
+    const role = spec.roleOf(f);
+    if (role !== 'application' && role !== 'port') continue;
+    for (const e of packageEdges(sf)) {
+      const pkg = packageOf(e.specifier);
+      const adapter = pkg !== undefined ? adapterPackages.get(pkg) : undefined;
+      if (adapter === undefined || ownCode(sf, e.specifier)) continue;
+      appVendor.push({ file: f, line: e.line, role, pkg: pkg!, specifier: e.specifier, form: e.form, adapter });
+    }
+  }
+  bump('appVendor', appVendor.length);
 
   // ── USES_TRANSPORT (HCAL-01 H07) ────────────────────────────────────────────────────────────────────────────────
   // ── REPO_PERSISTS_MANY (CN-02 K04) ──────────────────────────────────────────────────────────────────────────────
@@ -2313,7 +2419,7 @@ export function computeFacts(tree: string, tsconfig: string, spec: DetectSpec, o
   bump('mirrorCandidates', mirrorCandidates.length);
 
   return {
-    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, inboundOutPorts, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
+    roots: [...rootDecls.values()], rootSource, commands, guards, invariantSites, locks, calcs, refs, adapterImports, inboundOutPorts, appVendor, transports, domainTech, repoMulti, contracts, portMechanisms, injections,
     locators, coreIo, entityOut, adapterRules, mirrors, vendorTerms, coreTerms, mirrorCandidates, remoteInTx: dedupe(remoteInTx, (r) => `${r.file}:${r.line}:${r.remote}`), stats,
   };
 }

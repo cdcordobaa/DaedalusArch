@@ -32,6 +32,7 @@ export const RULE_LABELS: Readonly<Record<string, string>> = {
   'R-INJ': 'concrete adapter injected',
   'R-AXA': 'adapter imports adapter',
   'R-INBYP': 'driving adapter uses a driven port',
+  'R-APPVENDOR': 'application imports the vendor package',
   'R-TRANSPORT': 'transport concept in the core',
   'R-LOCATOR': 'service locator',
   'R-COREIO': 'core I/O without a port',
@@ -70,6 +71,7 @@ export const RULE_TEXT: Readonly<Record<string, string>> = {
   'R-INJ': 'Application code depends on ports (interfaces), never on adapter classes. Only the composition root knows and constructs the adapters.',
   'R-AXA': 'Adapters meet only through the application\'s ports: an inbound adapter calls a use case, an outbound adapter implements a port, and the composition root wires them. One adapter does not import another.',
   'R-INBYP': 'A driving adapter turns a request into a call on an in-port (a use case) and turns the answer back. It does not hold a driven port, so it never reads or writes stored state without the application.',
+  'R-APPVENDOR': 'Use cases and ports speak in the application\'s own terms and reach a vendor only through a port that an adapter implements. They do not import the vendor\'s package, not even for a type.',
   'R-TRANSPORT': 'Domain and application code speak in their own terms: they report domain errors and results. Only an adapter turns them into HTTP statuses, HTTP errors or storage errors.',
   'R-LOCATOR': 'A class receives its collaborators through its constructor, wired once in the composition root. It does not ask a container, registry or static accessor for them at run time.',
   'R-COREIO': 'Domain and application code reach the outside world (network, files, environment, database or cache clients, child processes) only through ports that adapters implement, so the core runs and is tested without that world.',
@@ -117,6 +119,15 @@ const BUILDERS: Readonly<Record<string, Builder>> = {
     return {
       why: `${f.file} (${at(f)}), in the driving adapter package ${from}, imports the driven port ${port}, so it can use stored state or a device without going through a use case.`,
       fix: `Remove ${port} from ${f.file}. Put the work in a use case behind an in-port (add one, or extend an existing one), call that in-port from ${f.file}, and let the composition root hand ${from} only in-ports.`,
+    };
+  },
+  'R-APPVENDOR': (f) => {
+    const m = /^(.+?) \((?:application|port)\) imports (.+?) \(([a-z-]+)\), the package the adapter (.+?) wraps$/.exec(f.evidence);
+    if (m === null) return null;
+    const [, , pkg, form, adapter] = m as unknown as [string, string, string, string, string];
+    return {
+      why: `${f.file} (${at(f)}) depends on ${pkg} (${form}), the vendor package that ${adapter} wraps, so the application reaches the vendor without its adapter.`,
+      fix: `Remove ${pkg} from ${f.file}. State what the application needs from it as a port in the application's own terms, implement that port in ${adapter} (or the adapter that owns ${pkg}), and let the composition root wire it.`,
     };
   },
   'R-INJ': (f) => {
