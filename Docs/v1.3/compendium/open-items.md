@@ -263,3 +263,15 @@ The Hexagonal study has run; the §17 item "the thesis may describe it only as a
 | R-INBYP, R-D5S (v1.5.7), H06 R-ADAPTER-RULE and R-MIRROR2 changes are exploratory development work, not admitted, not counted | author | `Docs/DiagnosticRuns/v15-hx-study-2026-11-02.md:128` |
 | SEM thread: SEM-GATE-2 passed, SEM-2 pilot was uninformative (G4 red). An agent-level test needs tasks that draw out the shortcut, which is a new exploratory design and is not started | author | `Docs/DiagnosticRuns/v15-sem2-pilot-2026-11-02.md:58` |
 | Hold-out: closed as not scored after four attempts | author | `ops/01-instrument-map.md:244` |
+
+## 19. State on 2026-11-04 (refresh after PRs #488–#495)
+
+The SEM thread changed: the SEM-2 pilot was not uninformative in the way §18 says. Use the ledger part `v15-h`.
+
+| Item | Owner | Source |
+|---|---|---|
+| Admission decisions for HCAL-08 (HX8-SET met the bar; HX8-WORD, HX8-KEY and HX8-EDGE did not) are the author's. The instrument has no admitted semantic row | author | `Docs/DiagnosticRuns/v15-hcal08-admission-2026-11-03.md:260` |
+| R-MIRROR-SEM formed no candidate on HCAL-08 because the vendor SDK is not resolved by the instrument's tsconfig; a fix needs a new instrument version and a fresh blind set | agent | `Docs/DiagnosticRuns/v15-hcal08-admission-2026-11-03.md:133` |
+| SEM-2 agent run: the pilot is not rescored. The next agent run needs harder task variants and the fixed checks, as a new exploratory design; not started | author | `Docs/DiagnosticRuns/v15-sem2-pilot-2026-11-02.md:87` |
+| §18 line on the SEM thread ("SEM-2 pilot was uninformative (G4 red)") is superseded by the 2026-11-03 correction (C10469, C10470) | agent | `Docs/DiagnosticRuns/v15-sem2-pilot-2026-11-02.md:63` |
+| The ledger check reads cited `papers/` files from commit 79f00462 because the drafts left the public tree. If the author wants the citations kept long-term, re-anchor them to the private thesis or archive the drafts | author | `scripts/v1.3/claims-ledger-check.mjs` |

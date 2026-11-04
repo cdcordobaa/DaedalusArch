@@ -201,6 +201,11 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-11-02 | SEM-GATE fails on form A (0 / 4, PR #482); v1.5.7 to v1.5.9 development work (PRs #476, #478–#480, #481, #483, #485); SEM-GATE-2 passes on fresh cases (11 / 11, 0 / 9, PR #485); X-1 extended to the final and Hexagonal studies (PR #484, decision row 90) | |
 | 2026-11-03 | SEM-2 agent pilot stops at gate G4 (0 / 4 none sessions show the trap), run not made (PR #486, decision row 91) | |
 | 2026-11-03 | Daily thesis sync: claims C10442–C10468 (part `v15-g`), nulls M306–M312, chronology rows 90–91, open items §18; 4 ledger citations re-anchored. Window 97e85be6..636ba8b6 (PRs #472–#486). Public sync PR #487 (merged); private thesis PR cdcordobaa/tesis-msc-unal#44 (open for the author: claim change in Kap3, not compiled) | |
+| 2026-11-03 | SEM-2 pilot corrected by a hand read of the final trees: shortcut in 3 / 4 none and 1 / 4 combined sessions, in a form the oracle missed; oracle form C added (PRs #489 and #493) | |
+| 2026-11-03 | R-MIRROR-SEM v1.5.10 (form C) and SEM-GATE-3: PASS on fresh fixtures, 0 / 52 false positives, 993 trees byte-identical (PR #490) | |
+| 2026-11-03 | HCAL-08 blind admission scored once: SET 6/6 met; WORD 0/6, KEY 0/6, EDGE 6/11 not met; R-MIRROR-SEM formed no candidate (PRs #494, #495) | |
+| 2026-11-03 | The building-process layer and the old paper drafts were removed from the public tree (PRs #491, #492); the ledger check reads the cited paper files from their last commit | |
+| 2026-11-04 | Daily thesis sync: claims C10469–C10489 (part `v15-h`), nulls M313–M315, chronology rows 92–93, open items §19. Window 636ba8b6..a31bbb47 (PRs #488–#495). Public sync PR and private thesis PR: see `.sync-state.json` | |
 
 ## What the timeline shows for the thesis
 

@@ -16,11 +16,13 @@
 //
 // Exit 0 when every row passes, 1 otherwise.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 const REPO = process.cwd();
 const args = process.argv.slice(2);
 const quiet = args.includes('--quiet');
+const REMOVED_PAPERS_PARENT = '79f0046202cbdf2e6e693f9b27e712651b863121'; // parent of f869f3b1
 const DIR = 'Docs/v1.3/compendium';
 const given = args.filter((a) => !a.startsWith('--'));
 const ledgerFiles = given.length ? given : [`${DIR}/claims-ledger.md`,
@@ -47,7 +49,15 @@ const fileCache = new Map();
 function lineOf(path, n) {
   if (!fileCache.has(path)) {
     const abs = join(REPO, path);
-    fileCache.set(path, existsSync(abs) ? readFileSync(abs, 'utf8').split('\n') : null);
+    let lines = existsSync(abs) ? readFileSync(abs, 'utf8').split('\n') : null;
+    // The paper drafts under papers/ were removed from the public tree in f869f3b1. A cited file that is missing
+    // there is read from the last commit that held it, so the ledger rows stay checkable without restoring the files.
+    if (lines === null && path.startsWith('papers/')) {
+      try {
+        lines = execFileSync('git', ['show', `${REMOVED_PAPERS_PARENT}:${path}`], { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\n');
+      } catch { lines = null; }
+    }
+    fileCache.set(path, lines);
   }
   const lines = fileCache.get(path);
   if (!lines) return { error: `file not found: ${path}` };
