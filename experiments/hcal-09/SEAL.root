@@ -1,0 +1,8 @@
+cases b3daba6175e1b1d0579f060f0c6e9f82cb02fda0a444ffad10a6835d390ec782 (502 files; sha256 of SEAL.sha256)
+scoring-copy 56a88d313f0fc1d30fa6bde270af994a3059e8bc744e3b284c808611c5813c5e (502 files; sha256 of SCORING-COPY.sha256; glossary key removed from all 94 case specs)
+script:scoring-copy.sh 761ddb18b0b55e4002d2fad367809c1f52d9ba58787c20878df3452450843a40
+script:check-compile.sh 175b039e1e35b9b611579bcef981caff5ec66c7a747754ee895173551510ea18
+rules stub (RULES-FROZEN.sha256 not written; the scoring session writes it before scoring, with the selection rule of HCAL-06 to HCAL-08)
+base check: not run before the seal (blind builder, no checker run); the scoring session runs it first and records any base finding on a line here, not repaired
+row map: HX9-WORD, HX9-SET, HX9-KEY, HX9-EDGE, HX9-FIELD (catalog H11-d), HX9-RULE (catalog H06) and DX9-SET (catalog K10) are this set's own row keys; the scoring session maps each to the instrument's rules before the seal is opened
+verify: experiments/hcal-09/verify-seal.sh

@@ -1,0 +1,271 @@
+{
+ "EDGE-pos1": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/application/record-movement.use-case.ts",
+  "line": 1,
+  "subshape": "a",
+  "kind": "positive",
+  "note": "An outbound adapters barrel re-exports the adapters, and the movement use case takes the console notifier from it as its default notifier."
+ },
+ "EDGE-pos2": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/application/schedule-pilotage.use-case.ts",
+  "line": 21,
+  "subshape": "b",
+  "kind": "positive",
+  "note": "The schedule use case loads the vendor SDK with a dynamic import() to tell a vendor no-window error from other failures."
+ },
+ "EDGE-pos3": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/domain/tide-slot.ts",
+  "line": 8,
+  "subshape": "c",
+  "kind": "positive",
+  "note": "The domain's tide slot keeps the raw vendor response, typed with an inline import('tidewatch-sdk') type."
+ },
+ "EDGE-pos4": {
+  "rule": "HX9-EDGE",
+  "label": "violation",
+  "file": "src/application/tides/tidewatch-window.gateway.ts",
+  "line": 3,
+  "subshape": "e",
+  "kind": "positive",
+  "note": "The tide gateway moves to src/application/tides/; the spec puts that folder in the application layer, and the file imports the SDK."
+ },
+ "EDGE-twin1": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "a",
+  "kind": "hard-twin",
+  "note": "A domain index barrel re-exports the domain types, and the tide gateway imports through it; adapters may depend on domain."
+ },
+ "EDGE-twin2": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "b",
+  "kind": "hard-twin",
+  "note": "The composition root loads the tide gateway lazily with a dynamic import(); config may depend on adapters."
+ },
+ "EDGE-twin3": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "c",
+  "kind": "hard-twin",
+  "note": "The tide gateway types a private mapping helper with an inline import('tidewatch-sdk') type; an outbound adapter may depend on the vendor."
+ },
+ "EDGE-twin4": {
+  "rule": "HX9-EDGE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "e",
+  "kind": "hard-twin",
+  "note": "The tide gateway moves to src/integrations/tidewatch/; the spec adds src/integrations/** to the outbound adapter layer."
+ },
+ "FIELD-pos1": {
+  "rule": "HX9-FIELD",
+  "label": "violation",
+  "file": "src/application/ports/in/record-movement.port.ts",
+  "line": 6,
+  "subshape": "declared-field",
+  "kind": "positive",
+  "catalog": "H11-d",
+  "note": "The movement command declares the vendor's reported_at_utc field under the vendor's name, and the job keeps the report time from it."
+ },
+ "FIELD-pos2": {
+  "rule": "HX9-FIELD",
+  "label": "violation",
+  "file": "src/domain/movement-report.ts",
+  "line": 1,
+  "subshape": "string-list",
+  "kind": "positive",
+  "catalog": "H11-d",
+  "note": "The domain lists the vendor's movement field names in a tuple, and the movement use case checks the raw report the port carries against it."
+ },
+ "FIELD-twin1": {
+  "rule": "HX9-FIELD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "declared-field",
+  "kind": "hard-twin",
+  "catalog": "H11-d",
+  "note": "The domain gains a pilot log entry whose snake_case field names are the harbour authority's own log columns, declared in the spec glossary."
+ },
+ "FIELD-twin2": {
+  "rule": "HX9-FIELD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "mapping-table",
+  "kind": "hard-twin",
+  "catalog": "H11-d",
+  "note": "The tide gateway reads the vendor response through a field table keyed by the vendor's field names; the table stays in the outbound adapter."
+ },
+ "KEY-pos1": {
+  "rule": "HX9-KEY",
+  "label": "violation",
+  "file": "src/application/record-movement.use-case.ts",
+  "line": 7,
+  "subshape": "record",
+  "kind": "positive",
+  "note": "The movement use case looks the stage up in a Record keyed by the vendor's voyage phases, with the phase text the port carries."
+ },
+ "KEY-pos2": {
+  "rule": "HX9-KEY",
+  "label": "violation",
+  "file": "src/domain/pilotage-fee.ts",
+  "line": 4,
+  "subshape": "map",
+  "kind": "positive",
+  "note": "The tariff holds a Map of fee factors keyed by the vendor's hull classes and reads it with the hull class text the tide port carries."
+ },
+ "KEY-twin1": {
+  "rule": "HX9-KEY",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "record",
+  "kind": "hard-twin",
+  "note": "The movement use case decides whom to notify from a Record keyed by the core's own job statuses."
+ },
+ "KEY-twin2": {
+  "rule": "HX9-KEY",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "record",
+  "kind": "hard-twin",
+  "note": "The feed handler replaces its switch with a Record keyed by the vendor's voyage phases; the lookup stays in the inbound adapter."
+ },
+ "KEY-twin3": {
+  "rule": "HX9-KEY",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "map",
+  "kind": "hard-twin",
+  "note": "The tariff Map is keyed by hull classes that the spec glossary declares as the harbour's own size classes (the harbour master's tariff book uses the same names as the tide service)."
+ },
+ "RULE-pos1": {
+  "rule": "HX9-RULE",
+  "label": "violation",
+  "file": "src/adapters/out/tides/tidewatch-window.gateway.ts",
+  "line": 20,
+  "subshape": "threshold",
+  "kind": "positive",
+  "catalog": "H06",
+  "note": "The tide gateway decides the clearance itself, with the harbour master's 0.5 m under-keel threshold; the domain no longer holds the rule."
+ },
+ "RULE-pos2": {
+  "rule": "HX9-RULE",
+  "label": "violation",
+  "file": "src/adapters/in/feed/tidewatch-movement.handler.ts",
+  "line": 10,
+  "subshape": "state-decision",
+  "kind": "positive",
+  "catalog": "H06",
+  "note": "The feed handler decides that a vessel still at anchor more than six hours after its report has lost its slot, and sends the job to abandoned; the domain has no such rule."
+ },
+ "RULE-twin1": {
+  "rule": "HX9-RULE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "retry",
+  "kind": "hard-twin",
+  "catalog": "H06",
+  "note": "The tide gateway retries the vendor call up to three times with a growing pause when the service is unreachable; technical work only."
+ },
+ "RULE-twin2": {
+  "rule": "HX9-RULE",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "state-decision",
+  "kind": "hard-twin",
+  "catalog": "H06",
+  "note": "Same feature as the six-hour anchor rule, but the domain holds it: the handler passes the report time and the job decides."
+ },
+ "SET-pos1": {
+  "rule": "HX9-SET",
+  "label": "violation",
+  "file": "src/domain/movement-phase.ts",
+  "line": 1,
+  "subshape": "union",
+  "kind": "positive",
+  "note": "The core declares a union copy of the vendor's six voyage phases, and the movement use case casts the phase text the port carries to it."
+ },
+ "SET-pos2": {
+  "rule": "HX9-SET",
+  "label": "violation",
+  "file": "src/domain/hull-category.ts",
+  "line": 1,
+  "subshape": "enum",
+  "kind": "positive",
+  "note": "The core declares an enum copy of the vendor's hull classes; the tide port carries the vendor's hull class text and the schedule use case casts it to the enum."
+ },
+ "SET-twin1": {
+  "rule": "HX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "union",
+  "kind": "hard-twin",
+  "note": "The core declares its own vessel size words; the tide gateway maps the vendor's hull classes to them, so no vendor value reaches the core."
+ },
+ "SET-twin2": {
+  "rule": "HX9-SET",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "union",
+  "kind": "hard-twin",
+  "note": "The core declares the pilot's boarding positions; ANCHORED is the only word it shares with the vendor's six voyage phases, and the glossary declares the set as ours."
+ },
+ "WORD-pos1": {
+  "rule": "HX9-WORD",
+  "label": "violation",
+  "file": "src/domain/pilotage-job.ts",
+  "line": 12,
+  "subshape": "field",
+  "kind": "positive",
+  "note": "The movement feed's squat reading is carried through the port and kept on the pilotage job under the vendor's field name."
+ },
+ "WORD-pos2": {
+  "rule": "HX9-WORD",
+  "label": "violation",
+  "file": "src/domain/job-status.ts",
+  "line": 1,
+  "subshape": "value",
+  "kind": "positive",
+  "note": "The job status gains the vendor's DIVERTED voyage phase word as a core status value."
+ },
+ "WORD-twin1": {
+  "rule": "HX9-WORD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "field",
+  "kind": "hard-twin",
+  "note": "The pilot's own squat estimate, reported over HTTP at boarding, is kept on the job; the spec glossary declares squat as a domain term."
+ },
+ "WORD-twin2": {
+  "rule": "HX9-WORD",
+  "label": "clean",
+  "file": null,
+  "line": null,
+  "subshape": "field",
+  "kind": "hard-twin",
+  "note": "The job keeps free-text notes the ship's agent sends over HTTP; notes is a generic word the vendor also uses as a field."
+ }
+}

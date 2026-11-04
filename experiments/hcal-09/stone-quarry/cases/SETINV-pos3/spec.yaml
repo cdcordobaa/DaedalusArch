@@ -1,0 +1,260 @@
+# HCAL-09 stone-quarry: evaluator spec for the DDD part of the calibration set (CAL-03 format).
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/*/domain/**
+        - src/shared-kernel/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/*/application/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/*/infrastructure/**
+      roles:
+        - repository
+        - gateway
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/*/api/**
+      roles:
+        - controller
+
+    # Composition root, outside every context. kind application is only a placeholder for the kind resolver.
+    - name: composition
+      kind: application
+      directories:
+        - src/main.ts
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: extraction
+        root: src/extraction/
+        public_api: [src/extraction/index.ts, src/extraction/contracts/**]
+        acl: []
+      - name: haulage
+        root: src/haulage/
+        public_api: [src/haulage/index.ts, src/haulage/contracts/**]
+        acl: []
+      - name: sales
+        root: src/sales/
+        public_api: [src/sales/index.ts, src/sales/contracts/**]
+        acl: []
+    outside_contexts: [src/shared-kernel/**, src/main.ts]
+    aggregates:
+      - name: Bench
+        context: extraction
+        module: src/extraction/domain/bench/**
+        root: src/extraction/domain/bench/Bench.ts
+        inner_entities: []
+      - name: Blast
+        context: extraction
+        module: src/extraction/domain/blast/**
+        root: src/extraction/domain/blast/Blast.ts
+        inner_entities: []
+      - name: Truck
+        context: haulage
+        module: src/haulage/domain/truck/**
+        root: src/haulage/domain/truck/Truck.ts
+        inner_entities: []
+      - name: Haul
+        context: haulage
+        module: src/haulage/domain/haul/**
+        root: src/haulage/domain/haul/Haul.ts
+        inner_entities: []
+      - name: QuarryOrder
+        context: sales
+        module: src/sales/domain/order/**
+        root: src/sales/domain/order/QuarryOrder.ts
+        inner_entities: []
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/*/domain/**/*Repository.ts", "src/*/infrastructure/**/*Repository.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/*/application/*.ts"]
+    invariants:
+      - { id: bench-monthly-permit, kind: set, owner: Bench, over: [Blast], terms: [permittedTonnesPerMonth, plannedTonnes, month], statement: "the tonnes planned in a bench's blasts for one month never exceed the bench's monthly permit" }
+      - { id: truck-shift-allowance, kind: set, owner: Truck, over: [Haul], terms: [shiftAllowanceTonnes, tonnes, shiftDate], statement: "the tonnes a truck hauls in one shift never exceed its shift allowance" }
+      - { id: order-has-lines, kind: single, owner: QuarryOrder, over: [QuarryOrder], terms: [lines, line], statement: "an order always has at least one line" }
+      - { id: haul-ticket-unique, kind: uniqueness, over: [Haul], terms: [ticketNo], enforced_by: store }
+
+fitness_functions:
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+      - tarescale-sdk
+
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
+
+# Domain glossary: the terms the quarry owns. Anything not listed here is not domain vocabulary.
+glossary:
+  - term: bench
+    owner: domain
+    definition: "One working level of a quarry face, with a monthly extraction permit in tonnes."
+  - term: blast
+    owner: domain
+    definition: "One planned blast on a bench, with the tonnes it is expected to free."
+  - term: truck
+    owner: domain
+    definition: "A haul truck with a shift allowance in tonnes."
+  - term: haul
+    owner: domain
+    definition: "One weighed load a truck carries out of the quarry for an order."
+  - term: quarry order
+    owner: domain
+    definition: "A customer order for crushed stone, in lines of product and tonnes."
+
+# --- HCAL-09 builder glossary key (not part of the spec; stripped in the scoring copy) ---
+# case: SETINV-pos3 (DX9-SET)
+# vendor terms: none (DDD row)
+# core terms: invariant bench-monthly-permit (kind set); owner Bench
+# rationale: set invariant checked in a repository

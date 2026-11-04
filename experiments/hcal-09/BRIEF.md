@@ -118,4 +118,12 @@ one by one. A row that misses the bar is reported as such; no rule, prompt or la
 
 ## Seal
 
-Filled in at step 3, before any scoring.
+Filled in at step 3, 2026-11-04 (UTC), before any scoring.
+
+- Cases: `SEAL.sha256`, 502 files (bases, cases, labels of the four domains). Root (sha256 of `SEAL.sha256`):
+  `b3daba6175e1b1d0579f060f0c6e9f82cb02fda0a444ffad10a6835d390ec782`.
+- Scoring copy: `SCORING-COPY.sha256`, 502 files, glossary key removed from all 94 case specs. Root:
+  `56a88d313f0fc1d30fa6bde270af994a3059e8bc744e3b284c808611c5813c5e`.
+- Rule hash: stub in `SEAL.root`, written by the scoring session.
+- Built: 94 cases, 47 positive and 47 clean (all clean cases are hard twins). Counts per row in `README.md`.
+- Check: `experiments/hcal-09/verify-seal.sh`.
