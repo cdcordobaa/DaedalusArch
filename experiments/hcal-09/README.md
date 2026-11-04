@@ -1,6 +1,7 @@
 # HCAL-09: held-back calibration set, the HCAL-08 rows on new material plus H11-d, H06 and K10
 
-Built and sealed by one blind session on 2026-11-04 (UTC). Not scored. Brief: `BRIEF.md` (committed before any case).
+Built and sealed by one blind session on 2026-11-04 (UTC). Scored once on 2026-11-04 (record `result.json`, report
+`Docs/DiagnosticRuns/v15-hcal09-admission-2026-11-04.md`). Brief: `BRIEF.md` (committed before any case).
 Seal: `SEAL.sha256` (every file under the four domains), `SCORING-COPY.sha256` (the scoring copy), `SEAL.root` (roots,
 script hashes, the rule hash stub). Check with `experiments/hcal-09/verify-seal.sh`.
 
