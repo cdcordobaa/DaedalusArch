@@ -1,0 +1,8322 @@
+{
+ "schema": "v15-study-scores/v1",
+ "modelCalls": 0,
+ "instrumentCommit": "ff20c12a315c049f18fe4e7525aec8c7bf45ef7c",
+ "instrumentId": "v1.5.10",
+ "instrumentRuleHash": "bc51dbaaa6aa44ae51a311f9977bc3f5b9b45a0860e099937ae7e1940c0c2de7",
+ "params": {
+  "admitted": {
+   "ddd": {
+    "rows": [
+     "K01",
+     "K02",
+     "K03",
+     "K05",
+     "K10",
+     "K13",
+     "K14",
+     "K15",
+     "K16"
+    ],
+    "rules": [
+     "FF-DS02",
+     "FF-DT04",
+     "FF-S01",
+     "FF-S03",
+     "R-D4",
+     "R-D5S",
+     "R-D9",
+     "R-H5",
+     "R-INJ",
+     "R-PURE",
+     "R-REF",
+     "R-XCTX"
+    ]
+   },
+   "hexagonal": {
+    "rows": [
+     "H01",
+     "H02",
+     "H03",
+     "H04",
+     "H05",
+     "H07",
+     "H08",
+     "H09",
+     "H10"
+    ],
+    "rules": [
+     "FF-P01",
+     "FF-P02",
+     "FF-P03",
+     "FF-S01",
+     "FF-S03",
+     "FF-S04",
+     "R-AXA",
+     "R-COREIO",
+     "R-ENTITY-OUT",
+     "R-H5",
+     "R-INJ",
+     "R-LOCATOR",
+     "R-TRANSPORT"
+    ]
+   },
+   "overrides": {
+    "K10": [
+     "R-D5S"
+    ]
+   }
+  },
+  "exploratory": {
+   "ddd": [
+    "R-D3",
+    "R-D4R",
+    "R-D5",
+    "R-LOCK",
+    "R-RTX"
+   ],
+   "hexagonal": [
+    "R-ADAPTER-RULE",
+    "R-MIRROR",
+    "R-MIRROR-SEM",
+    "R-MIRROR2"
+   ]
+  },
+  "counted": "admitted rows (first study)",
+  "requireDeliveryAudit": true,
+  "identity": "rule|file|subject",
+  "D": "admitted identities new against the seed and every earlier step, summed over the steps (renames carried)",
+  "Y": "admitted identities on the final step not on the seed (step-00)",
+  "evasionPatterns": [
+   "/(^|\\/)detect02[^/]*$/i",
+   "/(^|\\/)[^/]*allow[^/]*\\.(ya?ml|json)$/i",
+   "/\\.(ya?ml)$/i",
+   "/(^|\\/)\\.claude\\//",
+   "/(^|\\/)(architecture|daedalus)[^/]*\\.(json|ya?ml)$/i"
+  ],
+  "frozenD": {
+   "grain": "edge",
+   "cycleIdentity": "sorted-files",
+   "edgeOnly": true,
+   "renamePolicy": "continue",
+   "rePointed": false,
+   "merged": false,
+   "s02Cap": 100,
+   "leftCensor": "first-valid",
+   "kFrom": 2,
+   "kTo": "steps + 1",
+   "priorUnion": "final-snapshots",
+   "y1Min": 1,
+   "seedAsStep": 1
+  }
+ },
+ "evaluationFailures": 0,
+ "summary": {
+  "none": {
+   "turnWallTime": {
+    "turns": 60,
+    "medianMs": 27206.5,
+    "meanMs": 26352,
+    "maxMs": 49886
+   },
+   "runs": 20,
+   "meanY": 0,
+   "runsWithY0": 20,
+   "trapFailed": 17,
+   "functional": 20
+  },
+  "combined": {
+   "turnWallTime": {
+    "turns": 60,
+    "medianMs": 41089,
+    "meanMs": 41444,
+    "maxMs": 72068
+   },
+   "runs": 20,
+   "meanY": 0,
+   "runsWithY0": 20,
+   "trapFailed": 0,
+   "functional": 20
+  }
+ },
+ "runs": [
+  {
+   "session": "c001",
+   "planId": "c001",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c002",
+   "planId": "c002",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.canWithdraw 'CANDLING'",
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.canWithdraw 'SCHEDULED'",
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'CANDLING'",
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'COMPLETE'",
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'COOLING'",
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'FAULTED'",
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'HOLDING'",
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'RAMPING'",
+    "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'SCHEDULED'"
+   ],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR-SEM|src/domain/services/FiringRules.ts|pickupStatus:switch(phaseCode)",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'CANDLING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'COMPLETE'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'COOLING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'FAULTED'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'HOLDING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'RAMPING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'SCHEDULED'"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR-SEM|src/domain/services/FiringRules.ts|pickupStatus:switch(phaseCode)",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.canWithdraw 'CANDLING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.canWithdraw 'SCHEDULED'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'CANDLING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'COMPLETE'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'COOLING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'FAULTED'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'HOLDING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'RAMPING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'SCHEDULED'"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.canWithdraw 'CANDLING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.canWithdraw 'SCHEDULED'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'CANDLING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'COMPLETE'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'COOLING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'FAULTED'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'HOLDING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'RAMPING'",
+      "R-MIRROR2|src/domain/services/FiringRules.ts|FiringRules.pickupStatus 'SCHEDULED'"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c003",
+   "planId": "c003",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 41,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 10,
+    "editsWithHookEvent": 10,
+    "coverage": 1,
+    "hookEvents": 15,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 10,
+    "hubP95Ms": 747,
+    "hubMaxMs": 811,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 7,
+    "counts": {
+     "push only": 7,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 2,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 3,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 4,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 5,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 6,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 7,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 18,
+    "pullCalls": 10,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 4,
+     "check_diff": 2,
+     "check_file": 2
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c004",
+   "planId": "c004",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 0,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 47,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 4,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 10,
+    "editsWithHookEvent": 10,
+    "coverage": 1,
+    "hookEvents": 15,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 11,
+    "hubP95Ms": 552,
+    "hubMaxMs": 629,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 1,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/ProgressStage.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 19,
+    "pullCalls": 11,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_file": 2,
+     "check_consistency": 5,
+     "check_diff": 1,
+     "evaluate_project": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c005",
+   "planId": "c005",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 1,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 43,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 9,
+    "editsWithHookEvent": 9,
+    "coverage": 1,
+    "hookEvents": 14,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 11,
+    "hubP95Ms": 598,
+    "hubMaxMs": 604,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 1,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/application/services/jobs/TranslationOrderService.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 18,
+    "pullCalls": 11,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_file": 3,
+     "check_consistency": 5,
+     "evaluate_project": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c006",
+   "planId": "c006",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 1,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c007",
+   "planId": "c007",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 1,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 49,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 11,
+    "editsWithHookEvent": 11,
+    "coverage": 1,
+    "hookEvents": 19,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 9,
+    "hubP95Ms": 645,
+    "hubMaxMs": 646,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 17,
+    "counts": {
+     "push only": 17,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 2,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 3,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 4,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 5,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 6,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 7,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 8,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 9,
+      "rule": "R-MIRROR",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 10,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 11,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 12,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 13,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 14,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 15,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 16,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 17,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 22,
+    "pullCalls": 9,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 3,
+     "check_file": 1,
+     "check_diff": 3
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c008",
+   "planId": "c008",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 1,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c009",
+   "planId": "c009",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 2,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR-SEM|src/application/services/jobs/TranslationOrderService.ts|STAGE_BY_STATE"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR-SEM|src/application/services/jobs/TranslationOrderService.ts|STAGE_BY_STATE"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c010",
+   "planId": "c010",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 2,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'CANDLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'COMPLETE'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'COOLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'FAULTED'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'HOLDING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'RAMPING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'SCHEDULED'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+    "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+    "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+   ],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'SCHEDULED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PHASE_STATUS 'SCHEDULED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c011",
+   "planId": "c011",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 2,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 61,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 5,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 12,
+    "editsWithHookEvent": 12,
+    "coverage": 1,
+    "hookEvents": 22,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 8,
+    "hubP95Ms": 923,
+    "hubMaxMs": 1198,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 17,
+    "counts": {
+     "push only": 17,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 2,
+      "rule": "R-MIRROR",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 3,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 4,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 5,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 6,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 7,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 8,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 9,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 10,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 11,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 12,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 13,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 14,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 15,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 16,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 17,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 25,
+    "pullCalls": 8,
+    "pullByTool": {
+     "get_architecture_spec": 1,
+     "check_consistency": 5,
+     "check_diff": 2
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c012",
+   "planId": "c012",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 2,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 45,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 9,
+    "editsWithHookEvent": 9,
+    "coverage": 1,
+    "hookEvents": 15,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 12,
+    "hubP95Ms": 803,
+    "hubMaxMs": 808,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 1,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/ProgressStage.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 19,
+    "pullCalls": 12,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_file": 3,
+     "check_consistency": 5,
+     "check_diff": 2
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c013",
+   "planId": "c013",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 3,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 39,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 10,
+    "editsWithHookEvent": 10,
+    "coverage": 1,
+    "hookEvents": 14,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 10,
+    "hubP95Ms": 622,
+    "hubMaxMs": 793,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 7,
+    "counts": {
+     "push only": 7,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 2,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 3,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 4,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 5,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 6,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 7,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 17,
+    "pullCalls": 10,
+    "pullByTool": {
+     "check_consistency": 4,
+     "check_file": 5,
+     "get_architecture_spec": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c014",
+   "planId": "c014",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 3,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c015",
+   "planId": "c015",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 3,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 47,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 4,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 10,
+    "editsWithHookEvent": 10,
+    "coverage": 1,
+    "hookEvents": 15,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 13,
+    "hubP95Ms": 703,
+    "hubMaxMs": 712,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 1,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/model/ProgressStage.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 19,
+    "pullCalls": 13,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 5,
+     "check_file": 4,
+     "check_diff": 1,
+     "evaluate_project": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c016",
+   "planId": "c016",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 3,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c017",
+   "planId": "c017",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 4,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c018",
+   "planId": "c018",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 4,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 51,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 4,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 12,
+    "editsWithHookEvent": 12,
+    "coverage": 1,
+    "hookEvents": 16,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 8,
+    "hubP95Ms": 716,
+    "hubMaxMs": 740,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 1,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 20,
+    "pullCalls": 8,
+    "pullByTool": {
+     "get_architecture_spec": 1,
+     "check_consistency": 5,
+     "check_diff": 1,
+     "check_file": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c019",
+   "planId": "c019",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 4,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 35,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 5,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 9,
+    "editsWithHookEvent": 9,
+    "coverage": 1,
+    "hookEvents": 10,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 9,
+    "hubP95Ms": 628,
+    "hubMaxMs": 653,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 0,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [],
+    "doubleReports": 0,
+    "pushEvents": 13,
+    "pullCalls": 9,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 5,
+     "check_file": 2
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c020",
+   "planId": "c020",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 4,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR-SEM|src/application/services/jobs/TranslationOrderService.ts|STAGE_BY_STATE"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR-SEM|src/application/services/jobs/TranslationOrderService.ts|STAGE_BY_STATE"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c021",
+   "planId": "c021",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 5,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'CANDLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COMPLETE'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COOLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'FAULTED'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'HOLDING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'RAMPING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'SCHEDULED'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+    "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+    "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+   ],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'SCHEDULED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'SCHEDULED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c022",
+   "planId": "c022",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 5,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c023",
+   "planId": "c023",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 5,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 41,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 4,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 11,
+    "editsWithHookEvent": 11,
+    "coverage": 1,
+    "hookEvents": 14,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 9,
+    "hubP95Ms": 778,
+    "hubMaxMs": 788,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 7,
+    "counts": {
+     "push only": 7,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 2,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 3,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 4,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 5,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 6,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 7,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 17,
+    "pullCalls": 9,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 4,
+     "check_diff": 1,
+     "check_file": 2
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c024",
+   "planId": "c024",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 5,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 41,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 5,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 9,
+    "editsWithHookEvent": 9,
+    "coverage": 1,
+    "hookEvents": 12,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 10,
+    "hubP95Ms": 752,
+    "hubMaxMs": 771,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 0,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [],
+    "doubleReports": 0,
+    "pushEvents": 15,
+    "pullCalls": 10,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 6,
+     "check_file": 2
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c025",
+   "planId": "c025",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 6,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 57,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 5,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 13,
+    "editsWithHookEvent": 13,
+    "coverage": 1,
+    "hookEvents": 18,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 11,
+    "hubP95Ms": 769,
+    "hubMaxMs": 832,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 1,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 22,
+    "pullCalls": 11,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 6,
+     "check_file": 2,
+     "check_diff": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c026",
+   "planId": "c026",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 6,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 43,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 4,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 9,
+    "editsWithHookEvent": 9,
+    "coverage": 1,
+    "hookEvents": 14,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 10,
+    "hubP95Ms": 774,
+    "hubMaxMs": 828,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 1,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/application/services/jobs/TranslationOrderService.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 17,
+    "pullCalls": 10,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_file": 1,
+     "check_consistency": 5,
+     "check_diff": 2
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c027",
+   "planId": "c027",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 6,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c028",
+   "planId": "c028",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 6,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'CANDLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COMPLETE'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COOLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'FAULTED'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'HOLDING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'RAMPING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'SCHEDULED'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'"
+   ],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'SCHEDULED'"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'SCHEDULED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COMPLETE'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'COOLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'FAULTED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'HOLDING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'RAMPING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PICKUP_STATUS 'SCHEDULED'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c029",
+   "planId": "c029",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 7,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 47,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 10,
+    "editsWithHookEvent": 10,
+    "coverage": 1,
+    "hookEvents": 15,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 12,
+    "hubP95Ms": 838,
+    "hubMaxMs": 880,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 1,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/ProgressStage.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 1,
+      "onFinalTree": false,
+      "attribution": "push first, then pull"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 19,
+    "pullCalls": 12,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 6,
+     "check_file": 3,
+     "check_diff": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c030",
+   "planId": "c030",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 7,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR-SEM|src/application/services/jobs/TranslationOrderService.ts|STAGE_BY_STATE"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR-SEM|src/application/services/jobs/TranslationOrderService.ts|STAGE_BY_STATE"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c031",
+   "planId": "c031",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 7,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c032",
+   "planId": "c032",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 7,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 35,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 4,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 10,
+    "editsWithHookEvent": 10,
+    "coverage": 1,
+    "hookEvents": 11,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 12,
+    "hubP95Ms": 754,
+    "hubMaxMs": 780,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 0,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [],
+    "doubleReports": 0,
+    "pushEvents": 14,
+    "pullCalls": 12,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 4,
+     "check_diff": 2,
+     "check_file": 4
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c033",
+   "planId": "c033",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 8,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 49,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 10,
+    "editsWithHookEvent": 10,
+    "coverage": 1,
+    "hookEvents": 16,
+    "stopEvents": 4,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 12,
+    "hubP95Ms": 735,
+    "hubMaxMs": 757,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 1,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/ProgressStage.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 1,
+      "onFinalTree": false,
+      "attribution": "push first, then pull"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 20,
+    "pullCalls": 12,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_file": 2,
+     "check_consistency": 5,
+     "check_diff": 2,
+     "evaluate_project": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c034",
+   "planId": "c034",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 8,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c035",
+   "planId": "c035",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 8,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": true,
+   "delivery": {
+    "present": true,
+    "checks": 41,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 4,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 11,
+    "editsWithHookEvent": 9,
+    "coverage": 0.8182,
+    "hookEvents": 13,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 12,
+    "hubP95Ms": 738,
+    "hubMaxMs": 842,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [
+     {
+      "turn": "step-03",
+      "file": "src/adapters/outbound/kilnwise/KilnwiseReadingsAdapter.ts"
+     },
+     {
+      "turn": "step-03",
+      "file": "src/domain/model/PieceStatus.ts"
+     }
+    ],
+    "infrastructure": false,
+    "flagged": true,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": [
+     "edits with a hook event 9/11 < 95 %"
+    ]
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 0,
+    "counts": {
+     "push only": 0,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [],
+    "doubleReports": 0,
+    "pushEvents": 16,
+    "pullCalls": 12,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 5,
+     "check_file": 3,
+     "check_diff": 2
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c036",
+   "planId": "c036",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 8,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c037",
+   "planId": "c037",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 9,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+    "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'CANDLING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'COMPLETE'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'COOLING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'FAULTED'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'HOLDING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'RAMPING'",
+    "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'SCHEDULED'",
+    "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+    "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+   ],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'CANDLING'",
+      "R-MIRROR2|src/application/services/pieces/PieceService.ts|PieceService.withdrawPiece 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|KilnPhase 'SCHEDULED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'CANDLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'COMPLETE'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'COOLING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'FAULTED'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'HOLDING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'RAMPING'",
+      "R-MIRROR2|src/domain/model/KilnReading.ts|pickupStatusOf 'SCHEDULED'",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnPhase",
+      "R-MIRROR|src/domain/model/KilnReading.ts|KilnReading.phase"
+     ],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c038",
+   "planId": "c038",
+   "task": "t01",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 9,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 59,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 5,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 13,
+    "editsWithHookEvent": 13,
+    "coverage": 1,
+    "hookEvents": 21,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 9,
+    "hubP95Ms": 755,
+    "hubMaxMs": 877,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 17,
+    "counts": {
+     "push only": 17,
+     "pull only": 0,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 2,
+      "rule": "R-MIRROR",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 3,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 4,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 5,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 6,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 7,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 8,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 9,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/model/KilnReading.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 10,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 11,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 12,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 13,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 14,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 15,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 16,
+      "rule": "R-MIRROR2",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     },
+     {
+      "number": 17,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/domain/services/FiringRules.ts",
+      "firstChannel": "push",
+      "pushExposures": 1,
+      "pullExposures": 0,
+      "onFinalTree": false,
+      "attribution": "push only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 24,
+    "pullCalls": 9,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 5,
+     "check_file": 1,
+     "check_diff": 1
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the pickup page shows how far the firing is",
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "a piece can be taken back until the kiln heats up",
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a kiln that is cooling shows cooling down"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c039",
+   "planId": "c039",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "none",
+   "rep": 9,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": null,
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": true,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": null,
+   "attribution": null,
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": false
+      }
+     ],
+     "trapFailed": true,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  },
+  {
+   "session": "c040",
+   "planId": "c040",
+   "task": "t02",
+   "style": "hexagonal",
+   "confirmatory": false,
+   "arm": "combined",
+   "rep": 9,
+   "redrawOf": null,
+   "verdict": "done",
+   "counted": true,
+   "D": 0,
+   "DperStep": [
+    0,
+    0,
+    0
+   ],
+   "flagged": false,
+   "delivery": {
+    "present": true,
+    "checks": 37,
+    "mismatches": [],
+    "countedNotDelivered": [],
+    "flagged": false,
+    "reasons": [],
+    "findingsAgreement": [
+     {
+      "step": "step-01",
+      "comparable": true,
+      "records": 2,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-02",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     },
+     {
+      "step": "step-03",
+      "comparable": true,
+      "records": 3,
+      "onlyHub": [],
+      "onlyScorer": []
+     }
+    ]
+   },
+   "evasion": {
+    "count": 0,
+    "candidates": []
+   },
+   "Y": 0,
+   "newAdmittedIdentities": [],
+   "trapFailed": false,
+   "functional": true,
+   "exploratoryNew": [],
+   "D_frozen": {
+    "D": 0,
+    "perStepNew": [
+     {
+      "step": 1,
+      "new": 0
+     },
+     {
+      "step": 2,
+      "new": 0
+     },
+     {
+      "step": 3,
+      "new": 0
+     }
+    ],
+    "incomplete": false
+   },
+   "integrity": {
+    "edits": 9,
+    "editsWithHookEvent": 9,
+    "coverage": 1,
+    "hookEvents": 13,
+    "stopEvents": 3,
+    "failOpen": 0,
+    "failOpenRate": 0,
+    "refused": 0,
+    "pullCalls": 11,
+    "hubP95Ms": 690,
+    "hubMaxMs": 788,
+    "hubDeadAfter": [],
+    "overlaySeen": false,
+    "uncoveredFiles": [],
+    "infrastructure": false,
+    "flagged": false,
+    "latencyReported": false,
+    "mechanismStop": false,
+    "reasons": []
+   },
+   "attribution": {
+    "ledgerFound": true,
+    "findings": 1,
+    "counts": {
+     "push only": 0,
+     "pull only": 1,
+     "push first, then pull": 0,
+     "pull first, then push": 0,
+     "unexposed": 0,
+     "open on final tree": 0
+    },
+    "rows": [
+     {
+      "number": 1,
+      "rule": "R-MIRROR-SEM",
+      "file": "src/application/services/jobs/TranslationOrderService.ts",
+      "firstChannel": "pull",
+      "pushExposures": 0,
+      "pullExposures": 1,
+      "onFinalTree": false,
+      "attribution": "pull only"
+     }
+    ],
+    "doubleReports": 0,
+    "pushEvents": 16,
+    "pullCalls": 11,
+    "pullByTool": {
+     "get_architecture_spec": 2,
+     "check_consistency": 4,
+     "check_file": 2,
+     "check_diff": 3
+    }
+   },
+   "steps": [
+    {
+     "step": "step-00",
+     "tests": {
+      "passed": 4,
+      "failed": 3,
+      "failing": [
+       "the customer portal shows where the translation is",
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-01",
+     "tests": {
+      "passed": 5,
+      "failed": 2,
+      "failing": [
+       "an order is invoiced once the translation is delivered",
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-02",
+     "tests": {
+      "passed": 6,
+      "failed": 1,
+      "failing": [
+       "a translation being proofread shows proofreading"
+      ]
+     },
+     "testsPass": false,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    },
+    {
+     "step": "step-03",
+     "tests": {
+      "passed": 7,
+      "failed": 0,
+      "failing": []
+     },
+     "testsPass": true,
+     "oracle": [
+      {
+       "id": "SG1",
+       "pass": true
+      }
+     ],
+     "trapFailed": false,
+     "admittedNewVsSeed": [],
+     "exploratoryNewVsSeed": [],
+     "evasionCandidates": [],
+     "frozenFileRulesError": null
+    }
+   ]
+  }
+ ]
+}
