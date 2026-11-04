@@ -117,3 +117,33 @@ names readings of the instrument on that set). No base, case or label changed af
 run again.
 
 After the seal: only the CI results and the PR page of the merge.
+
+## Row map (scoring session, 2026-11-04, before any case is scored)
+
+Written from the existing row maps and the v1.5.11 record (`experiments/v1511-dev/README.md`, PR 498), before any
+case, label note or glossary key was opened. It is `HCAL09_ROW_RULES` in `experiments/cal-01/score.ts`, used with
+`--rows hcal09`. Shape-qualified entries (`RULE[shape]`) work as in HCAL-08.
+
+| Row | Mapped rules | Source |
+|---|---|---|
+| HX9-WORD | R-MIRROR2 `[word]` | HX8-WORD, unchanged |
+| HX9-SET | R-MIRROR-SEM form A; R-MIRROR2 `[literal]` and `[error]` | HX8-SET, unchanged |
+| HX9-KEY | R-MIRROR-SEM form C | HX8-KEY, unchanged |
+| HX9-EDGE | R-AXA, R-PURE, R-COREIO, R-D9, FF-S01, FF-S04, FF-P01, **R-APPVENDOR** | HX8-EDGE plus R-APPVENDOR, the v1.5.11 rule built for that row on the HCAL-08 cases (exploratory, on no `rule-set.ts` row) |
+| HX9-FIELD | R-MIRROR, R-MIRROR2, R-MIRROR-SEM | the H11-d row: HCAL-07 scored H11-d against H11's rules (`HEX_ROW_RULES.H11`) |
+| HX9-RULE | R-ADAPTER-RULE | the H06 row (`HEX_ROW_RULES.H06`) |
+| DX9-SET | R-D5S | the K10 row as scored since CAL-03 (`ROW_OVERRIDES.K10`; R-D5 stays exploratory) |
+
+- **Caught** and **flagged** as in HCAL-08: a positive is caught when a mapped rule (with its shape, where one is named)
+  has a finding in the labelled file; a clean case is flagged when a mapped rule has a finding anywhere in its tree. Each
+  case is scored with its domain's base as the baseline. Findings of other rules are kept in the record (`other`).
+- **HX9-EDGE, two readings.** The report also gives the row without R-APPVENDOR (the HX8-EDGE map as frozen), computed
+  from the same record.
+
+## Rule freeze (2026-11-04, before any scoring)
+
+`RULES-FROZEN.sha256` replaces the stub. Selection rule of HCAL-06 to HCAL-08: every tracked non-test `.ts` and
+`.cypher` under `src/v15-instrument`, plus the scorer. That makes 47 files, root `46ab6724d54c6fb7`. The source is
+branch `hcal09/admission` on `main` `6d8b4ca6f` (instrument `v1.5.11`), with the row-map scorer change. Compared with
+HCAL-08's list, one file is new: `rules/r-appvendor-application-imports-vendor.cypher` (v1.5.11). `verify-seal.sh`
+checks the hash.
