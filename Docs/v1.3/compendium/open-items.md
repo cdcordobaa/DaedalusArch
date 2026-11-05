@@ -275,3 +275,14 @@ The SEM thread changed: the SEM-2 pilot was not uninformative in the way §18 sa
 | SEM-2 agent run: the pilot is not rescored. The next agent run needs harder task variants and the fixed checks, as a new exploratory design; not started | author | `Docs/DiagnosticRuns/v15-sem2-pilot-2026-11-02.md:87` |
 | §18 line on the SEM thread ("SEM-2 pilot was uninformative (G4 red)") is superseded by the 2026-11-03 correction (C10469, C10470) | agent | `Docs/DiagnosticRuns/v15-sem2-pilot-2026-11-02.md:63` |
 | The ledger check reads cited `papers/` files from commit 79f00462 because the drafts left the public tree. If the author wants the citations kept long-term, re-anchor them to the private thesis or archive the drafts | author | `scripts/v1.3/claims-ledger-check.mjs` |
+
+## 20. State on 2026-11-05 (refresh after PRs #496–#500)
+
+HCAL-09 was scored once on instrument v1.5.11: only DX9-SET met the bar. Ledger part `v15-i`; limitations M316 and M317.
+
+| Item | Owner | Source |
+|---|---|---|
+| Admission decisions for HCAL-09 are the author's: DX9-SET met the bar (6/6, 0/6) only under the sealed labels; HX9-EDGE, HX9-SET, HX9-FIELD, HX9-KEY, HX9-RULE and HX9-WORD did not. No row is admitted | author | `Docs/DiagnosticRuns/v15-hcal09-admission-2026-11-04.md:267` |
+| The HCAL-08 item on admission (§19) is overtaken in part: HX8-SET met the bar on HCAL-08, but HX9-SET did not on HCAL-09 (5/6) | author | `Docs/DiagnosticRuns/v15-hcal09-admission-2026-11-04.md:73` |
+| Open instrument limits named by the HCAL-09 hand read: inbound DTO typed string not traced by R-MIRROR-SEM (3 KEY misses, 1 SET miss); R-ADAPTER-RULE reads only conditions (3 RULE misses); [field-list] needs three names (1 FIELD miss); R-AXA on a DTO import between two inbound adapter folders (1 false flag). Each needs a new instrument version and a fresh blind set; none started | agent | `Docs/DiagnosticRuns/v15-hcal09-admission-2026-11-04.md:279` |
+| The DX9-SET result depends on two judgement-call labels (SETINV-pos6, SETINV-twin6); a second rater is not available | author | `Docs/DiagnosticRuns/v15-hcal09-admission-2026-11-04.md:233` |
