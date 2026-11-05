@@ -49,4 +49,8 @@ Claude model. The coded agents are almost all Claude.
 
 ## Deviations
 
-None yet.
+1. **2026-11-04, after card 168 and before any further call: spend guard.** The run paused twice on HTTP 402 (account
+   credit). The runner now adds up the measured usage of each invocation's calls (input × $2 and thinking plus output
+   × $10 per million tokens, the listed price) and makes no new call once that passes $1.50. It changes which cards
+   are asked only if the guard trips; if it does, the cards left unasked are listed and the agreement is reported as
+   partial. Nothing else changes. The 168 answers already recorded are not re-asked.

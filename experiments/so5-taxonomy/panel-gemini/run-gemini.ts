@@ -20,6 +20,7 @@ const CATEGORIES = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10',
 const MAX_ATTEMPTS = 3;
 const CAP = 400;
 const PAUSE_MS = 2000;
+const SPEND_CAP_USD = 1.5; // deviation 1 (PROTOCOL.md): per invocation, measured usage at list price
 const POLICY_RE = /SAFETY|PROHIBITED|BLOCKLIST|policy/i;
 
 const sha = (s: string): string => createHash('sha256').update(s).digest('hex');
@@ -110,6 +111,8 @@ async function main(argv: readonly string[]): Promise<number> {
     if (done.has(id) || (tries.get(id) ?? 0) >= MAX_ATTEMPTS) continue;
     if (n++ >= limit) break;
     while ((tries.get(id) ?? 0) < MAX_ATTEMPTS) {
+      const spent = (totals.prompt * 2 + (totals.thoughts + totals.output) * 10) / 1e6;
+      if (spent >= SPEND_CAP_USD) { process.stdout.write(`STOP: spend guard (${spent.toFixed(2)})\n`); return finish(totals); }
       if (used >= CAP) { process.stdout.write('STOP: call cap reached\n'); return finish(totals); }
       const prompt = promptOf(codebook, card);
       const t0 = Date.now(); used++;
