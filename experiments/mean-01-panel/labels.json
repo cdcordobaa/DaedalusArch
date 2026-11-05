@@ -1,0 +1,1571 @@
+{
+ "id": "MEAN-01-panel",
+ "model": "gemini-4-argon-high",
+ "runsPerItem": 3,
+ "rule": "majority of 3 runs per field; no value with >= 2 votes -> unsure; < 2 valid runs -> null (missing)",
+ "calibration": [
+  {
+   "itemId": "C1",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Application service directly imports the concrete DynamoEventPublisher implementation (likely as an Inversify token) instead of depending only on the EventPublisher abstraction."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Application service directly imports the concrete DynamoEventPublisher infrastructure class alongside the EventPublisher interface, coupling the application layer to the DynamoDB implementation."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "C2",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "The forum domain model reaches directly into the users context's internal domain types instead of using an ACL, public interface, or shared kernel."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "The forum context creates a separate Member aggregate to decouple from users, so reaching directly into users/domain internals violates bounded-context autonomy."
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "The forum domain model reaches directly into the internal domain model of the users context instead of using the shared kernel or translating via an ACL."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "C3",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "login.controller.ts is an Express request handler mapped to the business layer, importing an Express async wrapper from presentation."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "login.controller.ts is an Express request handler (presentation layer) that the layer map placed in the business layer."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "login.controller.ts is an Express (req, res) request handler in the presentation layer, not a business/domain component, and using asyncHandler in it is standard."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "C4",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Two-way relation between ORM model classes inside the same layer and folder."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Two-way relation between model classes within the same persistence layer."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": ""
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "C5",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "Using NestJS @Inject() on a service for dependency injection is an accepted framework idiom in practice, though strict DDD literature keeps the domain free of framework imports."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "Using @Inject from @nestjs/common for dependency injection on a service is a standard NestJS idiom, though strict DDD literature keeps the domain free of framework imports."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "@Inject from @nestjs/common is a standard NestJS DI idiom on services, though strict DDD keeps the domain free of framework imports."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "yes"
+  }
+ ],
+ "items": [
+  {
+   "itemId": "M01",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "no",
+     "why_not": "C",
+     "note": "Both files are inside the same auth module so B is no under R4, though a reviewer would move __secret out of auth.module.ts to avoid the circular import."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "no",
+     "why_not": "C",
+     "note": "Both files are inside the same auth module, so B is no under R4, though a reviewer would ask to move __secret out of auth.module.ts to avoid the circular import."
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "no",
+     "why_not": "C",
+     "note": "A reviewer would move __secret out of auth.module.ts to avoid a file cycle, but both files sit inside the same auth module so R4 makes B no."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M02",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Driven persistence adapter extends TypeORM Repository directly without implementing any outbound port interface from application or domain."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "F",
+     "note": "TypeORM @EntityRepository subclass is an internal ORM repository helper used by the persistence adapter, not the port-implementing adapter class itself."
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M03",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M04",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "AccountMap converts the domain Account to an application AccountDTO for the use case response; placing module mappers solely in infrastructure is a mapping artefact."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "AccountMap translates the Account domain entity to the application-layer AccountDTO returned by the use case, so mapping mappers/ exclusively to infrastructure is a layer-map artefact."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "AccountMap maps between the Account domain entity and AccountDTO for the use case; treating module mappers solely as infrastructure is a mapping artefact."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M05",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "TypeORM decorators on entity classes are standard NestJS practice, though they couple domain entities to the ORM against strict Clean rules."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "TypeORM decorators on an entity class are a standard NestJS idiom, even though they couple the entity to the ORM under Clean rules."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "TypeORM decorators on entity classes are standard NestJS practice, though Clean rules require entities to remain free of ORM frameworks."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M06",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "TypeORM decorators on entity classes are standard practice in NestJS, even though they couple the entity to the ORM under Clean Architecture rules."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "TypeORM decorators on an entity class are a standard NestJS idiom, though they couple the domain entity to the ORM under Clean rules."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "TypeORM decorators on entity classes are an accepted NestJS idiom, though they violate strict Clean domain purity."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M07",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "application.module.ts is a NestJS module registration file that wires use cases to their outbound repository adapter in the DI container."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "application.module.ts is a NestJS module registration file that wires application use cases with the outbound repository adapter."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "NestJS module registration file assembling use cases and the driven repository adapter in the DI container."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M08",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "account-service.adapter.ts is the core service that implements the inbound driving ports defined in use-case/*.port.ts; both belong to the hexagon core."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "Both files are part of the hexagonal core (src/core): open-account.port.ts is a driving port interface and account-service.adapter.ts is the service implementing it."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "Both files are inside src/core: open-account.port.ts is an inbound port interface and account-service.adapter.ts is the core service implementing it."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M09",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Cycle only passes through the auth module's barrel index.ts while the underlying classes form a DAG inside one module."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Intra-module cycle through the auth module's barrel index.ts."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Intra-module cycle caused only by importing sibling symbols through the module's barrel index.ts."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M10",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M11",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "Log.ts is a cross-cutting logging utility (Log.info), not a presentation-layer component, despite being placed under src/middlewares/."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "Log.ts is a cross-cutting logging utility (Log.info) rather than a presentation component, despite being located in src/middlewares/."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "Log is a cross-cutting logging utility rather than presentation logic (and Local.ts is a Passport auth strategy), even though Log.ts sits under src/middlewares/."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M12",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "CacheService is an infrastructure/caching utility rather than business/domain logic, only flagged because the entire services folder was mapped to the business layer."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "CacheService is an infrastructure/caching utility mapped to the business layer only because it sits under services/."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "CacheService is an infrastructure caching utility rather than business logic, so flagging an upward persistence-to-business dependency here is an artefact of mapping all of services/ to the business layer."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M13",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "no",
+     "why_not": "C",
+     "note": "Intra-module barrel cycle in dto/index.ts does not cross an architectural boundary (R4), though a reviewer would ask to import ./create-user-metadata.dto directly instead of from '.'."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "no",
+     "why_not": "C",
+     "note": "Intra-module cycle through a barrel index.ts does not cross a layer or module boundary (R4), though a reviewer would ask to import './create-user-metadata.dto' directly instead of '.'."
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "no",
+     "why_not": "C",
+     "note": "Intra-module barrel cycle within users/dto does not cross a layer or module boundary (R4), though a reviewer would ask to import directly from ./create-user-metadata.dto instead of the barrel."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M14",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "A repository naturally imports the entity type it persists; placing src/entities in a layer above src/repositories is a layer-map artefact, and the two layers are adjacent so no layer is skipped."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "UserRepository must import the User entity it persists; placing src/entities in the business layer above src/repositories is a mapping artefact (and no layer lies between them)."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "Entities (User) are data/domain models that repositories naturally depend on; placing src/entities in a layer above persistence is a layer-map artefact (and no layer is skipped between adjacent layers)."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M15",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "F",
+     "note": "class-validator decorators are used as a pure in-memory validation utility idiom with the repo's DomainValidator base class, not infrastructure or UI."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "X",
+     "note": "class-validator is an in-memory validation utility library rather than UI, application, or infrastructure code, and this repo's DomainValidator is explicitly built around its decorators."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "X",
+     "note": "class-validator is a pure validation utility library rather than UI or infrastructure code, and the repository explicitly bases DomainValidator on it."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M16",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Presentation middleware imports a persistence model directly, skipping the business/services layer."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M17",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "src/model/Enum.ts defines shared enum types (such as HTTP Method), not persistence logic, so mapping it to the persistence layer is a folder-mapping artefact."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "src/model/Enum.ts defines a shared enum (Method) used alongside ApiLogService, not persistence logic."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "src/model/Enum.ts defines a shared enum type (Method) used to call ApiLogService, not persistence infrastructure."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M18",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "The router file acts as wiring code that assembles routes from middleware and controller factories."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "The router file acts as wiring code that assembles routes from middleware and controller factories."
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "The router file assembles middleware and controller factories with Express adapters as part of the composition root."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M19",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Cycle crosses the boundary between the core event listener and the external WebSocket server setup."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M20",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M21",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M22",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Cycle is contained within the main composition layer between app bootstrap and DI container setup."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Both files belong to the main/composition layer, so the cycle is within a single layer and module."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M23",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "X",
+     "note": "A persistence/read-model mapper importing PostVote to reconstitute PostDetails from raw data does not violate DDD's rule against external objects holding references to an aggregate's internal entities."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "X",
+     "note": "Persistence mappers reconstituting domain objects or read models must reference inner entity types; DDD's aggregate rule restricts object references and mutations, not mapper imports."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M24",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "The cycle crosses layers (domain entities, services, and GraphQL presentation config) and modules via both a cross-layer barrel (_helpers/index.ts) and entity-to-validator-to-service imports."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M25",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Bidirectional TypeORM entity relation within the same persistence adapter and module."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Two-way TypeORM entity relation inside the same outbound persistence adapter and module."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M26",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M27",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "T",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "T",
+     "note": "Test harness/utility file in __tests__, not production domain or application code."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M28",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Intra-layer cycle within a single folder through barrel index.ts in fixture setup code."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Intra-layer, intra-module cycle through an index.ts file inside fixture setup code."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M29",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "T",
+     "note": "The file is a test mock helper under tests/mock, not production domain code."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "T",
+     "note": "The source file is a test mock under domain/tests/mock, not production domain code."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M30",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "F",
+     "note": "TypeORM entity importing a column ValueTransformer in the same NestJS feature module is a standard ORM/framework idiom."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "F",
+     "note": "User is a TypeORM entity in src/modules/user and PasswordTransformer is a co-located TypeORM ValueTransformer used in its @Column decorator."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M31",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "ApplicationContainer is the DI/service container in src/app used at the controller boundary, and DDD sources do not forbid presentation code from referencing it."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "Base controller referencing the application DI container is part of dependency wiring and does not violate DDD domain isolation."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M32",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M33",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M34",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "BaseRepository is an abstract base class/contract with stub methods and no infrastructure dependencies, not a concrete repository implementation."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "BaseRepository is a generic abstract base class/contract with no database dependencies, mapped to infrastructure only because of its folder name rather than being a concrete repository implementation."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M35",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "CreatePostAdapter is a use-case input port adapter used by the HTTP controller to construct validated use-case inputs; flagging presentation -> infrastructure is an artefact of the layer map ordering and folder naming."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "CreatePostAdapter is a use-case input port adapter (Interface Adapter) meant to be used by the HTTP controller; flagging presentation -> infrastructure here is a layer-mapping artefact."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M36",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Swagger API decorators belong on presentation/API DTOs, not on a DDD domain model."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Swagger API decorators belong on presentation DTOs, not on a domain class in DDD."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M37",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "ApiService configures the Express HTTP server and DI container (Frameworks & Drivers / wiring), not an inner layer that must be isolated from HttpServer."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "ApiService configures Express, helmet, routing-controllers, and DI for the HTTP server, placing it in the outer frameworks/wiring layer alongside HttpServer rather than inner to infrastructure."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M38",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "no",
+     "why_not": "M",
+     "note": "JwtAuthGuard is a cross-cutting GraphQL authentication guard rather than internal user domain/context logic, though in code review one would move it to shared or export it from the module root instead of importing from user/infra."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Cross-context auth guards should be exposed via the user context's public API or moved to shared infrastructure rather than deep-imported from user/infra."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M39",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "Controller in presentation reaches directly into the persistence model instead of delegating through the business service layer."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M40",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "T",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "T",
+     "note": ""
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M41",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "Implementing the IEvent marker interface from @nestjs/cqrs is a standard NestJS CQRS idiom, though strict DDD keeps domain events free of framework imports."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "Implementing IEvent from @nestjs/cqrs is a standard NestJS CQRS idiom, though strict DDD keeps the domain free of framework imports."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M42",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "X",
+     "note": "Layered architecture allows the business layer to depend downward on persistence/ORM (R1), and injecting TypeORM's MongoRepository in services is standard in this 3-tier style."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "F",
+     "note": "In Layered architecture (R1) the business layer may depend downward on persistence, and injecting TypeORM repositories in services is standard in this style."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M43",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "yes",
+     "why_not": "C",
+     "note": "Bidirectional ORM entity relation between User and Article crosses module boundaries (user and article) but is standard TypeORM practice in NestJS."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "yes",
+     "why_not": "C",
+     "note": "Two-way TypeORM entity relation across the article and user modules."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M44",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "MysqlAdapter is a low-level MySQL wrapper (implementing IMysqlAdapter from unmapped src/types/infrastructure) used by infrastructure repositories, not a domain-facing port adapter."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "MysqlAdapter is a low-level DB client helper (implementing IMysqlAdapter from unmapped src/types/infrastructure) used by repositories, not a domain port adapter."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M45",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "no",
+     "why_not": "C",
+     "note": "The cycle is entirely within the presentation layer between two controller files sharing response DTOs; a reviewer would ask to extract the DTOs, though it does not cross a layer boundary."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "no",
+     "why_not": "C",
+     "note": "The cycle is within the presentation layer only, though a reviewer would still ask not to couple controllers via circular imports of response types."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M46",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "In Clean/NestJS, a Passport strategy (infrastructure/adapter) is outer to AuthService (application), so the dependency points inward; it is also the standard NestJS Passport idiom within the auth module."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "In Clean/NestJS, a Passport JwtStrategy (outer adapter/infrastructure) depending on AuthService (application) points inward and is the standard NestJS auth idiom; the finding is an artefact of the layer map ordering infrastructure inner to application."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M47",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M48",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "In Clean/NestJS, the DB repository implementation (infrastructure) is outer to the application layer (and its DTOs), so this dependency points inward; the finding is an artefact of the layer map ordering infrastructure inner to application."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 3,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "In Clean Architecture, the DB repository implementation (infrastructure) is outer to the application layer (DTOs and repository interfaces), so this dependency points inward; the layer map inverted infrastructure and application."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M49",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "TypeORM decorators on entity classes are standard NestJS practice, though they violate strict Clean domain purity."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "TypeORM decorators on entities are a standard NestJS idiom in practice, though they violate the strict Clean principle that entities know nothing of databases or frameworks."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M50",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Two model classes in the same persistence layer referencing each other in a bidirectional relation."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "C",
+     "note": "Two model classes in the same layer referencing each other in a bidirectional relation."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M51",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "X",
+     "note": "Abstract base class providing shared Prisma helper methods; concrete repository subclasses implement the domain ports."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "X",
+     "note": "Abstract base class providing shared Prisma utilities for concrete repository adapters, which implement the ports."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M52",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M53",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "The layer map places src/projection/** in infrastructure, but ReadModel.ts exports the IBookReadModelFacade interface that event handlers are meant to call to update CQRS read models (and DDD only requires the domain layer to be free of infrastructure)."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "In CQRS/ES, event handlers naturally depend on read-model projection interfaces (IBookReadModelFacade), and DDD only requires the domain layer to be free of application/infrastructure code."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M54",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "Implementing IEvent from @nestjs/cqrs on domain events is a standard NestJS CQRS idiom, though strict DDD keeps the domain free of framework imports."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "yes",
+     "why_not": "F",
+     "note": "Implementing the marker interface IEvent from @nestjs/cqrs on domain events is standard practice in NestJS CQRS/DDD projects, though it technically couples the domain to a framework package."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M55",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "account-service.adapter.ts is the core/application service implementing the inbound use-case port PerformDebit, placed in the domain layer by the folder map."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "Both files are inside src/core/; account-service.adapter.ts is the core service implementing the driving port interface PerformDebit, not a domain entity depending on an outer layer."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M56",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "models/User.ts acts as the domain model exposed by UserService and PetService in the business layer, so importing it in a resolver does not bypass business for persistence."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "models/User is the domain entity type exposed by UserService and PetService in the business layer, not persistence-only infrastructure."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M57",
+   "runs": [
+    {
+     "run": 1,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "In DDD, only aggregate roots have repositories; inner entities like PostVote should be persisted through the Post aggregate root repository or promoted to their own aggregate root."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "PostVote is an inner entity of the Post aggregate, so having a dedicated repository (IPostVotesRepo / SequelizePostVotesRepo) for it violates the DDD rule that repositories exist only for aggregate roots."
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M58",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "W",
+     "note": "This index.ts file is the composition root wiring concrete repository implementations into CreateAccountUseCase."
+    },
+    {
+     "run": 2,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": "The accounts context directly imports and instantiates an internal repository implementation from the users context instead of going through a published interface or anti-corruption layer."
+    },
+    {
+     "run": 3,
+     "A": "yes",
+     "B": "yes",
+     "why_not": "",
+     "note": ""
+    }
+   ],
+   "A_majority": "yes",
+   "B_majority": "yes"
+  },
+  {
+   "itemId": "M59",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "User is a data/domain model class shared across routes, middlewares, and services rather than a persistence-access layer bypassing the service layer."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "entities/User.ts is a shared data/domain model class passed across routes, middlewares, and services rather than a persistence-access layer."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  },
+  {
+   "itemId": "M60",
+   "runs": [
+    {
+     "run": 1,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "cache.service.ts is a technical HTTP caching service for Express requests, not business/domain logic; it was only flagged because all of src/api/core/services/** was mapped to the business (domain) layer."
+    },
+    {
+     "run": 2,
+     "A": "no",
+     "B": "no",
+     "why_not": "M",
+     "note": "cache.service.ts is a technical HTTP request caching helper, not business/domain logic, mapped to business/domain only because it sits in services/."
+    }
+   ],
+   "A_majority": "no",
+   "B_majority": "no"
+  }
+ ]
+}

@@ -30,6 +30,8 @@ const PACKET = 'audit/view/mean-01-rater-packet.md';
 const CALIB = 'audit/view/mean-01-calibration.md';
 const SAMPLE = 'results/v1.3-meaning/mean-01-sample.json';
 const LEDGER = `${DIR}/results/calls.jsonl`;
+// Addendum 1: every counted answer came through the Gemini API route, so scoring reads that ledger.
+const API_LEDGER = `${DIR}/results/api-calls.jsonl`;
 export const MODEL = 'gemini-4-argon-high'; // `agy models`: "Gemini 4 Argon (High)"
 const RUNS = 3;
 const PAUSE_MS = 4000;
@@ -179,9 +181,9 @@ export function parseAnswer(text: string): Answer | null {
   return { A: A as Val, B: B as Val, why_not: w, note: typeof o.note === 'string' ? o.note : '' };
 }
 
-function readLedger(): Call[] {
-  if (!fs.existsSync(LEDGER)) return [];
-  return fs.readFileSync(LEDGER, 'utf8').split('\n').filter((l) => l.trim() !== '').map((l) => JSON.parse(l) as Call);
+function readLedger(file = LEDGER): Call[] {
+  if (!fs.existsSync(file)) return [];
+  return fs.readFileSync(file, 'utf8').split('\n').filter((l) => l.trim() !== '').map((l) => JSON.parse(l) as Call);
 }
 
 async function preflight(): Promise<boolean> {
@@ -284,7 +286,7 @@ function fleissKappaBinary(rows: readonly (readonly boolean[])[]): number | null
 
 function score(): void {
   const { calibration, sample } = allItems();
-  const ledger = readLedger();
+  const ledger = readLedger(API_LEDGER).map((c) => ({ ...c, servedModel: c.servedModel ?? null }));
   const meta = JSON.parse(fs.readFileSync(SAMPLE, 'utf8')) as { items: SampleRow[]; N_h: Record<string, number> };
   const rowOf = new Map(meta.items.map((r) => [r.itemId, r]));
   const okByItem = new Map<string, Call[]>();
@@ -371,7 +373,7 @@ function score(): void {
   const served = [...new Set(ledger.filter((c) => c.servedModel !== null).map((c) => c.servedModel))];
   const result = {
     id: 'MEAN-01-panel', claim: 'C3m', status: missing.length > 6 ? 'incomplete, below protocol (more than 6 items missing)' : 'complete',
-    rater: { route: 'agy (Antigravity CLI) labeller home, one-shot, no tools, fresh empty cwd per call', requestedModel: MODEL, servedModels: served, runsPerItem: RUNS },
+    rater: { route: 'Gemini Developer API (PROTOCOL.md addendum 1), gemini-4-argon, thinkingLevel high, no tools; addendum 3 runs only where a majority could change', requestedModel: 'gemini-4-argon', servedModels: served, runsPerItem: RUNS },
     primaryField: 'A_practitioner (codebook §2, L4 = A)',
     C3m: { definition: 'stratified share of the 60 sampled correct blocking findings whose primary field (A) majority label is yes: p = sum_h (N_h / N) * p_h (codebook §9.2)', A: field('A_majority'), B_secondary: field('B_majority') },
     unsure: { rawRunUnsureRateA: r4(rawUnsure / Math.max(1, rawA)), majorityUnsureA: labels.filter((l) => l.A_majority === 'unsure').length, flagAbove15pct: rawUnsure / Math.max(1, rawA) > 0.15 },
