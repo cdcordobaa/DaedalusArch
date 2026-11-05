@@ -173,3 +173,25 @@ changes. Every answer already recorded finished under the old budget, so a large
 
 **Retries.** The two `MAX_TOKENS` items count as unanswered, so they are asked again under the new budget (the runner
 skips only `ok` lines). The HTTP 402 lines are not model answers and are also asked again. The stop rules are unchanged.
+
+## Addendum 3 (2026-11-04, before any further sample call): ask only what can change a label
+
+**Why.** The sample stopped a second time on HTTP 402 with 153 valid answers of 180. With 2 valid runs that agree on a
+field, the majority rule (§5, a value with ≥ 2 votes) is already fixed for that field; a third run cannot change it.
+The account credit is limited, so the remaining calls go only where they can change a majority label.
+
+**What changes.**
+- A new runner mode, `panel-api.ts complete`. After every call it reads the ledger again. An item still needs a run
+  when it has fewer than 2 valid runs, or when it has exactly 2 valid runs that differ on A or on B. It then gets its
+  lowest-numbered run that has no valid answer, with the usual 2 attempts. Items with 3 valid runs, or with 2 that
+  agree on A and B, get no further call.
+- When this was written, the items still needing a run were M21 (no valid run yet), M38 (split on B), M48 and M58
+  (split on A). This list was computed from the ledger without looking at the item texts.
+- A spend guard: the runner adds up the measured usage of the calls it makes (input × $2 and thinking plus output ×
+  $10 per million tokens, the listed price) and makes no new call once that total passes $0.75.
+- An item whose 3 runs have each had their 2 attempts gets nothing more; it is then missing or `unsure` by §5.
+
+**Consequence.** The majority labels are unaffected. Panel consistency (§5, "reported beside it": unanimous items and
+Fleiss κ over the 3 runs) is reported over the items with 3 valid runs only, and the number of those items is stated.
+
+Unchanged: the codebook, the items, the prompt, the model and settings, the majority rule, C3m and the author audit.
