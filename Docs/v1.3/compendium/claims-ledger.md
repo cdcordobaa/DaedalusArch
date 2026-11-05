@@ -67,7 +67,8 @@
 | [2026-11-02 sync: Hexagonal study pilot, rehearsal and deviations DEV-HX-1/2; hold-out attempt 4 stopped (DELEG-H5)](claims-ledger/v15-f-hx-pilot-holdout-attempt4.md) | C10432–C10441 | 10 | 7 | 3 | 0 | 0 |
 | [2026-11-03 sync: Hexagonal study result (H-HX), v1.5 rule review, SEM-GATE and SEM-GATE-2, SEM-2 pilot, X-1 extension](claims-ledger/v15-g-hx-result-sem-gates.md) | C10442–C10468 | 27 | 15 | 2 | 9 | 1 |
 | [2026-11-04 sync: SEM-2 pilot correction, SEM-GATE-3 (R-MIRROR-SEM form C, v1.5.10), HCAL-08 blind admission](claims-ledger/v15-h-sem2-correction-sem-gate-3-hcal08.md) | C10469–C10489 | 21 | 6 | 4 | 11 | 0 |
-| **total** | C0001–C10489 | **10,215** | 5,431 | 1,113 | 3,286 | 385 |
+| [2026-11-05 sync: v1.5.11 and the HCAL-09 blind admission](claims-ledger/v15-i-hcal09-admission.md) | C10490–C10505 | 16 | 6 | 7 | 3 | 0 |
+| **total** | C0001–C10505 | **10,231** | 5,437 | 1,120 | 3,289 | 385 |
 
 By evidence type (recounted 2026-10-23 over all parts; +3 descriptive on 2026-10-25; +17 descriptive, +69 criterion and +4 correctness on 2026-10-27; +7 descriptive and +4 criterion on 2026-10-28): descriptive 2,806, criterion 1,794, pilot 1,076, reliability 1,073, neural 1,065, correctness 1,015, power 617, convergent 224, mutation 182, metamorphic 74, confirmatory 34.
 

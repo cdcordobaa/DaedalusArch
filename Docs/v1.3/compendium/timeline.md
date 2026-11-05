@@ -206,6 +206,9 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-11-03 | HCAL-08 blind admission scored once: SET 6/6 met; WORD 0/6, KEY 0/6, EDGE 6/11 not met; R-MIRROR-SEM formed no candidate (PRs #494, #495) | |
 | 2026-11-03 | The building-process layer and the old paper drafts were removed from the public tree (PRs #491, #492); the ledger check reads the cited paper files from their last commit | |
 | 2026-11-04 | Daily thesis sync: claims C10469–C10489 (part `v15-h`), nulls M313–M315, chronology rows 92–93, open items §19. Window 636ba8b6..a31bbb47 (PRs #488–#495). Public sync PR #496 (merged); private thesis PR cdcordobaa/tesis-msc-unal#45 (open for the author: not compiled; note on #44) | |
+| 2026-11-04 | v1.5.11 (tsconfig `paths`, R-APPVENDOR exploratory, barrel in `adapters/out` is no package) from the HCAL-08 hand read (PR #498); HCAL-09 set built blind and sealed, 94 cases (PR #499) | |
+| 2026-11-04 | HCAL-09 blind admission scored once: DX9-SET met the bar (6/6, 0/6); HX9-EDGE 11/11 with 1/10 flagged, HX9-SET 5/6, HX9-FIELD 5/6, HX9-KEY 3/6, HX9-RULE 3/6, HX9-WORD 0/6 not met; admission left to the author (PR #500) | |
+| 2026-11-05 | Daily thesis sync: claims C10490–C10505 (part `v15-i`), nulls M316–M317, chronology row 94, open items §20; C10486 re-anchored. Window a31bbb47..87fb54a3 (PRs #498–#500; PRs #496 and #497 were the previous sync). PR links in the next entry | |
 
 ## What the timeline shows for the thesis
 
