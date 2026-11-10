@@ -210,6 +210,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-11-04 | HCAL-09 blind admission scored once: DX9-SET met the bar (6/6, 0/6); HX9-EDGE 11/11 with 1/10 flagged, HX9-SET 5/6, HX9-FIELD 5/6, HX9-KEY 3/6, HX9-RULE 3/6, HX9-WORD 0/6 not met; admission left to the author (PR #500) | |
 | 2026-11-05 | Daily thesis sync: claims C10490–C10505 (part `v15-i`), nulls M316–M317, chronology row 94, open items §20; C10486 re-anchored. Window a31bbb47..87fb54a3 (PRs #498–#500; PRs #496 and #497 were the previous sync). Public sync PR #501 (merged); private thesis PR cdcordobaa/tesis-msc-unal#46 (open for the author: not compiled, no LaTeX here) | |
 | 2026-11-07 | Daily thesis sync: no new evidence. Window 87fb54a3..2bd031fd holds only the 2026-11-05 sync PRs (#501, #502); no new reports under Docs/DiagnosticRuns/, Docs/v1.3/ (outside the compendium) or papers/. | |
+| 2026-11-10 | Daily thesis sync: no new evidence. Window 2bd031fd..c9737462 holds only the 2026-11-07 sync PR (#504); no new reports under Docs/DiagnosticRuns/, Docs/v1.3/ (outside the compendium) or papers/. | |
 
 ## What the timeline shows for the thesis
 
