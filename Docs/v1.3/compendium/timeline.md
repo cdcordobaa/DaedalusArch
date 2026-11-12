@@ -212,6 +212,7 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 | 2026-11-07 | Daily thesis sync: no new evidence. Window 87fb54a3..2bd031fd holds only the 2026-11-05 sync PRs (#501, #502); no new reports under Docs/DiagnosticRuns/, Docs/v1.3/ (outside the compendium) or papers/. | |
 | 2026-11-10 | Daily thesis sync: no new evidence. Window 2bd031fd..c9737462 holds only the 2026-11-07 sync PR (#504); no new reports under Docs/DiagnosticRuns/, Docs/v1.3/ (outside the compendium) or papers/. | |
 | 2026-11-11 | Daily thesis sync: no new evidence. Window 2bd031fd..d5968c86 holds only the 2026-11-07 and 2026-11-10 sync PRs (#504, #507); no new reports under Docs/DiagnosticRuns/, Docs/v1.3/ (outside the compendium) or papers/. | |
+| 2026-11-12 | Daily thesis sync: no new evidence. Window 2bd031fd..6cbf86ca holds only the sync PR #508; no new reports under Docs/DiagnosticRuns/, Docs/v1.3/ (outside the compendium) or papers/. | |
 
 ## What the timeline shows for the thesis
 
