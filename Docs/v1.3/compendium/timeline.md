@@ -223,3 +223,4 @@ Times are UTC merge times. Claims: ledger parts `claims-ledger/v14-s` to `v14-v`
 5. **From 2026-10-20 most decisions are delegated** (DELEG2 to DELEG6): the repository records acceptances under delegation, not signatures.
 6. **The v1.5 final study (2026-10-29) is the second confirmatory result.** It was registered with two dated deviations (DEV-1, DEV-2). H1 (DDD) is supported; H2 (Hexagonal) is not rejected, and the Hexagonal arm did not deliver the Hexagonal admitted rules. N1(b) and N2 were not run.
 | 2026-11-13 | Daily thesis sync: no new evidence. Window 2bd031fd..52be1e27 holds only the sync PRs #508 and #509; no new reports under Docs/DiagnosticRuns/, Docs/v1.3/ (outside the compendium) or papers/. | |
+| 2026-11-14 | Daily thesis sync: no new evidence. Window 2bd031fd..1adb48f0 holds only the sync PRs #507, #508, #509 and #510; no new reports under Docs/DiagnosticRuns/, Docs/v1.3/ (outside the compendium) or papers/. | |
